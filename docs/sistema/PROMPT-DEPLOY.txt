@@ -1,0 +1,68 @@
+PROTOCOLO DE DEPLOY AUTOMÁTICO — publica la app de principio a fin, tú solo
+📌 CUÁNDO USARLO: cuando quieres publicar tu app en internet, de principio a fin.
+(Pegar completo en Claude Code, con tu app abierta y el sistema en docs/sistema/. Único paso previo:
+ conecta GitHub, Supabase y Vercel en Claude → Personalizar → Conectores. El agente hace el resto.)
+================================================================================================
+
+Publica esta app en producción de PRINCIPIO A FIN tú solo, usando los conectores de GitHub,
+Supabase y Vercel que ya dejé conectados. Si alguno no está conectado o le falta permiso, dime el
+clic exacto (Personalizar → Conectores → [servicio]) y sigue avanzando con lo que sí puedas. Si no
+hay conectores disponibles, hazlo por CLI (gh, supabase, vercel): maneja primera-vez vs
+repo/proyecto ya existente por cada servicio, y guíame con el clic exacto cuando haga falta (crear
+cuenta, autorizar en el navegador). Resuelve todo lo que
+puedas SIN preguntar; agrupa en UN solo mensaje lo poco que necesites de mí. Háblame simple, sin
+tecnicismos. Actualiza ESTADO.md al terminar.
+
+ANTES DE PUBLICAR, explícame en simple qué voy a necesitar hacer yo y qué puede costar dinero:
+crear o conectar cuentas, comprar dominio, pegar claves, activar planes pagos si el free tier no alcanza.
+Marca todo eso con ⚠️. No publiques si hay un bloqueo crítico de seguridad, pago o datos.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PASO 0 — PRE-VUELO (obligatorio, sin preguntar)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- `npx tsc --noEmit` y `npm run build` limpios. Si fallan, corrige la CAUSA RAÍZ con CLAUDE.md.
+- Corre la auditoría de docs/sistema/27-REVISION-SEGURIDAD.md (grep de fail-open, npm audit, secretos,
+  RLS, IDOR). NO publiques con un hallazgo crítico abierto: corrígelo o avísame en una línea.
+- Confirma `.env` en `.gitignore` y que NINGUNA clave sensible esté en el frontend (patrón BFF, archivo 09).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PASO 1 — GITHUB (vía conector)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Crea el repositorio (PRIVADO por defecto, porque es una app para vender) y sube el código con el
+commit "feat: MVP inicial". Si ya existe repo, haz commit y push de lo pendiente.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PASO 2 — SUPABASE (vía conector)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Aplica el esquema/migraciones con el flujo declarativo (docs/sistema/25-BASE-DE-DATOS.md), activa
+RLS en TODAS las tablas con `(select auth.uid())` + índice de cada política, y corre `db advisors`
+(sin alertas críticas). Deja listas las variables de entorno del servidor.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PASO 3 — VERCEL (vía conector)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Importa el repo, detecta el framework, configura las variables de entorno del servidor (las
+sensibles NUNCA con prefijo NEXT_PUBLIC_/VITE_) y despliega. Verifica que la URL de producción
+carga sin errores en consola.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PASO 4 — LO ÚNICO QUE NECESITO DE TI (pídemelo TODO junto, en un mensaje)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Las claves de las APIs que use la app (Anthropic / Gemini "Nano Banana" / ElevenLabs) y, si vendes
+  por Hotmart, el hottok. Tú las pones en el entorno del servidor, NUNCA en el repo.
+- Si la app manda emails (acceso post-compra, recuperación): la RESEND_API_KEY y el dominio de envío
+  verificado en Resend — sin esto, el comprador paga y no recibe su acceso.
+- Si quieres dominio propio: dime cuál y te doy los registros DNS exactos para pegarlos donde lo compraste.
+- ⚠️ Y EL PASO QUE TODOS OLVIDAN: registrar la URL de PRODUCCIÓN del webhook en el panel de Hotmart
+  (Herramientas → Webhook: https://tudominio.com/api/webhooks/hotmart — detalle en 18). Si el dominio
+  cambia después, la URL se actualiza en Hotmart TAMBIÉN. Sin esto, la gente paga y tu app nunca se entera.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PASO 5 — REPORTE DE CIERRE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Pre-vuelo (build + auditoría 27)   ✅ GitHub [link]   ✅ Supabase [RLS + migraciones]
+✅ Vercel [link de producción]   ✅ Pago E2E: compra de prueba → webhook llega → plan Pro en DB →
+   email de acceso recibido (si vendes por Hotmart — 18)   ⚠️ Pendientes míos (si hay)   🚀 App en vivo: [link]
+
+REGLAS: resuelve solo lo que puedas sin preguntar; una sola tanda de preguntas; lenguaje simple;
+si algo falla, una línea de qué pasó y cómo lo resuelves; nunca subas secretos al repo.

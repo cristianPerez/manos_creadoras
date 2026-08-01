@@ -1,0 +1,63 @@
+ANALÍTICA — instrumenta la app para saber QUÉ pasa de verdad (funnel, retención, atribución)
+(Pegar con la app abierta + el sistema en docs/sistema/)
+===============================================================================================
+
+Instrumenta esta app para que las decisiones se tomen con DATOS, no con sensaciones: qué hace la
+gente, dónde se cae el funnel, de dónde vienen los que compran, y si vuelven. REGLA CLAVE: solo
+se mide lo que responde una DECISIÓN — un evento que nadie va a mirar es deuda, no dato. Primero
+auditoría y plan, y ESPERA MI OK antes de tocar código.
+
+ANTES DE PROPONER, si no está claro, pregúntame en simple:
+1. ¿Qué pregunta te quita el sueño hoy: por qué no compran, por qué no vuelven, o de dónde
+   vienen los que sí compran?
+2. ¿Ya hay alguna herramienta de analítica instalada, o partimos de cero?
+Si no contesto, dedúcelo del código y cubre el funnel completo.
+
+LEE PRIMERO: 36-ANALITICA-Y-EVENTOS (la taxonomía canónica y el diccionario de eventos — es LA
+referencia), 24-GAMIFICACION (sus eventos van en inglés — es la excepción), 21-BACKOFFICE (el
+dashboard del dueño donde estos números se miran) y 02B-ONBOARDING-Y-PAYWALL (los pasos del
+funnel que hay que medir).
+
+━━━ FASE 1 — AUDITAR QUÉ SE MIDE HOY (solo lectura) ━━━
+Recorre el código y compara contra el diccionario del 36: ¿qué eventos existen?, ¿respetan la
+taxonomía?, ¿hay eventos duplicados, rotos o que nadie mira? Verifica también: ¿existe atribución
+(saber de dónde vino cada usuario)? ¿la conversión se registra en el servidor o solo en el
+navegador (donde los bloqueadores de anuncios la borran)?
+
+━━━ FASE 2 — PLAN DE EVENTOS FALTANTES Y DETENTE (espera mi OK) ━━━
+Preséntame la tabla: | Evento | ¿Existe? | Qué decisión responde | Prioridad |
+Con estas reglas del 36 como ley:
+  • TAXONOMÍA: snake_case en español (ej. plan_actualizado, onboarding_completado).
+    EXCEPCIÓN: los eventos de gamificación del 24 van en inglés — no los renombres.
+  • FUNNEL CANÓNICO completo: app_abierta → onboarding (inicio/paso/completado) → aha (la
+    primera victoria real) → paywall_visto → plan_actualizado. Sin el funnel entero, no se
+    sabe DÓNDE se caen.
+  • MOMENTOS: momento_mostrado, logro_compartido y los del 56 que apliquen.
+  • ATRIBUCIÓN: el parámetro ?src= de cada link (ads, afiliados, contenido) viaja hasta
+    profiles.source — para saber qué canal trae COMPRADORES, no solo visitas.
+  • CONVERSIÓN SERVER-SIDE: la compra se registra desde el servidor (webhook de Hotmart), no
+    solo desde el navegador — los adblockers borran ~20-30% de lo que se mide en el cliente.
+  • RETENCIÓN: lo mínimo para calcular las curvas D1/D7/D30 (¿cuántos vuelven al día 1, 7, 30?).
+Cada evento propuesto debe decir QUÉ DECISIÓN responde. Si no responde ninguna, no va.
+NO ejecutes hasta que yo apruebe la lista.
+
+━━━ FASE 3 — (tras mi OK) INSTRUMENTAR ━━━
+Implementa los eventos aprobados siguiendo el 36 (nombres, propiedades, dónde se disparan).
+Tras cada bloque: tsc --noEmit + build + dev limpio. Sin datos personales sensibles en las
+propiedades de los eventos (nada de emails ni contenido privado del usuario).
+
+━━━ FASE 4 — VERIFICAR QUE CADA EVENTO LLEGA (un evento no verificado no existe) ━━━
+Por CADA evento nuevo: dispáralo de verdad en la app (haz la acción como usuario) y confirma que
+aparece en el panel/tabla de destino con sus propiedades correctas. Prueba también la atribución
+end-to-end: entrar con ?src=prueba → registrarse → verificar que profiles.source dice "prueba".
+Un evento instrumentado que no se verificó llegando es un evento que probablemente no llega.
+
+━━━ FASE 5 — EL DASHBOARD MÍNIMO (que los datos se MIREN) ━━━
+Conecta los números al backoffice (21): funnel con % de caída entre pasos, ventas por fuente
+(src), y curvas D1/D7/D30. Si el backoffice no existe aún, deja las consultas listas y anota en
+ESTADO.md que el botón siguiente es /backoffice.
+
+CIERRE: actualiza ESTADO.md con: eventos activos (el diccionario vivo), qué decisión responde
+cada grupo, cómo se verifica un evento nuevo, y qué números mirar en la operación mensual.
+Reporte con evidencia: ✅ eventos implementados y VERIFICADOS (visto llegar) · 🔍 tsc ✓ build ✓
+dev ✓ · ⚠️ pendientes. Empieza con la Fase 1.

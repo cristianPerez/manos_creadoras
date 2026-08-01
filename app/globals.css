@@ -1,26 +1,222 @@
 @import "tailwindcss";
 
+/* Tokens derivados de FICHA-ARTE.md — Opción B "Editorial de Revista" (cosa juzgada, no editar sin actualizar la ficha) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  /* ====== SUPERFICIES ====== */
+  --surface-base: #090706;
+  --surface-primary: #120f0c;
+  --surface-secondary: #171310;
+  --surface-tertiary: #060504;
+  --surface-elevated: #171310;
+  --surface-overlay: rgba(5, 4, 3, 0.75);
+
+  /* ====== TEXTOS ====== */
+  --text-primary: #f6f1e7;
+  --text-secondary: #c9beac;
+  --text-tertiary: #8a8378;
+  --text-inverse: #1a1206;
+
+  /* ====== BORDES ====== */
+  --border-default: rgba(225, 175, 74, 0.22);
+  --border-strong: rgba(225, 175, 74, 0.4);
+  --border-focus: #e1af4a;
+
+  /* ====== MARCA — dorado (único acento, 60-30-10) ====== */
+  --brand-primary: #e1af4a;
+  --brand-gradient-start: #ebcd8c;
+  --brand-gradient-end: #d48e00;
+  --brand-primary-soft: rgba(225, 175, 74, 0.12);
+  --brand-primary-text: #1a1206;
+
+  /* ====== ALIAS CORTOS ====== */
+  --bg: var(--surface-base);
+  --surface: var(--surface-primary);
+  --text: var(--text-primary);
+  --accent: var(--brand-primary);
+
+  /* ====== SEMÁNTICOS ====== */
+  --status-success: #4ade80;
+  --status-success-soft: rgba(74, 222, 128, 0.12);
+  --status-error: #f87171;
+  --status-error-soft: rgba(248, 113, 113, 0.12);
+  --status-warning: #f5a524;
+  --status-warning-soft: rgba(245, 165, 36, 0.12);
+  --status-info: #7dd3fc;
+  --status-info-soft: rgba(125, 211, 252, 0.12);
+
+  /* ====== SOMBRAS — glow dorado ambiental (dispositivo firma) ====== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 20px 60px -20px rgba(225, 175, 74, 0.4);
+  --shadow-overlay: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+  /* ====== RADIOS ====== */
+  --radius-sm: 0.5rem;    /* 8px — chips, badges */
+  --radius-md: 0.75rem;   /* 12px — inputs, botones secundarios */
+  --radius-lg: 1rem;      /* 16px — botones grandes no-pill */
+  --radius-xl: 1.5rem;    /* 24px — cards (medido del sitio actual) */
+  --radius-device: 2rem;  /* 32px — SOLO el marco de teléfono del carrusel, nunca cards de contenido */
+  --radius-full: 9999px;  /* pill — CTA primario */
+
+  /* ====== TIPOGRAFÍA — las *-src las inyecta next/font desde app/layout.tsx ====== */
+  --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
+  --font-body: var(--font-body-src), "Jost", system-ui, sans-serif;
+
+  --text-xs: 0.6875rem;   /* 11px — eyebrows */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.9375rem; /* 15px */
+  --text-lg: 1.0625rem;   /* 17px */
+  --text-xl: 1.375rem;    /* 22px */
+  --text-2xl: 2rem;       /* 32px */
+  --text-3xl: 2.5rem;     /* 40px */
+  --text-4xl: 3rem;       /* 48px */
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+
+  --tracking-tight: -0.02em;
+  --tracking-eyebrow: 0.18em;
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-base: 1.5;
+  --leading-relaxed: 1.6;
+
+  /* ====== ESPACIADO — escala única 4·8·12·16·24·32·48·64 ====== */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ====== EASING (14/DESIGN-CORE) ====== */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --transition-fast: 150ms var(--ease-out);
+  --transition-base: 250ms var(--ease-out);
+  --transition-slow: 350ms var(--ease-out);
+
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-overlay: 30;
+  --z-modal: 40;
+  --z-toast: 50;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface-base: var(--surface-base);
+  --color-surface-primary: var(--surface-primary);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-tertiary: var(--surface-tertiary);
+  --color-surface-elevated: var(--surface-elevated);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-soft: var(--brand-primary-soft);
+  --color-brand-primary-text: var(--brand-primary-text);
+
+  --color-status-success: var(--status-success);
+  --color-status-error: var(--status-error);
+  --color-status-warning: var(--status-warning);
+
+  /* Stack completo, sin indirección: si aquí se pusiera var(--font-display) se auto-referencia */
+  --font-sans: var(--font-body-src), "Jost", system-ui, sans-serif;
+  --font-body: var(--font-body-src), "Jost", system-ui, sans-serif;
+  --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-device);
+  --radius-full: var(--radius-full);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(ellipse 900px 500px at 50% 0%, color-mix(in srgb, var(--brand-primary) 12%, transparent), transparent),
+    linear-gradient(180deg, var(--surface-tertiary) 0%, var(--bg) 55%);
+  color: var(--text);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Entrada por CSS puro (baseline 1) — no depende de que ninguna librería de JS hidrate */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  animation: reveal 0.4s var(--ease-out) both;
+  animation-delay: var(--reveal-delay, 0s);
+}
+
+/* Celebración — SOLO hitos reales (ej. compra confirmada), nunca decorativo */
+@keyframes celebrate {
+  0% {
+    transform: scale(0.8);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand-primary) 45%, transparent);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--brand-primary) 0%, transparent);
+  }
+}
+
+.celebrate {
+  animation: celebrate 0.6s var(--ease-spring) both;
+  animation-delay: 0.1s;
+}
+
+/* Grano sutil — dispositivo ownable de la Opción B, usado solo en el hero */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }

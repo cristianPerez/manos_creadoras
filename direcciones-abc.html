@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manos Creadoras — Direcciones A/B/C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#090706; --surface:#120f0c; --surface-2:#171310;
+    --text:#f6f1e7; --text-2:#c9beac;
+    --gold-1:#ebcd8c; --gold-2:#d48e00; --gold-solid:#e1af4a;
+    --border-gold: rgba(225,175,74,.35);
+    --shadow-gold: rgba(225,175,74,.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:#050505; margin:0; padding:40px 16px 80px; display:flex; gap:28px;
+    flex-wrap:wrap; justify-content:center; align-items:flex-start;
+    font-family:'Jost','Jost Fallback',monospace;
+  }
+  .col{ width:375px; }
+  .label{
+    text-align:center; color:#fff; font-family:'Jost','Jost Fallback',monospace;
+    margin-bottom:10px;
+  }
+  .label .tag{
+    display:inline-block; font-size:22px; font-weight:600; letter-spacing:.02em;
+  }
+  .label .name{ font-size:15px; color:#9a9a9a; margin-top:2px; }
+  .label .desc{ font-size:12.5px; color:#777; margin-top:6px; line-height:1.5; max-width:340px; margin-left:auto; margin-right:auto; }
+  .frame{
+    width:375px; height:812px; background:var(--bg); border-radius:36px;
+    overflow:hidden; position:relative; box-shadow:0 30px 80px rgba(0,0,0,.6);
+    border:8px solid #1a1a1a;
+    font-family:'Jost','Jost Fallback',monospace;
+    color:var(--text);
+  }
+  .scroll{ height:100%; overflow:hidden; position:relative; }
+  .display{ font-family:'Cormorant Garamond','Cormorant Garamond Fallback',monospace; }
+  .eyebrow{
+    font-size:11px; font-weight:500; letter-spacing:2.75px; text-transform:uppercase;
+    color:var(--gold-solid);
+  }
+  .btn-gold{
+    display:inline-flex; align-items:center; gap:8px; justify-content:center;
+    background:linear-gradient(to right, var(--gold-1), var(--gold-2));
+    color:#1a1206; font-family:'Jost','Jost Fallback',monospace; font-weight:600;
+    font-size:14px; padding:14px 26px; border-radius:9999px; border:none;
+    box-shadow:0 12px 30px -8px var(--shadow-gold);
+  }
+  .badge-live{
+    display:inline-flex; align-items:center; gap:8px; font-size:12px;
+    color:var(--text-2); border:1px solid var(--border-gold); border-radius:9999px;
+    padding:7px 14px;
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background:#3ecf7f; }
+  .stars{ color:var(--gold-solid); font-size:12px; letter-spacing:1px; }
+  .price-card{
+    background:var(--surface); border:1px solid var(--border-gold); border-radius:24px;
+    padding:24px; box-shadow:0 20px 60px -20px var(--shadow-gold);
+  }
+  .sticky-bar{
+    position:absolute; left:0; right:0; bottom:0; padding:14px 16px;
+    background:rgba(9,7,6,.92); backdrop-filter:blur(6px);
+    border-top:1px solid var(--border-gold);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .price-now{ font-family:'Cormorant Garamond','Cormorant Garamond Fallback',monospace; font-size:24px; font-weight:600; color:var(--text); }
+  .price-was{ font-size:12px; color:#8a8378; text-decoration:line-through; margin-left:6px; }
+  img.ph{ display:block; width:100%; height:100%; object-fit:cover; }
+</style>
+</head>
+<body>
+
+<!-- ================= OPCIÓN A — VITRINA BOUTIQUE ================= -->
+<div class="col">
+  <div class="label">
+    <div class="tag" style="color:var(--gold-solid)">Opción A</div>
+    <div class="name">Vitrina Boutique</div>
+    <div class="desc">Composición simétrica tipo escaparate de joyería: cada bolso vive en un marco fino de doble línea dorada, como si estuviera exhibido en una vitrina. Orden y calma.</div>
+  </div>
+  <div class="frame">
+    <div class="scroll">
+      <!-- header -->
+      <div style="padding:20px 20px 0; display:flex; justify-content:space-between; align-items:center;">
+        <span class="display" style="font-size:18px; font-weight:600; letter-spacing:.03em;">Manos Creadoras</span>
+        <span style="width:34px;height:34px;border:1px solid var(--border-gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold-solid)">☰</span>
+      </div>
+
+      <!-- hero -->
+      <div style="padding:22px 20px 0;">
+        <span class="eyebrow">PROGRAMA PREMIUM · EDICIÓN 2026</span>
+        <h1 class="display" style="font-size:34px; font-weight:400; line-height:1.08; margin:10px 0 0; letter-spacing:-.01em;">Crea <em style="color:var(--gold-1); font-style:italic;">bolsos de lujo</em> en cuentas desde casa</h1>
+        <p style="font-size:13.5px; color:var(--text-2); line-height:1.5; margin:12px 0 0;">Acabados de boutique, sin experiencia previa — patrones, video y mentoría real.</p>
+        <div style="display:flex; gap:10px; margin-top:14px; align-items:center; flex-wrap:wrap;">
+          <span class="badge-live"><span class="dot"></span>38 comprando ahora</span>
+        </div>
+        <button class="btn-gold" style="width:100%; margin-top:16px;">Quiero comenzar hoy →</button>
+        <div class="stars" style="text-align:center; margin-top:10px;">★★★★★ <span style="color:var(--text-2)">+1.200 alumnas · 4.9/5</span></div>
+      </div>
+
+      <!-- vitrina grid -->
+      <div style="padding:22px 20px 0;">
+        <div class="eyebrow" style="display:block;margin-bottom:10px;">APRENDERÁS A CREARLOS</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div style="border:1px solid var(--border-gold); border-radius:14px; padding:6px;">
+            <div style="border-radius:9px; overflow:hidden; aspect-ratio:1;">
+              <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-pink-crystal-Bfvk7sAM.png" alt="Rose Crystal">
+            </div>
+            <div style="font-size:11px; text-align:center; padding:6px 0 2px; color:var(--text-2);">Rose Crystal</div>
+          </div>
+          <div style="border:1px solid var(--border-gold); border-radius:14px; padding:6px;">
+            <div style="border-radius:9px; overflow:hidden; aspect-ratio:1;">
+              <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-pearl-bow-BJNYOkqF.png" alt="Pearl Bow">
+            </div>
+            <div style="font-size:11px; text-align:center; padding:6px 0 2px; color:var(--text-2);">Pearl Bow</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- testimonio -->
+      <div style="padding:18px 20px 0;">
+        <div class="price-card" style="padding:16px;">
+          <div class="stars">★★★★★</div>
+          <p style="font-size:12.5px; color:var(--text-2); margin:8px 0 0; line-height:1.5;">"Nunca pensé que me iban a quedar tan finos — ahora hasta los vendo." — Alejandra, México</p>
+        </div>
+      </div>
+
+      <div style="height:110px;"></div>
+
+      <!-- sticky bottom bar -->
+      <div class="sticky-bar">
+        <div><span class="price-now">$25</span><span class="price-was">$55</span></div>
+        <button class="btn-gold" style="padding:12px 22px; font-size:13px;">Acceder →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= OPCIÓN B — EDITORIAL DE REVISTA ================= -->
+<div class="col">
+  <div class="label">
+    <div class="tag" style="color:var(--gold-solid)">Opción B</div>
+    <div class="name">Editorial de Revista</div>
+    <div class="desc">Composición asimétrica tipo portada de revista de moda: foto a sangre completa, texto superpuesto, grano de papel sutil. Más editorial, menos "app".</div>
+  </div>
+  <div class="frame">
+    <div class="scroll">
+      <!-- hero foto a sangre -->
+      <div style="position:relative; height:520px;">
+        <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-champagne-facetado-i7fCs5gy.jpg" alt="Champagne Facetado" style="filter:brightness(.6) saturate(1.05);">
+        <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(9,7,6,.15) 0%, rgba(9,7,6,.15) 40%, var(--bg) 96%);"></div>
+        <!-- grano sutil -->
+        <svg style="position:absolute; inset:0; opacity:.05; mix-blend-mode:overlay;" width="100%" height="100%">
+          <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/></filter>
+          <rect width="100%" height="100%" filter="url(#grain)"/>
+        </svg>
+        <div style="position:absolute; top:20px; left:20px; right:20px; display:flex; justify-content:space-between; align-items:center;">
+          <span class="display" style="font-size:17px; font-weight:600;">MC</span>
+          <span style="font-size:11px; letter-spacing:2px; color:var(--gold-1);">EDICIÓN 2026</span>
+        </div>
+        <div style="position:absolute; bottom:24px; left:20px; right:20px;">
+          <h1 class="display" style="font-size:46px; font-weight:400; line-height:.98; margin:0;">Bolsos<br><em style="font-style:italic; color:var(--gold-1);">de lujo</em></h1>
+          <p style="font-size:12.5px; color:var(--text-2); margin:10px 0 0; max-width:220px; line-height:1.5;">En cuentas y malla plástica, tejidos por ti, desde casa.</p>
+        </div>
+      </div>
+
+      <!-- cuerpo -->
+      <div style="padding:18px 20px 0;">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span class="badge-live"><span class="dot"></span>38 comprando ahora</span>
+          <span class="stars">★★★★★</span>
+        </div>
+        <button class="btn-gold" style="width:100%; margin-top:14px;">Quiero comenzar hoy →</button>
+
+        <div style="margin-top:20px; display:flex; gap:10px; overflow:hidden;">
+          <div style="flex:1; border-radius:12px; overflow:hidden; aspect-ratio:.8;">
+            <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-onix-cristal-Q1dYU0VE.jpg" alt="Onix">
+          </div>
+          <div style="flex:1; border-radius:12px; overflow:hidden; aspect-ratio:.8; margin-top:16px;">
+            <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-glacier-blue--LWN4-v5.jpg" alt="Glacier">
+          </div>
+          <div style="flex:1; border-radius:12px; overflow:hidden; aspect-ratio:.8;">
+            <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-pearl-royale-Cy5cVop9.jpg" alt="Royale">
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--text-2); margin-top:14px; line-height:1.5;">"+1.200 alumnas ya crearon su primera colección con acabado de boutique."</p>
+      </div>
+
+      <div style="height:100px;"></div>
+      <div class="sticky-bar">
+        <div><span class="price-now">$25</span><span class="price-was">$55</span></div>
+        <button class="btn-gold" style="padding:12px 22px; font-size:13px;">Acceder →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= OPCIÓN C — ATELIER ÍNTIMO ================= -->
+<div class="col">
+  <div class="label">
+    <div class="tag" style="color:var(--gold-solid)">Opción C</div>
+    <div class="name">Atelier Íntimo</div>
+    <div class="desc">Fotos apiladas como un collage prolijo de taller, cercano y cálido. Un hilo dorado dibujado a mano conecta las secciones — guiño literal a tejer.</div>
+  </div>
+  <div class="frame">
+    <div class="scroll" style="padding:20px 20px 0;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="display" style="font-size:18px; font-weight:600;">Manos Creadoras</span>
+        <span style="width:34px;height:34px;border:1px solid var(--border-gold);border-radius:50%;"></span>
+      </div>
+
+      <!-- collage -->
+      <div style="position:relative; margin-top:18px; height:210px;">
+        <svg style="position:absolute; inset:0; width:100%; height:100%; overflow:visible;">
+          <path d="M20,40 C120,10 180,120 300,70" stroke="url(#thread)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <defs><linearGradient id="thread" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#ebcd8c"/><stop offset="1" stop-color="#d48e00"/>
+          </linearGradient></defs>
+        </svg>
+        <div style="position:absolute; left:0; top:0; width:150px; height:150px; border-radius:20px; overflow:hidden; transform:rotate(-4deg); box-shadow:0 16px 30px rgba(0,0,0,.5);">
+          <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-pearl-hobo-CnE8Gf-d.png" alt="Pearl Hobo">
+        </div>
+        <div style="position:absolute; right:10px; top:35px; width:130px; height:130px; border-radius:20px; overflow:hidden; transform:rotate(5deg); box-shadow:0 16px 30px rgba(0,0,0,.5);">
+          <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-gold-crystal-BEEnSFAn.png" alt="Gold Crystal">
+        </div>
+      </div>
+
+      <div style="margin-top:18px;">
+        <span class="eyebrow">PROGRAMA PREMIUM · EDICIÓN 2026</span>
+        <h1 class="display" style="font-size:32px; font-weight:400; line-height:1.1; margin:8px 0 0;">Aprende a tejer <em style="font-style:italic; color:var(--gold-1);">con tus propias manos</em></h1>
+        <p style="font-size:13px; color:var(--text-2); line-height:1.5; margin:10px 0 0;">Mentoría real de Elizabeth, paso a paso, sin experiencia previa.</p>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:14px; align-items:center;">
+        <span class="badge-live"><span class="dot"></span>38 comprando ahora</span>
+      </div>
+      <button class="btn-gold" style="width:100%; margin-top:14px;">Quiero comenzar hoy →</button>
+
+      <div class="price-card" style="margin-top:18px; display:flex; gap:12px; align-items:center;">
+        <div style="width:44px;height:44px;border-radius:50%; overflow:hidden; flex-shrink:0;">
+          <img class="ph" src="https://manoscreadoras.lovable.app/assets/bag-pearl-coin-boQNDBR1.png" alt="mentora">
+        </div>
+        <p style="font-size:12px; color:var(--text-2); margin:0; line-height:1.5;">"Elizabeth explica cada puntada como si estuviera al lado tuyo." — Alumna real</p>
+      </div>
+
+      <div style="height:110px;"></div>
+    </div>
+    <div class="sticky-bar">
+      <div><span class="price-now">$25</span><span class="price-was">$55</span></div>
+      <button class="btn-gold" style="padding:12px 22px; font-size:13px;">Acceder →</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

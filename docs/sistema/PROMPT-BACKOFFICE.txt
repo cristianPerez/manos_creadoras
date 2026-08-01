@@ -1,0 +1,40 @@
+PANEL DE ADMIN (BACKOFFICE) — el panel del dueño: ventas, usuarios, métricas y costo de IA
+📌 CUÁNDO USARLO: cuando ya tienes clientes y quieres un panel privado para ver ventas, ganancia real y avisos.
+(Pegar completo en Claude Code, con tu app abierta y el sistema en docs/sistema/)
+===============================================================================================
+
+Constrúyeme el panel de administración de esta app (solo para mí, el dueño). Primero dame el plan de
+secciones y espera mi OK; luego constrúyelo con código real y protegido.
+
+ANTES DE PROPONER EL PANEL, si no está claro, pregúntame en simple:
+1. ¿Qué número quieres ver primero al abrir el panel: ventas, ganancia real, usuarios, errores o costo de IA?
+2. ¿Ya hay pagos reales, usuarios reales y eventos medidos?
+3. ¿Quién puede entrar al panel además de ti?
+El panel debe mostrar decisiones, no ruido. Si un dato no existe todavía, márcalo como "no medido"
+en vez de inventarlo.
+
+LEE PRIMERO: 21-BACKOFFICE (secciones, event_log, logEvent, métricas, GANANCIA REAL + AVISOS al dueño),
+09-SEGURIDAD + 26-AUTH-MODERNO (acceso solo-admin verificado en el servidor + RLS), 31-EVALS-OBSERVABILIDAD-
+OPERACION (costo real de IA desde la tabla ai_calls), 40-UNIT-ECONOMICS (el modelo de margen que el
+panel muestra REAL), 36-ANALITICA-Y-EVENTOS (el event_log es la fuente; PostHog NO se duplica) y
+17-VISUALIZACION-DATOS (gráficos con specs Tufte).
+
+INCLUYE:
+ • VENTAS: ingresos, compras, cancelaciones, churn (separar voluntario vs involuntario), MRR (webhook/18).
+ • GANANCIA REAL: lo que QUEDA tras costos (ingresos − Hotmart − afiliados − impuestos − IA de ai_calls
+   − infra − email) + % de margen. "Facturaste $X y te quedaron $Y limpios". Es lo que más le importa al dueño.
+ • USUARIOS: activación, retención D1/D7/D30, total y activos.
+ • USO: acción principal y eventos del event_log (contrato de 24); funnel del onboarding.
+ • NEGOCIO: LTV, CAC y ganancia POR CANAL (usando profiles.source), ratio LTV:CAC (≥3:1), payback.
+ • IA (si aplica): costo real por feature y por usuario desde ai_calls; gasto del día.
+ • AVISOS AUTOMÁTICOS al dueño (banner arriba, lenguaje simple, qué pasó→por qué importa→qué hacer):
+   IA cara (>20% de ingresos), webhook fallando, churn involuntario alto, canal que pierde dinero,
+   margen negativo. Si todo bien: "✅ Todo en orden este mes".
+ • ERRORES: resumen de Sentry/logs; alertas abiertas.
+
+REGLAS: acceso restringido a admin verificado EN EL SERVIDOR (no solo ocultando la ruta — eso es IDOR);
+RLS que impida que un usuario normal lea estos datos; lenguaje claro, no técnico, con números que el
+dueño entienda de un vistazo. Verifica tsc + build + dev al cerrar cada capa · cada pantalla del panel
+se cierra con screenshot renderizado + veredicto del revisor-visual (Regla 7 de CLAUDE.md) · mejora lo
+que exista, no reescribas sin avisar · cero features nuevas (a ESTADO.md) · causa raíz, no parches ·
+actualiza ESTADO.md con el reporte de cierre y su evidencia.

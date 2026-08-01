@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200" width="100%" height="100%">
+  <defs>
+    <style>
+      .brand-title { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 32px; fill: #1C1611; text-anchor: middle; }
+      .brand-subtitle { font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 4px; fill: #C5A059; text-anchor: middle; text-transform: uppercase; }
+      .gold-stroke { stroke: #C5A059; stroke-width: 1.5; fill: none; }
+      .gold-fill { fill: #C5A059; }
+    </style>
+  </defs>
+
+  <!-- Central Symbol: Beaded Diamond Weave (Updated) -->
+  <g transform="translate(250, 50)">
+    <!-- Outer Diamond Frame -->
+    <polygon points="0,-27 22.5,0 0,27 -22.5,0" class="gold-stroke" />
+    
+    <!-- Outer Pearls (ribbon detail) -->
+    <circle cx="0" cy="-27" r="2.5" class="gold-fill" />
+    <circle cx="11.25" cy="-13.5" r="2.5" class="gold-fill" />
+    <circle cx="22.5" cy="0" r="2.5" class="gold-fill" />
+    <circle cx="11.25" cy="13.5" r="2.5" class="gold-fill" />
+    <circle cx="0" cy="27" r="2.5" class="gold-fill" />
+    <circle cx="-11.25" cy="13.5" r="2.5" class="gold-fill" />
+    <circle cx="-22.5" cy="0" r="2.5" class="gold-fill" />
+    <circle cx="-11.25" cy="-13.5" r="2.5" class="gold-fill" />
+
+    <!-- Inner Bead Lattice (kept same) -->
+    <circle cx="0" cy="-30" r="3" class="gold-fill" />
+    <circle cx="25" cy="0" r="3" class="gold-fill" />
+    <circle cx="0" cy="30" r="3" class="gold-fill" />
+    <circle cx="-25" cy="0" r="3" class="gold-fill" />
+    <circle cx="0" cy="0" r="4.5" class="gold-fill" />
+    
+    <!-- Delicate accent lines (kept same) -->
+    <line x1="-12" y1="-15" x2="12" y2="15" class="gold-stroke" stroke-dasharray="2 2" />
+    <line x1="12" y1="-15" x2="-12" y2="15" class="gold-stroke" stroke-dasharray="2 2" />
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="250" y="125" class="brand-title">Manos Creadoras</text>
+  <text x="250" y="150" class="brand-subtitle">Bolsos de Lujo en Cuentas</text>
+</svg>

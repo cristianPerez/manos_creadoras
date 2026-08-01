@@ -1,0 +1,177 @@
+MEJORAR ONBOARDING Y PAYWALL — los patrones de las apps de $35M+ (Cal AI, Noom, Duolingo)
+📌 CUÁNDO USARLO: cuando la gente entra pero no termina el onboarding o no paga en el paywall.
+(Pegar completo en Claude Code, con tu app abierta y el sistema en docs/sistema/)
+================================================================================================
+
+Esta app ya está en producción pero su onboarding y paywall están débiles y no convierten
+bien. El objetivo es rediseñarlos por completo aplicando los patrones de las apps de $35M+
+(Cal AI, Noom, Duolingo) documentados en el sistema, sin romper nada que ya funcione.
+
+GATE DE AVATAR: si NO existe FICHA-AVATAR.md completa y aprobada (plantilla:
+docs/sistema/PLANTILLA-FICHA-AVATAR.md), créala PRIMERO conmigo según
+docs/sistema/57-AVATAR-Y-CONSCIENCIA.md — el copy del onboarding y paywall se DERIVA de sus
+dolores/deseos/objeciones, no se inventa.
+
+ANTES DE TOCAR CÓDIGO, pregúntame en lenguaje simple si no lo dije:
+1. ¿Qué parte sientes más débil: las preguntas iniciales, la pantalla de resultado, el paywall,
+   el precio, el texto, el visual, o el orden completo?
+2. ¿Tienes números aproximados? Ejemplo: de cada 100 personas que entran, cuántas terminan el
+   onboarding y cuántas pagan.
+3. ¿Hay palabras, promesas, precios o garantías que NO debo inventar?
+Si no tengo datos, trabajo con hipótesis, pero las marco como hipótesis. Nunca uses textos tipo
+"garantía visible", "pago seguro" o "preview del plan" si no significan algo concreto para el usuario.
+
+ANTES DE TOCAR CÓDIGO, lee obligatoriamente en este orden:
+1. docs/sistema/02B-ONBOARDING-Y-PAYWALL.md     ← LA MÁS IMPORTANTE: el funnel onboarding→paywall
+2. docs/sistema/02C-PRICING-Y-MODELO-DE-NEGOCIO.md ← pricing, modelos, matriz A-F, señuelo, trial
+3. docs/sistema/52-COPY-VISUALES-CONVERSION.md  ← copy, visuales, marca, garantia concreta
+4. docs/sistema/50-DISENO-ONBOARDING-PAYWALL.md ← medidas exactas de onboarding/paywall
+5. docs/sistema/15-PATRONES-UX.md               ← micro-compromisos, empty states, auth
+6. docs/sistema/14-LEYES-DE-DISENO.md           ← specs exactas de jerarquía y espaciado
+7. docs/sistema/22-LIBRERIAS-Y-CRAFT.md         ← librerías de animación (Motion, Lottie)
+8. docs/sistema/11-DISENO-EMOCIONAL.md          ← personalidad, celebración, ritmo
+9. docs/sistema/12-FLUJO-AGENTICO.md            ← Protocolo de Rescate R1-R5
+
+Ejecuta las 5 fases del Protocolo de Rescate en orden estricto:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE R1 — EXPLORAR (solo lectura, cero cambios)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Lee el código del onboarding y del paywall actual. Levanta el dev server y recorre el flujo
+real como lo vería un usuario nuevo. Crea o actualiza ESTADO.md usando la plantilla de
+docs/sistema/PLANTILLA-ESTADO.md, documentando:
+- Cuántas pantallas tiene el onboarding actual y qué pregunta cada una
+- Dónde aparece el paywall (antes del onboarding, después, o no existe)
+- Qué modelo de monetización se está usando (hard paywall / onboarding-first / freemium)
+- Qué micro-compromisos existen hoy (¿el usuario invierte algo antes de ver el precio?)
+- Qué animaciones e interacciones tiene el onboarding (¿se ve vivo o estático?)
+- Qué muestra el paywall (features, precio, prueba social, CTA)
+- Qué tasa de conversión aproximada comunica el diseño actual
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE R2 — DIAGNÓSTICO (contra la investigación de 2026)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Audita el onboarding y paywall actuales contra docs/sistema/02B-ONBOARDING-Y-PAYWALL.md (el funnel) y docs/sistema/02C-PRICING-Y-MODELO-DE-NEGOCIO.md (pricing y créditos).
+Para cada punto, indica si pasa o falla y el impacto esperado en conversión:
+
+ONBOARDING:
+□ ¿Hay una decisión por pantalla? (Ley de Hick)
+□ ¿Hay barra de progreso visible en todo momento?
+□ ¿Cada pregunta personaliza el resultado O construye compromiso?
+□ ¿El onboarding hace los 5 TRABAJOS? (segmentar · personalizar · activar · crear deseo · preparar el pago)
+□ ¿Hay una animación que genera el "plan personalizado" del usuario antes del paywall?
+□ ¿El resultado que se muestra usa el nombre/meta/respuestas del usuario?
+□ ¿El usuario puede saltar pasos no críticos?
+□ ¿La primera victoria ocurre antes de 60 segundos?
+□ ¿La longitud del onboarding corresponde al NICHO (matriz A-F de 02C: 15-25 bienestar/fitness · ultra corto IA creativa · ≤5 utilidad)?
+
+PAYWALL:
+□ ¿El encabezado refleja el objetivo del USUARIO (no features del producto)?
+□ ¿Hay logo/nombre de app y ruta clara para volver a la landing?
+□ ¿Headline <=10 palabras y subtítulo <=2 líneas mobile?
+□ ¿El copy resalta palabras clave en bold/acento para escaneo rápido?
+□ ¿El paywall responde las 7 PREGUNTAS? (qué desbloqueo · por qué ahora · qué pierdo · qué gano · puedo cancelar · cuál plan · salida limpia)
+□ ¿Se muestra el resultado personalizado del onboarding en la pantalla del paywall?
+□ ¿El visual principal vende contraste/pérdida/desbloqueo/progreso/prueba, o es solo una card genérica?
+□ ¿Hay prueba social específica (número real o reseña con nombre)?
+□ ¿Máximo 3 features destacados (sin listas largas que fatigan)?
+□ ¿Hay precio con ancla (anual mostrado como $/mes, NUNCA el total; "2 meses gratis")?
+□ ¿Si la IA por acción es CARA, el plan usa CRÉDITOS empaquetados en RESULTADOS (no tokens)?
+□ ¿El CTA dice lo que el usuario gana ("Empezar mi plan") vs genérico ("Suscribirse")?
+□ ¿Hay garantía concreta real (ej. "Garantía Hotmart de 7 días") o se omite si aún no existe?
+□ ¿La pantalla tiene personalización del onboarding (nombre, meta)?
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE R3 — PLAN DE REDISEÑO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Con el diagnóstico, diseña el flujo ideal. Presenta:
+
+1. DECISIÓN ESTRATÉGICA (respeta el ORDEN DE DISEÑO de 02C: tipo de app → promesa → frecuencia →
+   primera victoria → paywall → pricing → retención; nunca empieces por el precio):
+   - ¿Qué modelo conviene y por qué? (Hard paywall / Onboarding-first tipo Cal AI-Noom / Freemium)
+     → la FRECUENCIA decide: hábito → freemium; resultado → hard paywall o preview→paywall.
+   - Elige la estrategia del NICHO en la matriz A-F de 02C (educación, bienestar, fitness, IA creativa,
+     productividad, finanzas): primera victoria, onboarding, paywall, monetización y retención de ESE nicho.
+   - Si la IA por acción es cara: define CRÉDITOS por plan empaquetados en RESULTADOS (no tokens),
+     validados contra el COGS (archivos 40/30).
+
+2. NUEVO FLUJO DE ONBOARDING (pantalla por pantalla):
+   - Cuántas pantallas (justificado)
+   - Qué pregunta/micro-compromiso tiene cada una
+   - Cómo se genera el "plan personalizado" antes del paywall
+   - Qué animaciones e interacciones tiene cada pantalla
+   - Dónde aparece el paywall en el flujo
+
+3. NUEVO DISEÑO DEL PAYWALL:
+   - Qué muestra exactamente (marca/regreso, encabezado, personalización, visual de valor, prueba social, features, precio)
+   - Qué visual venderá: antes/después, plan bloqueado, value stack, timeline o mini-demo
+   - Estructura de pricing (mensual vs anual, descuento, CTA)
+   - Garantía concreta y reversión de riesgo, sin placeholders
+
+4. IMPACTO ESPERADO: estimación de mejora de conversión basada en los benchmarks de 02B y 02C
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE R4 — DETENTE Y PRESENTA EL PLAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NO ejecutes nada hasta recibir aprobación explícita. Presenta el plan completo de las fases
+anteriores y espera el "procede" del usuario. Si hay ajustes, incorpóralos antes de ejecutar.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FASE R5 — EJECUTAR POR CAPAS (tras aprobación)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ejecutar en este orden exacto, verificando (tsc + build + dev) al cerrar cada capa:
+
+CAPA 1 — ESTRUCTURA Y FLUJO:
+→ Reorganizar las pantallas del onboarding según el plan aprobado
+→ Implementar la barra de progreso
+→ Configurar el routing para que el paywall aparezca en el momento correcto
+→ Implementar la lógica de "saltar paso" donde aplique
+→ Guardar las respuestas del usuario para usarlas en el paywall
+→ Verificar: tsc ✓ | build ✓ | dev ✓
+
+CAPA 2 — PERSONALIZACIÓN Y RESULTADO:
+→ Construir la pantalla de "generando tu plan" con animación real (ver 22-LIBRERIAS-Y-CRAFT.md)
+→ Mostrar el nombre/meta/respuestas del usuario en el resumen antes del paywall
+→ Pasar los datos del onboarding al paywall para mostrarlos en el encabezado
+→ Verificar: tsc ✓ | build ✓ | dev ✓
+
+CAPA 3 — DISEÑO DEL PAYWALL:
+→ Rediseñar el paywall con la anatomía exacta de 02B-ONBOARDING-Y-PAYWALL.md (que responda las 7 preguntas)
+→ Aplicar 52-COPY-VISUALES-CONVERSION.md: headline <=10 palabras, subtítulo <=2 líneas, palabras clave resaltadas, visual que venda y logo/nombre con regreso
+→ Implementar el precio con ancla: anual mostrado como $/mes (NUNCA el total), pre-seleccionado + "2 meses gratis"
+→ Si la IA por acción es cara: cuota de CRÉDITOS por plan, expresada en resultados ("100 guiones/mes", no tokens)
+→ CTA con beneficio específico del usuario
+→ Garantía concreta si existe; si no existe, no mostrar placeholder en UI pública
+→ Prueba social (número o reseña real)
+→ Verificar: tsc ✓ | build ✓ | dev ✓
+
+CAPA 4 — ANIMACIONES Y MICRO-INTERACCIONES:
+→ Instalar Motion (motion/react) si no está (ver 22-LIBRERIAS-Y-CRAFT.md)
+→ Entrada escalonada en cada pantalla del onboarding (stagger 60-80ms)
+→ Animación de "plan generándose" antes del paywall (elemento más importante)
+→ Feedback de tap en opciones del onboarding (scale 0.97)
+→ Transición entre pantallas del onboarding (no corte seco)
+→ Pop de celebración al llegar al paywall (spring, el usuario completó algo)
+→ prefers-reduced-motion respetado
+→ Verificar: tsc ✓ | build ✓ | dev ✓
+
+CAPA 5 — COPY Y AUDITORÍA FINAL:
+→ Revisar que todo el copy del onboarding use lenguaje del usuario (no jerga interna)
+→ Que cada pregunta tenga opciones predefinidas claras (no campos abiertos sin guía)
+→ Errores con solución (no mensajes genéricos)
+→ Recorrer el flujo completo como usuario nuevo: ¿sientes que algo se construye para ti?
+→ Test de conversión: ¿el usuario llega al paywall con inversión emocional o con frialdad?
+→ Verificar: tsc ✓ | build ✓ | dev ✓
+
+REGLAS DURANTE TODO EL PROCESO:
+- Mejora lo que existe, no reescribas desde cero sin avisar
+- Cero features nuevas durante el rescate (van a ESTADO.md para después)
+- Nunca elimines pantallas o preguntas del onboarding sin confirmar
+- Causa raíz, no parches: prohibido @ts-ignore, any, o comentar errores
+- Nunca declares que algo convierte mejor sin haberlo probado en el flujo real
+- Actualiza ESTADO.md al cerrar cada capa con la estrategia de monetización decidida
+- CIERRE CON EVIDENCIA: el reporte final incluye tsc ✓ build ✓ dev ✓ + screenshot REAL a 375px
+  del onboarding y del paywall + veredicto del SUBAGENTE revisor-visual (gate ≥36/40 y ≥16/20 —
+  Regla 7 de CLAUDE.md). Sin ruta de screenshot + veredicto, no se declara "listo".
+
+Empieza ahora con la Fase R1.
