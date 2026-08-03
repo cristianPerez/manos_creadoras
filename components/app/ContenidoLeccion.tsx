@@ -10,10 +10,10 @@ import type { TipoLeccion } from "@/lib/curso";
  * rotulado en vez de un reproductor roto (regla UX 11: nada finge funcionar).
  */
 const MARCADOR: Record<TipoLeccion, { Icono: typeof PlayCircle; texto: string }> = {
-  video: { Icono: PlayCircle, texto: "Tu video se conecta al enlazar Hotmart" },
-  pdf: { Icono: FileText, texto: "Tus patrones en PDF se conectan al enlazar Hotmart" },
-  enlace: { Icono: Link2, texto: "Este enlace se conecta al enlazar Hotmart" },
-  texto: { Icono: ScrollText, texto: "Esta lectura se conecta al enlazar Hotmart" },
+  video: { Icono: PlayCircle, texto: "Estamos subiendo este video — te avisamos apenas esté listo" },
+  pdf: { Icono: FileText, texto: "Estamos subiendo estos patrones — te avisamos apenas estén listos" },
+  enlace: { Icono: Link2, texto: "Estamos preparando este enlace — te avisamos apenas esté listo" },
+  texto: { Icono: ScrollText, texto: "Estamos subiendo esta lectura — te avisamos apenas esté lista" },
 };
 
 export function ContenidoLeccion({
@@ -27,7 +27,8 @@ export function ContenidoLeccion({
 }) {
   if (tipo === "video" && hotmartId) {
     return (
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border-default bg-surface-tertiary">
+      // Radio interior menor que el de la card que lo contiene (radios concéntricos).
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border-default bg-surface-tertiary">
         <iframe
           src={`${HOTMART_EMBED_BASE}/${hotmartId}`}
           title={titulo}
@@ -41,7 +42,7 @@ export function ContenidoLeccion({
   const { Icono, texto } = MARCADOR[tipo];
 
   return (
-    <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl border border-border-default bg-surface-tertiary px-6 text-center shadow-sm">
+    <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border border-border-default bg-surface-tertiary px-6 text-center shadow-sm">
       <Icono className="text-brand-primary" size={40} strokeWidth={1.5} aria-hidden="true" />
       <p className="text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>
         {texto}

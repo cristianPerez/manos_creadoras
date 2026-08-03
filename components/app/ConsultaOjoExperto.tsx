@@ -1,8 +1,12 @@
 "use client";
 
-import { AlertCircle, Camera, Loader2, Send, Sparkles, X } from "lucide-react";
+import { AlertCircle, Camera, ChevronDown, Loader2, Send, Sparkles, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { BarraProgreso } from "@/components/app/BarraProgreso";
+import { CountUp } from "@/components/app/CountUp";
+import { IconChip } from "@/components/app/IconChip";
+import { Reveal } from "@/components/app/Reveal";
 import { LIMITE_FOTOS, LIMITE_PREGUNTAS } from "@/lib/config";
 import type { Consulta, UsoMensual } from "@/lib/ojo-experto";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -35,6 +39,7 @@ export function ConsultaOjoExperto({
   const [historial, setHistorial] = useState<Consulta[]>(historialInicial);
   const [uso, setUso] = useState<UsoMensual>(usoInicial);
   const fileRef = useRef<HTMLInputElement>(null);
+  const peticionRef = useRef<AbortController | null>(null);
 
   // Liberar la miniatura al cambiarla: si no, el navegador se queda con la anterior en memoria.
   useEffect(() => {
@@ -56,6 +61,13 @@ export function ConsultaOjoExperto({
     if (vistaPrevia) URL.revokeObjectURL(vistaPrevia);
     setFoto(archivo);
     setVistaPrevia(URL.createObjectURL(archivo));
+    setEstado("idle");
+  }
+
+  /** Una consulta con foto puede pasar de 10s: la alumna tiene que poder salirse. */
+  function cancelar() {
+    peticionRef.current?.abort();
+    peticionRef.current = null;
     setEstado("idle");
   }
 
@@ -85,7 +97,24 @@ export function ConsultaOjoExperto({
         return;
       }
 
-      const imagenBase64 = foto ? await aBase64Liviana(foto) : undefined;
+      let imagenBase64: string | undefined;
+      if (foto) {
+        try {
+          imagenBase64 = await aBase64Liviana(foto);
+        } catch {
+          // Foto que el navegador no sabe abrir (HEIC de iPhone, archivo dañado).
+          // NO es un problema de conexión: decirle que revise el wifi la manda al lugar
+          // equivocado.
+          setEstado("error");
+          setMensajeError(
+            "No pudimos leer esa foto. Prueba con otra o tómala directo con la cámara.",
+          );
+          return;
+        }
+      }
+
+      const control = new AbortController();
+      peticionRef.current = control;
 
       const res = await fetch("/api/ojo-experto", {
         method: "POST",
@@ -94,7 +123,9 @@ export function ConsultaOjoExperto({
           authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ pregunta: textoPregunta, imagenBase64 }),
+        signal: control.signal,
       });
+      peticionRef.current = null;
 
       const datos = (await res.json().catch(() => null)) as {
         respuesta?: string;
@@ -131,7 +162,9 @@ export function ConsultaOjoExperto({
 
       setPregunta("");
       quitarFoto();
-    } catch {
+    } catch (e) {
+      // Si la canceló ella, `cancelar()` ya dejó la pantalla lista: no es un error.
+      if (e instanceof DOMException && e.name === "AbortError") return;
       setEstado("error");
       setMensajeError("Se cortó la conexión. Revisa tu internet y vuelve a intentar.");
     }
@@ -139,6 +172,7 @@ export function ConsultaOjoExperto({
 
   return (
     <>
+      <Reveal delay={0.06}>
       <section
         aria-label="Nueva consulta"
         className="mt-6 rounded-xl border border-border-default bg-surface-primary p-4 shadow-[var(--shadow-gold)]"
@@ -177,7 +211,7 @@ export function ConsultaOjoExperto({
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={sinFotos}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface-tertiary py-6 text-brand-primary disabled:text-text-tertiary [touch-action:manipulation]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface-tertiary py-6 text-brand-primary transition-transform active:scale-[0.99] disabled:text-text-tertiary [touch-action:manipulation]"
           >
             <Camera size={20} aria-hidden="true" />
             <span style={{ fontSize: "var(--text-sm)", fontWeight: 500 }}>
@@ -202,14 +236,28 @@ export function ConsultaOjoExperto({
             style={{ fontSize: "var(--text-base)" }}
           />
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          {pregunta.length >= 400 && (
+            <div className="mt-1 flex justify-end">
+              <span
+                className="cifra text-status-warning"
+                style={{ fontSize: "var(--text-xs)" }}
+                aria-live="polite"
+              >
+                {pregunta.length}/500
+              </span>
+            </div>
+          )}
+
+          {/* Las sugerencias SUMAN a lo que ya escribió: pisarle el texto sin avisar
+              era perder trabajo suyo. */}
+          <div className="mt-3 grid grid-cols-2 items-stretch gap-2">
             {SUGERENCIAS.map((s) => (
               <button
                 key={s}
                 type="button"
-                onClick={() => setPregunta(s)}
-                className="rounded-lg border border-border-default bg-surface-tertiary px-3 py-2 text-text-secondary [touch-action:manipulation]"
-                style={{ fontSize: "var(--text-xs)" }}
+                onClick={() => setPregunta((p) => (p.trim() ? `${p.trim()} ${s}`.slice(0, 500) : s))}
+                className="rounded-lg border border-border-default bg-surface-tertiary px-3 py-2 text-left text-text-secondary transition-transform active:scale-[0.97] [touch-action:manipulation]"
+                style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
               >
                 {s}
               </button>
@@ -219,7 +267,7 @@ export function ConsultaOjoExperto({
           <button
             type="submit"
             disabled={bloqueado}
-            className={`mt-4 flex h-13 w-full items-center justify-center gap-2 rounded-full font-semibold [touch-action:manipulation] ${
+            className={`mt-4 flex h-13 w-full items-center justify-center gap-2 rounded-full font-semibold transition-transform active:scale-[0.98] [touch-action:manipulation] ${
               bloqueado
                 ? "border border-border-default bg-surface-tertiary text-text-tertiary"
                 : "text-text-inverse"
@@ -241,6 +289,24 @@ export function ConsultaOjoExperto({
               </>
             )}
           </button>
+
+          {/* Un botón apagado sin explicación deja a la alumna adivinando qué le falta. */}
+          {!hayAlgoQueEnviar && !sinCupo && estado !== "enviando" && (
+            <p className="text-text-tertiary mt-2 text-center" style={{ fontSize: "var(--text-xs)" }}>
+              Sube una foto o escribe tu duda para poder preguntar.
+            </p>
+          )}
+
+          {estado === "enviando" && (
+            <button
+              type="button"
+              onClick={cancelar}
+              className="mt-2 w-full text-center text-brand-primary [touch-action:manipulation]"
+              style={{ fontSize: "var(--text-xs)", fontWeight: 500 }}
+            >
+              Cancelar
+            </button>
+          )}
         </form>
 
         {sinCupo && (
@@ -300,7 +366,9 @@ export function ConsultaOjoExperto({
           </div>
         )}
       </section>
+      </Reveal>
 
+      <Reveal delay={0.12}>
       <section
         aria-label="Tu uso este mes"
         className="mt-6 rounded-xl border border-border-default bg-surface-primary p-4 shadow-sm"
@@ -316,7 +384,9 @@ export function ConsultaOjoExperto({
           Se renueva el 1 de cada mes. Incluido en tu membresía, sin costo extra.
         </p>
       </section>
+      </Reveal>
 
+      <Reveal delay={0.18}>
       <section aria-label="Tus consultas anteriores" className="mt-8">
         <h2 className="font-display text-text-primary" style={{ fontSize: "var(--text-lg)" }}>
           Lo que ya preguntaste
@@ -324,7 +394,7 @@ export function ConsultaOjoExperto({
 
         {historial.length === 0 ? (
           <div className="mt-3 flex flex-col items-center gap-2 rounded-xl border border-border-default bg-surface-primary px-6 py-10 text-center shadow-sm">
-            <Sparkles className="text-brand-primary" size={26} aria-hidden="true" />
+            <IconChip icon={Sparkles} size={52} />
             <h3 className="font-display text-text-primary" style={{ fontSize: "var(--text-lg)" }}>
               Tu primera consulta te espera
             </h3>
@@ -336,62 +406,81 @@ export function ConsultaOjoExperto({
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
             {historial.map((c) => (
-              <li key={c.id} className="rounded-xl border border-border-default bg-surface-primary p-3 shadow-sm">
-                <div className="flex items-start gap-2">
-                  <span className="mt-0.5 shrink-0 text-brand-primary" aria-hidden="true">
-                    {c.tipo === "foto" ? <Camera size={14} /> : <Send size={13} />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-text-primary" style={{ fontSize: "var(--text-sm)", fontWeight: 500 }}>
-                      {c.pregunta}
-                    </p>
-                    <p
-                      className="text-text-secondary mt-1 line-clamp-2"
-                      style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
-                    >
-                      {c.respuesta}
-                    </p>
-                    <p className="text-text-tertiary mt-1.5" style={{ fontSize: "11px" }}>
-                      {c.haceDias === 0
-                        ? "hoy"
-                        : `hace ${c.haceDias} ${c.haceDias === 1 ? "día" : "días"}`}
-                    </p>
-                  </div>
-                </div>
-              </li>
+              <FilaHistorial key={c.id} consulta={c} />
             ))}
           </ul>
         )}
       </section>
+      </Reveal>
     </>
   );
 }
 
+/**
+ * Una consulta pasada. Se abre y se cierra: la respuesta de la mentora es lo más
+ * valioso de la app y antes quedaba recortada a 2 líneas sin forma de leerla entera.
+ */
+function FilaHistorial({ consulta }: { consulta: Consulta }) {
+  const [abierta, setAbierta] = useState(false);
+
+  return (
+    <li className="rounded-xl border border-border-default bg-surface-primary shadow-sm">
+      <button
+        type="button"
+        onClick={() => setAbierta((v) => !v)}
+        aria-expanded={abierta}
+        className="flex w-full items-start gap-2 p-3 text-left transition-transform active:scale-[0.99] [touch-action:manipulation]"
+      >
+        <span className="mt-0.5 shrink-0 text-brand-primary" aria-hidden="true">
+          {consulta.tipo === "foto" ? <Camera size={14} /> : <Send size={13} />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-text-primary" style={{ fontSize: "var(--text-sm)", fontWeight: 500 }}>
+            {consulta.pregunta}
+          </span>
+          <span
+            className={`mt-1 block text-text-secondary ${abierta ? "" : "line-clamp-2"}`}
+            style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
+          >
+            {consulta.respuesta}
+          </span>
+          <span className="mt-1.5 flex items-center gap-1.5 text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>
+            {consulta.haceDias === 0
+              ? "hoy"
+              : `hace ${consulta.haceDias} ${consulta.haceDias === 1 ? "día" : "días"}`}
+            <span className="text-brand-primary">· {abierta ? "ver menos" : "ver completa"}</span>
+          </span>
+        </span>
+        <ChevronDown
+          size={15}
+          aria-hidden="true"
+          className={`mt-0.5 shrink-0 text-text-tertiary transition-transform duration-200 ${abierta ? "rotate-180" : ""}`}
+        />
+      </button>
+    </li>
+  );
+}
+
 function Medidor({ label, usadas, total }: { label: string; usadas: number; total: number }) {
-  const puntos = Math.min(total, 10);
-  const llenos = Math.round((usadas / total) * puntos);
+  // Barra continua, no segmentos: con escalas distintas (40 preguntas vs 8 fotos) un
+  // segmento valía 4 en una columna y 1 en la otra — el mismo dibujo mentía distinto.
+  const quedan = Math.max(0, total - usadas);
+  const pct = total ? Math.round((usadas / total) * 100) : 0;
+
   return (
     <div className="flex-1">
-      <p className="text-text-primary tabular" style={{ fontSize: "var(--text-lg)", fontWeight: 500 }}>
-        {usadas}
+      <p className="font-display text-text-primary cifra" style={{ fontSize: "var(--text-xl)" }}>
+        <CountUp to={quedan} duration={600} />
         <span className="text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>
           {" "}
-          / {total}
+          de {total}
         </span>
       </p>
       <p className="text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>
-        {label}
+        {label} disponibles
       </p>
-      <div className="mt-2 flex gap-1" aria-hidden="true">
-        {Array.from({ length: puntos }).map((_, i) => (
-          <span
-            key={i}
-            className="h-1.5 flex-1 rounded-full transition-colors duration-300"
-            style={{
-              backgroundColor: i < llenos ? "var(--brand-primary)" : "var(--surface-tertiary)",
-            }}
-          />
-        ))}
+      <div className="mt-2">
+        <BarraProgreso pct={pct} label={`${label}: te quedan ${quedan} de ${total}`} />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Check, Clock, FileText, Link2, Play, ScrollText, Sparkles } from "lucide-react";
+import { Check, Clock, FileText, Hourglass, Link2, Play, ScrollText, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -33,6 +33,8 @@ export default async function Cursos() {
   if (!alumna.tieneAcceso) return <MembresiaInactiva />;
 
   const arrancando = completadas === 0;
+  const conLecciones = secciones.filter((s) => s.lecciones.length > 0);
+  const pendientes = secciones.filter((s) => s.lecciones.length === 0);
 
   return (
     <>
@@ -116,11 +118,11 @@ export default async function Cursos() {
             <p className="text-text-secondary" style={{ fontSize: "var(--text-sm)" }}>
               Tu avance
             </p>
-            <p className="font-display text-text-primary" style={{ fontSize: "var(--text-xl)" }}>
+            <p className="font-display text-text-primary cifra" style={{ fontSize: "var(--text-xl)" }}>
               <CountUp to={completadas} duration={600} />
               <span className="text-text-tertiary" style={{ fontSize: "var(--text-sm)" }}>
                 {" "}
-                de {totalLecciones} lecciones
+                de {totalLecciones} tutoriales
               </span>
             </p>
           </div>
@@ -129,22 +131,24 @@ export default async function Cursos() {
           </div>
           <p className="text-text-tertiary mt-2" style={{ fontSize: "var(--text-xs)" }}>
             {completadas === 0
-              ? "Marca cada lección al terminarla y verás crecer tu avance."
+              ? "Marca cada tutorial al terminarlo y verás crecer tu avance (la sección de bienvenida no cuenta)."
               : `Te faltan ${totalLecciones - completadas} para terminar el programa.`}
           </p>
         </section>
       </Reveal>
 
-      {/* SECCIONES */}
-      {secciones.map((s, i) => (
+      {/* SECCIONES con contenido cargado */}
+      {conLecciones.map((s, i) => (
         <Reveal key={s.id} delay={0.18 + i * 0.04}>
           <section aria-label={s.titulo} className="mt-8">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="font-display text-text-primary min-w-0" style={{ fontSize: "var(--text-lg)" }}>
-                {s.numero}. {s.titulo}
+                <span className="cifra">{s.numero}.</span> {s.titulo}
               </h2>
-              {s.lecciones.length > 0 && (
-                <span className="text-text-tertiary shrink-0 tabular" style={{ fontSize: "var(--text-xs)" }}>
+              {/* La sección de bienvenida NO lleva contador: tener "0/4" al lado de
+                  "0 de 5 tutoriales" hacía convivir dos cuentas distintas en pantalla. */}
+              {s.cuentaProgreso && (
+                <span className="text-text-tertiary shrink-0 cifra" style={{ fontSize: "var(--text-xs)" }}>
                   {s.completadas}/{s.lecciones.length}
                 </span>
               )}
@@ -156,26 +160,41 @@ export default async function Cursos() {
               </p>
             )}
 
-            {s.lecciones.length === 0 ? (
-              <p
-                className="mt-3 rounded-xl border border-dashed border-border-strong bg-surface-primary px-4 py-6 text-center text-text-tertiary"
-                style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
-              >
-                Estamos subiendo estas lecciones a la app. Mientras tanto las tienes en tu área de
-                Hotmart.
-              </p>
-            ) : (
-              <ul className="mt-3 flex flex-col gap-2">
-                {s.lecciones.map((l) => (
-                  <li key={l.id}>
-                    <FilaLeccion leccion={l} esSiguiente={l.id === siguiente?.id} />
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ul className="mt-3 flex flex-col gap-2">
+              {s.lecciones.map((l) => (
+                <li key={l.id}>
+                  <FilaLeccion leccion={l} esSiguiente={l.id === siguiente?.id} />
+                </li>
+              ))}
+            </ul>
           </section>
         </Reveal>
       ))}
+
+      {/* Un solo aviso para todo lo que falta subir — no uno por sección */}
+      {pendientes.length > 0 && (
+        <Reveal delay={0.3}>
+          <section aria-label="Secciones en camino" className="mt-8">
+            <div className="rounded-xl border border-dashed border-border-strong bg-surface-primary p-4">
+              <div className="flex items-center gap-3">
+                <IconChip icon={Hourglass} size={44} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-text-primary" style={{ fontSize: "var(--text-sm)", fontWeight: 500 }}>
+                    {pendientes.map((s) => `${s.numero}. ${s.titulo}`).join(" · ")}
+                  </p>
+                  <p
+                    className="text-text-tertiary mt-0.5"
+                    style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
+                  >
+                    Estamos subiendo estas lecciones a la app. Mientras tanto las tienes completas en
+                    tu área de Hotmart.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </Reveal>
+      )}
 
       <Reveal delay={0.34}>
         <p className="mt-8 text-center text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>
@@ -208,11 +227,9 @@ function FilaLeccion({ leccion, esSiguiente }: { leccion: Leccion; esSiguiente: 
       <span
         aria-hidden="true"
         className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-          leccion.completada
-            ? "bg-status-success/15 text-status-success"
-            : esSiguiente
-              ? "bg-brand-primary-soft text-brand-primary"
-              : "bg-surface-tertiary text-text-tertiary"
+          leccion.completada || esSiguiente
+            ? "bg-brand-primary-soft text-brand-primary"
+            : "bg-surface-tertiary text-text-tertiary"
         }`}
       >
         {leccion.completada ? <Check size={16} strokeWidth={2.5} /> : <Icono size={15} />}
@@ -231,10 +248,10 @@ function FilaLeccion({ leccion, esSiguiente }: { leccion: Leccion; esSiguiente: 
         <span
           className={`inline-flex w-fit shrink-0 items-center rounded-lg px-2 py-1 ${
             leccion.completada
-              ? "bg-status-success/15 text-status-success"
+              ? "border border-border-strong text-text-tertiary"
               : "bg-brand-primary-soft text-brand-primary"
           }`}
-          style={{ fontSize: "11px", fontWeight: 500 }}
+          style={{ fontSize: "var(--text-xs)", fontWeight: 500 }}
         >
           {leccion.completada ? "Listo" : "Vas aquí"}
         </span>

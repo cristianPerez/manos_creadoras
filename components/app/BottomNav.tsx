@@ -27,7 +27,7 @@ export function BottomNav() {
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className="relative flex min-w-16 flex-1 flex-col items-center justify-center gap-1 [touch-action:manipulation]"
+              className="relative flex min-w-16 flex-1 flex-col items-center justify-center gap-1 transition-transform active:scale-[0.94] [touch-action:manipulation]"
             >
               {activo && (
                 <motion.span
@@ -44,7 +44,7 @@ export function BottomNav() {
               />
               <span
                 className={activo ? "text-brand-primary" : "text-text-tertiary"}
-                style={{ fontSize: "11px", fontWeight: 500 }}
+                style={{ fontSize: "var(--text-xs)", fontWeight: 500 }}
               >
                 {label}
               </span>

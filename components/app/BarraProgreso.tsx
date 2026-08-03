@@ -16,7 +16,7 @@ export function BarraProgreso({ pct, label }: { pct: number; label: string }) {
 
   return (
     <div
-      className="h-2 w-full overflow-hidden rounded-full bg-surface-tertiary"
+      className="h-2 w-full overflow-hidden rounded-full border border-border-default bg-surface-tertiary"
       role="progressbar"
       aria-valuenow={pct}
       aria-valuemin={0}

@@ -174,12 +174,15 @@ body {
 }
 
 /*
- * Cormorant trae figuras de texto (el 0 se lee como una "o" chiquita y el 1 como
- * una "i"): precioso en un párrafo, ilegible en un dato. Todo número que se LEE como
- * dato va con figuras de caja alta y ancho fijo.
+ * Cormorant trae SOLO figuras de texto (el 0 se lee como una "o" chiquita y el 1 como
+ * una "i") y la versión de Google no expone `lnum`: precioso en un párrafo, ilegible
+ * en un dato. Por eso todo número que se LEE como dato se compone en la sans del kit,
+ * con ancho fijo — el tamaño y el peso siguen dando la jerarquía.
  */
 .cifra {
+  font-family: var(--font-body-src), "Jost", system-ui, sans-serif;
   font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 /* Entrada por CSS puro (baseline 1) — no depende de que ninguna librería de JS hidrate */

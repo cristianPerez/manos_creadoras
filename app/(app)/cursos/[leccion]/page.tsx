@@ -28,7 +28,6 @@ export default async function Leccion({ params }: Props) {
 
   const l = curso.planas[i];
   const seccion = curso.secciones.find((s) => s.id === l.seccionId);
-  const anterior = i > 0 ? curso.planas[i - 1] : null;
   const siguiente = i < curso.planas.length - 1 ? curso.planas[i + 1] : null;
   const duracion = formatearDuracion(l.duracionSeg);
 
@@ -74,8 +73,11 @@ export default async function Leccion({ params }: Props) {
         </header>
       </Reveal>
 
-      <Reveal delay={0.12} className="mt-6">
-        <ContenidoLeccion tipo={l.tipo} hotmartId={l.hotmartId} titulo={l.titulo} />
+      {/* Misma envoltura que en Mis cursos: la pieza protagonista conserva su elevación */}
+      <Reveal delay={0.12}>
+        <div className="mt-6 rounded-xl border border-border-default bg-surface-primary p-4 shadow-[var(--shadow-gold)]">
+          <ContenidoLeccion tipo={l.tipo} hotmartId={l.hotmartId} titulo={l.titulo} />
+        </div>
       </Reveal>
 
       <Reveal delay={0.18}>
@@ -116,7 +118,7 @@ export default async function Leccion({ params }: Props) {
               <h2 className="font-display text-text-primary min-w-0" style={{ fontSize: "var(--text-lg)" }}>
                 Más de {seccion.titulo}
               </h2>
-              <span className="text-text-tertiary shrink-0 tabular" style={{ fontSize: "var(--text-xs)" }}>
+              <span className="text-text-tertiary shrink-0 cifra" style={{ fontSize: "var(--text-xs)" }}>
                 {seccion.completadas}/{seccion.lecciones.length}
               </span>
             </div>
@@ -131,7 +133,7 @@ export default async function Leccion({ params }: Props) {
                       aria-current={esEsta ? "page" : undefined}
                       className={`flex w-full items-center gap-3 rounded-xl border p-3 shadow-sm transition-transform active:scale-[0.99] [touch-action:manipulation] ${
                         esEsta
-                          ? "border-brand-primary/40 bg-brand-primary-soft"
+                          ? "border-brand-primary/60 bg-brand-primary-soft"
                           : "border-border-default bg-surface-primary"
                       }`}
                     >
@@ -139,11 +141,11 @@ export default async function Leccion({ params }: Props) {
                         aria-hidden="true"
                         className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
                           otra.completada
-                            ? "bg-status-success/15 text-status-success"
+                            ? "bg-brand-primary-soft text-brand-primary"
                             : "bg-surface-tertiary text-text-tertiary"
                         }`}
                       >
-                        {otra.completada ? <Check size={15} strokeWidth={2.5} /> : <span style={{ fontSize: "var(--text-xs)" }}>{otra.numero}</span>}
+                        {otra.completada ? <Check size={15} strokeWidth={2.5} /> : <span className="cifra" style={{ fontSize: "var(--text-xs)" }}>{otra.numero}</span>}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span
@@ -153,7 +155,7 @@ export default async function Leccion({ params }: Props) {
                           {otra.titulo}
                         </span>
                         <span className="mt-0.5 block text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>
-                          {esEsta ? "Estás aquí" : (dur ?? ETIQUETA_TIPO[otra.tipo])}
+                          {esEsta ? "Vas aquí" : (dur ?? ETIQUETA_TIPO[otra.tipo])}
                         </span>
                       </span>
                     </Link>
@@ -165,46 +167,6 @@ export default async function Leccion({ params }: Props) {
         </Reveal>
       )}
 
-      {/* Navegación entre lecciones — sin volver a la lista cada vez */}
-      <Reveal delay={0.3}>
-        <nav aria-label="Otras lecciones" className="mt-6 flex gap-2">
-          {anterior ? (
-            <Link
-              href={`/cursos/${anterior.id}`}
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-border-default bg-surface-primary p-3 shadow-sm [touch-action:manipulation]"
-            >
-              <ArrowLeft size={15} className="text-brand-primary shrink-0" aria-hidden="true" />
-              <span className="min-w-0">
-                <span className="block text-text-tertiary" style={{ fontSize: "11px" }}>
-                  Anterior
-                </span>
-                <span className="block truncate text-text-primary" style={{ fontSize: "var(--text-xs)" }}>
-                  {anterior.titulo}
-                </span>
-              </span>
-            </Link>
-          ) : (
-            <span className="flex-1" />
-          )}
-
-          {siguiente && (
-            <Link
-              href={`/cursos/${siguiente.id}`}
-              className="flex min-w-0 flex-1 items-center justify-end gap-2 rounded-xl border border-border-default bg-surface-primary p-3 text-right shadow-sm [touch-action:manipulation]"
-            >
-              <span className="min-w-0">
-                <span className="block text-text-tertiary" style={{ fontSize: "11px" }}>
-                  Siguiente
-                </span>
-                <span className="block truncate text-text-primary" style={{ fontSize: "var(--text-xs)" }}>
-                  {siguiente.titulo}
-                </span>
-              </span>
-              <ArrowRight size={15} className="text-brand-primary shrink-0" aria-hidden="true" />
-            </Link>
-          )}
-        </nav>
-      </Reveal>
     </>
   );
 }

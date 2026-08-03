@@ -1,10 +1,14 @@
 import {
   AlertTriangle,
   BadgeCheck,
+  ChevronRight,
   CircleSlash,
   Clock3,
+  FileText,
   HelpCircle,
+  Lock,
   Mail,
+  MessageCircle,
   ShieldCheck,
   Trophy,
 } from "lucide-react";
@@ -14,6 +18,7 @@ import { redirect } from "next/navigation";
 import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
+import { PRECIO_ANUAL, PRECIO_MENSUAL } from "@/lib/config";
 import { cargarCurso, type Alumna } from "@/lib/curso";
 
 export const metadata: Metadata = { title: "Mi cuenta — Manos Creadoras" };
@@ -22,15 +27,21 @@ export default async function Cuenta() {
   const curso = await cargarCurso();
   if (!curso) redirect("/login");
 
-  const { alumna, completadas, totalLecciones } = curso;
+  const { alumna, completadas, totalLecciones, siguiente } = curso;
   const estado = estadoDeMembresia(alumna);
 
   return (
     <>
       <Reveal>
         <header>
+          <p
+            className="text-brand-primary"
+            style={{ fontSize: "var(--text-xs)", letterSpacing: "var(--tracking-eyebrow)" }}
+          >
+            MANOS CREADORAS · MEMBRESÍA
+          </p>
           <h1
-            className="font-display font-normal text-text-primary text-balance"
+            className="font-display font-normal text-text-primary mt-1 text-balance"
             style={{ fontSize: "var(--text-3xl)", lineHeight: "var(--leading-tight)" }}
           >
             Mi cuenta
@@ -84,38 +95,53 @@ export default async function Cuenta() {
         </section>
       </Reveal>
 
-      {/* HITO — un logro que nunca se pierde */}
+      {/* HITO — un logro que nunca se pierde. Es tappable de verdad (regla UX 11):
+          antes se veía igual que las tarjetas-enlace y no hacía nada. */}
       <Reveal delay={0.12}>
-        <section aria-label="Tu logro" className="mt-6 rounded-xl border border-border-default bg-surface-primary p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <IconChip icon={Trophy} size={44} />
-            <div className="min-w-0 flex-1">
-              <p className="text-text-primary" style={{ fontSize: "var(--text-sm)", fontWeight: 500 }}>
-                {completadas === 0
-                  ? "Tu primera lección te espera"
-                  : `${completadas} ${completadas === 1 ? "lección terminada" : "lecciones terminadas"}`}
-              </p>
-              <p className="text-text-tertiary mt-0.5" style={{ fontSize: "var(--text-xs)" }}>
-                {completadas === 0
-                  ? "Empieza por el primer tutorial y márcalo al terminar."
-                  : `${alumna.diasEnPrograma !== null ? `Llevas ${dias(alumna.diasEnPrograma)} creando — t` : "T"}e faltan ${totalLecciones - completadas} para el programa completo.`}
-              </p>
-            </div>
+        <Link
+          href={siguiente ? `/cursos/${siguiente.id}` : "/cursos"}
+          aria-label="Tu avance — ir a tus cursos"
+          className="mt-6 flex items-center gap-3 rounded-xl border border-brand-primary/40 bg-surface-primary p-4 shadow-[var(--shadow-gold)] transition-transform active:scale-[0.99] [touch-action:manipulation]"
+        >
+          <IconChip icon={Trophy} size={52} />
+          <div className="min-w-0 flex-1">
+            <p className="text-text-primary" style={{ fontSize: "var(--text-sm)", fontWeight: 500 }}>
+              {completadas === 0
+                ? "Empieza aquí tu primer tutorial"
+                : `${completadas} ${completadas === 1 ? "tutorial terminado" : "tutoriales terminados"}`}
+            </p>
+            <p className="text-text-tertiary mt-0.5" style={{ fontSize: "var(--text-xs)" }}>
+              {completadas === 0
+                ? "Empieza por el primer tutorial y márcalo al terminar."
+                : `${alumna.diasEnPrograma !== null ? `Llevas ${dias(alumna.diasEnPrograma)} creando — t` : "T"}e faltan ${totalLecciones - completadas} para el programa completo.`}
+            </p>
           </div>
+          <ChevronRight size={16} className="text-brand-primary shrink-0" aria-hidden="true" />
+        </Link>
+      </Reveal>
+
+      {/* AYUDA — lo que de verdad necesita rápido, arriba y separado de lo legal */}
+      <Reveal delay={0.18}>
+        <section aria-label="Ayuda" className="mt-8">
+          <h2 className="font-display text-text-primary" style={{ fontSize: "var(--text-lg)" }}>
+            ¿Necesitas ayuda?
+          </h2>
+          <ul className="mt-3 flex flex-col gap-2">
+            <FilaEnlace href="/contacto" icon={MessageCircle} label="Escribirle a Manos Creadoras" />
+            <FilaEnlace href="/cancelar" icon={CircleSlash} label="Cómo cancelar mi membresía" />
+          </ul>
         </section>
       </Reveal>
 
-      {/* AJUSTES */}
-      <Reveal delay={0.18}>
-        <section aria-label="Ajustes y ayuda" className="mt-8">
+      <Reveal delay={0.22}>
+        <section aria-label="Documentos legales" className="mt-8">
           <h2 className="font-display text-text-primary" style={{ fontSize: "var(--text-lg)" }}>
-            Ayuda y legal
+            Legal
           </h2>
           <ul className="mt-3 flex flex-col gap-2">
-            <FilaEnlace href="/cancelar" icon={CircleSlash} label="Cómo cancelar mi membresía" />
-            <FilaEnlace href="/contacto" icon={HelpCircle} label="Escribirle a Manos Creadoras" />
-            <FilaEnlace href="/terminos" icon={ShieldCheck} label="Términos y privacidad" />
-            <FilaEnlace href="/reembolso" icon={ShieldCheck} label="Política de reembolso" />
+            <FilaEnlace href="/terminos" icon={ShieldCheck} label="Términos del servicio" />
+            <FilaEnlace href="/privacidad" icon={Lock} label="Privacidad de mis datos" />
+            <FilaEnlace href="/reembolso" icon={FileText} label="Política de reembolso" />
           </ul>
         </section>
       </Reveal>
@@ -141,14 +167,23 @@ type EstadoMembresia = {
  * y cuando algo va mal le dice QUÉ HACER (no solo qué pasó).
  */
 function estadoDeMembresia(a: Alumna): EstadoMembresia {
-  const nombrePlan = a.plan === "anual" ? "Plan anual" : a.plan === "mensual" ? "Plan mensual" : "Membresía";
+  // El importe sale de la fuente única de precios: la alumna merece saber CUÁNTO se le
+  // cobra sin salir de la app (es la pregunta #1 de cualquier suscripción).
+  // Moneda explícita: la audiencia es MX/CO/PE/CL y "$199" significa cosas muy
+  // distintas en cada país. El cobro de Hotmart es en dólares.
+  const nombrePlan =
+    a.plan === "anual"
+      ? `Plan anual · USD ${PRECIO_ANUAL} al año`
+      : a.plan === "mensual"
+        ? `Plan mensual · USD ${PRECIO_MENSUAL} al mes`
+        : "Membresía";
 
   switch (a.status) {
     case "active":
       return {
         icono: BadgeCheck,
         titulo: "Membresía activa",
-        detalle: `${nombrePlan} · se renueva automáticamente`,
+        detalle: `${nombrePlan}, se renueva sola`,
         pie: a.primerPagoEn ? `Miembro desde el ${fecha(a.primerPagoEn)}` : undefined,
       };
 
@@ -217,12 +252,13 @@ function FilaEnlace({
     <li>
       <Link
         href={href}
-        className="flex items-center gap-3 rounded-xl border border-border-default bg-surface-primary p-3.5 shadow-sm [touch-action:manipulation]"
+        className="flex items-center gap-3 rounded-xl border border-border-default bg-surface-primary p-3.5 shadow-sm transition-transform active:scale-[0.99] [touch-action:manipulation]"
       >
         <Icon className="text-brand-primary shrink-0" size={17} aria-hidden="true" />
         <span className="min-w-0 flex-1 truncate text-text-primary" style={{ fontSize: "var(--text-sm)" }}>
           {label}
         </span>
+        <ChevronRight size={15} className="text-text-tertiary shrink-0" aria-hidden="true" />
       </Link>
     </li>
   );

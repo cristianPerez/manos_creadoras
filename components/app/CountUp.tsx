@@ -2,6 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
+/**
+ * Número que cuenta hasta su valor (baseline 2 de animación del SO).
+ *
+ * Anima TAMBIÉN cuando el valor cambia después de montarse: antes solo contaba una vez,
+ * así que el medidor del Ojo Experto seguía marcando "40 de 40" después de gastar una
+ * pregunta — la barra se movía y el número no.
+ */
 export function CountUp({
   to,
   duration = 700,
@@ -16,25 +23,26 @@ export function CountUp({
   locale?: string;
 }) {
   const [value, setValue] = useState(0);
-  const started = useRef(false);
+  const valorRef = useRef(0);
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
+    const desde = valorRef.current;
+    if (desde === to) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setValue(to);
-      return;
-    }
-
+    const sinMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const total = sinMovimiento ? 0 : duration;
     const start = performance.now();
     let frame: number;
+
     const tick = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
+      const progress = total === 0 ? 1 : Math.min((now - start) / total, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(eased * to));
+      const actual = Math.round(desde + (to - desde) * eased);
+      valorRef.current = actual;
+      setValue(actual);
       if (progress < 1) frame = requestAnimationFrame(tick);
     };
+
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [to, duration]);

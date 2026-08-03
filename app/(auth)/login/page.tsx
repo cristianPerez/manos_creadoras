@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyRound, Loader2, MailCheck } from "lucide-react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
 import { AuthShell } from "@/components/app/AuthShell";
@@ -147,9 +148,9 @@ function Login() {
       <Reveal delay={0.14}>
         <p className="text-center text-text-tertiary mt-6" style={{ fontSize: "var(--text-xs)" }}>
           ¿Todavía no compraste?{" "}
-          <a href="/#oferta" className="text-brand-primary">
+          <Link href="/#oferta" className="text-brand-primary">
             Ver el programa
-          </a>
+          </Link>
         </p>
       </Reveal>
     </AuthShell>
