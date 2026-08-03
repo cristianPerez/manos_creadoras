@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GoldButton } from "@/components/app/GoldButton";
-import { CHECKOUT_URL } from "@/lib/config";
+import { CHECKOUT_ANUAL, PRECIO_ANUAL_POR_MES } from "@/lib/config";
 
 export function StickyBuyBar() {
   const [visible, setVisible] = useState(false);
@@ -20,13 +20,14 @@ export function StickyBuyBar() {
       style={{ transform: visible ? "translateY(0)" : "translateY(100%)" }}
     >
       <div>
-        <p className="font-display text-text-primary" style={{ fontSize: "var(--text-xl)" }}>
-          $25 <span className="font-body text-text-tertiary line-through" style={{ fontSize: "var(--text-sm)" }}>$55</span>
+        <p className="font-display text-text-primary tabular" style={{ fontSize: "var(--text-xl)" }}>
+          ${PRECIO_ANUAL_POR_MES}
+          <span className="font-body text-text-tertiary" style={{ fontSize: "var(--text-sm)" }}> /mes</span>
         </p>
-        <p className="text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>Pago único</p>
+        <p className="text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>Plan anual</p>
       </div>
-      <GoldButton href={CHECKOUT_URL} size="md">
-        Quiero acceder →
+      <GoldButton href={CHECKOUT_ANUAL} size="md">
+        Empezar →
       </GoldButton>
     </div>
   );

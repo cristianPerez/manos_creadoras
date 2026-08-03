@@ -65,8 +65,8 @@
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
   --font-body: var(--font-body-src), "Jost", system-ui, sans-serif;
 
-  --text-xs: 0.6875rem;   /* 11px — eyebrows */
-  --text-sm: 0.8125rem;   /* 13px */
+  --text-xs: 0.75rem;     /* 12px — labels/eyebrows (tope del rango 11-12 de la ficha) */
+  --text-sm: 0.875rem;    /* 14px — cuerpo (rango 13.5-15 de la ficha; mínimo legible del SO) */
   --text-base: 0.9375rem; /* 15px */
   --text-lg: 1.0625rem;   /* 17px */
   --text-xl: 1.375rem;    /* 22px */
@@ -171,6 +171,15 @@ body {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Cormorant trae figuras de texto (el 0 se lee como una "o" chiquita y el 1 como
+ * una "i"): precioso en un párrafo, ilegible en un dato. Todo número que se LEE como
+ * dato va con figuras de caja alta y ancho fijo.
+ */
+.cifra {
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 /* Entrada por CSS puro (baseline 1) — no depende de que ninguna librería de JS hidrate */

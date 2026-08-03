@@ -25,9 +25,11 @@ export default function Terminos() {
         <section>
           <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>2. Qué incluye tu compra</h2>
           <p className="mt-2">
-            Acceso de por vida al curso, los patrones descargables, los bonos indicados en la
-            página de venta al momento de tu compra, y al asistente de mentoría con IA (el
-            &ldquo;Ojo Experto&rdquo;) dentro de los límites de uso justo mensual vigentes.
+            Una membresía de acceso al programa mientras esté activa: los tutoriales, los
+            patrones descargables, los modelos que se agreguen durante tu membresía, y el
+            asistente de mentoría con IA (el &ldquo;Ojo Experto&rdquo;) dentro de los límites de
+            uso justo mensual vigentes. Al cancelar, el acceso continúa hasta el final del
+            período ya pagado.
           </p>
         </section>
         <section>
@@ -48,10 +50,21 @@ export default function Terminos() {
           </p>
         </section>
         <section>
-          <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>5. Pagos</h2>
+          <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>5. Pagos y renovación</h2>
           <p className="mt-2">
-            El pago se procesa de forma segura a través de Hotmart. Nosotros no almacenamos
-            los datos de tu tarjeta.
+            Es una suscripción de renovación automática: el plan mensual se cobra cada mes
+            ($19.99) y el anual una vez al año ($199), hasta que la canceles. El pago se procesa
+            de forma segura a través de Hotmart; nosotros no almacenamos los datos de tu tarjeta.
+          </p>
+        </section>
+        <section>
+          <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>5b. Cancelación</h2>
+          <p className="mt-2">
+            Puedes cancelar en cualquier momento, sin penalización — instrucciones en{" "}
+            <Link href="/cancelar" className="text-brand-primary">Cómo cancelar</Link>. Al
+            cancelar se detienen los cobros futuros y conservas el acceso hasta el final del
+            período ya pagado. Si cambiamos el precio, te avisaremos antes de que aplique a tu
+            renovación.
           </p>
         </section>
         <section>

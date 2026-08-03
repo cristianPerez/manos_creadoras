@@ -1,7 +1,8 @@
 "use client";
 
 import { KeyRound, Loader2, MailCheck } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState, type FormEvent } from "react";
 import { AuthShell } from "@/components/app/AuthShell";
 import { Eyebrow } from "@/components/app/Eyebrow";
 import { GoldSubmitButton } from "@/components/app/GoldButton";
@@ -13,7 +14,25 @@ type Status = "idle" | "loading" | "sent" | "error";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function Login() {
+/** Mensajes de los enlaces que ya no sirven, en palabras de la alumna. */
+const ERRORES_DEL_ENLACE: Record<string, string> = {
+  enlace_vencido:
+    "Ese enlace ya venció o se usó. Pide uno nuevo — tarda un segundo.",
+  enlace_invalido: "Ese enlace no era válido. Pide uno nuevo aquí abajo.",
+};
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<AuthShell>{null}</AuthShell>}>
+      <Login />
+    </Suspense>
+  );
+}
+
+function Login() {
+  const searchParams = useSearchParams();
+  const errorDelEnlace = ERRORES_DEL_ENLACE[searchParams.get("error") ?? ""] ?? "";
+
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -80,6 +99,18 @@ export default function Login() {
           el Ojo Experto, sin que tengas que recordar una contraseña.
         </p>
       </Reveal>
+
+      {errorDelEnlace && (
+        <Reveal delay={0.04}>
+          <p
+            className="mt-4 rounded-lg border border-border-default bg-surface-tertiary p-3 text-status-warning"
+            style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
+            role="alert"
+          >
+            {errorDelEnlace}
+          </p>
+        </Reveal>
+      )}
 
       <Reveal delay={0.08}>
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">

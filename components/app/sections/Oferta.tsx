@@ -1,30 +1,41 @@
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, Sparkles } from "lucide-react";
 import { Eyebrow } from "@/components/app/Eyebrow";
 import { GoldButton } from "@/components/app/GoldButton";
 import { Reveal } from "@/components/app/Reveal";
-import { CHECKOUT_URL } from "@/lib/config";
+import {
+  CHECKOUT_ANUAL,
+  CHECKOUT_MENSUAL,
+  MESES_GRATIS_ANUAL,
+  PRECIO_ANUAL,
+  PRECIO_ANUAL_POR_MES,
+  PRECIO_MENSUAL,
+} from "@/lib/config";
 
-const stack = [
-  { item: "Curso de bolsos en cuentas + malla plástica (+50 tutoriales)", valor: 97 },
-  { item: "50 patrones exclusivos descargables", valor: 45 },
-  { item: "Directorio de proveedores premium", valor: 29 },
-  { item: "Plantilla de costos y precios", valor: 19 },
-  { item: "Método de ventas boutique", valor: 39 },
-  { item: "Comunidad privada de alumnas", valor: 25 },
+const incluye = [
+  "El Ojo Experto: tu mentora de IA, 24/7",
+  "+50 tutoriales paso a paso (bolsos en cuentas y malla plástica)",
+  "50 patrones exclusivos descargables",
+  "Directorio de proveedores premium",
+  "Plantilla de costos y precios",
+  "Método de ventas boutique",
+  "Comunidad privada de alumnas",
+  "Modelos nuevos cada mes",
 ];
-
-const total = stack.reduce((acc, s) => acc + s.valor, 0);
 
 export function Oferta() {
   return (
     <section id="oferta" className="px-4 py-16 max-w-lg mx-auto md:px-8">
       <Reveal className="text-center">
-        <Eyebrow>La oferta</Eyebrow>
+        <Eyebrow>Tu membresía</Eyebrow>
         <h2 className="font-display font-normal text-text-primary mt-2" style={{ fontSize: "var(--text-3xl)", lineHeight: "var(--leading-tight)" }}>
-          Todo lo que recibes hoy
+          Elige cómo quieres empezar
         </h2>
+        <p className="text-text-secondary mt-3" style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}>
+          Todo el programa, el Ojo Experto y los modelos nuevos de cada mes — en un solo lugar.
+        </p>
       </Reveal>
 
+      {/* PLAN ANUAL — el recomendado */}
       <Reveal delay={0.08} className="mt-8">
         <div
           className="rounded-xl"
@@ -37,54 +48,91 @@ export function Oferta() {
           }}
         >
           <div className="rounded-xl bg-surface-primary p-6 md:p-8 shadow-[var(--shadow-gold)]">
-            <ul className="flex flex-col gap-3">
-              {stack.map((s) => (
-                <li key={s.item} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-primary-soft">
-                    <Check className="text-brand-primary" size={12} strokeWidth={3} />
-                  </span>
-                  <span className="flex-1 text-text-secondary" style={{ fontSize: "var(--text-sm)" }}>
-                    {s.item}
-                  </span>
-                  <span className="text-text-tertiary tabular" style={{ fontSize: "var(--text-sm)" }}>
-                    ${s.valor}
-                  </span>
-                </li>
-              ))}
-              <li className="flex items-start gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-text-primary font-medium" style={{ fontSize: "var(--text-lg)" }}>
+                Plan anual
+              </p>
+              <span
+                className="rounded-lg px-2.5 py-1 text-text-inverse"
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  backgroundImage:
+                    "linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end))",
+                }}
+              >
+                {MESES_GRATIS_ANUAL} MESES GRATIS
+              </span>
+            </div>
+
+            <p className="font-display text-text-primary mt-3 tabular" style={{ fontSize: "var(--text-4xl)", lineHeight: 1 }}>
+              ${PRECIO_ANUAL_POR_MES}
+              <span className="font-body text-text-secondary" style={{ fontSize: "var(--text-lg)" }}>
+                {" "}/mes
+              </span>
+            </p>
+            <p className="text-text-tertiary mt-1" style={{ fontSize: "var(--text-xs)" }}>
+              Se cobra ${PRECIO_ANUAL} una vez al año · cancela cuando quieras
+            </p>
+
+            <GoldButton href={CHECKOUT_ANUAL} className="mt-6 w-full">
+              Empezar con el plan anual →
+            </GoldButton>
+          </div>
+        </div>
+      </Reveal>
+
+      {/* PLAN MENSUAL */}
+      <Reveal delay={0.12} className="mt-4">
+        <div className="rounded-xl border border-border-default bg-surface-primary p-6 shadow-sm">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-text-primary font-medium" style={{ fontSize: "var(--text-lg)" }}>
+              Plan mensual
+            </p>
+            <p className="font-display text-text-primary tabular" style={{ fontSize: "var(--text-2xl)" }}>
+              ${PRECIO_MENSUAL}
+              <span className="font-body text-text-secondary" style={{ fontSize: "var(--text-sm)" }}>
+                {" "}/mes
+              </span>
+            </p>
+          </div>
+          <p className="text-text-tertiary mt-1" style={{ fontSize: "var(--text-xs)" }}>
+            Sin permanencia · cancela cuando quieras
+          </p>
+          <GoldButton href={CHECKOUT_MENSUAL} variant="secondary" className="mt-5 w-full">
+            Empezar mes a mes
+          </GoldButton>
+        </div>
+      </Reveal>
+
+      {/* QUÉ INCLUYE — igual en los dos planes */}
+      <Reveal delay={0.16} className="mt-6">
+        <div className="rounded-xl border border-border-default bg-surface-primary p-6 shadow-sm">
+          <p className="text-text-secondary" style={{ fontSize: "var(--text-sm)", fontWeight: 500 }}>
+            Los dos planes incluyen todo:
+          </p>
+          <ul className="mt-4 flex flex-col gap-3">
+            {incluye.map((item, i) => (
+              <li key={item} className="flex items-start gap-3">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-primary-soft">
-                  <Check className="text-brand-primary" size={12} strokeWidth={3} />
+                  {i === 0 ? (
+                    <Sparkles className="text-brand-primary" size={11} strokeWidth={2.5} />
+                  ) : (
+                    <Check className="text-brand-primary" size={12} strokeWidth={3} />
+                  )}
                 </span>
-                <span className="flex-1 text-text-primary font-medium" style={{ fontSize: "var(--text-sm)" }}>
-                  El Ojo Experto — tu asistente de mentoría con IA
-                </span>
-                <span className="text-brand-primary" style={{ fontSize: "var(--text-sm)" }}>
-                  incluido
+                <span
+                  className={i === 0 ? "flex-1 text-text-primary font-medium" : "flex-1 text-text-secondary"}
+                  style={{ fontSize: "var(--text-sm)" }}
+                >
+                  {item}
                 </span>
               </li>
-            </ul>
-
-            <div className="mt-6 border-t border-border-default pt-6 text-center">
-              <p className="text-text-tertiary tabular" style={{ fontSize: "var(--text-sm)" }}>
-                Valor total: <span className="line-through">${total}</span>
-              </p>
-              <p className="font-display text-text-primary mt-1 tabular" style={{ fontSize: "var(--text-4xl)" }}>
-                $25{" "}
-                <span className="font-body text-text-tertiary line-through" style={{ fontSize: "var(--text-lg)" }}>
-                  $55
-                </span>
-              </p>
-              <p className="text-text-tertiary mt-1" style={{ fontSize: "var(--text-xs)" }}>
-                Pago único · acceso de por vida
-              </p>
-              <GoldButton href={CHECKOUT_URL} className="mt-6 w-full">
-                Quiero acceder ahora →
-              </GoldButton>
-              <p className="text-text-tertiary mt-3 flex items-center justify-center gap-1.5" style={{ fontSize: "var(--text-xs)" }}>
-                <Lock size={12} /> Pago seguro vía Hotmart · Garantía de 7 días
-              </p>
-            </div>
-          </div>
+            ))}
+          </ul>
+          <p className="text-text-tertiary mt-5 flex items-center justify-center gap-1.5" style={{ fontSize: "var(--text-xs)" }}>
+            <Lock size={12} /> Pago seguro vía Hotmart · Garantía de 7 días
+          </p>
         </div>
       </Reveal>
     </section>

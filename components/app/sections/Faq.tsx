@@ -20,12 +20,20 @@ const preguntas = [
     a: "Sí. El programa incluye la plantilla de costos y precios y el método de ventas boutique para que sepas qué cobrar y cómo mostrarlo.",
   },
   {
-    q: "¿Es caro? ¿Vale la pena el precio?",
-    a: "Hoy es un pago único de $25 — menos de lo que ya gastaste en materiales de un solo intento fallido. El acceso es de por vida, no mensual.",
+    q: "¿Me van a cobrar todos los meses? ¿Puedo cancelar?",
+    a: "Sí, es una membresía: el plan anual se cobra una vez al año ($199) y el mensual todos los meses ($19.99). Cancelas cuando quieras desde tu panel de Hotmart, sin llamadas ni explicaciones.",
   },
   {
-    q: "¿El acceso es limitado o es para siempre?",
-    a: "Es de por vida. Avanzas a tu ritmo, sin fecha de vencimiento.",
+    q: "¿Es caro? ¿Vale la pena?",
+    a: "El plan anual sale $16.58 al mes — menos que los materiales que desperdicias en un solo intento fallido. Y a diferencia de un curso suelto, incluye al Ojo Experto revisando tu tejido siempre que lo necesites.",
+  },
+  {
+    q: "¿Por qué es membresía y no un pago único?",
+    a: "Porque no es solo un curso grabado: cada mes se suman modelos nuevos, y el Ojo Experto trabaja para ti cada vez que subes una foto. La membresía es lo que mantiene ambas cosas vivas.",
+  },
+  {
+    q: "¿Qué pasa con mi progreso si cancelo?",
+    a: "Tu cuenta y tu historial se conservan. Si vuelves más adelante, retomas donde quedaste — no empiezas de cero.",
   },
 ];
 

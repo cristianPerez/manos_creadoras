@@ -43,3 +43,12 @@ next-env.d.ts
 .playwright-mcp/
 .mcp.json
 .claude/
+# El ejemplo SÍ se versiona (no lleva secretos, es la plantilla)
+!.env.example
+
+# Borrador de direcciones visuales — no va a producción
+direcciones-abc.html
+
+# Capturas de verificación
+.playwright-mcp/
+.codex/
