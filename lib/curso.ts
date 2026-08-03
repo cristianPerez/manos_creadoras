@@ -122,7 +122,39 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
   ]);
 
   const perfil = perfilRes.data;
-  if (!perfil) return null;
+
+  /**
+   * Sesión válida pero SIN fila en `profiles`. Pasa cuando la cuenta se crea a mano en
+   * el panel de Supabase (que solo crea el usuario de auth) o cuando el webhook de
+   * Hotmart falla a mitad de camino.
+   *
+   * ⚠️ POR QUÉ NO DEVOLVEMOS `null` AQUÍ: la pantalla respondía a `null` con
+   * `redirect("/login")`, pero el middleware ve que SÍ hay sesión iniciada y rebota al
+   * instante a `/cursos` → las dos se reenvían entre sí y el navegador muere con
+   * ERR_TOO_MANY_REDIRECTS, sin ningún mensaje. Devolviendo una alumna "sin perfil"
+   * (sin acceso) la pantalla se dibuja y le explica qué pasó, con salida a soporte.
+   */
+  if (!perfil) {
+    return {
+      alumna: {
+        id: user.id,
+        nombre: null,
+        email: user.email ?? "",
+        plan: null,
+        status: "sin_perfil",
+        accessUntil: null,
+        primerPagoEn: null,
+        tieneAcceso: false,
+        diasEnPrograma: null,
+      },
+      secciones: [],
+      planas: [],
+      totalLecciones: 0,
+      completadas: 0,
+      pct: 0,
+      siguiente: null,
+    };
+  }
 
   const hechas = new Set((progresoRes.data ?? []).map((p) => p.leccion_id));
   const filasSecciones = seccionesRes.data ?? [];

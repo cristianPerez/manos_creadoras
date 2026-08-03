@@ -64,7 +64,20 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
   ]);
 
   const perfil = perfilRes.data;
-  if (!perfil) return null;
+
+  /**
+   * Sesión válida pero SIN fila en `profiles` (cuenta creada a mano en el panel de
+   * Supabase, o webhook de Hotmart que falló a mitad).
+   *
+   * ⚠️ POR QUÉ NO DEVOLVEMOS `null` AQUÍ: la pantalla contestaba a `null` con
+   * `redirect("/login")` y el middleware, al ver sesión iniciada, la mandaba de vuelta
+   * a `/cursos` → bucle infinito de redirecciones (ERR_TOO_MANY_REDIRECTS) sin ningún
+   * mensaje. Devolviendo el estado vacío y sin acceso, la pantalla se dibuja y explica
+   * que la membresía está en pausa, con salida a soporte.
+   */
+  if (!perfil) {
+    return { historial: [], uso: { preguntas: 0, fotos: 0 }, tieneAcceso: false, nombre: null };
+  }
 
   const vigente = perfil.access_until ? new Date(perfil.access_until) > new Date() : false;
   const tieneAcceso =

@@ -1,7 +1,53 @@
 # ESTADO — Manos Creadoras App
 Última actualización: 2026-07-31 | Sesión actual: 1 (en curso)
 
-⏸️ CHECKPOINT (2026-08-02) — Sesión 6 casi cerrada. **Supabase y el Ojo Experto FUNCIONAN DE VERDAD, probados contra los servicios reales.** HECHO: modelo de negocio migrado a SUSCRIPCIÓN ($19.99/mes · $199/año) en toda la app + legales; IA en Gemini `gemini-3.6-flash`; webhook con ciclo de vida de suscripción; filtro de tema + memoria por alumna; Supabase con 8 tablas, RLS y 2 migraciones; **prueba end-to-end pasada: 2 fotos reales de bolsos analizadas correctamente, 1 pregunta técnica respondida, 1 pregunta fuera de tema y 1 intento de inyección de prompt ambos bloqueados**. / Siguiente acción exacta: conectar las pantallas a Supabase (hoy leen de `lib/demo-data.ts`), sembrar la tabla `modulos`, y después Hotmart (la dueña pidió dejarlo para el final).
+⏸️ CHECKPOINT (2026-08-03) — Sesión 7: **las 4 pantallas de la app interna ya leen y escriben datos REALES de Supabase** (se borró `lib/demo-data.ts`). Probado en navegador con una alumna real: entrar por enlace → ver su curso → marcar una lección (se guardó en la base) → preguntarle al Ojo Experto (Gemini respondió y el contador bajó de 40 a 39) → ver su cuenta. `tsc` ✓ `build` ✓. **3 rondas del revisor-visual: subió de 28-30/40 a 31-35/40 usabilidad, pero NO llega al listón (36/40 · 16/20).** El techo que queda es material de la dueña: sin fotos de los bolsos no se puede aplicar el dispositivo ownable de la ficha (eje identidad clavado en 2/5 en las 4 pantallas), y sin las ~49 lecciones que faltan las listas se ven a medio llenar. / Siguiente acción exacta: pedirle a la dueña (a) 3-5 fotos de bolsos terminados, (b) el listado completo de lecciones de las secciones 2, 3 y 4, (c) crear el producto de suscripción en Hotmart.
+
+## Sesión 7 (2026-08-03) — Pantallas conectadas a Supabase
+- `lib/curso.ts` (secciones + lecciones + progreso + perfil, todo con la sesión de la alumna para que aplique el RLS) y `lib/ojo-experto.ts` (historial + uso del mes). `lib/demo-data.ts` ELIMINADO.
+- `app/(app)/cursos/acciones.ts`: server action `marcarLeccion` (insert/delete en `user_progress`, tolera el 23505 del doble tap). La ruta pasó de `/cursos/[modulo]` a `/cursos/[leccion]`.
+- **DECISIÓN (informada, no consultada): se quitó el bloqueo secuencial de lecciones.** En Hotmart la alumna ya tiene TODO abierto; bloquear en nuestra app habría sido un retroceso que ella notaría el primer día. Ahora todas las lecciones se abren y el avance lo marca ella ("Marcar como vista"). ⚠️ Si la dueña prefiere el bloqueo secuencial, se revierte.
+- **DECISIÓN: la sección 1 (bienvenida/comunidad/aviso/patrones) NO cuenta para el % de avance** — migración `0005` con la columna `secciones.cuenta_progreso` (por dato, no hardcodeado, para que se pueda cambiar sin tocar código). Resuelve la duda que quedó abierta el 2026-08-03.
+- Migraciones `0003`, `0004` y `0005` guardadas como archivo en `supabase/migrations/` — estaban aplicadas en la base pero NO existían en el repo (habrían faltado en el deploy).
+- 🐛 **Bugs reales corregidos**: (a) la memoria de la IA consultaba `user_progress.modulo_id`, columna que dejó de existir al cambiar el modelo de datos; (b) `lib/env.ts` exigía TODAS las claves de golpe, así que con `HOTMART_HOTTOK` vacía (el webhook aún no existe) el Ojo Experto devolvía error 500 aunque su clave estuviera bien → ahora se valida por uso (`aiEnv` / `hotmartEnv`); (c) `CountUp` solo contaba una vez, así que el medidor seguía diciendo "40 de 40" tras gastar una pregunta; (d) cerrar sesión sin internet dejaba el botón en "Cerrando…" para siempre.
+- Otros arreglos del revisor: estados `loading`/`error`/`not-found` de la app (antes: pantalla congelada, pantalla blanca y 404 en inglés) · grano de marca aplicado al layout de la app (solo estaba en la landing) · números en la sans porque Cormorant solo trae cifras de texto (el 0 se leía como "o") · texto 13→14px y labels 11→12px (dentro del rango que fija la ficha) · verde suelto pasado a dorado (un solo acento) · foto que se achica a 1280px antes de subir (una foto de celular no viaja en datos móviles) · error distinto para foto ilegible (HEIC) en vez de culpar al internet · botón Cancelar durante la consulta · historial de IA expandible · confirmación al cerrar sesión.
+- Screenshots de verificación: `.playwright-mcp/s7h-ojo-experto.png`, `s7f-cursos.png`, `s7f-leccion.png`, `s7f-cuenta.png`.
+- ⚠️ Deuda conocida: 2 avisos de lint preexistentes (`BarraProgreso` llama setState dentro de un efecto) — no rompen nada.
+
+## Correo / magic link en producción (2026-08-03) — PENDIENTE DE CONFIGURAR
+
+### 🐛 Corregido: bucle infinito de redirecciones (ERR_TOO_MANY_REDIRECTS)
+- **Qué pasaba:** si había sesión válida pero NO existía fila en `profiles`, `cargarCurso` y `cargarOjoExperto` devolvían `null`, la pantalla hacía `redirect("/login")`, y el middleware —que sí ve la sesión— la rebotaba a `/cursos`. Las dos se reenviaban entre sí hasta que el navegador cortaba con ERR_TOO_MANY_REDIRECTS, **sin ningún mensaje**.
+- **Es la trampa exacta de quien crea el usuario a mano** en el panel de Supabase: ese panel crea la cuenta de auth pero NO la fila de `profiles`. Igual pasa si el webhook de Hotmart falla a mitad (crea el usuario y muere antes de insertar el perfil).
+- **Arreglo:** `lib/curso.ts` devuelve un curso vacío con una alumna sintética (`status: "sin_perfil"`, `tieneAcceso: false`) y `lib/ojo-experto.ts` devuelve el estado vacío sin acceso. Las pantallas se dibujan y explican qué pasó, con botón a soporte.
+- **Verificado en navegador** con un usuario de auth creado a propósito SIN fila en `profiles`: `/cursos` → "Tu membresía no está activa", `/cuenta` → "Sin acceso al programa", `/ojo-experto` → "El Ojo Experto está en pausa", `/cursos/[leccion]` → un solo salto a `/cursos`. Cero bucles. Capturas: `.playwright-mcp/s7i-sinperfil-cursos.png`, `s7i-sinperfil-cuenta.png`, `s7i-sinperfil-ojo.png`.
+
+### Cómo funciona el envío del enlace (para no perder tiempo depurando)
+- El magic link **NO se envía si el correo no existe en `auth.users`**: `lib/auth.ts` usa `shouldCreateUser: false` a propósito (las cuentas solo las crea el webhook al pagar). Por anti-enumeración la pantalla dice igual "revisa tu correo" aunque no se haya mandado nada — es deliberado, no un bug.
+- La fila en `profiles` **no influye en el envío**, solo en poder entrar y ver contenido.
+
+### 🔴 BLOQUEA EL LANZAMIENTO: falta SMTP propio
+El remitente por defecto de Supabase manda ~2 correos por hora y **solo a direcciones del equipo del proyecto** → ninguna alumna recibiría su acceso después de pagar.
+- Resend en Supabase: **Project Settings → Authentication → SMTP Settings** · host `smtp.resend.com` · puerto `465` · usuario `resend` · password = la API key `re_...`.
+- Para probar sin dominio sirve `onboarding@resend.dev`, pero **solo entrega al correo dueño de la cuenta de Resend**. Para alumnas reales hay que verificar el dominio (SPF/DKIM).
+- Después subir **Rate Limits → "emails per hour"**.
+
+### ⚠️ Cambiar la plantilla del correo a `token_hash`
+La plantilla por defecto usa PKCE (`?code=`), que exige abrir el enlace **en el mismo navegador que lo pidió**. La alumna lo pide desde Chrome, abre el correo en Gmail, y el enlace se abre en el navegador interno de Gmail → otro almacenamiento → "enlace vencido". Con audiencia móvil pasa constantemente.
+- **Authentication → Email Templates → Magic Link**, poner:
+  `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink`
+- El callback ya soporta las dos formas (`app/auth/callback/route.ts`) — **no se toca código**.
+
+### ⚠️ URL Configuration
+- Site URL: `https://TU-APP.vercel.app`
+- Redirect URLs: `https://TU-APP.vercel.app/auth/callback` y `http://localhost:3000/auth/callback`
+
+### Atajo para entrar sin correo, apuntando a producción
+```
+APP_URL=https://TU-APP.vercel.app npm run alumna:crear -- tu@correo.com anual active
+```
+
+⏸️ ANTERIOR (2026-08-02) — Sesión 6 casi cerrada. **Supabase y el Ojo Experto FUNCIONAN DE VERDAD, probados contra los servicios reales.** HECHO: modelo de negocio migrado a SUSCRIPCIÓN ($19.99/mes · $199/año) en toda la app + legales; IA en Gemini `gemini-3.6-flash`; webhook con ciclo de vida de suscripción; filtro de tema + memoria por alumna; Supabase con 8 tablas, RLS y 2 migraciones; **prueba end-to-end pasada: 2 fotos reales de bolsos analizadas correctamente, 1 pregunta técnica respondida, 1 pregunta fuera de tema y 1 intento de inyección de prompt ambos bloqueados**. / Siguiente acción exacta: conectar las pantallas a Supabase (hoy leen de `lib/demo-data.ts`), sembrar la tabla `modulos`, y después Hotmart (la dueña pidió dejarlo para el final).
 
 ⚠️ ÚNICO BLOQUEO DE NEGOCIO: crear el producto de SUSCRIPCIÓN en Hotmart — los botones de compra aún apuntan al producto viejo de pago único de $25. No se puede publicar hasta resolverlo.
 
@@ -128,7 +174,13 @@ App con dos zonas: (1) frente público de ventas (instalable, con notificaciones
 - `direcciones-abc.html` sigue en la raíz del proyecto — recordar borrarlo antes de subir el repo o hacer deploy (no se sube a producción).
 - Título de pestaña de `/login` no personalizado (hereda el de Home) — es "use client" y no puede exportar `metadata`; solucionable con un layout.tsx propio del grupo `(auth)` si se quiere pulir, no bloqueante.
 
+## Pendientes del usuario (Sesión 7 — bloquean la calidad visual)
+- [ ] 🔴 **3-5 FOTOS de bolsos terminados** (buena luz, fondo simple). Sin ellas la app no puede aplicar su propio sello visual (foto a sangre + grano, la Opción B que ella eligió) y el revisor deja el eje de identidad en 2/5 en las 4 pantallas. Es lo que más sube la nota ahora mismo.
+- [ ] 🔴 **El listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan). Hoy la app muestra 9 de ~58 y dos secciones salen con el aviso "estamos subiendo estas lecciones".
+- [ ] **Nombres reales de los tutoriales**: en Hotmart se llaman "Tutorial 2", "Tutorial 3"… La alumna no puede elegir ni recordar dónde está la técnica que busca. Bastaría una línea por lección ("qué parte del bolso resuelve").
+
 ## Pendientes del usuario (Sesión 6 — bloquean el resto)
+- [ ] 🔴 **Resend + SMTP en Supabase.** Sin esto ninguna alumna recibe su enlace de acceso después de pagar. Bloquea el lanzamiento igual que el producto de Hotmart. (Pasos exactos en la sección "Correo / magic link en producción".)
 - [ ] 🔴 **Hotmart — crear el producto de SUSCRIPCIÓN.** El link actual en `lib/config.ts` es el del producto VIEJO de pago único ($25). Hasta que exista el producto de suscripción y se peguen los dos links (`CHECKOUT_MENSUAL` y `CHECKOUT_ANUAL`), los botones de la landing cobran el producto equivocado. **Esto bloquea vender.**
 - [x] ~~**Supabase**: crear proyecto y esquema~~ — HECHO 2026-08-02. Proyecto `cazqmaluaehyikkstkoi` ("Manos creadoras app", us-west-2). Las 8 tablas creadas con RLS activo; migraciones `0001_init` y `0002_endurecer_tiene_acceso` aplicadas vía MCP. URL y clave publishable ya escritas en `.env.local`.
 - [x] ~~Claves de Supabase y Gemini~~ — PUESTAS y VERIFICADAS contra los servicios reales (2026-08-02).
