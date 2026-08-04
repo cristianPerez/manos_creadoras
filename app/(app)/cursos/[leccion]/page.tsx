@@ -76,7 +76,7 @@ export default async function Leccion({ params }: Props) {
       {/* Misma envoltura que en Mis cursos: la pieza protagonista conserva su elevación */}
       <Reveal delay={0.12}>
         <div className="mt-6 rounded-xl border border-border-default bg-surface-primary p-4 shadow-[var(--shadow-gold)]">
-          <ContenidoLeccion tipo={l.tipo} hotmartId={l.hotmartId} titulo={l.titulo} />
+          <ContenidoLeccion leccion={l} />
         </div>
       </Reveal>
 

@@ -21,12 +21,12 @@ export const PRECIO_ANUAL_POR_MES = 16.58;
 export const MESES_GRATIS_ANUAL = 2;
 
 /**
- * Base del reproductor embebido de Hotmart.
- * Cada lección trae su propio `hotmart_id` en la base (tabla `lecciones`).
- * PENDIENTE: confirmar con la dueña si tiene Hotmart Player contratado. Mientras los IDs
- * estén vacíos, la app muestra el marcador de video en vez de un iframe roto.
+ * ⚠️ LOS VIDEOS YA NO SALEN DE HOTMART.
+ * El soporte de Hotmart confirmó (2026-08-03) que el Hotmart Player funciona SOLO dentro
+ * de Hotmart Club y que no existe código de inserción para sitios externos. El alojamiento
+ * y el reproductor viven ahora en `lib/video.ts`, y cada lección guarda su proveedor e ID
+ * en la base (`lecciones.video_proveedor` / `video_id`).
  */
-export const HOTMART_EMBED_BASE = "https://cf-embed.play.hotmart.com/embed";
 
 // ── Uso justo del Ojo Experto (fuente única: la usan la API y la pantalla) ──
 export const LIMITE_PREGUNTAS = 40;

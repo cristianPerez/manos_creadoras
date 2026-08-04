@@ -1,7 +1,9 @@
 # ESTADO — Manos Creadoras App
 Última actualización: 2026-07-31 | Sesión actual: 1 (en curso)
 
-⏸️ CHECKPOINT (2026-08-03) — Sesión 7: **las 4 pantallas de la app interna ya leen y escriben datos REALES de Supabase** (se borró `lib/demo-data.ts`). Probado en navegador con una alumna real: entrar por enlace → ver su curso → marcar una lección (se guardó en la base) → preguntarle al Ojo Experto (Gemini respondió y el contador bajó de 40 a 39) → ver su cuenta. `tsc` ✓ `build` ✓. **3 rondas del revisor-visual: subió de 28-30/40 a 31-35/40 usabilidad, pero NO llega al listón (36/40 · 16/20).** El techo que queda es material de la dueña: sin fotos de los bolsos no se puede aplicar el dispositivo ownable de la ficha (eje identidad clavado en 2/5 en las 4 pantallas), y sin las ~49 lecciones que faltan las listas se ven a medio llenar. / Siguiente acción exacta: pedirle a la dueña (a) 3-5 fotos de bolsos terminados, (b) el listado completo de lecciones de las secciones 2, 3 y 4, (c) crear el producto de suscripción en Hotmart.
+⏸️ CHECKPOINT (2026-08-04) — **Los videos ya no dependen de Hotmart.** El soporte de Hotmart confirmó que su reproductor solo funciona dentro de Hotmart Club: la arquitectura de video asumida desde la Sesión 3 era una vía muerta. Reemplazada por una capa propia (`lib/video.ts` + migración `0006`) que soporta Bunny/Vimeo/YouTube, con enlace firmado que caduca en Bunny. Probado en navegador: YouTube y Vimeo reproducen de verdad, y las lecciones de PDF/enlace ahora tienen a dónde apuntar (antes ni siquiera existía la columna). **Falta que la dueña elija dónde alojar y suba los videos** — detalle y costos en "Los videos NO pueden salir de Hotmart".
+
+⏸️ ANTERIOR (2026-08-03) — Sesión 7: **las 4 pantallas de la app interna ya leen y escriben datos REALES de Supabase** (se borró `lib/demo-data.ts`). Probado en navegador con una alumna real: entrar por enlace → ver su curso → marcar una lección (se guardó en la base) → preguntarle al Ojo Experto (Gemini respondió y el contador bajó de 40 a 39) → ver su cuenta. `tsc` ✓ `build` ✓. **3 rondas del revisor-visual: subió de 28-30/40 a 31-35/40 usabilidad, pero NO llega al listón (36/40 · 16/20).** El techo que queda es material de la dueña: sin fotos de los bolsos no se puede aplicar el dispositivo ownable de la ficha (eje identidad clavado en 2/5 en las 4 pantallas), y sin las ~49 lecciones que faltan las listas se ven a medio llenar. / Siguiente acción exacta: pedirle a la dueña (a) 3-5 fotos de bolsos terminados, (b) el listado completo de lecciones de las secciones 2, 3 y 4, (c) crear el producto de suscripción en Hotmart.
 
 ## Sesión 7 (2026-08-03) — Pantallas conectadas a Supabase
 - `lib/curso.ts` (secciones + lecciones + progreso + perfil, todo con la sesión de la alumna para que aplique el RLS) y `lib/ojo-experto.ts` (historial + uso del mes). `lib/demo-data.ts` ELIMINADO.
@@ -13,6 +15,41 @@
 - Otros arreglos del revisor: estados `loading`/`error`/`not-found` de la app (antes: pantalla congelada, pantalla blanca y 404 en inglés) · grano de marca aplicado al layout de la app (solo estaba en la landing) · números en la sans porque Cormorant solo trae cifras de texto (el 0 se leía como "o") · texto 13→14px y labels 11→12px (dentro del rango que fija la ficha) · verde suelto pasado a dorado (un solo acento) · foto que se achica a 1280px antes de subir (una foto de celular no viaja en datos móviles) · error distinto para foto ilegible (HEIC) en vez de culpar al internet · botón Cancelar durante la consulta · historial de IA expandible · confirmación al cerrar sesión.
 - Screenshots de verificación: `.playwright-mcp/s7h-ojo-experto.png`, `s7f-cursos.png`, `s7f-leccion.png`, `s7f-cuenta.png`.
 - ⚠️ Deuda conocida: 2 avisos de lint preexistentes (`BarraProgreso` llama setState dentro de un efecto) — no rompen nada.
+
+## Los videos NO pueden salir de Hotmart (2026-08-04) — RESUELTO EN CÓDIGO, FALTA DECIDIR DÓNDE ALOJARLOS
+
+### El hallazgo
+El soporte de Hotmart respondió por escrito: **el Hotmart Player funciona EXCLUSIVAMENTE dentro de Hotmart Club y no existe ningún código de inserción para sitios externos.** Toda la arquitectura de video que se venía asumiendo desde la Sesión 3 (`lecciones.hotmart_id` + iframe a `cf-embed.play.hotmart.com`) era una vía muerta: nunca habría funcionado.
+
+Dato importante: **ellos mismos recomiendan alojar el video en otro servicio y embeber ESE video dentro de Hotmart Club.** Es decir, un solo archivo subido sirve para las dos cosas — la app y el Club. No hay que mantener dos copias.
+
+### Lo que ya está hecho (código listo, funciona)
+- Migración `0006`: se eliminó `lecciones.hotmart_id` (estaba 100% vacía, 0 de 9 filas) y se agregaron `video_proveedor` (`bunny` | `vimeo` | `youtube`), `video_id` y `recurso_url`. Constraint `lecciones_video_completo`: o vienen proveedor e ID juntos, o ninguno.
+- `recurso_url` cubre un agujero que nadie había visto: las lecciones de tipo `pdf` (patrones) y `enlace` (comunidad) **no tenían dónde guardar su destino**, así que nunca habrían podido funcionar aunque el video sí.
+- `lib/video.ts` (nuevo): arma la URL del reproductor según el proveedor. Corre **solo en servidor**. Para Bunny **firma el enlace con una clave secreta y lo hace caducar a las 6 horas**, así copiar la URL del inspector no sirve para compartir el curso.
+- `components/app/ContenidoLeccion.tsx`: reproduce video, o muestra un botón real ("Abrir los patrones") para PDF/enlace, o el marcador honesto si todavía no hay nada. Ya no depende de `hotmartId`.
+- `lib/config.ts`: `HOTMART_EMBED_BASE` eliminada. Hotmart sigue siendo SOLO el cobro (checkout + webhook), nada de contenido.
+
+**Verificado en navegador real a 375px** con datos de prueba (borrados después): YouTube reproduce → `.playwright-mcp/s8-video-cursos.png` · Vimeo reproduce → `s8-video-vimeo.png` · PDF muestra botón "Abrir los patrones" → `s8-video-pdf.png`. La firma de Bunny se comprobó contra su fórmula documentada (SHA256 de clave+id+caducidad): coincide exacta y caduca a las 6 h.
+
+### 🔴 DECISIÓN PENDIENTE DE LA DUEÑA: dónde se alojan los videos (cuesta dinero)
+El código soporta los tres; solo hay que elegir uno, crear la cuenta y subir. Cálculo con ~58 videos de ~25 min (≈24 h de video, ≈29 GB):
+
+| | Costo real | Protección | En celular LATAM | Esfuerzo |
+|---|---|---|---|---|
+| **Bunny Stream** (recomendado) | ~$0,30/mes de almacenamiento + ~$0,20 por alumna activa/mes. Con 50 alumnas ≈ **$11/mes** | Enlace firmado que caduca + bloqueo por dominio | Excelente (calidad adaptable) | Subir 58 archivos |
+| **Vimeo** | **$12-20/mes fijos**, sin importar cuántas vean | Bloqueo por dominio (planes Plus+) | Muy bueno | El panel más fácil |
+| **YouTube oculto** | Gratis | ❌ ninguna real: cualquiera con el enlace lo ve y lo comparte | El mejor con internet malo | El más fácil |
+
+- **Recomendación: Bunny Stream.** Es el más barato, el único con enlace que caduca, y permite **poner un tope de gasto mensual** para que no llegue una factura sorpresa.
+- **Si prefiere cero complicación y factura fija: Vimeo.** Cuesta más al principio pero nunca sorprende.
+- **YouTube oculto queda descartado para el curso pagado**: sin protección real, un enlace filtrado en un grupo de WhatsApp regala el producto. Sirve solo para material abierto (un video de bienvenida en la landing, por ejemplo).
+
+### Lo que tiene que hacer ella
+1. Elegir el servicio y crear la cuenta.
+2. Subir los videos. **No hacen falta los 58 para lanzar**: con los primeros tutoriales de la sección 2 ya se puede abrir. ⚠️ Subir ~29 GB desde casa puede tomar varias horas.
+3. Pasarme la lista de "lección → ID del video" y yo la cargo en la base.
+4. Si elige Bunny: pasarme el número de la biblioteca y la clave de firma (van en variables de entorno del servidor, nunca en el navegador).
 
 ## Correo / magic link en producción (2026-08-03) — PENDIENTE DE CONFIGURAR
 
@@ -127,7 +164,7 @@ App con dos zonas: (1) frente público de ventas (instalable, con notificaciones
 ## Decisiones técnicas (tomadas por el agente, no se re-preguntan)
 - Framework: Next.js App Router (necesita SEO/landing pública + rutas privadas + API routes) — decidido 2026-07-31.
 - IA: Claude vía servidor/BFF · chat de texto síncrono con streaming · análisis de fotos SIEMPRE asíncrono (job en cola, la alumna recibe el resultado en la app/notificación, no espera bloqueada) · circuit-breaker de gasto global + contador de fair-use mensual por usuario (tabla `ai_usage`).
-- Videos: NO se alojan de cero — se embeben desde Hotmart (Hotmart Player o Club, a confirmar con la dueña qué tiene contratado hoy).
+- ~~Videos: se embeben desde Hotmart~~ → **DESCARTADO el 2026-08-04**, ver la sección "Los videos NO pueden salir de Hotmart" abajo.
 - Auth: Supabase Auth con enlace mágico por email (sin contraseña, mínima fricción) · cuenta creada automáticamente por el webhook de Hotmart al comprar, usando el email de la compra como llave — no hay registro manual ni paywall propio.
 - Modelo de datos (borrador, se ajusta en Sesión 6): `profiles` (perfil + estado de acceso) · `courses`/`modules` (metadata + ID del video de Hotmart Player) · `user_progress` (qué módulos completó cada alumna) · `ai_conversations` (historial del asistente) · `ai_usage` (contador mensual para el fair-use). RLS en todas: política por `(select auth.uid()) = user_id`, columna indexada.
 
@@ -169,7 +206,7 @@ App con dos zonas: (1) frente público de ventas (instalable, con notificaciones
 - Sesión 8: Adquisición, lanzamiento, backoffice
 
 ## Problemas conocidos ⚠️
-- No confirmado si "Hotmart Player" (el embebible) ya está contratado o hay que agregarlo — verificar con la dueña antes de la Sesión 5/6.
+- ~~No confirmado si "Hotmart Player" está contratado~~ → **RESUELTO el 2026-08-04: no existe, no se puede.** Ver "Los videos NO pueden salir de Hotmart".
 - La landing NO tiene testimonios con nombre — decisión deliberada: la dueña pidió inventarlos "mientras agregamos unos reales" y el agente se negó (riesgo real de moderación de Hotmart/publicidad engañosa, no solo regla del SO) — la dueña lo aceptó. Solo queda el agregado real (+1.200 alumnas · 4.9/5) hasta tener 2-3 reales.
 - `direcciones-abc.html` sigue en la raíz del proyecto — recordar borrarlo antes de subir el repo o hacer deploy (no se sube a producción).
 - Título de pestaña de `/login` no personalizado (hereda el de Home) — es "use client" y no puede exportar `metadata`; solucionable con un layout.tsx propio del grupo `(auth)` si se quiere pulir, no bloqueante.
@@ -180,6 +217,7 @@ App con dos zonas: (1) frente público de ventas (instalable, con notificaciones
 - [ ] **Nombres reales de los tutoriales**: en Hotmart se llaman "Tutorial 2", "Tutorial 3"… La alumna no puede elegir ni recordar dónde está la técnica que busca. Bastaría una línea por lección ("qué parte del bolso resuelve").
 
 ## Pendientes del usuario (Sesión 6 — bloquean el resto)
+- [ ] 🔴 **Elegir dónde se alojan los videos y subirlos** (Bunny recomendado, Vimeo alternativa). El reproductor de Hotmart NO se puede usar fuera de Hotmart Club — confirmado por su soporte. Sin esto la app no tiene curso que mostrar. (Comparación de costos en la sección "Los videos NO pueden salir de Hotmart".)
 - [ ] 🔴 **Resend + SMTP en Supabase.** Sin esto ninguna alumna recibe su enlace de acceso después de pagar. Bloquea el lanzamiento igual que el producto de Hotmart. (Pasos exactos en la sección "Correo / magic link en producción".)
 - [ ] 🔴 **Hotmart — crear el producto de SUSCRIPCIÓN.** El link actual en `lib/config.ts` es el del producto VIEJO de pago único ($25). Hasta que exista el producto de suscripción y se peguen los dos links (`CHECKOUT_MENSUAL` y `CHECKOUT_ANUAL`), los botones de la landing cobran el producto equivocado. **Esto bloquea vender.**
 - [x] ~~**Supabase**: crear proyecto y esquema~~ — HECHO 2026-08-02. Proyecto `cazqmaluaehyikkstkoi` ("Manos creadoras app", us-west-2). Las 8 tablas creadas con RLS activo; migraciones `0001_init` y `0002_endurecer_tiene_acceso` aplicadas vía MCP. URL y clave publishable ya escritas en `.env.local`.
@@ -190,7 +228,7 @@ App con dos zonas: (1) frente público de ventas (instalable, con notificaciones
 
 ## Pendientes anteriores del usuario
 - [ ] **Mandar 2-3 testimonios reales** (las capturas de WhatsApp de alumnas que mencionaste tener) para agregarlos a la sección "La app por dentro".
-- [ ] Confirmar en su panel de Hotmart si tiene "Hotmart Player" contratado (para los videos embebidos, Sesión 5/6)
+- [x] ~~Confirmar si tiene "Hotmart Player" contratado~~ → el soporte de Hotmart respondió que NO se puede usar fuera de Hotmart Club. Reemplazado por la decisión de alojamiento de video (arriba).
 - [ ] Más adelante: crear/confirmar cuentas de Supabase, Vercel y dominio (se guía paso a paso en la Sesión 6)
 
 ## Notas para la próxima sesión

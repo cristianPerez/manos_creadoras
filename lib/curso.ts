@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { supabaseServer } from "@/lib/supabase/server";
+import type { ProveedorVideo, Video } from "@/lib/video";
 
 /**
  * Lectura del curso REAL desde Supabase (reemplaza a lib/demo-data.ts).
@@ -19,7 +20,10 @@ export type Leccion = {
   titulo: string;
   tipo: TipoLeccion;
   duracionSeg: number | null;
-  hotmartId: string | null;
+  /** Dónde está alojado el video. `null` mientras la dueña no lo haya subido. */
+  video: Video | null;
+  /** Destino de las lecciones que no son video: el PDF de patrones, el grupo, etc. */
+  recursoUrl: string | null;
   completada: boolean;
   /** Si su sección cuenta para el % de avance (la de bienvenida no). */
   cuentaProgreso: boolean;
@@ -76,7 +80,9 @@ type FilaLeccion = {
   titulo: string;
   tipo: TipoLeccion;
   duracion_seg: number | null;
-  hotmart_id: string | null;
+  video_proveedor: ProveedorVideo | null;
+  video_id: string | null;
+  recurso_url: string | null;
   orden: number;
 };
 
@@ -115,7 +121,9 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
       .returns<FilaSeccion[]>(),
     supabase
       .from("lecciones")
-      .select("id, seccion_id, numero, titulo, tipo, duracion_seg, hotmart_id, orden")
+      .select(
+        "id, seccion_id, numero, titulo, tipo, duracion_seg, video_proveedor, video_id, recurso_url, orden",
+      )
       .order("orden")
       .returns<FilaLeccion[]>(),
     supabase.from("user_progress").select("leccion_id").returns<{ leccion_id: string }[]>(),
@@ -171,7 +179,13 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
         titulo: l.titulo,
         tipo: l.tipo,
         duracionSeg: l.duracion_seg,
-        hotmartId: l.hotmart_id,
+        // La base garantiza que proveedor e ID vienen juntos o no vienen (constraint
+        // `lecciones_video_completo`), así que no hay estados a medias que manejar.
+        video:
+          l.video_proveedor && l.video_id
+            ? { proveedor: l.video_proveedor, id: l.video_id }
+            : null,
+        recursoUrl: l.recurso_url,
         completada: hechas.has(l.id),
         cuentaProgreso: s.cuenta_progreso,
       }));

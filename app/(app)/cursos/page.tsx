@@ -61,11 +61,7 @@ export default async function Cursos() {
             aria-label="Continuar el curso"
             className="mt-6 rounded-xl border border-border-default bg-surface-primary p-4 shadow-[var(--shadow-gold)]"
           >
-            <ContenidoLeccion
-              tipo={siguiente.tipo}
-              hotmartId={siguiente.hotmartId}
-              titulo={siguiente.titulo}
-            />
+            <ContenidoLeccion leccion={siguiente} />
             <p
               className="text-brand-primary mt-4"
               style={{ fontSize: "var(--text-xs)", letterSpacing: "var(--tracking-eyebrow)" }}
