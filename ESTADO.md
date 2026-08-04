@@ -1,242 +1,213 @@
 # ESTADO — Manos Creadoras App
-Última actualización: 2026-07-31 | Sesión actual: 1 (en curso)
+Última actualización: 2026-08-04 · El detalle de cada sesión vive en el historial de git; aquí queda solo lo que sigue siendo cierto y accionable.
 
-⏸️ CHECKPOINT (2026-08-04) — **Los videos ya no dependen de Hotmart.** El soporte de Hotmart confirmó que su reproductor solo funciona dentro de Hotmart Club: la arquitectura de video asumida desde la Sesión 3 era una vía muerta. Reemplazada por una capa propia (`lib/video.ts` + migración `0006`) que soporta Bunny/Vimeo/YouTube, con enlace firmado que caduca en Bunny. Probado en navegador: YouTube y Vimeo reproducen de verdad, y las lecciones de PDF/enlace ahora tienen a dónde apuntar (antes ni siquiera existía la columna). **Falta que la dueña elija dónde alojar y suba los videos** — detalle y costos en "Los videos NO pueden salir de Hotmart".
+⏸️ **CHECKPOINT (2026-08-04)** — La app interna funciona con datos reales de Supabase y los videos ya no dependen de Hotmart. **Lo que se ha construido hasta ahora es el ambiente de QA.** Nada bloquea por el lado del código: los 4 bloqueos que quedan son cuentas y material de la dueña (ver abajo).
 
-⏸️ ANTERIOR (2026-08-03) — Sesión 7: **las 4 pantallas de la app interna ya leen y escriben datos REALES de Supabase** (se borró `lib/demo-data.ts`). Probado en navegador con una alumna real: entrar por enlace → ver su curso → marcar una lección (se guardó en la base) → preguntarle al Ojo Experto (Gemini respondió y el contador bajó de 40 a 39) → ver su cuenta. `tsc` ✓ `build` ✓. **3 rondas del revisor-visual: subió de 28-30/40 a 31-35/40 usabilidad, pero NO llega al listón (36/40 · 16/20).** El techo que queda es material de la dueña: sin fotos de los bolsos no se puede aplicar el dispositivo ownable de la ficha (eje identidad clavado en 2/5 en las 4 pantallas), y sin las ~49 lecciones que faltan las listas se ven a medio llenar. / Siguiente acción exacta: pedirle a la dueña (a) 3-5 fotos de bolsos terminados, (b) el listado completo de lecciones de las secciones 2, 3 y 4, (c) crear el producto de suscripción en Hotmart.
+---
 
-## Sesión 7 (2026-08-03) — Pantallas conectadas a Supabase
-- `lib/curso.ts` (secciones + lecciones + progreso + perfil, todo con la sesión de la alumna para que aplique el RLS) y `lib/ojo-experto.ts` (historial + uso del mes). `lib/demo-data.ts` ELIMINADO.
-- `app/(app)/cursos/acciones.ts`: server action `marcarLeccion` (insert/delete en `user_progress`, tolera el 23505 del doble tap). La ruta pasó de `/cursos/[modulo]` a `/cursos/[leccion]`.
-- **DECISIÓN (informada, no consultada): se quitó el bloqueo secuencial de lecciones.** En Hotmart la alumna ya tiene TODO abierto; bloquear en nuestra app habría sido un retroceso que ella notaría el primer día. Ahora todas las lecciones se abren y el avance lo marca ella ("Marcar como vista"). ⚠️ Si la dueña prefiere el bloqueo secuencial, se revierte.
-- **DECISIÓN: la sección 1 (bienvenida/comunidad/aviso/patrones) NO cuenta para el % de avance** — migración `0005` con la columna `secciones.cuenta_progreso` (por dato, no hardcodeado, para que se pueda cambiar sin tocar código). Resuelve la duda que quedó abierta el 2026-08-03.
-- Migraciones `0003`, `0004` y `0005` guardadas como archivo en `supabase/migrations/` — estaban aplicadas en la base pero NO existían en el repo (habrían faltado en el deploy).
-- 🐛 **Bugs reales corregidos**: (a) la memoria de la IA consultaba `user_progress.modulo_id`, columna que dejó de existir al cambiar el modelo de datos; (b) `lib/env.ts` exigía TODAS las claves de golpe, así que con `HOTMART_HOTTOK` vacía (el webhook aún no existe) el Ojo Experto devolvía error 500 aunque su clave estuviera bien → ahora se valida por uso (`aiEnv` / `hotmartEnv`); (c) `CountUp` solo contaba una vez, así que el medidor seguía diciendo "40 de 40" tras gastar una pregunta; (d) cerrar sesión sin internet dejaba el botón en "Cerrando…" para siempre.
-- Otros arreglos del revisor: estados `loading`/`error`/`not-found` de la app (antes: pantalla congelada, pantalla blanca y 404 en inglés) · grano de marca aplicado al layout de la app (solo estaba en la landing) · números en la sans porque Cormorant solo trae cifras de texto (el 0 se leía como "o") · texto 13→14px y labels 11→12px (dentro del rango que fija la ficha) · verde suelto pasado a dorado (un solo acento) · foto que se achica a 1280px antes de subir (una foto de celular no viaja en datos móviles) · error distinto para foto ilegible (HEIC) en vez de culpar al internet · botón Cancelar durante la consulta · historial de IA expandible · confirmación al cerrar sesión.
-- Screenshots de verificación: `.playwright-mcp/s7h-ojo-experto.png`, `s7f-cursos.png`, `s7f-leccion.png`, `s7f-cuenta.png`.
-- ⚠️ Deuda conocida: 2 avisos de lint preexistentes (`BarraProgreso` llama setState dentro de un efecto) — no rompen nada.
+## 🔴 BLOQUEOS PARA LANZAR (nada de esto es código)
 
-## Los videos NO pueden salir de Hotmart (2026-08-04) — RESUELTO EN CÓDIGO, FALTA DECIDIR DÓNDE ALOJARLOS
+- [ ] **Videos: elegir dónde alojarlos y subirlos.** Recomendación cerrada: **Bunny Stream**. Sin esto la app no tiene curso que mostrar. → guía completa en "Video".
+- [ ] **Resend + SMTP en Supabase.** Hoy ninguna alumna recibiría su enlace de acceso después de pagar. → guía en "Correo / magic link".
+- [ ] **Hotmart: crear el producto de SUSCRIPCIÓN.** `lib/config.ts` apunta al producto VIEJO de pago único ($25), así que los botones cobran lo equivocado. **Esto bloquea vender.**
+- [ ] **Supabase de PRODUCCIÓN**: crear proyecto nuevo y correr ahí las 6 migraciones. El actual (`cazqmaluaehyikkstkoi`) queda como QA. → ver "Ambientes".
+- [ ] **Hotmart — configurar el webhook**: panel → Herramientas → Webhook → apuntar a `https://TU-DOMINIO/api/webhooks/hotmart` y pegar el hottok en `HOTMART_HOTTOK`. ⚠️ Verificar ahí los nombres EXACTOS de los eventos de suscripción y contrastarlos con la tabla `EVENTO_A_ESTADO` del webhook — el catálogo varía por cuenta.
+- [ ] **Vercel**: crear la cuenta y conectar el repo para publicar.
+
+### ⚠️ Seguridad pendiente
+- [ ] **Confirmar que la clave secreta de Supabase fue ROTADA.** Incidente del 2026-08-02: quedó en `.env.example` (archivo público) y pasó por el chat. No se detectó en git, pero esa clave salta todo el RLS. Project Settings → API Keys → crear nueva + revocar la anterior.
+
+### Material de la dueña (bloquea la calidad, no el lanzamiento)
+- [ ] **3-5 fotos de bolsos terminados** (buena luz, fondo simple). Sin ellas no se puede aplicar el dispositivo ownable de la ficha; el revisor deja el eje de identidad en 2/5 en las 4 pantallas. Es lo que más sube la nota.
+- [ ] **Listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan; hoy hay 9 cargadas).
+- [ ] **Nombres reales de los tutoriales**: en Hotmart se llaman "Tutorial 2", "Tutorial 3"… La alumna no puede recordar dónde está la técnica que busca. Bastaría una línea por lección.
+- [ ] **2-3 testimonios reales** (las capturas de WhatsApp) para la landing.
+
+---
+
+## Estado actual del producto
+
+**Funciona y está verificado contra los servicios reales:**
+- Landing pública (10 secciones canónicas) + 4 páginas legales, con el checkout de Hotmart conectado.
+- Login por enlace mágico (Supabase Auth). `shouldCreateUser: false` es deliberado: las cuentas solo las crea el webhook al pagar. Anti-enumeración activa.
+- Webhook de Hotmart con las 4 defensas: autenticidad (hottok en tiempo constante), frescura (ventana de 5 min), idempotencia (PK sobre `event_id`) y máquina de estados (un `PURCHASE_APPROVED` tardío no resucita a quien reembolsó).
+- App interna: `/cursos`, `/cursos/[leccion]`, `/ojo-experto`, `/cuenta` — **leyendo y escribiendo datos reales de Supabase**.
+- El Ojo Experto responde de verdad (Gemini), con memoria por alumna, filtro de tema, uso justo (40 preguntas + 8 fotos/mes) y circuit-breaker de gasto diario. Probado con fotos reales de bolsos; intentos de inyección de prompt bloqueados.
+- Supabase: 8 tablas, RLS en todas, 6 migraciones en `supabase/migrations/`.
+
+**Calidad visual:** 3 rondas del subagente `revisor-visual` → subió de 28-30/40 a **31-35/40** usabilidad y 13-14/20 craft. **No llega al listón (36/40 · 16/20)** y el techo ya no es código: falta el material fotográfico de la dueña.
+
+---
+
+## Ambientes (QA vs producción)
+
+⚠️ Todo lo construido hasta hoy es **QA**. Las claves y servicios que aparecen en este documento son los de QA.
+
+| Servicio | ¿Claves separadas? | Cómo |
+|---|---|---|
+| **Bunny Stream** | ✅ Sí | Dos bibliotecas de video — las claves son por biblioteca, no por cuenta |
+| **Supabase** | ✅ Sí | Un proyecto por ambiente; las migraciones están en archivo y se replican |
+| **Gemini** | ✅ Sí | Varias API keys en Google AI Studio; conviene una por ambiente para separar el gasto |
+| **Resend** | ✅ Sí | API keys independientes; el dominio verificado puede compartirse |
+| **Vercel** | ✅ Nativo | Variables por entorno (Production / Preview / Development) — ahí se enchufa todo lo anterior |
+| **Hotmart** | ❓ Por confirmar | Verificar si tiene ambiente de pruebas para el webhook |
+
+---
+
+## Video (2026-08-04) — resuelto en código, falta la cuenta
 
 ### El hallazgo
-El soporte de Hotmart respondió por escrito: **el Hotmart Player funciona EXCLUSIVAMENTE dentro de Hotmart Club y no existe ningún código de inserción para sitios externos.** Toda la arquitectura de video que se venía asumiendo desde la Sesión 3 (`lecciones.hotmart_id` + iframe a `cf-embed.play.hotmart.com`) era una vía muerta: nunca habría funcionado.
+El soporte de Hotmart confirmó por escrito: **el Hotmart Player funciona SOLO dentro de Hotmart Club, no existe código de inserción para sitios externos.** La arquitectura asumida desde la Sesión 3 (`lecciones.hotmart_id` + iframe a `cf-embed.play.hotmart.com`) nunca habría funcionado.
 
-Dato importante: **ellos mismos recomiendan alojar el video en otro servicio y embeber ESE video dentro de Hotmart Club.** Es decir, un solo archivo subido sirve para las dos cosas — la app y el Club. No hay que mantener dos copias.
+Dato útil: **ellos mismos recomiendan alojar el video en otro servicio y embeber ESE video dentro de Hotmart Club** — un solo archivo sirve para la app y para el Club, sin subir nada dos veces.
 
-### Lo que ya está hecho (código listo, funciona)
-- Migración `0006`: se eliminó `lecciones.hotmart_id` (estaba 100% vacía, 0 de 9 filas) y se agregaron `video_proveedor` (`bunny` | `vimeo` | `youtube`), `video_id` y `recurso_url`. Constraint `lecciones_video_completo`: o vienen proveedor e ID juntos, o ninguno.
-- `recurso_url` cubre un agujero que nadie había visto: las lecciones de tipo `pdf` (patrones) y `enlace` (comunidad) **no tenían dónde guardar su destino**, así que nunca habrían podido funcionar aunque el video sí.
-- `lib/video.ts` (nuevo): arma la URL del reproductor según el proveedor. Corre **solo en servidor**. Para Bunny **firma el enlace con una clave secreta y lo hace caducar a las 6 horas**, así copiar la URL del inspector no sirve para compartir el curso.
-- `components/app/ContenidoLeccion.tsx`: reproduce video, o muestra un botón real ("Abrir los patrones") para PDF/enlace, o el marcador honesto si todavía no hay nada. Ya no depende de `hotmartId`.
-- `lib/config.ts`: `HOTMART_EMBED_BASE` eliminada. Hotmart sigue siendo SOLO el cobro (checkout + webhook), nada de contenido.
+### Lo que ya está hecho
+- Migración `0006`: fuera `hotmart_id` (estaba 100% vacía); entran `video_proveedor` (`bunny`|`vimeo`|`youtube`), `video_id` y `recurso_url`, con constraint que impide guardar un video a medias.
+- `recurso_url` tapó un agujero que nadie había visto: las lecciones `pdf` (patrones) y `enlace` (comunidad) **no tenían dónde guardar su destino**.
+- `lib/video.ts`: arma la URL del reproductor según el proveedor, solo en servidor. Para Bunny **firma el enlace y lo hace caducar a las 6 h**.
+- `ContenidoLeccion`: reproduce video, o muestra un botón real para PDF/enlace, o el marcador honesto si no hay nada.
+- Hotmart queda SOLO para el cobro (checkout + webhook).
 
-**Verificado en navegador real a 375px** con datos de prueba (borrados después): YouTube reproduce → `.playwright-mcp/s8-video-cursos.png` · Vimeo reproduce → `s8-video-vimeo.png` · PDF muestra botón "Abrir los patrones" → `s8-video-pdf.png`. La firma de Bunny se comprobó contra su fórmula documentada (SHA256 de clave+id+caducidad): coincide exacta y caduca a las 6 h.
+Verificado en navegador a 375px: YouTube y Vimeo reproducen, el PDF muestra su botón. La firma de Bunny coincide con su fórmula documentada.
 
-### 🔴 DECISIÓN PENDIENTE DE LA DUEÑA: dónde se alojan los videos (cuesta dinero)
-El código soporta los tres; solo hay que elegir uno, crear la cuenta y subir. Cálculo con ~58 videos de ~25 min (≈24 h de video, ≈29 GB):
+### Precios de Bunny (verificados en su documentación)
+Almacenamiento $0,01/GB · Entrega **Norteamérica (incl. México) $0,010/GB** · **Sudamérica $0,045/GB** · Codificación estándar **gratis**.
 
-| | Costo real | Protección | En celular LATAM | Esfuerzo |
-|---|---|---|---|---|
-| **Bunny Stream** (recomendado) | ~$0,30/mes de almacenamiento + ~$0,20 por alumna activa/mes. Con 50 alumnas ≈ **$11/mes** | Enlace firmado que caduca + bloqueo por dominio | Excelente (calidad adaptable) | Subir 58 archivos |
-| **Vimeo** | **$12-20/mes fijos**, sin importar cuántas vean | Bloqueo por dominio (planes Plus+) | Muy bueno | El panel más fácil |
-| **YouTube oculto** | Gratis | ❌ ninguna real: cualquiera con el enlace lo ve y lo comparte | El mejor con internet malo | El más fácil |
+- El titular de "$0,005/GB" es solo Europa/Norteamérica en volumen alto: **Sudamérica cuesta 9× más**.
+- ⚠️ **NO activar la codificación premium** ($0,025-$0,150/min): con 24 h de video serían $36-$216 de golpe. La estándar es gratis y se ve perfecta.
+- No hay cargo mínimo mensual (el de $99 es solo del DRM Enterprise, que no se necesita).
 
-- **Recomendación: Bunny Stream.** Es el más barato, el único con enlace que caduca, y permite **poner un tope de gasto mensual** para que no llegue una factura sorpresa.
-- **Si prefiere cero complicación y factura fija: Vimeo.** Cuesta más al principio pero nunca sorprende.
-- **YouTube oculto queda descartado para el curso pagado**: sin protección real, un enlace filtrado en un grupo de WhatsApp regala el producto. Sirve solo para material abierto (un video de bienvenida en la landing, por ejemplo).
+**Con 500 alumnas y 160 GB:** almacenamiento $1,60/mes fijo; el tráfico manda (≈0,9 GB por hora vista). Mes realista (4 h/alumna) ≈ **$56/mes** = 0,6% del ingreso. Mes de lanzamiento (todas ven todo) ≈ $490 = 4,9%. El primer mes siempre es el más caro.
 
-### Lo que tiene que hacer ella
-1. Elegir el servicio y crear la cuenta.
-2. Subir los videos. **No hacen falta los 58 para lanzar**: con los primeros tutoriales de la sección 2 ya se puede abrir. ⚠️ Subir ~29 GB desde casa puede tomar varias horas.
-3. Pasarme la lista de "lección → ID del video" y yo la cargo en la base.
-4. Si elige Bunny: pasarme el número de la biblioteca y la clave de firma (van en variables de entorno del servidor, nunca en el navegador).
+### Por qué se descartó Vimeo
+- **Vimeo normal** (Starter $12 / Standard $25 / Advanced $75, precio anual): los tres tienen **el MISMO tope de 2 TB/mes** de tráfico. Se agota con **~92 alumnas** viendo el curso completo, o ~555 mirando 4 h. Con +1.200 alumnas esperando, el techo llega justo cuando el negocio arranca. Su Starter solo promete "contraseña y enlaces ocultos" — no se pudo confirmar restricción por dominio.
+- **Vimeo OTT** ($1 por suscriptor/mes + 10% de ventas): no es alojamiento, es una plataforma de membresías que **reemplazaría a esta app** — y no puede alojar El Ojo Experto, lo único que justifica cobrar $19,99/mes. A 500 alumnas: $500/mes, lo mismo que el PEOR mes de Bunny pero todos los meses.
 
-## Correo / magic link en producción (2026-08-03) — PENDIENTE DE CONFIGURAR
+### Seguridad de Bunny (verificada)
+| Capa | Qué bloquea | Estado |
+|---|---|---|
+| **Hotlink Protection** (*Allowed Referrers*) | Reproducción desde otro sitio → 403 | Se activa en el panel |
+| **Embed View Token** | Que el enlace del iframe sirva para siempre → caduca a las 6 h | ✅ ya en `lib/video.ts` |
+| **CDN Token** | Que alguien saque la URL del archivo (HLS, MP4) y la comparta | Pendiente |
 
-### 🐛 Corregido: bucle infinito de redirecciones (ERR_TOO_MANY_REDIRECTS)
-- **Qué pasaba:** si había sesión válida pero NO existía fila en `profiles`, `cargarCurso` y `cargarOjoExperto` devolvían `null`, la pantalla hacía `redirect("/login")`, y el middleware —que sí ve la sesión— la rebotaba a `/cursos`. Las dos se reenviaban entre sí hasta que el navegador cortaba con ERR_TOO_MANY_REDIRECTS, **sin ningún mensaje**.
-- **Es la trampa exacta de quien crea el usuario a mano** en el panel de Supabase: ese panel crea la cuenta de auth pero NO la fila de `profiles`. Igual pasa si el webhook de Hotmart falla a mitad (crea el usuario y muere antes de insertar el perfil).
-- **Arreglo:** `lib/curso.ts` devuelve un curso vacío con una alumna sintética (`status: "sin_perfil"`, `tieneAcceso: false`) y `lib/ojo-experto.ts` devuelve el estado vacío sin acceso. Las pantallas se dibujan y explican qué pasó, con botón a soporte.
-- **Verificado en navegador** con un usuario de auth creado a propósito SIN fila en `profiles`: `/cursos` → "Tu membresía no está activa", `/cuenta` → "Sin acceso al programa", `/ojo-experto` → "El Ojo Experto está en pausa", `/cursos/[leccion]` → un solo salto a `/cursos`. Cero bucles. Capturas: `.playwright-mcp/s7i-sinperfil-cursos.png`, `s7i-sinperfil-cuenta.png`, `s7i-sinperfil-ojo.png`.
+- Los dos tokens **no protegen lo mismo**: uno firma el iframe, el otro los archivos por debajo. Conviene activar ambos; el de CDN no es urgente.
+- ⚠️ *Block Direct URL File Access*: **dejarlo apagado al principio** — su propia documentación avisa que también bloquea clientes de correo y algunos navegadores.
 
-### Cómo funciona el envío del enlace (para no perder tiempo depurando)
-- El magic link **NO se envía si el correo no existe en `auth.users`**: `lib/auth.ts` usa `shouldCreateUser: false` a propósito (las cuentas solo las crea el webhook al pagar). Por anti-enumeración la pantalla dice igual "revisa tu correo" aunque no se haya mandado nada — es deliberado, no un bug.
-- La fila en `profiles` **no influye en el envío**, solo en poder entrar y ver contenido.
+### QA y producción con claves separadas ✅
+En Bunny **las claves son por biblioteca, no por cuenta** (*"per-library Stream API key"*). Se crean **dos bibliotecas**: cada una trae su Library ID, su API key de subida, su Token Authentication Key y su propia lista de Allowed Referrers.
 
-### 🔴 BLOQUEA EL LANZAMIENTO: falta SMTP propio
-El remitente por defecto de Supabase manda ~2 correos por hora y **solo a direcciones del equipo del proyecto** → ninguna alumna recibiría su acceso después de pagar.
-- Resend en Supabase: **Project Settings → Authentication → SMTP Settings** · host `smtp.resend.com` · puerto `465` · usuario `resend` · password = la API key `re_...`.
+| | QA | Producción |
+|---|---|---|
+| Contenido | 1-2 videos de prueba | los 58 reales |
+| Almacenamiento | ~$0,02/mes | ~$1,60/mes |
+| Allowed Referrers | `localhost` + dominio de pruebas | solo el dominio real |
+
+**No hay que tocar código**: `lib/video.ts` ya lee `NEXT_PUBLIC_BUNNY_LIBRARY_ID` y `BUNNY_TOKEN_KEY`; cambiar de ambiente es cambiar valores en Vercel.
+
+⚠️ La **Account API Key** es global y da acceso TOTAL — no se usa en la app y nunca se versiona.
+
+### Guía de arranque
+1. [Quickstart](https://bunny.net/docs/stream/quickstart) — crear biblioteca y subir el primer video (activar ≥2 regiones)
+2. [El panel por dentro](https://bunny.net/docs/stream/dashboard)
+3. [Subir desde una URL](https://bunny.net/docs/stream/url-fetch) — ⭐ si los videos ya están en Drive/Dropbox/Hotmart, Bunny los jala solo y **la dueña se ahorra subir 160 GB desde su casa**
+4. [Subidas reanudables TUS](https://bunny.net/docs/stream/tus-resumable-uploads) — retoma si se corta el internet
+5. [Seguridad](https://bunny.net/docs/stream/security) · [Token de embed](https://bunny.net/docs/stream/token-authentication) · [Hotlink Protection](https://bunny.net/docs/cdn/security/hotlink-protection)
+6. Ya implementado: [Embeber](https://bunny.net/docs/stream/embedding) · [Reproductor](https://bunny.net/docs/stream/player) · [Precios](https://bunny.net/docs/stream/pricing)
+
+**Orden de trabajo:** crear cuenta y **ponerle tope de gasto mensual** → crear biblioteca QA con 1-2 videos → activar Token Authentication y agregar `localhost` a Allowed Referrers → pasarme Library ID + Token Key (⚠️ la clave **no se pega en el chat**, va a variables de entorno) → verifico end-to-end → repetir para producción.
+
+---
+
+## Correo / magic link — pendiente de configurar
+
+### 🔴 Falta SMTP propio (bloquea el lanzamiento)
+El remitente por defecto de Supabase manda ~2 correos/hora y **solo a direcciones del equipo** → ninguna alumna recibiría su acceso.
+- Resend: **Project Settings → Authentication → SMTP Settings** · host `smtp.resend.com` · puerto `465` · usuario `resend` · password = la API key `re_...`.
 - Para probar sin dominio sirve `onboarding@resend.dev`, pero **solo entrega al correo dueño de la cuenta de Resend**. Para alumnas reales hay que verificar el dominio (SPF/DKIM).
 - Después subir **Rate Limits → "emails per hour"**.
 
-### ⚠️ Cambiar la plantilla del correo a `token_hash`
-La plantilla por defecto usa PKCE (`?code=`), que exige abrir el enlace **en el mismo navegador que lo pidió**. La alumna lo pide desde Chrome, abre el correo en Gmail, y el enlace se abre en el navegador interno de Gmail → otro almacenamiento → "enlace vencido". Con audiencia móvil pasa constantemente.
-- **Authentication → Email Templates → Magic Link**, poner:
-  `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink`
-- El callback ya soporta las dos formas (`app/auth/callback/route.ts`) — **no se toca código**.
+### ⚠️ Cambiar la plantilla a `token_hash`
+La plantilla por defecto usa PKCE (`?code=`), que exige abrir el enlace **en el mismo navegador que lo pidió**. La alumna lo pide en Chrome, abre el correo en Gmail, el enlace se abre en el navegador interno de Gmail → "enlace vencido". Con audiencia móvil pasa constantemente.
+- **Authentication → Email Templates → Magic Link**: `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink`
+- El callback ya soporta las dos formas — **no se toca código**.
 
-### ⚠️ URL Configuration
-- Site URL: `https://TU-APP.vercel.app`
-- Redirect URLs: `https://TU-APP.vercel.app/auth/callback` y `http://localhost:3000/auth/callback`
+### URL Configuration
+Site URL `https://TU-APP.vercel.app` · Redirect URLs: `https://TU-APP.vercel.app/auth/callback` y `http://localhost:3000/auth/callback`
 
-### Atajo para entrar sin correo, apuntando a producción
+### Cómo funciona el envío (para no perder tiempo depurando)
+- El enlace **NO se envía si el correo no existe en `auth.users`**. Por anti-enumeración la pantalla dice igual "revisa tu correo" — es deliberado, no un bug.
+- La fila en `profiles` no influye en el envío, solo en poder entrar.
+
+### Atajo para entrar sin correo
 ```
 APP_URL=https://TU-APP.vercel.app npm run alumna:crear -- tu@correo.com anual active
 ```
 
-⏸️ ANTERIOR (2026-08-02) — Sesión 6 casi cerrada. **Supabase y el Ojo Experto FUNCIONAN DE VERDAD, probados contra los servicios reales.** HECHO: modelo de negocio migrado a SUSCRIPCIÓN ($19.99/mes · $199/año) en toda la app + legales; IA en Gemini `gemini-3.6-flash`; webhook con ciclo de vida de suscripción; filtro de tema + memoria por alumna; Supabase con 8 tablas, RLS y 2 migraciones; **prueba end-to-end pasada: 2 fotos reales de bolsos analizadas correctamente, 1 pregunta técnica respondida, 1 pregunta fuera de tema y 1 intento de inyección de prompt ambos bloqueados**. / Siguiente acción exacta: conectar las pantallas a Supabase (hoy leen de `lib/demo-data.ts`), sembrar la tabla `modulos`, y después Hotmart (la dueña pidió dejarlo para el final).
+---
 
-⚠️ ÚNICO BLOQUEO DE NEGOCIO: crear el producto de SUSCRIPCIÓN en Hotmart — los botones de compra aún apuntan al producto viejo de pago único de $25. No se puede publicar hasta resolverlo.
+## Decisiones cerradas (no se re-preguntan)
 
-## Auth real (2026-08-02) — REEMPLAZA el mock de la Sesión 4
-- `lib/auth.ts` ahora usa Supabase Auth de verdad (`signInWithOtp`). **`shouldCreateUser: false` es deliberado**: las cuentas solo las crea el webhook al pagar; si cualquiera pudiera pedir enlace, el programa sería gratis.
-- Anti-enumeración (26): si el correo no existe se devuelve `ok` igual, para que nadie pueda averiguar quiénes son las alumnas probando correos.
-- `lib/supabase/client.ts` (navegador) y `server.ts` (RSC/handlers, con cookies) creados. `app/auth/callback/route.ts` canjea el código por sesión; enlaces vencidos/usados redirigen a `/login?error=...` con mensaje humano.
-- `middleware.ts`: refresca el token en cada request y protege `/cursos`, `/ojo-experto`, `/cuenta` (+ subrutas), preservando `?next=` para devolver a la alumna a donde iba. Si ya tiene sesión y entra a `/login`, la manda a `/cursos`.
-- "Cerrar sesión" ahora cierra de verdad (`BotonCerrarSesion`, antes era un link decorativo).
-- **Verificado contra la base real** (usuario de prueba creado y borrado después): pago→acceso ✅ · cancelada con período vigente→conserva acceso ✅ · período vencido→cortada ✅ · reembolsada→cortada ✅. Y por HTTP: las 3 rutas privadas devuelven 307 al login y las públicas 200.
-- El callback entiende **dos formas de enlace**: `?code=` (flujo PKCE, cuando la alumna pide el enlace desde el navegador) y `?token_hash=&type=` (enlaces generados desde el servidor). Soportar solo el primero dejaba los enlaces de prueba sin funcionar — detectado probando el flujo completo, no en teoría.
+**Producto**
+- **Modelo: SUSCRIPCIÓN** $19.99/mes o $199/año (=$16.58/mes, "2 meses gratis"). El plan anual es el recomendado. Reemplazó al pago único de $25 el 2026-08-02; el texto viejo de "acceso de por vida" fue eliminado de toda la app (era información falsa y riesgo de disputas).
+- El cobro es 100% en Hotmart. **No hay paywall propio**: login automático post-compra vía webhook.
+- Consecuencias legales ya implementadas: `/cancelar`, cláusula de renovación automática y de cambio de precio, política de reembolso que distingue primer pago vs renovaciones.
+- **Uso justo del Ojo Experto**: 40 preguntas + 8 fotos/mes. Con la suscripción el costo de IA pasó de ~28% de un pago único a <1% del ingreso recurrente.
+- **Las lecciones NO se bloquean secuencialmente** (decidido 2026-08-03): en Hotmart la alumna ya tiene todo abierto; bloquear sería un retroceso que notaría el primer día. El avance lo marca ella. ⚠️ Reversible si la dueña prefiere lo contrario.
+- **La sección 1 no cuenta para el % de avance** (es bienvenida y recursos): migración `0005`, columna `secciones.cuenta_progreso` — por dato, no hardcodeado.
 
-## Estructura REAL del curso (2026-08-03, vista en el área de miembros de Hotmart)
-- **4 secciones, ~64 lecciones.** El modelo plano `modulos` era incorrecto y fue reemplazado por `secciones` → `lecciones` (migración `0003`), con `user_progress` ahora por lección.
-- No todo es video: la sección 1 son bienvenida/comunidad/aviso/patrones (tipos `texto`, `enlace`, `pdf`), y la 4 trae 6 PDFs. Por eso `lecciones.tipo` y `duracion_seg` nullable.
-- Los títulos ya vienen BILINGÜES en Hotmart ("La estructura del bolso - The Bag Structure") → se guardan en `titulo` / `titulo_en`. Buen punto de partida para el plan EN.
-- Cargado: sección 1 completa (4/4) y las 5 primeras lecciones de la 2 con duración real. **Faltan ~55 lecciones** (resto de la 2, toda la 3 y la 4).
-- Las 5 lecciones de la sección 2 ya suman 2h32m → el curso completo probablemente supera las 10 horas. Dato vendible para la landing.
-- ⚠️ DECISIÓN DE PRODUCTO PENDIENTE: la sección 1 no enseña nada (es bienvenida y recursos). Si cuenta como "progreso del curso", una alumna ve 4/64 completado sin haber tejido nada. Preguntar si se excluye del cálculo de avance.
+**Técnicas**
+- **Next.js App Router** (SEO + rutas privadas + API routes).
+- **IA: Gemini** (`AI_MODEL`, hoy `gemini-3.6-flash`) vía patrón BFF — la clave nunca toca el navegador. ~$0,014 por alumna activa al mes. ⚠️ Riesgo asumido: es el modelo con menos finura visual de los evaluados; si aparecen consejos flojos sobre fotos, la palanca es subir de modelo (es cambiar `AI_MODEL` + la clave).
+- **Auth**: Supabase Auth con enlace mágico, sin contraseña. La cuenta la crea el webhook al pagar, usando el email de la compra como llave.
+- **Variables de entorno validadas POR USO** (`aiEnv` / `hotmartEnv`), no todas de golpe: así una clave de Hotmart vacía no tumba al Ojo Experto.
+- **Dirección de arte: CERRADA** — ver `FICHA-ARTE.md` (opción B "Editorial de Revista"). Fondo #090706 · dorado #ebcd8c→#d48e00 · Cormorant Garamond + Jost. Dispositivo ownable: foto a sangre + grano + display superpuesta.
+- **Avatar: ver `FICHA-AVATAR.md`** — "Marcela", 28-45, LATAM. Dolor #1: "mis bolsos no se ven profesionales". Consciencia 3-4, sofisticación 3.
+
+---
+
+## Estructura real del curso
+- **4 secciones, ~58-64 lecciones** (el total exacto sigue sin confirmar). Modelo `secciones` → `lecciones`, con `user_progress` por lección.
+- No todo es video: la sección 1 es bienvenida/comunidad/aviso/patrones (`texto`, `enlace`, `pdf`) y la 4 trae 6 PDFs. Por eso `tipo` y `duracion_seg` son nullable.
+- Los títulos vienen **bilingües** desde Hotmart → `titulo` / `titulo_en`. Buen punto de partida para un plan en inglés.
+- **Cargado hoy: 9 lecciones** (sección 1 completa + las 5 primeras de la 2 con duración real). Faltan ~49.
+- Las 5 lecciones cargadas de la sección 2 ya suman 2h32m → el curso completo probablemente supera las 10 horas. **Dato vendible para la landing.**
+
+---
 
 ## Herramienta de desarrollo: alumna de prueba
-- `npm run alumna:crear -- correo@ejemplo.com [mensual|anual] [active|cancelled]` — crea la cuenta + su perfil de membresía (igual que el webhook al recibir un pago) e **imprime el enlace de acceso directo**, sin depender del correo (Supabase limita fuerte los envíos hasta configurar dominio propio con Resend).
+- `npm run alumna:crear -- correo@ejemplo.com [mensual|anual] [active|cancelled]` — crea la cuenta + su perfil (igual que el webhook) e **imprime el enlace de acceso directo**, sin depender del correo.
 - `npm run alumna:borrar -- correo@ejemplo.com` — la elimina con todos sus datos.
-- Verificado end-to-end: enlace → sesión guardada → `/cursos`, `/ojo-experto` y `/cuenta` devuelven 200; sin sesión siguen en 307.
-- ⚠️ Solo para desarrollo. Lee `.env.local` y usa la clave secreta — nunca debe correr en producción.
+- ⚠️ Solo desarrollo: lee `.env.local` y usa la clave secreta. Nunca en producción.
 
-⚠️ INCIDENTE DE SEGURIDAD (2026-08-02, contenido — no llegó a git): la dueña pegó la `SUPABASE_SECRET_KEY` real en `.env.example` (la plantilla que SÍ se versiona y se publica) en vez de `.env.local`. Se detectó antes de cualquier commit; `.env.example` fue limpiado y se le puso un encabezado de advertencia grande. **PENDIENTE: rotar esa clave igualmente** (estuvo en un archivo público y pasó por el chat). La clave secreta salta todo el RLS, así que no se asume que sigue siendo segura.
-
-⏸️ ANTERIOR — Sesión 5 (app interna: Mis Cursos + El Ojo Experto + Mi Cuenta) construida y verificada. ⚠️ HALLAZGO CRÍTICO CORREGIDO: la tipografía display (Cormorant Garamond) NUNCA cargó desde la Sesión 3 por una variable CSS auto-referenciada (`--font-display: var(--font-display)`); todas las pantallas anteriores, incluida la landing "cerrada", renderizaban con la sans del sistema. Causa raíz arreglada (next/font ahora inyecta `--font-display-src`) y verificado con getComputedStyle en navegador real. ANTIGUO (Sesión 4): bienvenida post-compra + login magic link construidos y verificados — 2 rondas de `revisor-visual` con 9 defectos corregidos en total, build+tsc limpios, flujo completo probado en navegador real (escribir email → enviar → estado "revisa tu correo" → volver al formulario). Checkout real de Hotmart ya conectado desde Sesión 3 / Siguiente acción exacta: arrancar Sesión 5 — app interna con 3 secciones (Mis Cursos con video embebido de Hotmart · Asistente IA "El Ojo Experto" · Mi Cuenta), con datos semilla realistas. Esperar OK de la dueña antes de arrancar.
-
-## Qué es esta app
-App con dos zonas: (1) frente público de ventas (instalable, con notificaciones push) para clientas potenciales de Instagram, y (2) zona privada con login para alumnas que ya compraron, con sus cursos (video embebido desde Hotmart) y un asistente de IA que da feedback sobre fotos de sus bolsos en progreso. Vende el curso "Bolsos de Lujo en Cuentas" ($25 pago único vía Hotmart, ya validado con +1.200 alumnas).
-
-## Promesa central
-"Esta app ayuda a mujeres que quieren tejer bolsos de lujo en cuentas a decidir con confianza y avanzar sin trabarse, sin perder tiempo en grupos de WhatsApp o tutoriales sueltos, mediante una app con sus cursos, avisos automáticos y un asistente de IA que revisa fotos de su bolso y le dice qué mejorar."
-
-## Reporte de validación (Sesión 1)
-- Veredicto: Excelente oportunidad — el negocio ya está validado (1.200+ alumnas, 4.9/5, +1 año vendiendo); la oportunidad nueva es el FORMATO (app instalable con push, no solo landing).
-- Competencia directa en el nicho (bolsos en cuentas/mostacillas): Domestika, cursosbisuteriayalambrismo.com, Pauline Caro — ninguna tiene app instalable ni asistente de IA. Brecha de formato clara.
-- Evidencia de que push + app instalable convierte mejor: recuperación de carrito 37% mejor que email (Pushwoosh); casos reales con PWA+push: Lancôme +17% conversión, BMW 4x más clics a la sección de venta, Weekendesk 2x más probabilidad de compra con la app instalada.
-- Precio de referencia del mercado: cursos similares $19-97 pago único; el propio ya vende a $25 (oferta de $55).
-
-## Avatar y venta (Sesión 1 — hecho, pendiente de aprobación del usuario)
-- FICHA-AVATAR.md: SÍ existe (creada 2026-07-31) — pendiente de aprobación explícita de la dueña (se le mostró resumen en el chat).
-- Resumen: avatar "Marcela", 28-45, LATAM, sigue a Manos Creadoras en IG · dolor #1: "mis bolsos no se ven profesionales" · deseo #1: "que se vean de boutique, no casero" · nivel de consciencia 3-4 (audiencia orgánica caliente) · sofisticación etapa 3 (mecanismo IA al frente, nadie más lo tiene en el nicho)
-- Landing: ya existe en manoscreadoras.lovable.app — se migra y se mejora (no se reinventa). Pendiente: completar respuestas de FAQ (hoy están vacías), sumar video de la creadora, unificar nombre de marca ("Manos Creadoras" en vez de "Elizabeth Valencia" / email de ateliervalencia.com).
-
-## Estrategia de monetización (CAMBIADA 2026-08-02 por la dueña — MEMBRESÍA)
-- **Modelo nuevo: SUSCRIPCIÓN.** $19.99/mes o $199/año (= $16.58/mes, "2 meses gratis"). En fase de test — el precio puede moverse.
-- ~~Modelo viejo: pago único $25 con "acceso de por vida"~~ — ELIMINADO de toda la app el 2026-08-02 (era información falsa una vez cambiado el modelo: riesgo de disputas de reembolso).
-- El cobro sigue 100% en Hotmart. Login automático post-compra vía webhook; sin paywall propio dentro de la app.
-- Plan anual es el RECOMENDADO (anclado como $/mes, con el total anual en letra chica — regla del 19).
-- Uso justo del Ojo Experto: 40 preguntas + 8 fotos/mes. **Con la suscripción esto dejó de ser un riesgo**: el costo de IA pasó de ~28% de un pago único de $25 a <1% del ingreso mensual recurrente.
-- Consecuencias legales ya implementadas: página `/cancelar` (obligación del 47 con suscripciones), términos con cláusula de renovación automática y de cambio de precio, política de reembolso distinguiendo primer pago vs renovaciones.
-
-## Decisión de proveedor de IA (CAMBIADA 2026-08-02 por la dueña)
-- **Gemini 2.5 Flash de Google** (`gemini-2.5-flash` vía `@google/genai`). La dueña eligió el más económico tras ver la comparación de costos.
-- Costo estimado: ~$0.014 por alumna activa al mes (~$3/mes con 240 alumnas). Alternativas descartadas: Claude Haiku 4.5 (~$16/mes), Claude Sonnet 5 (~$49/mes, era mi recomendación por mejor ojo visual), Claude Opus 5 (~$82/mes).
-- ⚠️ Riesgo asumido y comunicado: es el modelo con menos finura visual de los evaluados. Si aparecen consejos flojos o equivocados sobre fotos de tejido, la palanca es subir a Haiku/Sonnet — es cambiar `AI_MODEL` + la clave, el resto del código no cambia salvo el SDK.
-- `ANTHROPIC_API_KEY` fue reemplazada por `GEMINI_API_KEY` (Google AI Studio: aistudio.google.com/apikey).
-
-## Dirección de Arte (Sesión 2 — CERRADA, cosa juzgada)
-- FICHA-ARTE.md: SÍ existe y está aprobada (2026-07-31) — opción elegida: **B, "Editorial de Revista"**.
-- Resumen: fondo #090706 · superficie #120f0c · texto #f6f1e7/#c9beac · acento dorado #ebcd8c→#d48e00 · Display "Cormorant Garamond" · Body "Jost" (reemplazó a "Inter", genérico) · radio cards 20-24px, botones pill.
-- Personalidad: Elegante · Cálida · Aspiracional.
-- Dispositivo ownable: foto de producto a sangre completa + grano sutil + tipografía display superpuesta ("portada editorial").
-- REGISTRO ANTI-REPETICIÓN: paleta (casi-negro cálido #090706 + dorado #ebcd8c-#d48e00) y par tipográfico (Cormorant Garamond + Jost) vetados para el próximo proyecto de este SO. Dirección del banco 54 usada: N/A (fue interpretación fiel de referencia, no del banco).
-- Pendiente de limpieza (no urgente): borrar/mover `direcciones-abc.html` de la raíz antes de inicializar el repo público o hacer deploy.
-
-## Secuencia maestra de construcción (adaptada — NO es la secuencia default del SO)
-- Esta app NO tiene paywall interno tradicional: página de ventas (pública, con push) → checkout externo en Hotmart → login automático post-compra (vía webhook) → app interna (cursos embebidos + asistente IA), sin paywall propio.
-- Landing: pendiente (Sesión 3)
-- Login/Auth: pendiente (Sesión 4) — motivo: dar acceso a cursos y guardar progreso/conversaciones con la IA.
-- App interna: pendiente (Sesión 5) — secciones previstas: Mis Cursos (video embebido Hotmart) · Asistente IA (texto + fotos) · Mi Progreso/Cuenta.
-- Servicios externos: pendiente (Sesión 6) — Supabase (auth+RLS), Hotmart webhook, Hotmart Player (verificar con la dueña si ya lo tiene o hay que contratarlo), notificaciones push, IA (Claude con visión), Vercel, dominio.
-
-## Decisiones técnicas (tomadas por el agente, no se re-preguntan)
-- Framework: Next.js App Router (necesita SEO/landing pública + rutas privadas + API routes) — decidido 2026-07-31.
-- IA: Claude vía servidor/BFF · chat de texto síncrono con streaming · análisis de fotos SIEMPRE asíncrono (job en cola, la alumna recibe el resultado en la app/notificación, no espera bloqueada) · circuit-breaker de gasto global + contador de fair-use mensual por usuario (tabla `ai_usage`).
-- ~~Videos: se embeben desde Hotmart~~ → **DESCARTADO el 2026-08-04**, ver la sección "Los videos NO pueden salir de Hotmart" abajo.
-- Auth: Supabase Auth con enlace mágico por email (sin contraseña, mínima fricción) · cuenta creada automáticamente por el webhook de Hotmart al comprar, usando el email de la compra como llave — no hay registro manual ni paywall propio.
-- Modelo de datos (borrador, se ajusta en Sesión 6): `profiles` (perfil + estado de acceso) · `courses`/`modules` (metadata + ID del video de Hotmart Player) · `user_progress` (qué módulos completó cada alumna) · `ai_conversations` (historial del asistente) · `ai_usage` (contador mensual para el fair-use). RLS en todas: política por `(select auth.uid()) = user_id`, columna indexada.
-
-## Sesiones completadas ✅
-- Sesión 1 — Validación, Constitución del Producto, Plan Maestro, FICHA-AVATAR.md, fair-use de IA, arquitectura técnica (auth/datos/RLS) — todo aprobado 2026-07-31.
-- Sesión 2 — Identidad visual: protocolo A/B/C ejecutado, dueña eligió Opción B, FICHA-ARTE.md aprobada — 2026-07-31.
-
-## Sesión en progreso 🔧
-- Sesión 6 — Servicios externos. Código backend HECHO; **Supabase CONECTADO y con esquema aplicado** (2026-08-02, vía MCP). Faltan 2 claves de la dueña (secreta de Supabase + Gemini) y el producto de suscripción de Hotmart.
-  - ⚠️ Hallazgo de seguridad corregido en el momento: el linter de Supabase detectó que `tiene_acceso(uid)` era llamable sin iniciar sesión desde `/rest/v1/rpc/` — cualquiera podía probar UUIDs y averiguar qué alumnas tienen membresía activa. Se partió en `tiene_acceso_de(uid)` (solo servidor) + `tiene_acceso()` (solo responde sobre quien llama). Migración `0002`.
-  - Avisos restantes del linter, revisados y ACEPTADOS a propósito: (a) `ai_spend`/`processed_events`/`webhook_log` tienen RLS sin políticas — es intencional, solo las escribe el servidor y nadie las lee desde el cliente; (b) `rls_auto_enable()` no es nuestra, es una red de seguridad de la plataforma que activa RLS en tablas nuevas — inofensiva fuera de un trigger DDL (se leyó su código para confirmarlo).
-  - `supabase/migrations/0001_init.sql`: esquema completo con RLS en TODAS las tablas — `profiles` (estado de membresía), `modulos`, `user_progress`, `ai_conversations`, `ai_usage` (uso justo), `processed_events` + `webhook_log` (idempotencia y auditoría del webhook), `ai_spend` (circuit-breaker de gasto). Políticas por `(select auth.uid())` con columnas indexadas.
-  - `app/api/webhooks/hotmart/route.ts`: las 4 defensas del 18 — autenticidad (hottok en tiempo constante, anti timing-attack) · frescura (ventana anti-replay de 5 min) · idempotencia (PK sobre `event_id`, porque Hotmart REENVÍA) · máquina de estados (un `PURCHASE_APPROVED` tardío NO resucita a quien ya reembolsó). Crea la cuenta passwordless al pagar (Modelo 1, hard paywall).
-    - ⚠️ Bug propio detectado y corregido durante la construcción: la marca de idempotencia se insertaba ANTES de procesar, así que un fallo transitorio + reintento de Hotmart = alumna que pagó y nunca recibía acceso. Ahora la marca se BORRA en el catch antes de devolver 500.
-  - `app/api/ojo-experto/route.ts`: patrón BFF (la clave de IA nunca toca el navegador). Valida token Y estado de membresía EN SERVIDOR, aplica el uso justo (40 preguntas + 8 fotos/mes) contra la DB —no contra el cliente, que puede mentir—, y corta con el circuit-breaker de gasto diario. Prompt de sistema con la voz de la mentora + prohibiciones (no promesas de ingresos).
-  - `lib/env.ts` (fail-closed con zod: si falta un secreto, la app crashea en vez de correr insegura), `lib/supabase/admin.ts`, `lib/hotmart-verify.ts`, `.env.example` comentado en simple.
-  - `.gitignore` corregido: `.env*` también ignoraba `.env.example` (que sí debe versionarse); se agregó excepción + se excluyeron `direcciones-abc.html` y las capturas.
-
-## Sesiones completadas ✅
-- Sesión 3 — Página de ventas: 10 secciones canónicas + 4 páginas legales, checkout real de Hotmart conectado (`pay.hotmart.com/S100198743F?off=f3k6k34t` en `lib/config.ts`). Testimonios con nombre quedan PENDIENTES de la dueña a propósito (ver Problemas conocidos). 3 rondas de `revisor-visual` (25→32/40 usab., 12→13/20 craft), 13 defectos reales corregidos, incluido un bug de precio parpadeando "$24→$25" a mitad de animación.
-- Sesión 4 — Bienvenida + login (2026-08-01):
-  - `/bienvenida` (post-compra): confirmación + instrucción de revisar correo, con celebración real (`.celebrate`, spring 0.6s) en el ícono — el único hito real del flujo hasta ahora.
-  - `/login`: magic link sin contraseña, 4 estados completos (idle, loading, sent, error). `lib/auth.ts` MOCKEA el envío a propósito (el backend real de Supabase llega en Sesión 6).
-  - 2 rondas de `revisor-visual`, 9 defectos corregidos: estado "enviado" sin salida · falta de `autoComplete`/`inputMode` · error que no se limpiaba al corregir · profundidad insuficiente de fondo · Eyebrow faltante en "enviado" · CTA siempre activo aunque el email fuera inválido (ahora se deshabilita hasta que el formato sea válido) · copy "Usar otro correo" que no coincidía con la acción (ahora "Reenviar o cambiar correo") · anillo de celebración circular sobre un ícono cuadrado · falta del grano de papel (dispositivo ownable) en las pantallas de auth.
-  - Verificado en navegador real: flujo completo probado (email → enviar → "revisa tu correo" con el email correcto → volver al formulario precargado), botón confirmado pasando de `[disabled]` a activo. Screenshots (últimos, ya con TODOS los arreglos aplicados): `.playwright-mcp/bienvenida-v2-final.png`, `login-disabled-final.png`, `login-sent-final.png`, `login-reset-final.png`.
-
-- Sesión 5 — App interna (2026-08-01): 3 secciones con bottom-nav (`/cursos`, `/ojo-experto`, `/cuenta`) + ruta de lección `/cursos/[modulo]` (8 páginas estáticas).
-  - **Mis Cursos**: protagonista = retomar el módulo en curso. Progreso 3/8 con conteo animado + barra que se dibuja. Módulos pendientes NO son enlaces (`aria-disabled` + microcopy "se abre al terminar el anterior"); los disponibles llevan a su lección real.
-  - **El Ojo Experto** (el diferenciador): subir foto (input file real con `capture`) o escribir. Chips de sugerencia, medidor visual de uso justo, historial. Estado REAL: al consultar sube el contador y la consulta entra al historial. Estados completos: idle · enviando (skeleton) · respondido · error (con reintentar) · límite alcanzado · empty. Disclaimer de IA visible junto a la salida (obligación legal del 47).
-  - **Mi Cuenta**: estado de acceso de por vida + hito de módulos + enlaces legales + cerrar sesión.
-  - `lib/demo-data.ts` con datos semilla del mundo del avatar (32): alumna "Marcela", 8 módulos con nombres reales del nicho, 3 consultas previas con respuestas reales de tejido.
-  - Backend mockeado a propósito (Supabase/Claude llegan en Sesión 6). Los IDs de video de Hotmart están vacíos → se muestra marcador rotulado en vez de iframe roto.
-  - 1 ronda de `revisor-visual` (23/40 usab., 13/20 craft) + verificación propia: 5 defectos corregidos, incluido el **bug crítico de la tipografía** (ver checkpoint) y enlaces muertos en el CTA héroe y las 8 filas de módulos.
-  - Verificado con datos en navegador real: contador 12→13, historial 3→4 ítems, consulta nueva encabezando la lista, ruta de módulo disponible y bloqueada. Screenshots: `.playwright-mcp/s5v2-cursos.png`, `s5v2-leccion.png`, `s5v2-bloqueado.png`, `s5v2-ojo-experto.png`.
-
-## Próximas sesiones 📋
-- Sesión 6: Integraciones reales (Supabase, Hotmart webhook + Player, IA real, push, dominio)
-- Sesión 7: Testing, pulido, rigor de entrega
-- Sesión 8: Adquisición, lanzamiento, backoffice
+---
 
 ## Problemas conocidos ⚠️
-- ~~No confirmado si "Hotmart Player" está contratado~~ → **RESUELTO el 2026-08-04: no existe, no se puede.** Ver "Los videos NO pueden salir de Hotmart".
-- La landing NO tiene testimonios con nombre — decisión deliberada: la dueña pidió inventarlos "mientras agregamos unos reales" y el agente se negó (riesgo real de moderación de Hotmart/publicidad engañosa, no solo regla del SO) — la dueña lo aceptó. Solo queda el agregado real (+1.200 alumnas · 4.9/5) hasta tener 2-3 reales.
-- `direcciones-abc.html` sigue en la raíz del proyecto — recordar borrarlo antes de subir el repo o hacer deploy (no se sube a producción).
-- Título de pestaña de `/login` no personalizado (hereda el de Home) — es "use client" y no puede exportar `metadata`; solucionable con un layout.tsx propio del grupo `(auth)` si se quiere pulir, no bloqueante.
+- La landing **no tiene testimonios con nombre**. Decisión deliberada: la dueña pidió inventarlos "mientras agregamos unos reales" y se rechazó (riesgo real de moderación de Hotmart y publicidad engañosa). Solo queda el agregado real (+1.200 alumnas · 4.9/5).
+- `direcciones-abc.html` sigue en la raíz — borrarlo antes del deploy (no va a producción).
+- Título de pestaña de `/login` no personalizado (es "use client" y no puede exportar `metadata`). Solucionable con un `layout.tsx` del grupo `(auth)`. No bloqueante.
+- 2 avisos de lint preexistentes: `BarraProgreso` llama setState dentro de un efecto. No rompen nada.
 
-## Pendientes del usuario (Sesión 7 — bloquean la calidad visual)
-- [ ] 🔴 **3-5 FOTOS de bolsos terminados** (buena luz, fondo simple). Sin ellas la app no puede aplicar su propio sello visual (foto a sangre + grano, la Opción B que ella eligió) y el revisor deja el eje de identidad en 2/5 en las 4 pantallas. Es lo que más sube la nota ahora mismo.
-- [ ] 🔴 **El listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan). Hoy la app muestra 9 de ~58 y dos secciones salen con el aviso "estamos subiendo estas lecciones".
-- [ ] **Nombres reales de los tutoriales**: en Hotmart se llaman "Tutorial 2", "Tutorial 3"… La alumna no puede elegir ni recordar dónde está la técnica que busca. Bastaría una línea por lección ("qué parte del bolso resuelve").
+---
 
-## Pendientes del usuario (Sesión 6 — bloquean el resto)
-- [ ] 🔴 **Elegir dónde se alojan los videos y subirlos** (Bunny recomendado, Vimeo alternativa). El reproductor de Hotmart NO se puede usar fuera de Hotmart Club — confirmado por su soporte. Sin esto la app no tiene curso que mostrar. (Comparación de costos en la sección "Los videos NO pueden salir de Hotmart".)
-- [ ] 🔴 **Resend + SMTP en Supabase.** Sin esto ninguna alumna recibe su enlace de acceso después de pagar. Bloquea el lanzamiento igual que el producto de Hotmart. (Pasos exactos en la sección "Correo / magic link en producción".)
-- [ ] 🔴 **Hotmart — crear el producto de SUSCRIPCIÓN.** El link actual en `lib/config.ts` es el del producto VIEJO de pago único ($25). Hasta que exista el producto de suscripción y se peguen los dos links (`CHECKOUT_MENSUAL` y `CHECKOUT_ANUAL`), los botones de la landing cobran el producto equivocado. **Esto bloquea vender.**
-- [x] ~~**Supabase**: crear proyecto y esquema~~ — HECHO 2026-08-02. Proyecto `cazqmaluaehyikkstkoi` ("Manos creadoras app", us-west-2). Las 8 tablas creadas con RLS activo; migraciones `0001_init` y `0002_endurecer_tiene_acceso` aplicadas vía MCP. URL y clave publishable ya escritas en `.env.local`.
-- [x] ~~Claves de Supabase y Gemini~~ — PUESTAS y VERIFICADAS contra los servicios reales (2026-08-02).
-- [ ] ⚠️ **Confirmar que la clave secreta de Supabase fue ROTADA.** Se pidió rotarla tras el incidente (quedó en `.env.example` y pasó por el chat); no se pudo verificar desde acá si la vieja fue revocada. Si aún no se hizo: Project Settings → API Keys → crear nueva + revocar la anterior.
-- [ ] **Hotmart — webhook**: panel → Herramientas → Webhook → apuntar a `https://TU-DOMINIO/api/webhooks/hotmart` y pegar el hottok. ⚠️ Verificar ahí los nombres EXACTOS de los eventos de suscripción y contrastarlos con la tabla `EVENTO_A_ESTADO` del webhook — el catálogo varía por cuenta.
-- [ ] **Vercel**: crear cuenta y conectar el repo para publicar.
+## Notas operativas (leer antes de tocar la terminal)
+⚠️ **El Node por defecto de la máquina es v10.23.0** (de 2018). Una terminal nueva arranca ahí y `tsc`/`next` REVIENTAN con `SyntaxError: Unexpected token ?` — no es el código, es Node viejo. **Correr `nvm use` al abrir la terminal del proyecto** (hay `.nvmrc`).
+- **El proyecto corre en Node 22.23.2**: `@supabase/supabase-js` ya no soporta Node ≤20 (falla con "native WebSocket not found").
+- ⚠️ Al cambiar de versión de Node hay que **reinstalar `node_modules` de cero** (`rm -rf node_modules package-lock.json && npm install`): se pierde el binario nativo `@next/swc-darwin-x64` y el build muere con "Turbopack is not supported on this platform".
+- Opcional: `nvm alias default 22.23.2`.
+- Servidor de desarrollo: `npm run dev` (puerto 3000 o el que Next asigne libre).
 
-## Pendientes anteriores del usuario
-- [ ] **Mandar 2-3 testimonios reales** (las capturas de WhatsApp de alumnas que mencionaste tener) para agregarlos a la sección "La app por dentro".
-- [x] ~~Confirmar si tiene "Hotmart Player" contratado~~ → el soporte de Hotmart respondió que NO se puede usar fuera de Hotmart Club. Reemplazado por la decisión de alojamiento de video (arriba).
-- [ ] Más adelante: crear/confirmar cuentas de Supabase, Vercel y dominio (se guía paso a paso en la Sesión 6)
+---
 
-## Notas para la próxima sesión
-- El pago sigue siendo 100% en Hotmart (pago único $25) — esta app NO tiene paywall propio, es un beneficio post-compra.
-- Servidor de desarrollo: `npm run dev` (puerto 3000 o el que Next asigne libre). Screenshots de verificación en `.playwright-mcp/home-375-fullpage-v4.png` (última versión, todo corregido).
-- ⚠️ **Node por defecto de la máquina es v10.23.0** (de 2018) — Next 16 exige 20+. Una terminal nueva arranca en v10 y ahí `tsc`/`next` REVIENTAN con `SyntaxError: Unexpected token ?` (no es un error del código: es Node viejo sin `??`). Ya hay `.nvmrc` con `20.12.1` en la raíz → correr `nvm use` al abrir la terminal del proyecto. Verificado 2026-08-02 (dos veces): con Node 20 el proyecto compila con `tsc` en código 0.
-  - ~~El hook `pre-stop.sh` daba falsos positivos~~ — **ARREGLADO 2026-08-02**: ahora carga nvm y hace `nvm use` (respeta `.nvmrc`) antes de correr `tsc`, y distingue "el código tiene errores" de "el entorno no puede correr tsc". Verificado: pasa en 0 desde una terminal con Node v10.
-  - **RESUELTO 2026-08-02: el proyecto ahora corre en Node 22.23.2** (`.nvmrc` actualizado). Motivo: `@supabase/supabase-js` YA NO soporta Node ≤20 — falla con "native WebSocket not found", así que la app no podía hablar con la base. Se instaló Node 22 con nvm.
-  - ⚠️ Al cambiar de versión de Node hubo que **reinstalar `node_modules` de cero** (`rm -rf node_modules package-lock.json && npm install`): el binario nativo `@next/swc-darwin-x64` se pierde y el build muere con "Turbopack is not supported on this platform". Si vuelve a pasar tras cambiar Node, esa es la cura.
-  - Opcional: `nvm alias default 22.23.2` para que TODA terminal nueva arranque en Node 22.
-  - (51-STACK-PINEADO recomienda 22 LTS — evaluar antes del deploy.)
+## Historial de sesiones
+Detalle completo en el historial de git. Resumen:
+
+| Sesión | Qué se hizo |
+|---|---|
+| 1 (07-31) | Validación, Constitución del Producto, FICHA-AVATAR, arquitectura técnica |
+| 2 (07-31) | Identidad visual: protocolo A/B/C, la dueña eligió la opción B, FICHA-ARTE aprobada |
+| 3 | Página de ventas (10 secciones) + 4 legales + checkout real de Hotmart |
+| 4 (08-01) | Bienvenida post-compra + login magic link |
+| 5 (08-01) | App interna (3 secciones + bottom nav) con datos semilla. ⚠️ Se descubrió que Cormorant **nunca había cargado** desde la Sesión 3 por una variable CSS auto-referenciada — todas las pantallas anteriores renderizaban con la sans del sistema |
+| 6 (08-02) | Servicios externos reales: Supabase (8 tablas + RLS), webhook de Hotmart, Gemini. Migración del modelo a suscripción. ⚠️ Se detectó y cerró un agujero: `tiene_acceso(uid)` era llamable sin sesión desde `/rest/v1/rpc/` — cualquiera podía averiguar qué alumnas tenían membresía activa |
+| 7 (08-03) | Pantallas conectadas a Supabase (se borró `lib/demo-data.ts`). 4 bugs reales corregidos, entre ellos el **bucle infinito de redirecciones** cuando hay sesión sin fila en `profiles` |
+| 8 (08-04) | Video independiente de Hotmart (`lib/video.ts` + migración `0006`) |
