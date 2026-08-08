@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "alumna:crear": "node scripts/alumna-prueba.mjs crear",
-    "alumna:borrar": "node scripts/alumna-prueba.mjs borrar"
+    "alumna:borrar": "node scripts/alumna-prueba.mjs borrar",
+    "push:enviar": "node scripts/enviar-aviso.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",
@@ -20,6 +21,7 @@
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "web-push": "^3.6.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -27,6 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",

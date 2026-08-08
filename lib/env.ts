@@ -25,9 +25,19 @@ const hotmartSchema = baseSchema.extend({
   HOTMART_HOTTOK: z.string().min(1),
 });
 
+const pushSchema = baseSchema.extend({
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1),
+  VAPID_PRIVATE_KEY: z.string().min(1),
+  VAPID_SUBJECT: z.string().min(1),
+  // Quien tenga esto puede mandarle una notificación a TODAS las alumnas.
+  // Se exige larga a propósito: es la única puerta del envío.
+  PUSH_ADMIN_SECRET: z.string().min(24),
+});
+
 export type BaseEnv = z.infer<typeof baseSchema>;
 export type AiEnv = z.infer<typeof aiSchema>;
 export type HotmartEnv = z.infer<typeof hotmartSchema>;
+export type PushEnv = z.infer<typeof pushSchema>;
 
 const cache = new Map<string, unknown>();
 
@@ -59,4 +69,9 @@ export function aiEnv(): AiEnv {
 /** Lo que necesita el webhook de Hotmart. No exige nada de la IA. */
 export function hotmartEnv(): HotmartEnv {
   return leer("hotmart", hotmartSchema);
+}
+
+/** Lo que necesitan los avisos push. Si falta, solo se caen los avisos. */
+export function pushEnv(): PushEnv {
+  return leer("push", pushSchema);
 }

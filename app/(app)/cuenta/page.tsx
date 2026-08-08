@@ -15,6 +15,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ActivarAvisos } from "@/components/app/ActivarAvisos";
 import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
@@ -118,6 +119,11 @@ export default async function Cuenta() {
           </div>
           <ChevronRight size={16} className="text-brand-primary shrink-0" aria-hidden="true" />
         </Link>
+      </Reveal>
+
+      {/* AVISOS — el permiso se pide aquí, nunca de golpe al entrar */}
+      <Reveal delay={0.15}>
+        <ActivarAvisos />
       </Reveal>
 
       {/* AYUDA — lo que de verdad necesita rápido, arriba y separado de lo legal */}

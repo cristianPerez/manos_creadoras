@@ -114,7 +114,20 @@ En Bunny **las claves son por biblioteca, no por cuenta** (*"per-library Stream 
 5. [Seguridad](https://bunny.net/docs/stream/security) · [Token de embed](https://bunny.net/docs/stream/token-authentication) · [Hotlink Protection](https://bunny.net/docs/cdn/security/hotlink-protection)
 6. Ya implementado: [Embeber](https://bunny.net/docs/stream/embedding) · [Reproductor](https://bunny.net/docs/stream/player) · [Precios](https://bunny.net/docs/stream/pricing)
 
-**Orden de trabajo:** crear cuenta y **ponerle tope de gasto mensual** → crear biblioteca QA con 1-2 videos → activar Token Authentication y agregar `localhost` a Allowed Referrers → pasarme Library ID + Token Key (⚠️ la clave **no se pega en el chat**, va a variables de entorno) → verifico end-to-end → repetir para producción.
+**Orden de trabajo:** crear cuenta y **cargar saldo** (ver "Cómo se paga") → crear biblioteca QA con 1-2 videos → activar Token Authentication y agregar `localhost` a Allowed Referrers → pasarme Library ID + Token Key (⚠️ la clave **no se pega en el chat**, va a variables de entorno) → verifico end-to-end → repetir para producción.
+
+### Cómo se paga Bunny (verificado el 2026-08-04)
+**Es PREPAGO**, no factura a fin de mes: se carga saldo y el consumo lo va descontando.
+
+- **Montos de recarga:** $10, $25, $50, $100, $250, $500, $1000, $2000 o un monto personalizado.
+- **Formas de pago:** Visa, Mastercard, American Express, Discover, JCB, Diners, **PayPal**, Apple Pay y Bitcoin. Las tarjetas las guarda Braintree, no Bunny.
+- **Mínimo de $1/mes** mientras haya zonas activas: si el consumo del mes queda por debajo, redondean a $1.
+- **El saldo no vence** (los créditos de prueba sí vencen al terminar el trial).
+- **Auto-Recharge es OPCIONAL.** Se dispara cuando el saldo baja de $5 y cobra el monto configurado.
+
+⚠️ **CORRECCIÓN de lo que se anotó antes: Bunny NO tiene una función de "tope de gasto mensual".** No existe en su documentación. Lo que protege de una factura sorpresa es el modelo prepago en sí: **con Auto-Recharge apagado, el saldo cargado ES el techo.**
+
+⚠️ **Pero eso corta en los dos sentidos:** si el saldo llega a cero, los videos podrían dejar de servirse **a alumnas que están pagando**. Su documentación no aclara qué pasa exactamente al agotarse. Recomendación: mantener un colchón holgado y revisar el saldo al menos una vez al mes; si se activa Auto-Recharge, dejarlo en un monto chico ($25-50) para que nunca haya un cobro grande inesperado.
 
 ---
 
