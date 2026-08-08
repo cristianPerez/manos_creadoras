@@ -1,7 +1,7 @@
 # ESTADO — Manos Creadoras App
-Última actualización: 2026-08-04 · El detalle de cada sesión vive en el historial de git; aquí queda solo lo que sigue siendo cierto y accionable.
+Última actualización: 2026-08-08 · El detalle de cada sesión vive en el historial de git; aquí queda solo lo que sigue siendo cierto y accionable.
 
-⏸️ **CHECKPOINT (2026-08-04)** — La app interna funciona con datos reales de Supabase y los videos ya no dependen de Hotmart. **Lo que se ha construido hasta ahora es el ambiente de QA.** Nada bloquea por el lado del código: los 4 bloqueos que quedan son cuentas y material de la dueña (ver abajo).
+⏸️ **CHECKPOINT (2026-08-08)** — **La app ya es instalable y manda notificaciones push**, que era la pieza que justificaba construir esto y llevaba desde la Sesión 6 sin hacerse sin que nadie lo notara. La app interna funciona con datos reales de Supabase y los videos ya no dependen de Hotmart. **Todo lo construido es el ambiente de QA.** Nada bloquea por el lado del código: lo que falta son cuentas y contenido.
 
 ---
 
@@ -10,7 +10,7 @@
 - [ ] **Videos: elegir dónde alojarlos y subirlos.** Recomendación cerrada: **Bunny Stream**. Sin esto la app no tiene curso que mostrar. → guía completa en "Video".
 - [ ] **Resend + SMTP en Supabase.** Hoy ninguna alumna recibiría su enlace de acceso después de pagar. → guía en "Correo / magic link".
 - [ ] **Hotmart: crear el producto de SUSCRIPCIÓN.** `lib/config.ts` apunta al producto VIEJO de pago único ($25), así que los botones cobran lo equivocado. **Esto bloquea vender.**
-- [ ] **Supabase de PRODUCCIÓN**: crear proyecto nuevo y correr ahí las 6 migraciones. El actual (`cazqmaluaehyikkstkoi`) queda como QA. → ver "Ambientes".
+- [ ] **Supabase de PRODUCCIÓN**: crear proyecto nuevo y correr ahí las 7 migraciones. El actual (`cazqmaluaehyikkstkoi`) queda como QA. → ver "Ambientes".
 - [ ] **Hotmart — configurar el webhook**: panel → Herramientas → Webhook → apuntar a `https://TU-DOMINIO/api/webhooks/hotmart` y pegar el hottok en `HOTMART_HOTTOK`. ⚠️ Verificar ahí los nombres EXACTOS de los eventos de suscripción y contrastarlos con la tabla `EVENTO_A_ESTADO` del webhook — el catálogo varía por cuenta.
 - [ ] **Vercel**: crear la cuenta y conectar el repo para publicar.
 
@@ -18,7 +18,6 @@
 - [ ] **Confirmar que la clave secreta de Supabase fue ROTADA.** Incidente del 2026-08-02: quedó en `.env.example` (archivo público) y pasó por el chat. No se detectó en git, pero esa clave salta todo el RLS. Project Settings → API Keys → crear nueva + revocar la anterior.
 
 ### Material de la dueña (bloquea la calidad, no el lanzamiento)
-- [ ] **3-5 fotos de bolsos terminados** (buena luz, fondo simple). Sin ellas no se puede aplicar el dispositivo ownable de la ficha; el revisor deja el eje de identidad en 2/5 en las 4 pantallas. Es lo que más sube la nota.
 - [ ] **Listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan; hoy hay 9 cargadas).
 - [ ] **Nombres reales de los tutoriales**: en Hotmart se llaman "Tutorial 2", "Tutorial 3"… La alumna no puede recordar dónde está la técnica que busca. Bastaría una línea por lección.
 - [ ] **2-3 testimonios reales** (las capturas de WhatsApp) para la landing.
@@ -33,9 +32,13 @@
 - Webhook de Hotmart con las 4 defensas: autenticidad (hottok en tiempo constante), frescura (ventana de 5 min), idempotencia (PK sobre `event_id`) y máquina de estados (un `PURCHASE_APPROVED` tardío no resucita a quien reembolsó).
 - App interna: `/cursos`, `/cursos/[leccion]`, `/ojo-experto`, `/cuenta` — **leyendo y escribiendo datos reales de Supabase**.
 - El Ojo Experto responde de verdad (Gemini), con memoria por alumna, filtro de tema, uso justo (40 preguntas + 8 fotos/mes) y circuit-breaker de gasto diario. Probado con fotos reales de bolsos; intentos de inyección de prompt bloqueados.
-- Supabase: 8 tablas, RLS en todas, 6 migraciones en `supabase/migrations/`.
+- Supabase: 9 tablas, RLS en todas, 7 migraciones en `supabase/migrations/`.
 
-**Calidad visual:** 3 rondas del subagente `revisor-visual` → subió de 28-30/40 a **31-35/40** usabilidad y 13-14/20 craft. **No llega al listón (36/40 · 16/20)** y el techo ya no es código: falta el material fotográfico de la dueña.
+- **App instalable (PWA) con avisos push**, verificada end-to-end contra FCM de Google.
+
+**Calidad visual:** 3 rondas del subagente `revisor-visual` → subió de 28-30/40 a **31-35/40** usabilidad y 13-14/20 craft. **No llega al listón (36/40 · 16/20).**
+
+⚠️ **CORRECCIÓN (2026-08-08) de algo mal anotado antes:** se decía que faltaban "3-5 fotos de bolsos" de la dueña y que por eso no se podía aplicar el dispositivo ownable. **Es falso: hay 9 fotos en `public/images/` y solo 4 se usan** (Hero + carrusel de la landing). Las otras 5 (glacier-blue, onix-cristal, pearl-bow, pearl-coin, pearl-royale) están sin usar. **Subir la nota del revisor NO depende de la dueña: depende de aplicar esas fotos a la app interna**, que es trabajo pendiente del lado del código.
 
 ---
 
@@ -131,6 +134,38 @@ En Bunny **las claves son por biblioteca, no por cuenta** (*"per-library Stream 
 
 ---
 
+## App instalable y avisos push (2026-08-08) — HECHO y verificado
+
+Era **la razón de ser del proyecto**: el reporte de validación de la Sesión 1 concluyó que el negocio ya estaba probado (1.200 alumnas, 4.9/5) y que la oportunidad nueva era el **FORMATO** — app instalable con push, no una landing más. Estaba en la lista de la Sesión 6 y quedó fuera sin que nadie lo notara hasta el 2026-08-08.
+
+### Qué existe
+- `app/manifest.ts` + iconos 192/512/maskable/apple en `public/icons/`. Abre en `/cursos` porque quien instala ya compró.
+- **Los iconos se generaron con sharp**: `logo.svg` es una firma horizontal con texto, ilegible a 48px. El nuevo es un aro de cuentas doradas sobre el casi-negro de la ficha — es literalmente el producto y no depende de ninguna fuente instalada.
+- `public/sw.js` — **NO cachea nada a propósito.** Es una app de curso pagado: una caché mal invalidada serviría lecciones viejas o dejaría contenido en el dispositivo de quien ya canceló. El costo de no cachear es que necesita internet; el de cachear mal es peor.
+- Migración `0007`: `push_subscriptions` con RLS. La llave es el **endpoint**, no el usuario: una alumna puede tener celular y tablet.
+- `POST/DELETE /api/push/suscribir` — valida el token en servidor y exige membresía activa.
+- `POST /api/push/enviar` — protegido por secreto comparado en tiempo constante; borra solo las suscripciones que devuelven 404/410 para que la tabla no se llene de basura.
+- `components/app/ActivarAvisos.tsx` — el permiso se pide **dentro de Mi cuenta y solo si ella toca el botón**. Pedirlo al entrar es el anti-patrón que hace que la gente bloquee los avisos para siempre.
+
+### Cómo envía un aviso la dueña
+```
+npm run push:enviar -- "Modelo nuevo" "Ya está el bolso Pearl Royale en tu app"
+```
+Para producción: `APP_URL=https://tu-app.vercel.app npm run push:enviar -- ...`. Es un comando, no hace falta panel; el backoffice puede venir después.
+
+### ⚠️ Límite de iPhone (de Apple, no del código)
+En iOS los avisos **solo funcionan si la alumna instala la app en su pantalla de inicio**. Ya se detecta y se le muestran las instrucciones (Compartir → Agregar a inicio) en vez de un botón que fallaría sin explicación. En Android funciona directo.
+
+### ⚠️ Al montar Vercel hay que copiar 4 variables
+`NEXT_PUBLIC_VAPID_PUBLIC_KEY` · `VAPID_PRIVATE_KEY` · `VAPID_SUBJECT` · `PUSH_ADMIN_SECRET` (están en `.env.local`, que sigue fuera de git).
+
+**Si algún día se cambian las llaves VAPID, TODAS las alumnas suscritas dejan de recibir avisos** y hay que volver a pedirles permiso. Ideal: una pareja distinta por ambiente, ya que las suscripciones viven en bases distintas.
+
+### Verificado end-to-end (navegador real con permiso concedido)
+Suscripción guardada contra FCM de Google → envío por el script → **el service worker recibió y mostró la notificación** con su título, cuerpo, icono y destino → desactivar la borra del navegador y de la base. Los endpoints pasan los 5 chequeos de autorización (401 sin secreto, 401 con secreto malo, 400 con cuerpo inválido, 401 sin sesión, 200 con secreto correcto). Captura: `.playwright-mcp/s9-avisos.png`.
+
+---
+
 ## Correo / magic link — pendiente de configurar
 
 ### 🔴 Falta SMTP propio (bloquea el lanzamiento)
@@ -198,7 +233,8 @@ APP_URL=https://TU-APP.vercel.app npm run alumna:crear -- tu@correo.com anual ac
 - La landing **no tiene testimonios con nombre**. Decisión deliberada: la dueña pidió inventarlos "mientras agregamos unos reales" y se rechazó (riesgo real de moderación de Hotmart y publicidad engañosa). Solo queda el agregado real (+1.200 alumnas · 4.9/5).
 - `direcciones-abc.html` sigue en la raíz — borrarlo antes del deploy (no va a producción).
 - Título de pestaña de `/login` no personalizado (es "use client" y no puede exportar `metadata`). Solucionable con un `layout.tsx` del grupo `(auth)`. No bloqueante.
-- 2 avisos de lint preexistentes: `BarraProgreso` llama setState dentro de un efecto. No rompen nada.
+- 1 aviso de lint preexistente: `BarraProgreso` llama setState dentro de un efecto. No rompe nada.
+- **Pendiente del lado del código**: aplicar a la app interna las 5 fotos de bolsos que están sin usar. Es lo que más sube la nota del revisor y no depende de nadie más.
 
 ---
 
@@ -224,3 +260,4 @@ Detalle completo en el historial de git. Resumen:
 | 6 (08-02) | Servicios externos reales: Supabase (8 tablas + RLS), webhook de Hotmart, Gemini. Migración del modelo a suscripción. ⚠️ Se detectó y cerró un agujero: `tiene_acceso(uid)` era llamable sin sesión desde `/rest/v1/rpc/` — cualquiera podía averiguar qué alumnas tenían membresía activa |
 | 7 (08-03) | Pantallas conectadas a Supabase (se borró `lib/demo-data.ts`). 4 bugs reales corregidos, entre ellos el **bucle infinito de redirecciones** cuando hay sesión sin fila en `profiles` |
 | 8 (08-04) | Video independiente de Hotmart (`lib/video.ts` + migración `0006`) |
+| 9 (08-08) | Fotos a WebP (9,6 MB → 1,2 MB) y basura de Next borrada. **PWA instalable + avisos push** (`manifest`, service worker, migración `0007`, endpoints y UI de permiso), verificados contra FCM |
