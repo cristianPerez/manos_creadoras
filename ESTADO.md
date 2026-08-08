@@ -8,7 +8,8 @@
 ## 🔴 BLOQUEOS PARA LANZAR (nada de esto es código)
 
 - [ ] **Videos: elegir dónde alojarlos y subirlos.** Recomendación cerrada: **Bunny Stream**. Sin esto la app no tiene curso que mostrar. → guía completa en "Video".
-- [ ] **Resend + SMTP en Supabase.** Hoy ninguna alumna recibiría su enlace de acceso después de pagar. → guía en "Correo / magic link".
+- [x] ~~**Resend + SMTP en Supabase**~~ — ✅ **RESUELTO 2026-08-08.** Dominio `contacto.manoscreadoras.co` verificado (Namecheap, us-east-1), SMTP configurado y plantilla con `token_hash` aplicada. **Probado de verdad**: correo enviado desde el login real → Resend lo reporta `delivered` en Gmail. Se inspeccionó el HTML entregado: Supabase NO envuelve la plantilla (una sola etiqueta `<html>`, el `<meta color-scheme>` sobrevive) y el enlace sale bien armado con su `http://`. Plantilla versionada en `supabase/templates/magic-link.html`.
+- [ ] ⚠️ **Al publicar: cambiar el Site URL** de `http://localhost:3000` a la URL de Vercel. Si se olvida, los correos de las alumnas traerán enlaces a localhost — que en su celular no existe. También subir Rate Limits → "emails per hour".
 - [ ] **Hotmart: crear el producto de SUSCRIPCIÓN.** `lib/config.ts` apunta al producto VIEJO de pago único ($25), así que los botones cobran lo equivocado. **Esto bloquea vender.**
 - [ ] **Supabase de PRODUCCIÓN**: crear proyecto nuevo y correr ahí las 7 migraciones. El actual (`cazqmaluaehyikkstkoi`) queda como QA. → ver "Ambientes".
 - [ ] **Hotmart — configurar el webhook**: panel → Herramientas → Webhook → apuntar a `https://TU-DOMINIO/api/webhooks/hotmart` y pegar el hottok en `HOTMART_HOTTOK`. ⚠️ Verificar ahí los nombres EXACTOS de los eventos de suscripción y contrastarlos con la tabla `EVENTO_A_ESTADO` del webhook — el catálogo varía por cuenta.
@@ -261,3 +262,4 @@ Detalle completo en el historial de git. Resumen:
 | 7 (08-03) | Pantallas conectadas a Supabase (se borró `lib/demo-data.ts`). 4 bugs reales corregidos, entre ellos el **bucle infinito de redirecciones** cuando hay sesión sin fila en `profiles` |
 | 8 (08-04) | Video independiente de Hotmart (`lib/video.ts` + migración `0006`) |
 | 9 (08-08) | Fotos a WebP (9,6 MB → 1,2 MB) y basura de Next borrada. **PWA instalable + avisos push** (`manifest`, service worker, migración `0007`, endpoints y UI de permiso), verificados contra FCM |
+| 10 (08-08) | **Correo funcionando**: dominio verificado en Resend, SMTP en Supabase y plantilla de marca (`supabase/templates/magic-link.html`). Verificado con envío real: `delivered` en Gmail |
