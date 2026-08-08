@@ -9,7 +9,7 @@ export function Hero() {
     <section className="relative">
       <div className="relative h-[70vh] w-full grain">
         <Image
-          src="/images/bag-champagne-facetado.jpg"
+          src="/images/bag-champagne-facetado.webp"
           alt="Bolso de lujo en cuentas color champagne, tejido a mano"
           fill
           priority

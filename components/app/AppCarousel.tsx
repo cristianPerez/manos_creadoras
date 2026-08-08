@@ -105,7 +105,7 @@ function Frame({ kind }: { kind: "cursos" | "ojo-experto" | "galeria" }) {
       <div className="flex-1 p-4 flex flex-col gap-2">
         <p className="text-text-tertiary" style={{ fontSize: "10px" }}>EL OJO EXPERTO</p>
         <div className="mt-1 rounded-lg overflow-hidden aspect-square relative border border-border-default">
-          <Image src="/images/bag-pearl-hobo.png" alt="Ejemplo de tejido en progreso" fill className="object-cover" sizes="280px" />
+          <Image src="/images/bag-pearl-hobo.webp" alt="Ejemplo de tejido en progreso" fill className="object-cover" sizes="280px" />
         </div>
         <div className="rounded-lg bg-surface-secondary p-2 mt-1">
           <p className="text-text-secondary" style={{ fontSize: "10.5px", lineHeight: 1.4 }}>
@@ -120,10 +120,10 @@ function Frame({ kind }: { kind: "cursos" | "ojo-experto" | "galeria" }) {
       <p className="text-text-tertiary" style={{ fontSize: "10px" }}>APRENDERÁS A CREARLOS</p>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div className="rounded-lg overflow-hidden aspect-square relative border border-border-default">
-          <Image src="/images/bag-pink-crystal.png" alt="Bolso Rose Crystal" fill className="object-cover" sizes="140px" />
+          <Image src="/images/bag-pink-crystal.webp" alt="Bolso Rose Crystal" fill className="object-cover" sizes="140px" />
         </div>
         <div className="rounded-lg overflow-hidden aspect-square relative border border-border-default">
-          <Image src="/images/bag-gold-crystal.png" alt="Bolso Gold Crystal" fill className="object-cover" sizes="140px" />
+          <Image src="/images/bag-gold-crystal.webp" alt="Bolso Gold Crystal" fill className="object-cover" sizes="140px" />
         </div>
       </div>
     </div>
