@@ -1,0 +1,109 @@
+<!--
+  Invitación a una alumna.
+  Se pega en: Supabase → Authentication → Emails → Templates → "Invite user".
+
+  Este correo NO lo dispara la app sola: sale cuando alguien invita a mano a una
+  alumna desde el panel de Supabase (por ejemplo, un acceso de cortesía o el
+  rescate de una compra que no llegó por el webhook).
+
+  ⚠️ POR QUÉ ESTÁ ESCRITA "A LA ANTIGUA" (tablas y estilos en cada etiqueta):
+  los clientes de correo no son navegadores. Gmail borra las hojas de estilo,
+  Outlook usa el motor de Word y no entiende flexbox, grid ni degradados.
+
+  Colores tomados de FICHA-ARTE.md (fondo #090706 · superficie #120f0c ·
+  texto #f6f1e7/#c9beac · dorado #ebcd8c→#d48e00).
+-->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
+    <title>Tu acceso a Manos Creadoras</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#090706;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
+      Tu acceso al programa ya está listo.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="background-color:#090706; margin:0; padding:0;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                 style="max-width:480px; width:100%;">
+
+            <!-- Marca -->
+            <tr>
+              <td align="center" style="padding-bottom:24px;">
+                <p style="margin:0; font-family:'Jost',Helvetica,Arial,sans-serif; font-size:12px;
+                          letter-spacing:3px; text-transform:uppercase; color:#e1af4a;">
+                  Manos Creadoras
+                </p>
+              </td>
+            </tr>
+
+            <!-- Tarjeta -->
+            <tr>
+              <td style="background-color:#120f0c; border:1px solid #3d3125; border-radius:24px;
+                         padding:32px 28px;">
+
+                <h1 style="margin:0 0 12px; font-family:Georgia,'Cormorant Garamond','Times New Roman',serif;
+                           font-weight:400; font-size:28px; line-height:1.25; color:#f6f1e7;">
+                  Tu lugar está listo
+                </h1>
+
+                <p style="margin:0 0 28px; font-family:'Jost',Helvetica,Arial,sans-serif;
+                          font-size:15px; line-height:1.6; color:#c9beac;">
+                  Te abrimos el acceso al programa. Toca el botón para entrar por primera vez.
+                  El enlace vence pronto y solo se puede usar una vez.
+                </p>
+
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td align="center" bgcolor="#d48e00" style="border-radius:9999px;
+                        background-color:#d48e00;
+                        background-image:linear-gradient(to right,#ebcd8c,#d48e00);">
+                      <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite"
+                         style="display:block; padding:16px 24px; font-family:'Jost',Helvetica,Arial,sans-serif;
+                                font-size:16px; font-weight:600; color:#14100c; text-decoration:none;
+                                border-radius:9999px;">
+                        Entrar a Manos Creadoras
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:24px 0 0; font-family:'Jost',Helvetica,Arial,sans-serif;
+                          font-size:12px; line-height:1.6; color:#8a7f70;">
+                  ¿No funciona el botón? Copia y pega esta dirección en tu navegador:
+                </p>
+                <p style="margin:6px 0 0; font-family:'Jost',Helvetica,Arial,sans-serif;
+                          font-size:12px; line-height:1.6; color:#e1af4a; word-break:break-all;">
+                  {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite
+                </p>
+              </td>
+            </tr>
+
+            <!-- Pie -->
+            <tr>
+              <td align="center" style="padding-top:24px;">
+                <p style="margin:0 0 6px; font-family:'Jost',Helvetica,Arial,sans-serif;
+                          font-size:12px; line-height:1.6; color:#8a7f70;">
+                  Si crees que este correo no era para ti, puedes ignorarlo tranquila.
+                </p>
+                <p style="margin:0; font-family:'Jost',Helvetica,Arial,sans-serif;
+                          font-size:12px; color:#5c5347;">
+                  Manos Creadoras · Bolsos de lujo en cuentas
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
