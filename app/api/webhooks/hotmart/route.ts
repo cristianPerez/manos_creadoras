@@ -43,6 +43,57 @@ const EVENTO_A_ESTADO: Record<string, Estado> = {
   PURCHASE_CHARGEBACK: "chargeback",
 };
 
+/**
+ * Traduce el estado de la suscripción a lo único que de verdad abre la puerta:
+ * una concesión en `accesos` (migración 0008).
+ *
+ * ⚠️ Esto es el CAMBIO de fondo del 2026-09-14. Antes bastaba con escribir
+ * `profiles.status` porque la función `tiene_acceso_de` lo leía; ahora esa
+ * función solo mira concesiones, así que un webhook que se olvide de llamar
+ * aquí deja a una alumna que pagó sin poder entrar — y `status` diría "active",
+ * que es la peor forma de fallar: la pantalla de su cuenta le muestra todo en
+ * orden mientras el curso le aparece vacío.
+ *
+ * Las tres ramas son las mismas que ya tenía `access_until`, solo que ahora
+ * viven en un sitio donde también las puede escribir la dueña a mano.
+ */
+async function sincronizarAcceso(
+  db: ReturnType<typeof supabaseAdmin>,
+  userId: string,
+  estado: Estado,
+  finDePeriodo: string | null,
+) {
+  if (estado === "active" || estado === "past_due") {
+    // Al día, o con el cobro fallando pero dentro de la gracia: entra sin fecha
+    // de corte. `past_due` NO revoca a propósito — cortarle el acceso a alguien
+    // porque su tarjeta falló un martes es perder a una clienta que quería pagar.
+    await db.rpc("otorgar_acceso", {
+      p_user_id: userId,
+      p_motivo: "compra",
+      p_vence_en: null,
+      p_otorgado_por: "hotmart",
+    });
+    return;
+  }
+
+  if (estado === "cancelled") {
+    // Canceló: conserva lo que ya pagó. La concesión no se revoca, se le pone
+    // fecha — y la base deja de contarla sola cuando llegue.
+    await db.rpc("otorgar_acceso", {
+      p_user_id: userId,
+      p_motivo: "compra",
+      p_vence_en: finDePeriodo,
+      p_otorgado_por: "hotmart",
+    });
+    return;
+  }
+
+  // Vencido, reembolsado o disputado: se cae TODO lo vivo, incluido un regalo
+  // anterior. Alguien que pidió su dinero de vuelta no se queda dentro por una
+  // concesión de cortesía que nadie recordaba.
+  await db.rpc("revocar_acceso", { p_user_id: userId });
+}
+
 async function registrar(
   db: ReturnType<typeof supabaseAdmin>,
   eventId: string | null,
@@ -224,6 +275,16 @@ export async function POST(req: Request) {
       }
 
       await db.from("profiles").update(cambios).eq("id", existente.id);
+
+      // El acceso va DESPUÉS del perfil y en su propia tabla. `access_until`
+      // sigue escribiéndose arriba porque "Mi cuenta" se lo enseña a la alumna,
+      // pero ya no decide nada: quien decide es esta llamada.
+      await sincronizarAcceso(
+        db,
+        existente.id,
+        nuevoEstado,
+        nuevoEstado === "cancelled" ? finDePeriodo : null,
+      );
     } else {
       if (nuevoEstado !== "active") {
         // Una cancelación/reembolso de alguien que no existe: nada que cortar.
@@ -247,6 +308,11 @@ export async function POST(req: Request) {
         hotmart_sub: subCode,
         first_paid_at: new Date().toISOString(),
       });
+
+      // Cuenta recién creada por una compra: aquí es donde de verdad "compra
+      // acceso". Sin esta línea la alumna recibiría su correo de bienvenida y
+      // entraría a un curso vacío.
+      await sincronizarAcceso(db, creado.user.id, "active", null);
     }
 
     await registrar(db, eventId, eventType, "applied");

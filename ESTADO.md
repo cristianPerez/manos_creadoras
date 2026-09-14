@@ -27,6 +27,87 @@
 
 ---
 
+## 🎯 PLAN EN CURSO — Embudo de entrada sin webhook (portado de El Charcu)
+
+**Objetivo:** que alguien pueda entrar y usar el producto **sin esperar a ningún
+webhook de compra** — 3 videos de regalo y llamadas al Ojo Experto — y que el
+acceso se pueda **conceder a mano desde el primer día**. Cuando haya pasarela,
+el webhook solo inserta una fila más.
+
+Referencia leída: `~/Documents/goingTube/elcharcu` (ESTADO.md con D1–D21,
+`useLeadWall.ts`, migraciones 0024/0025, `api/asistente/route.ts`, `fake.ts`,
+`events.ts`, `auth/callback`). Se porta la **lección**, no el archivo: allí es
+FSD (`src/entities`, `src/features`) y aquí el layout plano de Next — no se
+reorganiza el repo.
+
+### Decisiones de este plan
+
+| #   | Decisión                                                                 | Por qué                                                                                                                                                                                    |
+| --- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| E1  | **Se mantiene D12 de El Charcu: la puerta vive en la BASE**, no en la pantalla | Ya se cumple aquí con `tiene_acceso()` en la RLS de `secciones`/`lecciones`. No se toca ese principio, solo de dónde saca la respuesta.                                                    |
+| E2  | **Dos mecanismos distintos, porque son problemas distintos**: `lecciones.es_libre` (contenido) + `accesos` (personas) | Los 3 videos de regalo son una propiedad del CATÁLOGO, no un permiso de cada alumna: con una concesión por persona habría que otorgar 3 filas a cada cuenta nueva, y cambiar el regalo obligaría a reescribir las filas de todo el mundo. Con la columna, cambiar el regalo es un `update` de una fila. |
+| E3  | **`accesos` sustituye el origen del acceso DE UNA VEZ**, sin puente        | Cristian eligió cortar sin fase intermedia (2026-09-14). `tiene_acceso_de` ya no mira `profiles.status`: solo concesiones. ⚠️ La COLUMNA `status` se queda, y no sobra: la necesitan la defensa del webhook contra un `PURCHASE_APPROVED` tardío que resucitaría a quien reembolsó, y la pantalla "Mi cuenta". Lo que se cortó es su poder de decidir quién entra. |
+| E4  | **NO se porta `visitor_id` ni el contador anónimo** (y con él, toda la migración 0024) | En El Charcu el asistente vive en la portada para anónimos (su D14) y por eso necesita contador por navegador, `link_visitor_to_user` y el arreglo del navegador compartido. Aquí la demostración son **los 3 videos**, que no gastan IA y no hay que contar. Sin consumo anónimo de IA no hace falta nada de esa maquinaria. Es la mayor reducción de complejidad disponible. |
+| E5  | **El muro blando se dispara al tocar el Ojo Experto, no en la pregunta N+1** | Consecuencia de E4: si no hay cupo anónimo, no hay "segunda pregunta". El muro es cerrable (lección de El Charcu: sin salida, quien no deja el correo tampoco puede seguir viendo los videos, y se va). Cerrarlo devuelve la página, no el acceso. |
+| E6  | **NO se porta `cure-safety` ni Mixpanel ni la entidad `recipe-chat`**      | La auditoría de sal de cura es de charcutería. Mixpanel es una cuenta y un costo nuevos + banner de cookies; se porta el **catálogo de eventos**, no el proveedor. `recipe-chat` estructura el chat por receta, y aquí `ai_conversations` es una lista plana — es V2, no ahora.                |
+| E7  | **Sí se porta `fake.ts` con sus dos condiciones** (`AI_SIMULAR_IA=1` **y** no producción) | Permite probar el embudo entero en QA sin gastar un centavo, y la segunda condición no se puede apagar: una variable mal copiada haría que producción contestara texto inventado pareciendo sana. |
+
+### ⚠️ Dos fallos reales encontrados al leer (no son del plan, son de aquí)
+
+- **Redirect abierto en `app/auth/callback/route.ts:16`.** `next` se lee del
+  enlace y se pega detrás del origen sin validar, así que `?next=//otro-sitio.co`
+  redirige fuera del dominio **con la sesión recién creada**. La ruta viaja por
+  correo: es entrada de fuera aunque la escribamos nosotros. El Charcu lo tapa
+  con `safeNext`. Se arregla en la Fase 2.
+- **`profiles.notas_tejido` entra literal en el prompt del Ojo Experto**
+  (`route.ts:243`). Hoy la UI no lo expone, pero la política RLS deja a la alumna
+  actualizar su propio perfil sin restricción de columnas, así que por la API
+  podría escribir instrucciones ahí. Es la misma clase de agujero que el campo
+  `product` de El Charcu. Se acota en la Fase 4 (longitud + posición en el prompt).
+
+### Fases (cada una se ejecuta con aprobación explícita)
+
+- **Fase 1 · Acceso — CÓDIGO HECHO, MIGRACIONES SIN APLICAR (2026-09-14).**
+  `0008_accesos.sql` (tabla `accesos` + `tiene_acceso_de` leyendo solo de ahí +
+  `otorgar_acceso`/`revocar_acceso` + traspaso de las alumnas que ya tenían
+  acceso) y `0009_lecciones_libres.sql` (`es_libre`, RLS `es_libre or
+  tiene_acceso()`, las 3 libres son `s2-l01/02/03`). El webhook escribe
+  concesiones (`sincronizarAcceso`), `lib/curso.ts` pregunta a la base en vez de
+  reconstruir la regla, y existe `npm run acceso:dar|quitar|ver`.
+  🔴 **Las dos migraciones NO están aplicadas a QA**: el conector de Supabase de
+  la sesión no ve ningún proyecto (sin autorización) y el CLI no está enlazado.
+  Mientras no se apliquen, la app sigue funcionando con la regla vieja —la
+  función `tiene_acceso_de` antigua sigue en la base—, pero **el webhook no
+  otorgará nada** porque llamará a una función que aún no existe. Hay que
+  aplicarlas antes de probar una compra.
+- **Fase 2 · Embudo sin registro.** Los 3 videos libres visibles sin cuenta;
+  muro blando cerrable al tocar el Ojo Experto; `safeNext` en el callback; el
+  enlace del correo devuelve a donde estaba, no a `/cursos` fijo.
+- **Fase 3 · Cupo y presupuesto.** ⚠️ El freno de gasto se comprueba **después**
+  de saber el plan, nunca antes (lección de la 0025: si va antes, un día de
+  tráfico gratis deja mudo al que paga). Dos bolsillos `regalo`/`miembro`. El
+  gasto se apunta por **tokens reales**, no con las constantes fijas de hoy
+  (`0.00025`/`0.0005` en `route.ts:163`).
+- **Fase 4 · Asistente.** `fake.ts` (E7), acotar `notas_tejido`, y la barrera
+  propia en código: aquí el consejo no envenena a nadie, pero **prometer
+  ingresos o precios de venta sí es riesgo legal y de Hotmart** — hoy solo está
+  pedido en el prompt, y un prompt no es una barrera.
+- **Fase 5 · Analítica.** Catálogo central de eventos (`lead_wall_shown` con
+  `place` → el denominador, `lead_captured`, `account_created` vs
+  `account_signed_in`). ⚠️ `lead_captured` **no** es contacto nuevo: el muro le
+  sale a cualquiera sin sesión. Quién es nuevo solo se sabe en el callback
+  (`created_at` vs `last_sign_in_at`), porque preguntarle al servidor si un
+  correo existe es permitir enumerar usuarios.
+- **Fase 6 · Errores.** `reportError` como único sitio por donde sale un fallo
+  técnico, en JSON de una línea, sin proveedor. `error.tsx` / `global-error.tsx`.
+  ⚠️ Nada personal en los logs: salen del edificio en cuanto haya un drain.
+
+**Regla de trabajo de este plan:** un cambio de esquema = un archivo de
+migración nuevo, nunca SQL suelto. **Se aplican solo a QA**; a producción no
+entra ninguna sin aprobación explícita, cada vez.
+
+---
+
 ## Estado actual del producto
 
 **Funciona y está verificado contra los servicios reales:**

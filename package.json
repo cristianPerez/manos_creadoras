@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit",
     "alumna:crear": "node scripts/alumna-prueba.mjs crear",
     "alumna:borrar": "node scripts/alumna-prueba.mjs borrar",
-    "push:enviar": "node scripts/enviar-aviso.mjs"
+    "push:enviar": "node scripts/enviar-aviso.mjs",
+    "acceso:dar": "node scripts/acceso.mjs dar",
+    "acceso:quitar": "node scripts/acceso.mjs quitar",
+    "acceso:ver": "node scripts/acceso.mjs ver"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",

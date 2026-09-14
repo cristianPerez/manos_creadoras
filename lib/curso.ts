@@ -108,7 +108,7 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [perfilRes, seccionesRes, leccionesRes, progresoRes] = await Promise.all([
+  const [perfilRes, seccionesRes, leccionesRes, progresoRes, accesoRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, email, nombre, status, plan, access_until, first_paid_at")
@@ -127,7 +127,29 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
       .order("orden")
       .returns<FilaLeccion[]>(),
     supabase.from("user_progress").select("leccion_id").returns<{ leccion_id: string }[]>(),
+    /*
+      ⚠️ ¿TIENE ACCESO? SE LO PREGUNTAMOS A LA BASE, no lo deducimos aquí.
+
+      Hasta la migración 0008 esta función reconstruía la regla en TypeScript
+      —`status === 'active' || past_due || (cancelled && access_until > hoy)`—
+      que era una COPIA de la que vive en `tiene_acceso_de`. Dos copias de una
+      regla de acceso son dos reglas: el día que una cambie, la pantalla y el
+      candado dirán cosas distintas, y el que manda es el candado. Entonces la
+      alumna ve el curso y la base le devuelve cero filas, o al revés.
+
+      `tiene_acceso()` sin parámetro solo responde sobre quien llama, así que
+      preguntarlo desde la sesión de la alumna no revela nada de nadie.
+    */
+    supabase.rpc("tiene_acceso"),
   ]);
+
+  /*
+    Si la llamada falla (red, base caída), se asume SIN acceso. Es lo contrario
+    de lo cómodo: un fallo deja fuera a quien pagó. Pero el otro default abre el
+    curso entero cuando la base tose, y de los dos errores ese es el que no se
+    puede deshacer. Fallar del lado cerrado — sin defaults fail-open.
+  */
+  const tieneAcceso = accesoRes.error ? false : accesoRes.data === true;
 
   const perfil = perfilRes.data;
 
@@ -205,7 +227,7 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
   const completadas = cuentan.filter((l) => l.completada).length;
 
   return {
-    alumna: perfilAAlumna(perfil),
+    alumna: perfilAAlumna(perfil, tieneAcceso),
     secciones,
     planas,
     totalLecciones: cuentan.length,
@@ -217,11 +239,7 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
   };
 });
 
-function perfilAAlumna(p: FilaPerfil): Alumna {
-  const vigente = p.access_until ? new Date(p.access_until) > new Date() : false;
-  const tieneAcceso =
-    p.status === "active" || p.status === "past_due" || (p.status === "cancelled" && vigente);
-
+function perfilAAlumna(p: FilaPerfil, tieneAcceso: boolean): Alumna {
   let diasEnPrograma: number | null = null;
   if (p.first_paid_at) {
     const ms = Date.now() - new Date(p.first_paid_at).getTime();
