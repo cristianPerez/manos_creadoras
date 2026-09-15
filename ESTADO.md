@@ -298,14 +298,21 @@ creado el 2026-09-08), que parece ser el de PRODUCCIÓN.** No se ha tocado y no
 se ha comprobado qué tiene dentro. Antes de empujarle nada hay que confirmar con
 Cristian qué es y si ya tiene las migraciones 0001-0007.
 
-⚠️ **La libreta de migraciones estaba descuadrada** y costó un rato: la base
-tenía las 0001-0007 aplicadas pero anotadas con nombres de fecha
-(`20260802022423`…), mientras los archivos se llaman `0001`…`0007`. El CLI las
-veía como dos listas distintas y `db push` habría intentado recrear el proyecto
-entero. Se arregló con `migration repair --status applied 0001…0007` +
-`--status reverted` sobre las siete con nombre de fecha (eso solo toca el
-registro, nunca el esquema). **Producción tendrá el mismo descuadre** si se
-aplicó igual: comprobarlo ANTES de empujar allí, nunca con `db push` a ciegas.
+✅ **Los nombres ya siguen la convención de Supabase** (2026-09-15): fecha
+delante + número corto, `20260914190000_0008_accesos.sql`. La fecha es lo que el
+CLI lee como versión; el número corto es para nosotros, porque 27 comentarios
+del repo citan «la migración 0008» o «la política de la 0009». Es el patrón de
+El Charcu. Para las 7 primeras se **recuperaron las fechas reales** que la base
+tenía anotadas, así que el historial vuelve a decir cuándo se aplicó cada una.
+⚠️ **Al renombrar, cambiar SOLO lo que va después de la fecha**: tocar la fecha
+cambia la versión y la base la intenta aplicar otra vez.
+⚠️ La libreta estaba descuadrada y costó un rato entenderlo: la base tenía las 7
+primeras aplicadas con nombres de fecha mientras los archivos usaban `0001`…, y
+el CLI las veía como dos listas distintas. Se cuadra con `migration repair`, que
+solo toca el registro y nunca el esquema. **Cómo hacerlo está en
+`supabase/migrations/README.md`.**
+⚠️ **Producción (`icbhtsdalysatlizjlys`) tendrá el mismo descuadre** si se montó
+igual: comprobarlo ANTES de empujarle nada, nunca con `db push` a ciegas.
 
 ⚠️ El conector MCP de Supabase de la sesión **no ve ningún proyecto**; el que sí
 funciona es el CLI (`npx supabase`). No perder tiempo con el MCP.
