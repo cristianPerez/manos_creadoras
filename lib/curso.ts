@@ -53,7 +53,16 @@ export type Alumna = {
 };
 
 export type Curso = {
-  alumna: Alumna;
+  /**
+   * `null` cuando quien mira NO ha iniciado sesión.
+   *
+   * Es a propósito que sea nulable en vez de una alumna "vacía": un objeto de
+   * mentira con email `""` y `tieneAcceso: false` se cuela por cualquier
+   * comprobación distraída, y el día que alguien escriba `alumna.email` en un
+   * correo le mandaría un mensaje a la nada. Así el compilador obliga a decidir
+   * qué se enseña en cada pantalla cuando no hay nadie detrás.
+   */
+  alumna: Alumna | null;
   secciones: Seccion[];
   /** Lecciones que cuentan para el avance (excluye bienvenida y recursos). */
   totalLecciones: number;
@@ -106,7 +115,20 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+
+  /*
+    SIN SESIÓN NO SE DEVUELVE `null`: se devuelve el curso que ve un visitante.
+
+    Hasta hoy aquí se cortaba, y la pantalla respondía mandando al login. Eso
+    convertía la app en un edificio sin puerta: quien no había comprado no podía
+    ver NADA, ni siquiera lo que se le está regalando para que compre.
+
+    No hace falta ninguna consulta especial ni ninguna lista de "qué mostrar":
+    se preguntan las mismas tablas de siempre y es la BASE la que entrega solo
+    las lecciones libres (política de la 0009). La pantalla no decide qué tapar
+    — no puede equivocarse enseñando de más.
+  */
+  if (!user) return await cargarVisita(supabase);
 
   const [perfilRes, seccionesRes, leccionesRes, progresoRes, accesoRes] = await Promise.all([
     supabase
@@ -187,10 +209,38 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
   }
 
   const hechas = new Set((progresoRes.data ?? []).map((p) => p.leccion_id));
-  const filasSecciones = seccionesRes.data ?? [];
-  const filasLecciones = leccionesRes.data ?? [];
+  const secciones = armarSecciones(seccionesRes.data ?? [], leccionesRes.data ?? [], hechas);
 
-  const secciones: Seccion[] = filasSecciones.map((s) => {
+  const planas = secciones.flatMap((s) => s.lecciones);
+  const cuentan = planas.filter((l) => l.cuentaProgreso);
+  const completadas = cuentan.filter((l) => l.completada).length;
+
+  return {
+    alumna: perfilAAlumna(perfil, tieneAcceso),
+    secciones,
+    planas,
+    totalLecciones: cuentan.length,
+    completadas,
+    pct: cuentan.length ? Math.round((completadas / cuentan.length) * 100) : 0,
+    // El héroe apunta al próximo TUTORIAL, no a la bienvenida: la sección de recursos
+    // ya está a la vista en la lista y el protagonista de la pantalla es tejer.
+    siguiente: cuentan.find((l) => !l.completada) ?? null,
+  };
+});
+
+/**
+ * Arma el curso a partir de las filas crudas. Lo usan los DOS caminos —el de la
+ * alumna y el del visitante— porque la forma del curso no cambia según quién
+ * mire: lo que cambia es cuántas filas entrega la base.
+ *
+ * `hechas` llega vacío para el visitante: sin cuenta no hay progreso que marcar.
+ */
+function armarSecciones(
+  filasSecciones: FilaSeccion[],
+  filasLecciones: FilaLeccion[],
+  hechas: Set<string>,
+): Seccion[] {
+  return filasSecciones.map((s) => {
     const lecciones: Leccion[] = filasLecciones
       .filter((l) => l.seccion_id === s.id)
       .sort((a, b) => a.orden - b.orden)
@@ -221,23 +271,58 @@ export const cargarCurso = cache(async (): Promise<Curso | null> => {
       completadas: lecciones.filter((l) => l.completada).length,
     };
   });
+}
 
+/**
+ * El curso que ve alguien que todavía no tiene cuenta.
+ *
+ * Son las MISMAS dos consultas que hace una alumna. No hay ningún filtro de
+ * `es_libre` escrito aquí y eso es deliberado: si la pantalla decidiera qué
+ * tapar, un descuido suyo regalaría el curso entero. Quien filtra es la política
+ * de la base, y desde aquí no hay forma de pedirle más de lo que da.
+ *
+ * `alumna: null` es la señal de que no hay nadie detrás. Sin progreso, sin
+ * porcentaje y sin "siguiente lección": esas tres cosas necesitan una cuenta
+ * donde guardarse, y fingirlas para un visitante sería prometerle que su avance
+ * se está registrando cuando se pierde al cerrar la pestaña.
+ */
+async function cargarVisita(
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+): Promise<Curso> {
+  const [seccionesRes, leccionesRes] = await Promise.all([
+    supabase
+      .from("secciones")
+      .select("id, numero, titulo, orden, cuenta_progreso")
+      .order("orden")
+      .returns<FilaSeccion[]>(),
+    supabase
+      .from("lecciones")
+      .select(
+        "id, seccion_id, numero, titulo, tipo, duracion_seg, video_proveedor, video_id, recurso_url, orden",
+      )
+      .order("orden")
+      .returns<FilaLeccion[]>(),
+  ]);
+
+  const secciones = armarSecciones(
+    seccionesRes.data ?? [],
+    leccionesRes.data ?? [],
+    new Set(),
+  );
   const planas = secciones.flatMap((s) => s.lecciones);
-  const cuentan = planas.filter((l) => l.cuentaProgreso);
-  const completadas = cuentan.filter((l) => l.completada).length;
 
   return {
-    alumna: perfilAAlumna(perfil, tieneAcceso),
+    alumna: null,
     secciones,
     planas,
-    totalLecciones: cuentan.length,
-    completadas,
-    pct: cuentan.length ? Math.round((completadas / cuentan.length) * 100) : 0,
-    // El héroe apunta al próximo TUTORIAL, no a la bienvenida: la sección de recursos
-    // ya está a la vista en la lista y el protagonista de la pantalla es tejer.
-    siguiente: cuentan.find((l) => !l.completada) ?? null,
+    totalLecciones: planas.length,
+    completadas: 0,
+    pct: 0,
+    // Para el visitante el "empieza aquí" es la primera lección libre, sin más
+    // lógica: no hay nada completado que saltarse.
+    siguiente: planas[0] ?? null,
   };
-});
+}
 
 function perfilAAlumna(p: FilaPerfil, tieneAcceso: boolean): Alumna {
   let diasEnPrograma: number | null = null;

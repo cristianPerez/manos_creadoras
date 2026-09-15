@@ -1,8 +1,8 @@
-import { Info } from "lucide-react";
+import { Camera, Info, Lock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ConsultaOjoExperto } from "@/components/app/ConsultaOjoExperto";
+import { OfertaEnUnaLinea } from "@/components/app/OfertaEnUnaLinea";
 import { Reveal } from "@/components/app/Reveal";
 import { cargarOjoExperto } from "@/lib/ojo-experto";
 
@@ -10,7 +10,6 @@ export const metadata: Metadata = { title: "El Ojo Experto — Manos Creadoras" 
 
 export default async function OjoExperto() {
   const estado = await cargarOjoExperto();
-  if (!estado) redirect("/login");
 
   return (
     <>
@@ -38,7 +37,9 @@ export default async function OjoExperto() {
         </header>
       </Reveal>
 
-      {estado.tieneAcceso ? (
+      {estado === null ? (
+        <MuroDeCortesia />
+      ) : estado.tieneAcceso ? (
         <ConsultaOjoExperto historialInicial={estado.historial} usoInicial={estado.uso} />
       ) : (
         <Reveal delay={0.06}>
@@ -79,5 +80,161 @@ export default async function OjoExperto() {
         </p>
       </Reveal>
     </>
+  );
+}
+
+/**
+ * Lo que ve alguien SIN cuenta al tocar el Ojo Experto.
+ *
+ * ⚠️ POR QUÉ NO ES UN MODAL QUE SE CIERRA, que es como funciona en El Charcu.
+ * Allí el muro cae encima de una receta que la persona estaba leyendo, así que
+ * si no se pudiera cerrar la dejaría sin poder seguir leyendo — de ahí la
+ * lección de que tenga salida. Aquí no hay nada debajo: esta pantalla ES el
+ * Ojo Experto, y sin cuenta no hay conversación que tapar. Un modal encima de
+ * una pantalla vacía es una puerta en mitad del campo.
+ *
+ * La salida existe igual y es la de siempre: la barra de abajo lo devuelve a los
+ * tutoriales de cortesía sin pedirle nada.
+ *
+ * Y se le ENSEÑA un ejemplo real en vez de describirlo. "Te digo qué ajustar" no
+ * significa nada hasta que se ve la respuesta; la muestra hace el trabajo que
+ * haría la primera pregunta gratis, sin costar ni un centavo de IA.
+ */
+function MuroDeCortesia() {
+  return (
+    <section className="mt-6">
+      {/*
+        Los bloques entran ESCALONADOS (60-80 ms entre uno y otro) en vez de
+        aparecer los tres a la vez. Es lo que hace que la conversación se lea
+        como algo que está pasando —pregunta, respuesta— y no como una captura
+        de pantalla pegada. La pantalla entera colgaba de un solo `Reveal`.
+      */}
+      {/*
+        ⚠️ UNA SOLA CARD. En la ronda anterior esto eran DOS cards cosidas con
+        `-mt-px` para que el escalonado de entrada pudiera animarlas por separado.
+        A 375px se veía la costura y la burbuja de respuesta se salía del
+        contorno de arriba. El escalonado no necesitaba dos contenedores: los
+        `Reveal` van DENTRO de la card, sobre cada burbuja.
+      */}
+      <div className="rounded-xl border border-border-default bg-surface-primary p-4 shadow-[var(--shadow-gold)]">
+        <Reveal delay={0.06}>
+          <p
+            className="text-brand-primary"
+            style={{ fontSize: "var(--text-xs)", letterSpacing: "var(--tracking-eyebrow)" }}
+          >
+            ASÍ RESPONDE
+          </p>
+        </Reveal>
+
+        {/*
+          Las dos burbujas NO comparten superficie: con el mismo fondo no se sabe
+          quién habla, que es lo único que esta muestra tiene que comunicar. La
+          de la alumna va hundida y sin borde; la del Ojo Experto va elevada y
+          con un hilo dorado — el acento marca quién es el producto.
+        */}
+        <Reveal delay={0.12}>
+          <div className="mt-3 ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-sm bg-surface-tertiary px-3.5 py-2.5">
+            <p
+              className="text-text-secondary"
+              style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
+            >
+              Se me está abriendo la base del bolso, ¿qué hago?
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.2}>
+          <div className="mt-2.5 mr-auto w-fit rounded-2xl rounded-bl-sm border border-brand-primary/35 bg-surface-elevated px-3.5 py-2.5 shadow-sm">
+            <p
+              className="text-brand-primary"
+              style={{ fontSize: "var(--text-xs)", letterSpacing: "var(--tracking-eyebrow)" }}
+            >
+              EL OJO EXPERTO
+            </p>
+            <p
+              className="text-text-primary mt-1.5"
+              style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
+            >
+              Vas bien con el ritmo de cuentas — lo que se abre es la tensión, no el patrón. Aprieta
+              medio punto más al cerrar cada vuelta de la base y sostén el hilo con el pulgar antes
+              de pasar a la siguiente.
+            </p>
+          </div>
+        </Reveal>
+
+        {/*
+          La caja de escribir, apagada pero PRESENTE.
+
+          Sin ella la pantalla no tiene ni un elemento tocable: el visitante lee
+          una conversación ajena y no entiende que esto es algo que él va a usar.
+          Es un enlace, no un input de verdad — un campo deshabilitado sería un
+          elemento con pinta de interactivo que no hace nada (regla UX 11); así,
+          tocarlo lleva justo a donde se consigue.
+        */}
+        <Reveal delay={0.28}>
+          <Link
+            href="/"
+            className="mt-4 flex items-center gap-2.5 rounded-full border border-border-strong bg-surface-tertiary px-4 py-3 transition-transform active:scale-[0.99] [touch-action:manipulation]"
+          >
+            <Camera size={16} className="text-brand-primary shrink-0" aria-hidden="true" />
+            <span className="text-text-tertiary min-w-0 flex-1 truncate" style={{ fontSize: "var(--text-sm)" }}>
+              Sube la foto de tu bolso…
+            </span>
+            <Lock size={13} className="text-text-tertiary shrink-0" aria-hidden="true" />
+          </Link>
+        </Reveal>
+
+        <Reveal delay={0.34}>
+          <p
+            className="text-text-tertiary mt-3"
+            style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
+          >
+            Ejemplo de una consulta real. Con tu cuenta le mandas la foto de tu bolso y te responde
+            sobre tu tejido, no sobre uno de muestra.
+          </p>
+        </Reveal>
+      </div>
+
+      <Reveal delay={0.22}>
+        <div className="mt-6 rounded-xl border border-border-default bg-surface-primary p-5 text-center shadow-sm">
+          <h2
+            className="font-display font-normal text-text-primary text-balance"
+            style={{ fontSize: "var(--text-xl)", lineHeight: "var(--leading-snug)" }}
+          >
+            El Ojo Experto viene con el programa
+          </h2>
+          <p
+            className="text-text-secondary mt-2"
+            style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
+          >
+            Es la parte que no cabe en un video: alguien que mira tu bolso y te dice qué ajustar
+            antes de que sigas tejiendo mal.
+          </p>
+
+          {/* `active:scale` — el feedback al tocar que sí tenía la otra pantalla
+              y a esta se le había olvidado. Sin él el botón se siente muerto. */}
+          <Link
+            href="/"
+            className="mt-5 inline-flex h-13 w-full items-center justify-center rounded-full px-6 font-semibold text-text-inverse transition-transform active:scale-[0.98] [touch-action:manipulation]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end))",
+              fontSize: "var(--text-base)",
+            }}
+          >
+            Quiero mi Ojo Experto
+          </Link>
+
+          <OfertaEnUnaLinea />
+
+          <p className="mt-4 text-text-tertiary" style={{ fontSize: "var(--text-sm)" }}>
+            ¿Ya eres alumna?{" "}
+            <Link href="/login" className="text-brand-primary underline underline-offset-4">
+              Entra con tu correo
+            </Link>
+          </p>
+        </div>
+      </Reveal>
+    </section>
   );
 }

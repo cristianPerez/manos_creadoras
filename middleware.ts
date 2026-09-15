@@ -1,8 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Pantallas que exigen haber iniciado sesión. */
-const PRIVADAS = ["/cursos", "/ojo-experto", "/cuenta"];
+/**
+ * Pantallas que exigen haber iniciado sesión.
+ *
+ * ⚠️ `/cursos` y `/ojo-experto` SALIERON de esta lista (2026-09-15). Antes la
+ * app entera estaba detrás del login, así que quien no había comprado no podía
+ * ver absolutamente nada — ni siquiera los tres tutoriales que se le regalan
+ * justamente para que se anime a comprar. El producto era su propio argumento de
+ * venta y estaba bajo llave.
+ *
+ * Que la puerta se abra NO significa que se entregue el contenido: lo que cada
+ * visitante recibe lo sigue decidiendo el RLS de la base (migración 0009), que
+ * desde el navegador no se puede burlar. Aquí solo se deja pasar al vestíbulo.
+ *
+ * `/cuenta` se queda: es la pantalla de "tu membresía, tu correo, tus avisos".
+ * Sin cuenta no hay nada que enseñar ahí, y mandar al login es la respuesta
+ * correcta y no un muro.
+ */
+const PRIVADAS = ["/cuenta"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

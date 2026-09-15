@@ -26,7 +26,13 @@ export const metadata: Metadata = { title: "Mi cuenta — Manos Creadoras" };
 
 export default async function Cuenta() {
   const curso = await cargarCurso();
-  if (!curso) redirect("/login");
+  /*
+    `alumna` es null cuando no hay sesión. El middleware ya manda al login antes
+    de llegar aquí, así que esto no debería pasar nunca — pero la comprobación se
+    queda: el día que alguien saque `/cuenta` de la lista de privadas por error,
+    lo que pasa es un redirect, no una pantalla rota enseñando "undefined".
+  */
+  if (!curso?.alumna) redirect("/login");
 
   const { alumna, completadas, totalLecciones, siguiente } = curso;
   const estado = estadoDeMembresia(alumna);

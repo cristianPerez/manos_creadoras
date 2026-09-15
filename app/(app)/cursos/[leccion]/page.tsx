@@ -21,10 +21,31 @@ export default async function Leccion({ params }: Props) {
   const { leccion } = await params;
   const curso = await cargarCurso();
   if (!curso) redirect("/login");
-  if (!curso.alumna.tieneAcceso) redirect("/cursos");
+
+  const esVisita = curso.alumna === null;
+  if (curso.alumna && !curso.alumna.tieneAcceso) redirect("/cursos");
 
   const i = curso.planas.findIndex((x) => x.id === leccion);
-  if (i === -1) notFound();
+
+  /*
+    No está entre las lecciones que la base le entregó. Hay dos motivos muy
+    distintos y merecen respuestas distintas:
+
+      · La lección NO EXISTE (una dirección mal escrita) → 404 de verdad.
+      · La lección existe pero es del programa de pago, y quien mira no ha
+        comprado → un 404 aquí sería mentirle: le diríamos "esto no existe"
+        cuando lo que pasa es "esto todavía no es tuyo". Y además desperdicia a
+        alguien que acaba de demostrar interés escribiendo esa dirección.
+
+    Desde aquí no se puede distinguir un caso del otro sin preguntarle a la base
+    saltándose el RLS, que es justo lo que no se va a hacer. Así que para un
+    visitante se asume lo segundo, que es lo probable y lo amable; para una
+    alumna con acceso, lo primero.
+  */
+  if (i === -1) {
+    if (esVisita) return <LeccionDelPrograma />;
+    notFound();
+  }
 
   const l = curso.planas[i];
   const seccion = curso.secciones.find((s) => s.id === l.seccionId);
@@ -80,12 +101,27 @@ export default async function Leccion({ params }: Props) {
         </div>
       </Reveal>
 
+      {/* Marcar el avance necesita una cuenta donde guardarlo. Al visitante no se
+          le enseña un botón que no haría nada — se le explica qué se lleva si
+          entra, que es la misma acción vista desde su lado. */}
       <Reveal delay={0.18}>
-        <BotonCompletar
-          leccionId={l.id}
-          completada={l.completada}
-          siguiente={siguiente ? { id: siguiente.id, titulo: siguiente.titulo } : null}
-        />
+        {esVisita ? (
+          <section className="mt-6 rounded-xl border border-dashed border-border-strong bg-surface-primary p-4">
+            <p
+              className="text-text-secondary"
+              style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
+            >
+              Estás viendo el programa como invitada, así que tu avance no se guarda. Con tu cuenta
+              la app recuerda dónde quedaste y te avisa cuando hay modelos nuevos.
+            </p>
+          </section>
+        ) : (
+          <BotonCompletar
+            leccionId={l.id}
+            completada={l.completada}
+            siguiente={siguiente ? { id: siguiente.id, titulo: siguiente.titulo } : null}
+          />
+        )}
       </Reveal>
 
       {/* Puente al diferenciador: la duda se resuelve donde aparece */}
@@ -168,5 +204,57 @@ export default async function Leccion({ params }: Props) {
       )}
 
     </>
+  );
+}
+
+/**
+ * Una lección que existe pero es del programa de pago, vista por alguien sin
+ * cuenta.
+ *
+ * No dice "no tienes permiso" ni enseña un candado: quien llega aquí escribió o
+ * tocó una dirección concreta, así que ya está interesado. Se le devuelve al
+ * contenido que SÍ puede ver, que es lo único que puede convencerlo.
+ */
+function LeccionDelPrograma() {
+  return (
+    <Reveal>
+      <section className="mt-10 rounded-xl border border-border-default bg-surface-primary p-6 text-center shadow-[var(--shadow-gold)]">
+        <div className="flex justify-center">
+          <IconChip icon={Sparkles} size={52} />
+        </div>
+        <h1
+          className="font-display font-normal text-text-primary mt-3 text-balance"
+          style={{ fontSize: "var(--text-2xl)", lineHeight: "var(--leading-tight)" }}
+        >
+          Este tutorial es del programa completo
+        </h1>
+        <p
+          className="text-text-secondary mt-2"
+          style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
+        >
+          Empieza por los tutoriales de cortesía — son clases enteras, no adelantos. Si te gusta
+          cómo enseña Elizabeth, el resto del programa te espera.
+        </p>
+
+        <Link
+          href="/cursos"
+          className="mt-5 inline-flex h-12 items-center justify-center rounded-full px-6 font-semibold text-text-inverse [touch-action:manipulation]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end))",
+            fontSize: "var(--text-sm)",
+          }}
+        >
+          Ver los tutoriales de cortesía
+        </Link>
+
+        <p className="mt-4 text-text-tertiary" style={{ fontSize: "var(--text-sm)" }}>
+          ¿Ya eres alumna?{" "}
+          <Link href="/login" className="text-brand-primary underline underline-offset-4">
+            Entra con tu correo
+          </Link>
+        </p>
+      </section>
+    </Reveal>
   );
 }

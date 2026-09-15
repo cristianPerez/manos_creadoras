@@ -11,9 +11,31 @@ import { supabaseServer } from "@/lib/supabase/server";
  *                     y también los correos que enviemos nosotros más adelante con plantilla propia).
  * Soportar solo el primero dejaba los enlaces de prueba sin funcionar.
  */
+/**
+ * A dónde se le manda después de entrar. SOLO rutas de esta casa.
+ *
+ * ⚠️ ESTO TAPA UN AGUJERO REAL (2026-09-15). Antes el valor se leía del enlace y
+ * se pegaba tal cual detrás del origen. Con `?next=//otro-sitio.co`, el navegador
+ * lee `https://manoscreadoras.co//otro-sitio.co` como una dirección de OTRA casa
+ * — y la alumna llegaba allí con la sesión recién creada, que es el peor momento
+ * posible para mandarla a una página que no controlamos.
+ *
+ * Es entrada de fuera aunque el enlace lo escribamos nosotros: viaja por correo,
+ * y cualquiera puede mandar un correo con un enlace a nuestro propio callback.
+ *
+ * Las dos condiciones hacen falta: empezar por `/` descarta `https://otro.co`, y
+ * descartar `//` cierra la forma de arriba, que sí empieza por `/`.
+ */
+function destinoSeguro(valor: string | null): string {
+  if (valor === null || !valor.startsWith("/") || valor.startsWith("//")) {
+    return "/cursos";
+  }
+  return valor;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
-  const next = searchParams.get("next") ?? "/cursos";
+  const next = destinoSeguro(searchParams.get("next"));
 
   const supabase = await supabaseServer();
 

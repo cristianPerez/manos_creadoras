@@ -5,14 +5,30 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV = [
-  { href: "/cursos", label: "Mis cursos", icono: GraduationCap },
-  { href: "/ojo-experto", label: "Ojo Experto", icono: Sparkles },
-  { href: "/cuenta", label: "Mi cuenta", icono: UserRound },
-];
+/**
+ * La tercera pestaña cambia según quién mire.
+ *
+ * Para una alumna es "Mi cuenta". Para alguien sin sesión, esa pantalla está
+ * cerrada y tocarla la rebotaría al login sin explicación — un enlace que no
+ * hace lo que dice. Se convierte en "Entrar", que es exactamente lo que va a
+ * pasar cuando lo toque.
+ *
+ * Las otras dos no cambian: los tutoriales de cortesía y el Ojo Experto sí
+ * tienen algo que enseñarle a un visitante.
+ */
+function nav(haySesion: boolean) {
+  return [
+    { href: "/cursos", label: haySesion ? "Mis cursos" : "Tutoriales", icono: GraduationCap },
+    { href: "/ojo-experto", label: "Ojo Experto", icono: Sparkles },
+    haySesion
+      ? { href: "/cuenta", label: "Mi cuenta", icono: UserRound }
+      : { href: "/login", label: "Entrar", icono: UserRound },
+  ];
+}
 
-export function BottomNav() {
+export function BottomNav({ haySesion }: { haySesion: boolean }) {
   const pathname = usePathname();
+  const NAV = nav(haySesion);
 
   return (
     <nav

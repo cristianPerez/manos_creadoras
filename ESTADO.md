@@ -85,9 +85,30 @@ reorganiza el repo.
   visitante recibía un error 42501 y cero filas en vez de los videos libres.
   **La primera prueba lo dio por bueno** porque no miraba el error, solo contaba
   filas — de ahí la regla de mirar SIEMPRE el error, no el `length`.
-- **Fase 2 · Embudo sin registro.** Los 3 videos libres visibles sin cuenta;
-  muro blando cerrable al tocar el Ojo Experto; `safeNext` en el callback; el
-  enlace del correo devuelve a donde estaba, no a `/cursos` fijo.
+- **Fase 2 · Embudo sin registro — FUNCIONA, NO PASA EL LISTÓN VISUAL
+  (2026-09-15).** `/cursos` y `/ojo-experto` salieron de las rutas privadas; sin
+  sesión `cargarCurso` devuelve `alumna: null` y la base entrega solo lo libre.
+  Pantallas nuevas: `CursoDeVisita`, `LeccionDelPrograma` (una lección de pago
+  invita en vez de dar 404), `MuroDeCortesia`, `OfertaEnUnaLinea`. La bottom-nav
+  cambia "Mi cuenta" por "Entrar". Tapado el redirect abierto del callback
+  (`destinoSeguro`).
+  🟡 **3 rondas del revisor: 28→29→31/40 usabilidad y 13→14/20 craft.** El
+  listón es 36/40 y 16/20, así que **ninguna de las dos pantallas está lista**.
+  Lo que falta, por impacto:
+  1. **Las franjas blancas del video vertical en 16:9** — es el defecto nº1 y ya
+     estaba anotado en "Problemas conocidos". El revisor confirma que es lo que
+     más baja la nota, no el color del reproductor. **Bloqueado por una pregunta
+     a la dueña: ¿TODO el curso es vertical?** Si lo es, el contenedor pasa a
+     `aspect-[9/16]`; si está mezclado, hay que hacerlo flexible.
+  2. La caja "Sube la foto de tu bolso…" del muro parece un campo de verdad y
+     lleva a la landing — el revisor lo lee como cebo. Cambiar la etiqueta a una
+     acción explícita o volverla botón secundario.
+  3. "Tutorial 2"/"Tutorial 3" se leen como marcadores de posición. Bloqueado
+     por el material de la dueña (nombres reales).
+  4. Faltan animaciones baseline en estas dos pantallas (CountUp en las cifras).
+  ⚠️ **El revisor propuso DOS VECES anclar el precio en "$25"**. Ese es el pago
+  único del producto VIEJO, que se eliminó de toda la app por ser información
+  falsa. Los precios reales salen de `lib/config`. No revivirlo.
 - **Fase 3 · Cupo y presupuesto.** ⚠️ El freno de gasto se comprueba **después**
   de saber el plan, nunca antes (lección de la 0025: si va antes, un día de
   tráfico gratis deja mudo al que paga). Dos bolsillos `regalo`/`miembro`. El
