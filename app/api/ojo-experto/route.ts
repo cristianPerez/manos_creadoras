@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { costoEnUsd, leerConsumo } from "@/lib/costo-ia";
+import { respuestaSimulada, simulacionActiva } from "@/lib/ia-simulada";
+import { auditarPromesas, RESPUESTA_CORREGIDA } from "@/lib/promesas";
 import { aiEnv } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -54,6 +56,38 @@ const FUERA_DE_TEMA =
 
 function periodoActual() {
   return new Date().toISOString().slice(0, 7); // YYYY-MM
+}
+
+/**
+ * Acota un texto de la alumna antes de meterlo en el prompt del sistema.
+ *
+ * ⚠️ POR QUÉ HACE FALTA. `profiles.notas_tejido` y `nombre` entraban LITERALES
+ * en el contexto que se le manda al modelo. La política RLS deja a la alumna
+ * actualizar su propio perfil sin restricción de columnas, así que por la API
+ * podría escribir ahí instrucciones y colarlas dentro del prompt — "ignora lo
+ * anterior y…". Es exactamente la misma clase de agujero que el campo `product`
+ * de El Charcu, que era texto libre del navegador entrando tal cual.
+ *
+ * Tres cosas, y cada una cierra una puerta:
+ *
+ *  · **Tope de longitud.** Una inyección necesita espacio para explicarse; 300
+ *    caracteres bastan para "se le suelta la tensión en la base" y no para un
+ *    manual de instrucciones nuevo.
+ *  · **Fuera los saltos de línea.** Son lo que permite fingir que empieza una
+ *    sección nueva del prompt. En una nota sobre tejido no hacen falta.
+ *  · **Fuera los backticks y las llaves**, que es como se imita la forma de las
+ *    instrucciones del sistema.
+ *
+ * No pretende ser infalible —ninguna limpieza de texto lo es— pero convierte un
+ * campo abierto en una frase corta de una línea, que es mucho menos útil para
+ * quien lo intente.
+ */
+function limpiar(texto: string, tope: number): string {
+  return texto
+    .replace(/[\r\n]+/g, " ")
+    .replace(/[`{}]/g, "")
+    .trim()
+    .slice(0, tope);
 }
 
 export async function POST(req: Request) {
@@ -164,6 +198,36 @@ export async function POST(req: Request) {
   // ── MEMORIA: su ficha + sus últimas consultas ───────────────
   const contexto = await construirContexto(db, userId);
 
+  /*
+    ── Modo simulado (solo QA) ───────────────────────────────────
+
+    Se contesta sin llamar a Google. Recorre el camino ENTERO —cupo, gasto,
+    barrera de promesas, historial— así que lo que se prueba es lo mismo que
+    corre en producción, pero gratis y con una respuesta estable.
+
+    `simulacionActiva()` exige dos cosas y la segunda no se puede apagar con una
+    variable: en producción esto NUNCA se enciende, por mucho que alguien copie
+    `AI_SIMULAR_IA=1` sin darse cuenta.
+  */
+  if (simulacionActiva()) {
+    const sim = respuestaSimulada(pregunta, esFoto);
+    await db.rpc("apuntar_gasto_ia", {
+      p_publico: publico,
+      p_tokens_entrada: sim.tokensEntrada,
+      p_tokens_salida: sim.tokensSalida,
+      p_usd: costoEnUsd({ tokensEntrada: sim.tokensEntrada, tokensSalida: sim.tokensSalida }),
+    });
+    return await guardarYResponder(db, {
+      userId,
+      pregunta,
+      respuesta: sim.texto,
+      esFoto,
+      preguntas,
+      fotos,
+      periodo,
+    });
+  }
+
   // ── Llamada a la IA ─────────────────────────────────────────
   const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
@@ -193,15 +257,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ respuesta: FUERA_DE_TEMA, fueraDeTema: true });
     }
 
-    // Contabilizar uso y gasto (sólo cuando SÍ respondimos)
-    const nuevoUso = {
-      preguntas: esFoto ? preguntas : preguntas + 1,
-      fotos: esFoto ? fotos + 1 : fotos,
-    };
-    await db
-      .from("ai_usage")
-      .upsert({ user_id: userId, periodo, ...nuevoUso }, { onConflict: "user_id,periodo" });
-
     /*
       El gasto se apunta con lo que Gemini dice que consumió, no con una
       estimación.
@@ -221,23 +276,14 @@ export async function POST(req: Request) {
       p_usd: costoEnUsd(consumo),
     });
 
-    const { data: guardada } = await db
-      .from("ai_conversations")
-      .insert({
-        user_id: userId,
-        tipo: esFoto ? "foto" : "texto",
-        pregunta,
-        respuesta,
-      })
-      .select("id, created_at")
-      .single();
-
-    // Devolvemos el uso ya actualizado para que el medidor de la pantalla
-    // muestre el número REAL de la base y no una cuenta paralela del navegador.
-    return NextResponse.json({
+    return await guardarYResponder(db, {
+      userId,
+      pregunta,
       respuesta,
-      uso: nuevoUso,
-      consulta: { id: guardada?.id, createdAt: guardada?.created_at },
+      esFoto,
+      preguntas,
+      fotos,
+      periodo,
     });
   } catch {
     return NextResponse.json(
@@ -245,6 +291,91 @@ export async function POST(req: Request) {
       { status: 502 },
     );
   }
+}
+
+/**
+ * El final del camino, uno solo para los DOS caminos.
+ *
+ * Lo recorren igual la respuesta de Gemini y la simulada, y eso es el punto:
+ * si el modo simulado se saltara la barrera de promesas o el conteo de cupo,
+ * en QA se estaría probando un flujo que no existe en producción — y lo que se
+ * comprueba dejaría de significar nada.
+ */
+async function guardarYResponder(
+  db: ReturnType<typeof supabaseAdmin>,
+  datos: {
+    userId: string;
+    pregunta: string;
+    respuesta: string;
+    esFoto: boolean;
+    preguntas: number;
+    fotos: number;
+    periodo: string;
+  },
+): Promise<NextResponse> {
+  const { userId, pregunta, respuesta, esFoto, preguntas, fotos, periodo } = datos;
+
+  /*
+    ── SEGUNDA BARRERA: se revisa la respuesta antes de que la vea nadie ──
+
+    El prompt del sistema ya pide "NUNCA prometas ingresos". Pero un prompt es
+    una instrucción, no una barrera: se dobla con una pregunta insistente, y un
+    modelo que obedece el 99% de las veces incumple el 1% restante — que con
+    volumen es todos los días. Prometer ganancias es publicidad engañosa y
+    motivo de que Hotmart tumbe el producto.
+
+    Es el mismo gesto que `cure-safety` en El Charcu, apuntando al riesgo que sí
+    existe aquí: allí una dosis mal dada envenena, aquí una promesa incumplida
+    cuesta el canal de cobro y la confianza de la alumna.
+  */
+  const veredicto = auditarPromesas(respuesta);
+  const textoFinal = veredicto.limpia ? respuesta : RESPUESTA_CORREGIDA;
+
+  if (!veredicto.limpia) {
+    /*
+      ⚠️ Se apunta CUÁNTAS coincidencias hubo, NUNCA cuáles. El fragmento es
+      texto sobre lo que esa alumna teje y vende, y los registros salen del
+      edificio en cuanto haya un recolector de logs. El número basta para lo
+      único que hay que vigilar: si sube, el prompt se rompió.
+    */
+    console.warn(
+      JSON.stringify({
+        nivel: "aviso",
+        donde: "ojo-experto",
+        que: "respuesta con promesa de ingresos, corregida",
+        coincidencias: veredicto.coincidencias,
+      }),
+    );
+  }
+
+  // Se guarda la CORREGIDA, no la que traía la promesa: el historial lo vuelve a
+  // leer el modelo como contexto, y dejarla ahí sería enseñarle a repetirla.
+  const { data: guardada } = await db
+    .from("ai_conversations")
+    .insert({
+      user_id: userId,
+      tipo: esFoto ? "foto" : "texto",
+      pregunta,
+      respuesta: textoFinal,
+    })
+    .select("id, created_at")
+    .single();
+
+  const nuevoUso = {
+    preguntas: esFoto ? preguntas : preguntas + 1,
+    fotos: esFoto ? fotos + 1 : fotos,
+  };
+  await db
+    .from("ai_usage")
+    .upsert({ user_id: userId, periodo, ...nuevoUso }, { onConflict: "user_id,periodo" });
+
+  // Se devuelve el uso ya actualizado para que el medidor de la pantalla muestre
+  // el número REAL de la base y no una cuenta paralela del navegador.
+  return NextResponse.json({
+    respuesta: textoFinal,
+    uso: nuevoUso,
+    consulta: { id: guardada?.id, createdAt: guardada?.created_at },
+  });
 }
 
 /**
@@ -293,9 +424,11 @@ async function construirContexto(
 
   const lineas: string[] = ["CONTEXTO DE ESTA ALUMNA (úsalo, no lo repitas literal):"];
 
-  if (perfil?.nombre) lineas.push(`- Se llama ${perfil.nombre}.`);
+  if (perfil?.nombre) lineas.push(`- Se llama ${limpiar(perfil.nombre, 60)}.`);
   if (progreso?.length) lineas.push(`- Lleva ${progreso.length} módulos completados.`);
-  if (perfil?.notas_tejido) lineas.push(`- Notas de su tejido: ${perfil.notas_tejido}`);
+  if (perfil?.notas_tejido) {
+    lineas.push(`- Notas de su tejido: ${limpiar(perfil.notas_tejido, 300)}`);
+  }
 
   if (recientes?.length) {
     lineas.push("- Últimas consultas suyas:");

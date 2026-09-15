@@ -173,10 +173,28 @@ reorganiza el repo.
   acceso a quien engañe al soporte. La verificación la hace la dueña contra el
   comprobante de Hotmart.
 
-- **Fase 4 · Asistente.** `fake.ts` (E7), acotar `notas_tejido`, y la barrera
-  propia en código: aquí el consejo no envenena a nadie, pero **prometer
-  ingresos o precios de venta sí es riesgo legal y de Hotmart** — hoy solo está
-  pedido en el prompt, y un prompt no es una barrera.
+- **Fase 4 · Asistente — ✅ HECHA Y MEDIDA (2026-09-15).** Tres piezas:
+  1. **Modo simulado** (`lib/ia-simulada.ts`): contesta sin llamar a Google.
+     ⚠️ **Dos condiciones y la segunda no se puede apagar** — `AI_SIMULAR_IA=1`
+     **y** `VERCEL_ENV !== "production"`. **Medido con los 4 casos**: con la
+     variable puesta en producción la simulación NO se enciende.
+     Probado de punta a punta contra el servidor real: 3 consultas gratis
+     respondidas, la 4ª cortada con 429, gasto apuntado en el bolsillo `regalo`.
+  2. **Barrera de promesas** (`lib/promesas.ts`): la adaptación de
+     `cure-safety`. Aquí el consejo no envenena a nadie, pero prometer ingresos
+     es publicidad engañosa, motivo de que Hotmart tumbe el producto, y la forma
+     más rápida de perder a Marcela. Estaba solo PEDIDO en el prompt, y un
+     prompt no es una barrera. **Probada con 18 frases: 10 bloqueadas, 8
+     dejadas pasar.** ⚠️ NO bloquea aconsejar el precio de un bolso — está
+     permitido a propósito y es de lo más útil que hace; la diferencia es que
+     el precio habla del BOLSO y la promesa habla del FUTURO DE ELLA. Una
+     escapó en la primera prueba ("recuperas la inversión": el patrón pedía el
+     infinitivo), de ahí que se pruebe con frases escritas a mano.
+  3. **`notas_tejido` acotado** (300 caracteres, sin saltos de línea ni
+     backticks). Era el agujero de la misma clase que el `product` de El Charcu.
+     No es infalible, pero convierte un campo abierto en una frase de una línea.
+  El camino simulado y el real comparten `guardarYResponder`: si el simulado se
+  saltara la barrera o el conteo, en QA se probaría un flujo que no existe.
 - **Fase 5 · Analítica.** Catálogo central de eventos (`lead_wall_shown` con
   `place` → el denominador, `lead_captured`, `account_created` vs
   `account_signed_in`). ⚠️ `lead_captured` **no** es contacto nuevo: el muro le
