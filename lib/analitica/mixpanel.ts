@@ -13,6 +13,31 @@ export type Propiedades = Record<string, string | number | boolean | undefined>;
 
 let listo = false;
 
+/**
+ * Eventos que llegaron ANTES de que Mixpanel estuviera encendido.
+ *
+ * ⚠️ ESTO TAPA UN FALLO REAL Y SILENCIOSO (2026-09-15). `medir()` devolvía sin
+ * hacer nada si Mixpanel no estaba listo, y resulta que eso pasaba de verdad:
+ * `<Medir>` vive dentro de la pantalla y `<Analitica>` —que es quien enciende—
+ * está después en el layout raíz. React ejecuta los efectos de dentro hacia
+ * fuera, así que el evento de la pantalla salía primero y se tiraba a la basura.
+ *
+ * Se detectó porque `pagina_ventas_vista` NO llegaba a Mixpanel mientras
+ * `cortesia_vista` sí — el mismo código, dos resultados, según cómo cayera el
+ * orden. Un fallo así no da ningún error: simplemente falta el evento MÁS
+ * importante del embudo, el denominador de todo el negocio, y el panel enseña
+ * unos números perfectamente creíbles que están mal.
+ *
+ * Con la cola, el orden deja de importar: lo que llegue antes espera aquí y
+ * sale en cuanto hay con qué mandarlo.
+ */
+const enEspera: { evento: string; propiedades?: Propiedades }[] = [];
+
+/** Tope de la cola. Si algo va tan mal que se acumulan 50 eventos sin poder
+ *  mandarlos, el problema no es la analítica y no vale la pena comerse la
+ *  memoria del teléfono de una alumna guardándolos. */
+const TOPE_COLA = 50;
+
 /** El token es público a propósito: va en el navegador y solo sirve para ESCRIBIR. */
 const TOKEN = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN ?? "";
 
@@ -53,6 +78,21 @@ export function iniciarMixpanel(): void {
   });
 
   listo = true;
+
+  // Lo que llegó mientras tanto sale ahora, en orden.
+  while (enEspera.length > 0) {
+    const pendiente = enEspera.shift();
+    if (pendiente) enviar(pendiente.evento, pendiente.propiedades);
+  }
+}
+
+/** El envío de verdad. Separado para que la cola pueda reutilizarlo. */
+function enviar(evento: string, propiedades?: Propiedades): void {
+  try {
+    mixpanel.track(evento, propiedades);
+  } catch {
+    // Un fallo de analítica jamás interrumpe lo que la usuaria estaba haciendo.
+  }
 }
 
 /**
@@ -62,12 +102,15 @@ export function iniciarMixpanel(): void {
  * pantalla debe dejar de funcionar porque la analítica falle.
  */
 export function medir(evento: string, propiedades?: Propiedades): void {
-  if (!listo) return;
-  try {
-    mixpanel.track(evento, propiedades);
-  } catch {
-    // Un fallo de analítica jamás interrumpe lo que la usuaria estaba haciendo.
+  if (typeof window === "undefined") return;
+
+  // Todavía no hay con qué mandarlo: se guarda y sale al encender.
+  if (!listo) {
+    if (enEspera.length < TOPE_COLA) enEspera.push({ evento, propiedades });
+    return;
   }
+
+  enviar(evento, propiedades);
 }
 
 /**

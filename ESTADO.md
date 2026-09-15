@@ -203,11 +203,22 @@ reorganiza el repo.
   **Comprobado:** los 14 del catálogo están disparándose en 8 archivos y NINGUNO
   está escrito a mano fuera del catálogo — que es como un panel acaba con dos
   eventos que son el mismo y un embudo con el denominador partido.
-  ⚠️ **NO se pudo comprobar que los eventos LLEGUEN a Mixpanel.** El navegador de
-  pruebas bloquea los dominios de rastreo y el token es de mentira. Se verifica
-  creando la cuenta, poniendo el token real y mirando el **Live View** de
-  Mixpanel mientras se navega. Hasta entonces, la instrumentación está montada
-  pero no demostrada.
+  ✅ **VERIFICADO CONTRA MIXPANEL REAL (2026-09-15)**, con la cuenta y el token
+  de Cristian: `pagina_ventas_vista`, `cortesia_vista` (tutoriales: 3),
+  `leccion_abierta` (con id, título y `con_cuenta`), `leccion_bloqueada_vista`
+  (con la lección pedida) y `muro_correo_visto` (lugar: ojo-experto) llegan a
+  `api-js.mixpanel.com` con **HTTP 200**, y la petición lleva `ip=0`.
+  ⚠️ **Se encontró y arregló un fallo silencioso en esa verificación.** `medir()`
+  descartaba el evento si Mixpanel aún no estaba encendido, y eso pasaba de
+  verdad: `<Medir>` vive dentro de la pantalla y `<Analitica>` está después en el
+  layout raíz, así que React ejecutaba primero el de dentro. Resultado:
+  `pagina_ventas_vista` —el denominador de TODO el negocio— no llegaba, mientras
+  `cortesia_vista` sí, según cayera el orden. No daba ningún error: el panel
+  habría enseñado números creíbles y equivocados. Ahora los eventos que llegan
+  antes de tiempo esperan en una cola y salen al encender.
+  🟡 Quedan sin comprobar en vivo los del Ojo Experto (`consulta_*`, `sin_cupo`,
+  `sin_presupuesto`, `promesa_bloqueada`), `correo_enviado`, `checkout_abierto` y
+  `cuenta_creada`/`cuenta_iniciada`: necesitan sesión y acciones reales.
   ⚠️ `correo_enviado` **no** es contacto nuevo: el muro le sale a cualquiera sin
   sesión. Quién es nuevo lo dicen `cuenta_creada`/`cuenta_iniciada`, que se
   disparan al abrir el enlace (`?entrada=` que pone el callback) — el único
