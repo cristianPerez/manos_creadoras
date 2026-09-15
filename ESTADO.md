@@ -15,10 +15,10 @@
 - [ ] **Hotmart: crear el producto de SUSCRIPCIÓN.** `lib/config.ts` apunta al producto VIEJO de pago único ($25), así que los botones cobran lo equivocado. **Esto bloquea vender.**
 - [ ] **Supabase de PRODUCCIÓN**: crear proyecto nuevo y correr ahí las 7 migraciones. El actual (`cazqmaluaehyikkstkoi`) queda como QA. → ver "Ambientes".
 - [ ] **Hotmart — configurar el webhook**: panel → Herramientas → Webhook → apuntar a `https://TU-DOMINIO/api/webhooks/hotmart` y pegar el hottok en `HOTMART_HOTTOK`. ⚠️ Verificar ahí los nombres EXACTOS de los eventos de suscripción y contrastarlos con la tabla `EVENTO_A_ESTADO` del webhook — el catálogo varía por cuenta.
-- [ ] **Vercel**: crear la cuenta y conectar el repo para publicar.
+- [x] ~~**Vercel**: crear la cuenta y conectar el repo~~ — ✅ **HECHO 2026-09-15 (Cristian).** Conectado a QA; cada `push` a `develop` despliega solo.
 
-### ⚠️ Seguridad pendiente
-- [ ] **Confirmar que la clave secreta de Supabase fue ROTADA.** Incidente del 2026-08-02: quedó en `.env.example` (archivo público) y pasó por el chat. No se detectó en git, pero esa clave salta todo el RLS. Project Settings → API Keys → crear nueva + revocar la anterior.
+### ⚠️ Seguridad
+- [x] ~~**Confirmar que la clave secreta de Supabase fue ROTADA**~~ — ✅ **CONFIRMADO 2026-09-15 por Cristian.** Incidente del 2026-08-02 cerrado. Comprobado además que la clave que hay en `.env.local` funciona contra QA (4 perfiles), así que el rotado no dejó los scripts locales rotos.
 
 ### Material de la dueña (bloquea la calidad, no el lanzamiento)
 - [ ] **Listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan; hoy hay 9 cargadas).
