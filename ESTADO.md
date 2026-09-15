@@ -113,11 +113,36 @@ reorganiza el repo.
   ⚠️ **El revisor propuso DOS VECES anclar el precio en "$25"**. Ese es el pago
   único del producto VIEJO, que se eliminó de toda la app por ser información
   falsa. Los precios reales salen de `lib/config`. No revivirlo.
-- **Fase 3 · Cupo y presupuesto.** ⚠️ El freno de gasto se comprueba **después**
-  de saber el plan, nunca antes (lección de la 0025: si va antes, un día de
-  tráfico gratis deja mudo al que paga). Dos bolsillos `regalo`/`miembro`. El
-  gasto se apunta por **tokens reales**, no con las constantes fijas de hoy
-  (`0.00025`/`0.0005` en `route.ts:163`).
+- **Fase 3 · Cupo y presupuesto — ✅ HECHA Y MEDIDA CONTRA QA (2026-09-15).**
+  Migración `0011`: `ai_spend` pasa a clave `(dia, publico)` con `publico`
+  `regalo|miembro`, `publico_de(uid)` lo deduce de la **concesión** (no de
+  `profiles.status`, que ya no decide nada), y `apuntar_gasto_ia` /
+  `gasto_ia_de_hoy` reemplazan el leer-y-reescribir.
+  El freno se comprueba **después** de saber de qué público es. Topes en
+  `AI_DAILY_BUDGET_REGALO_USD` / `_MIEMBRO_USD`, con el `AI_DAILY_BUDGET_USD`
+  viejo de respaldo para que un despliegue sin las variables nuevas no se quede
+  sin presupuesto ninguno.
+  **Dos fallos reales cerrados, no solo el del plan:**
+  1. El gasto se apuntaba leyendo `usd` y reescribiendo `leído + costo`. Dos
+     peticiones a la vez leían lo mismo y una se perdía. **Medido: 50 consultas
+     simultáneas quedan 50/50 apuntadas** con la sentencia atómica.
+  2. El costo era una estimación fija (`0.00025` pregunta / `0.0005` foto).
+     Ahora se cobra sobre los tokens que devuelve Google (`lib/costo-ia.ts`).
+  ⚠️ **Hallazgo de negocio: una consulta típica cuesta ~USD 0,0018 — SIETE VECES
+  la estimación vieja.** Con 40 preguntas/mes por alumna son ~USD 0,07, sigue
+  siendo <1% del ingreso, pero el número que se venía usando estaba mal.
+  ⚠️ **Los precios por token de `lib/costo-ia.ts` NO están verificados contra la
+  lista de Google.** Los tokens sí son exactos. Contrastar `select sum(usd) from
+  ai_spend` de un mes real contra la factura de AI Studio y ajustar las dos
+  constantes. Que el precio sea aproximado no rompe el freno: la cifra crece con
+  el uso real.
+  ⚠️ **Comprobado con una llamada real a Gemini:** la respuesta trae
+  `thoughtsTokenCount` pero **no siempre `candidatesTokenCount`**. Por eso la
+  salida se calcula también como `total − entrada` y gana la mayor de las dos —
+  contar de menos en un freno de gasto es no tener freno.
+  ⚠️ Los dos bolsillos son **globales por público, no por persona**: una sola
+  alumna puede agotar el de `miembro`. Con las alumnas de hoy da igual; con
+  varias decenas activas hay que decidir si el tope pasa a ser por cuenta.
 - **Fase 4 · Asistente.** `fake.ts` (E7), acotar `notas_tejido`, y la barrera
   propia en código: aquí el consejo no envenena a nadie, pero **prometer
   ingresos o precios de venta sí es riesgo legal y de Hotmart** — hoy solo está

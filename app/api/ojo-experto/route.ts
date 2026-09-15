@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { LIMITE_FOTOS, LIMITE_PREGUNTAS } from "@/lib/config";
+import { costoEnUsd, leerConsumo } from "@/lib/costo-ia";
 import { aiEnv } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -85,10 +86,31 @@ export async function POST(req: Request) {
   const { pregunta, imagenBase64 } = parsed.data;
   const esFoto = Boolean(imagenBase64);
 
-  // ── Circuit-breaker de gasto: evita la factura sorpresa ─────
-  const hoy = new Date().toISOString().slice(0, 10);
-  const { data: gasto } = await db.from("ai_spend").select("usd").eq("dia", hoy).maybeSingle();
-  if (gasto && Number(gasto.usd) >= env.AI_DAILY_BUDGET_USD) {
+  /*
+    ── Circuit-breaker de gasto, con DOS BOLSILLOS ───────────────
+
+    ⚠️ ESTE BLOQUE SE MOVIÓ AQUÍ A PROPÓSITO (migración 0011). Antes estaba más
+    arriba, antes de saber quién preguntaba, y ese era exactamente el fallo: al
+    agotarse el tope del día se agotaba para TODAS, incluida la alumna que paga
+    la suscripción. Alguien con un acceso de regalo podía dejar mudo el Ojo
+    Experto de quien puso el dinero.
+
+    Ahora primero se pregunta de qué público es —lo dice su concesión, no
+    `profiles.status`, que ya no decide nada— y cada uno gasta de lo suyo.
+
+    Sigue estando ANTES de llamar a Gemini, que es lo que cuesta.
+  */
+  const { data: publicoRaw } = await db.rpc("publico_de", { uid: userId });
+  const publico = publicoRaw === "miembro" ? "miembro" : "regalo";
+
+  const tope =
+    publico === "miembro"
+      ? (env.AI_DAILY_BUDGET_MIEMBRO_USD ?? env.AI_DAILY_BUDGET_USD)
+      : (env.AI_DAILY_BUDGET_REGALO_USD ?? env.AI_DAILY_BUDGET_USD);
+
+  const { data: gastoHoy } = await db.rpc("gasto_ia_de_hoy", { p_publico: publico });
+
+  if (Number(gastoHoy ?? 0) >= tope) {
     return NextResponse.json(
       { error: "El Ojo Experto está descansando. Vuelve a intentar en un rato." },
       { status: 503 },
@@ -161,10 +183,24 @@ export async function POST(req: Request) {
       .from("ai_usage")
       .upsert({ user_id: userId, periodo, ...nuevoUso }, { onConflict: "user_id,periodo" });
 
-    const costoAprox = esFoto ? 0.0005 : 0.00025;
-    await db
-      .from("ai_spend")
-      .upsert({ dia: hoy, usd: Number(gasto?.usd ?? 0) + costoAprox }, { onConflict: "dia" });
+    /*
+      El gasto se apunta con lo que Gemini dice que consumió, no con una
+      estimación.
+
+      ⚠️ Y con UNA sentencia atómica. Antes esto era leer `usd` arriba y
+      reescribir `leído + costo` aquí: entre esas dos líneas cabe otra petición,
+      las dos leen 4,00, las dos escriben 4,01, y una consulta se gastó sin
+      quedar apuntada. Se perdía gasto en silencio y el freno saltaba más tarde
+      de lo debido — justo cuando más falta hace. `apuntar_gasto_ia` suma sobre
+      el valor de la fila en la propia base, así que no hay hueco donde pisarse.
+    */
+    const consumo = leerConsumo((result as { usageMetadata?: unknown }).usageMetadata);
+    await db.rpc("apuntar_gasto_ia", {
+      p_publico: publico,
+      p_tokens_entrada: consumo.tokensEntrada,
+      p_tokens_salida: consumo.tokensSalida,
+      p_usd: costoEnUsd(consumo),
+    });
 
     const { data: guardada } = await db
       .from("ai_conversations")

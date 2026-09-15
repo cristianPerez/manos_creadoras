@@ -18,7 +18,24 @@ const baseSchema = z.object({
 const aiSchema = baseSchema.extend({
   GEMINI_API_KEY: z.string().min(1),
   AI_MODEL: z.string().default("gemini-3.6-flash"),
+  /**
+   * DOS topes diarios, uno por público (migración 0011).
+   *
+   * Con un solo tope, el día que se agotara se agotaba para TODAS — incluida la
+   * alumna que paga. Alguien con acceso de regalo podía dejar mudo el Ojo
+   * Experto de quien puso el dinero.
+   *
+   * Viven en el entorno y no en la base porque son una decisión de negocio: se
+   * suben o se bajan sin desplegar nada.
+   *
+   * ⚠️ `AI_DAILY_BUDGET_USD` (el nombre viejo, uno solo) sigue aceptándose como
+   * valor por defecto de los dos. Así un despliegue que todavía no tenga las
+   * variables nuevas no se queda sin presupuesto ninguno — que sería apagar el
+   * Ojo Experto entero por una variable que falta.
+   */
   AI_DAILY_BUDGET_USD: z.coerce.number().positive().default(5),
+  AI_DAILY_BUDGET_REGALO_USD: z.coerce.number().positive().optional(),
+  AI_DAILY_BUDGET_MIEMBRO_USD: z.coerce.number().positive().optional(),
 });
 
 const hotmartSchema = baseSchema.extend({
