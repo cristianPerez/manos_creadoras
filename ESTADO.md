@@ -229,8 +229,20 @@ reorganiza el repo.
   actualizarla ANTES.
   ⚠️ A Mixpanel se le manda el **ID de Supabase, nunca el correo**, y con `ip:
   false`.
-  🔴 **PENDIENTE: la política de privacidad no menciona Mixpanel.** Hay que
-  añadirlo antes de vender.
+  ✅ **Política de privacidad reescrita (2026-09-15).** Ya nombra a los SEIS
+  proveedores (Hotmart, Supabase, Google/Gemini, Bunny, Resend, Mixpanel) y dice
+  qué recibe cada uno, además de las cookies y el plazo de conservación.
+  ⚠️ Estaba desactualizada en algo más que Mixpanel: decía que el nombre y el
+  correo se recogen "al comprar, vía Hotmart", y desde la 0012 cualquiera puede
+  crear cuenta gratis sin comprar.
+  ⚠️ **Regla nueva: si se cambia un proveedor o se enciende una función que
+  recoja algo, esa página se actualiza EN EL MISMO COMMIT.** En particular, si
+  algún día se enciende la grabación de sesión de Mixpanel (hoy en 0), hay que
+  decirlo ahí ANTES de encenderla.
+  🟡 **No la revisó un abogado.** Describe con exactitud lo que la app hace —que
+  es el fondo del asunto— pero faltan los datos que solo puede poner Cristian:
+  quién es el responsable legal (persona o empresa, con su identificación) y bajo
+  qué país se rige. Sin eso no está completa para vender en LATAM.
 - **Fase 6 · Errores — ✅ HECHA Y MEDIDA (2026-09-15).** `lib/fallos.ts` con
   `reportarFallo` / `reportarAviso`: JSON de una línea, sin proveedor (hoy a la
   consola, que en el servidor ya recoge Vercel). El día que entre Sentry o
