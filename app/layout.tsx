@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Analitica } from "@/components/app/Analitica";
 import { MotionProvider } from "@/components/app/MotionProvider";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
 import { COLOR_FONDO_SISTEMA } from "@/lib/marca";
+import { supabaseServer } from "@/lib/supabase/server";
 import "./globals.css";
 
 // Los nombres llevan sufijo -src para NO chocar con los tokens --font-display/--font-body
@@ -44,11 +46,23 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  /*
+    Se lee la sesión AQUÍ, en el servidor, para atarle los eventos a su cuenta.
+
+    Se le pasa el ID, nunca el correo: el ID permite cruzar el panel con la base
+    cuando haga falta y no identifica a nadie fuera de aquí. Mandarle el correo
+    a un tercero sería regalar dato personal que no hace falta para medir.
+  */
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html
       lang="es"
@@ -57,6 +71,7 @@ export default function RootLayout({
       <body className="min-h-dvh flex flex-col bg-surface-base text-text-primary font-body">
         <MotionProvider>{children}</MotionProvider>
         <RegistrarSW />
+        <Analitica userId={user?.id ?? null} />
       </body>
     </html>
   );

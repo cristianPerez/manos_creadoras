@@ -75,7 +75,7 @@ export function Oferta() {
               Se cobra ${PRECIO_ANUAL} una vez al año · cancela cuando quieras
             </p>
 
-            <GoldButton href={CHECKOUT_ANUAL} className="mt-6 w-full">
+            <GoldButton href={CHECKOUT_ANUAL} plan="anual" className="mt-6 w-full">
               Empezar con el plan anual →
             </GoldButton>
           </div>
@@ -99,7 +99,7 @@ export function Oferta() {
           <p className="text-text-tertiary mt-1" style={{ fontSize: "var(--text-xs)" }}>
             Sin permanencia · cancela cuando quieras
           </p>
-          <GoldButton href={CHECKOUT_MENSUAL} variant="secondary" className="mt-5 w-full">
+          <GoldButton href={CHECKOUT_MENSUAL} plan="mensual" variant="secondary" className="mt-5 w-full">
             Empezar mes a mes
           </GoldButton>
         </div>

@@ -44,13 +44,16 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
 
   let fallo: string | null = null;
+  let usuario: { created_at?: string } | null = null;
 
   if (tokenHash && type) {
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+    const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     fallo = error?.message ?? null;
+    usuario = data.user;
   } else if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     fallo = error?.message ?? null;
+    usuario = data.user;
   } else {
     return NextResponse.redirect(`${origin}/login?error=enlace_invalido`);
   }
@@ -60,5 +63,36 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=enlace_vencido`);
   }
 
-  return NextResponse.redirect(`${origin}${next}`);
+  return NextResponse.redirect(`${origin}${conEntrada(next, usuario)}`);
+}
+
+/**
+ * Marca en la URL si esta entrada ESTRENA cuenta o es alguien que vuelve.
+ *
+ * ⚠️ ESTE ES EL ÚNICO MOMENTO EN QUE SE PUEDE SABER, y es a propósito.
+ * Preguntarle al servidor "¿existe este correo?" mientras alguien lo escribe en
+ * el login es justo lo que permite enumerar a las alumnas de un sitio, y
+ * Supabase se niega a contestarlo. Aquí ya abrió el enlace que le llegó a su
+ * buzón: la cuenta es demostrablemente suya y decirlo no le abre la puerta a
+ * nadie.
+ *
+ * CÓMO SE DISTINGUE. `created_at` es cuando se pidió el enlace por primera vez.
+ * En una cuenta recién nacida eso fue hace segundos; en alguien que vuelve, hace
+ * días o semanas. El enlace caduca en una hora, así que no hay zona gris: para
+ * caer del lado equivocado habría que haberse dado de alta hace menos de una
+ * hora, que es precisamente ser nueva.
+ *
+ * El evento lo manda el navegador (`RegistrarEntrada`), porque Mixpanel vive
+ * ahí. Aquí solo se deja escrita la respuesta.
+ */
+function conEntrada(next: string, usuario: { created_at?: string } | null): string {
+  if (!usuario?.created_at) return next;
+
+  const nacio = new Date(usuario.created_at).getTime();
+  const esNueva = Number.isFinite(nacio) && Date.now() - nacio < 60 * 60 * 1000;
+
+  // Base de mentira: solo se usa para manipular la ruta, nunca se navega a ella.
+  const url = new URL(next, "https://x.invalid");
+  url.searchParams.set("entrada", esNueva ? "nueva" : "vuelve");
+  return `${url.pathname}${url.search}`;
 }

@@ -7,6 +7,8 @@ import { BarraProgreso } from "@/components/app/BarraProgreso";
 import { CountUp } from "@/components/app/CountUp";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medir } from "@/lib/analitica/mixpanel";
 import type { Consulta, Cupo, UsoMensual } from "@/lib/ojo-experto";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
@@ -127,6 +129,9 @@ export function ConsultaOjoExperto({
       const control = new AbortController();
       peticionRef.current = control;
 
+      medir(EVENTOS.consultaEnviada, { con_foto: eraFoto });
+      const arrancó = Date.now();
+
       const res = await fetch("/api/ojo-experto", {
         method: "POST",
         headers: {
@@ -142,16 +147,41 @@ export function ConsultaOjoExperto({
         respuesta?: string;
         error?: string;
         uso?: UsoMensual;
+        promesaBloqueada?: boolean;
         consulta?: { id?: string };
       } | null;
 
       if (!res.ok || !datos?.respuesta) {
+        /*
+          Los dos frenos se miden por separado porque piden cosas distintas:
+
+            · 429 (sin cupo) → para una cuenta gratuita es LA señal de compra:
+              quiso seguir preguntando y no pudo. Es el mejor momento para
+              ofrecerle el programa.
+            · 503 (sin presupuesto) → es un aviso para nosotros, no para ella.
+              ⚠️ Si aparece, hay que mirarlo el MISMO día: o hay mucho uso real
+              —y toca subir el tope— o alguien está abusando.
+        */
+        if (res.status === 429) medir(EVENTOS.sinCupo, { con_foto: eraFoto });
+        if (res.status === 503) medir(EVENTOS.sinPresupuesto);
+
         setEstado("error");
         setMensajeError(
           datos?.error ?? "No pudimos conectar con el Ojo Experto. Vuelve a intentar.",
         );
         return;
       }
+
+      medir(EVENTOS.consultaRespondida, {
+        con_foto: eraFoto,
+        // Cuánto esperó de verdad. Si sube, la pantalla necesita otra forma de
+        // esperar, no un spinner más bonito.
+        ms: Date.now() - arrancó,
+        // Lo manda el servidor cuando la barrera de `lib/promesas.ts` corrigió
+        // la respuesta. Si este número sube, el prompt del sistema se rompió.
+        promesa_bloqueada: datos.promesaBloqueada === true,
+      });
+      if (datos.promesaBloqueada) medir(EVENTOS.promesaBloqueada);
 
       setRespuesta(datos.respuesta);
       setEstado("respondido");

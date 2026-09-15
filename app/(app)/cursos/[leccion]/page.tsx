@@ -5,7 +5,9 @@ import { notFound, redirect } from "next/navigation";
 import { BotonCompletar } from "@/components/app/BotonCompletar";
 import { ContenidoLeccion } from "@/components/app/ContenidoLeccion";
 import { IconChip } from "@/components/app/IconChip";
+import { Medir } from "@/components/app/Medir";
 import { Reveal } from "@/components/app/Reveal";
+import { EVENTOS } from "@/lib/analitica/eventos";
 import { cargarCurso, ETIQUETA_TIPO, formatearDuracion } from "@/lib/curso";
 
 type Props = { params: Promise<{ leccion: string }> };
@@ -43,7 +45,7 @@ export default async function Leccion({ params }: Props) {
     alumna con acceso, lo primero.
   */
   if (i === -1) {
-    if (esVisita) return <LeccionDelPrograma />;
+    if (esVisita) return <LeccionDelPrograma leccion={leccion} />;
     notFound();
   }
 
@@ -54,6 +56,11 @@ export default async function Leccion({ params }: Props) {
 
   return (
     <>
+      <Medir
+        evento={EVENTOS.leccionAbierta}
+        props={{ leccion: l.id, titulo: l.titulo, con_cuenta: !esVisita }}
+      />
+
       <Reveal>
         <Link
           href="/cursos"
@@ -215,9 +222,12 @@ export default async function Leccion({ params }: Props) {
  * tocó una dirección concreta, así que ya está interesado. Se le devuelve al
  * contenido que SÍ puede ver, que es lo único que puede convencerlo.
  */
-function LeccionDelPrograma() {
+function LeccionDelPrograma({ leccion }: { leccion: string }) {
   return (
     <Reveal>
+      {/* Alguien que buscó ACTIVAMENTE una lección de pago. Es la señal de
+          intención más fuerte del embudo, y dice POR CUÁL preguntan. */}
+      <Medir evento={EVENTOS.leccionBloqueadaVista} props={{ leccion }} />
       <section className="mt-10 rounded-xl border border-border-default bg-surface-primary p-6 text-center shadow-[var(--shadow-gold)]">
         <div className="flex justify-center">
           <IconChip icon={Sparkles} size={52} />

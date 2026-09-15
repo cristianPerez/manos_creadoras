@@ -49,7 +49,7 @@ reorganiza el repo.
 | E3  | **`accesos` sustituye el origen del acceso DE UNA VEZ**, sin puente        | Cristian eligió cortar sin fase intermedia (2026-09-14). `tiene_acceso_de` ya no mira `profiles.status`: solo concesiones. ⚠️ La COLUMNA `status` se queda, y no sobra: la necesitan la defensa del webhook contra un `PURCHASE_APPROVED` tardío que resucitaría a quien reembolsó, y la pantalla "Mi cuenta". Lo que se cortó es su poder de decidir quién entra. |
 | E4  | **NO se porta `visitor_id` ni el contador anónimo** (y con él, toda la migración 0024) | En El Charcu el asistente vive en la portada para anónimos (su D14) y por eso necesita contador por navegador, `link_visitor_to_user` y el arreglo del navegador compartido. Aquí la demostración son **los 3 videos**, que no gastan IA y no hay que contar. Sin consumo anónimo de IA no hace falta nada de esa maquinaria. Es la mayor reducción de complejidad disponible. |
 | E5  | **El muro blando se dispara al tocar el Ojo Experto, no en la pregunta N+1** | Consecuencia de E4: si no hay cupo anónimo, no hay "segunda pregunta". El muro es cerrable (lección de El Charcu: sin salida, quien no deja el correo tampoco puede seguir viendo los videos, y se va). Cerrarlo devuelve la página, no el acceso. |
-| E6  | **NO se porta `cure-safety` ni Mixpanel ni la entidad `recipe-chat`**      | La auditoría de sal de cura es de charcutería. Mixpanel es una cuenta y un costo nuevos + banner de cookies; se porta el **catálogo de eventos**, no el proveedor. `recipe-chat` estructura el chat por receta, y aquí `ai_conversations` es una lista plana — es V2, no ahora.                |
+| E6  | ~~NO se porta Mixpanel~~ **REVERTIDA por Cristian (2026-09-15): SÍ se usa Mixpanel.** Sigue en pie no portar `cure-safety` ni `recipe-chat` | La propuesta era quedarse con el catálogo de nombres y evitar una cuenta, un costo y un banner de cookies. Cristian lo pidió explícitamente. ⚠️ Queda pendiente lo que motivaba la objeción: **la política de privacidad no menciona Mixpanel** y hay que actualizarla antes de vender. |
 | E7  | **Sí se porta `fake.ts` con sus dos condiciones** (`AI_SIMULAR_IA=1` **y** no producción) | Permite probar el embudo entero en QA sin gastar un centavo, y la segunda condición no se puede apagar: una variable mal copiada haría que producción contestara texto inventado pareciendo sana. |
 
 ### ⚠️ Dos fallos reales encontrados al leer (no son del plan, son de aquí)
@@ -195,12 +195,31 @@ reorganiza el repo.
      No es infalible, pero convierte un campo abierto en una frase de una línea.
   El camino simulado y el real comparten `guardarYResponder`: si el simulado se
   saltara la barrera o el conteo, en QA se probaría un flujo que no existe.
-- **Fase 5 · Analítica.** Catálogo central de eventos (`lead_wall_shown` con
-  `place` → el denominador, `lead_captured`, `account_created` vs
-  `account_signed_in`). ⚠️ `lead_captured` **no** es contacto nuevo: el muro le
-  sale a cualquiera sin sesión. Quién es nuevo solo se sabe en el callback
-  (`created_at` vs `last_sign_in_at`), porque preguntarle al servidor si un
-  correo existe es permitir enumerar usuarios.
+- **Fase 5 · Analítica con Mixpanel — CABLEADA, ENVÍO SIN VERIFICAR
+  (2026-09-15).** 14 eventos en `lib/analitica/eventos.ts` (nombres en ESPAÑOL a
+  propósito: los lee la dueña en el panel, no son código), `lib/analitica/mixpanel.ts`
+  como único sitio por donde sale un evento, `<Medir>` para las pantallas de
+  servidor y `<Analitica>` en el layout raíz.
+  **Comprobado:** los 14 del catálogo están disparándose en 8 archivos y NINGUNO
+  está escrito a mano fuera del catálogo — que es como un panel acaba con dos
+  eventos que son el mismo y un embudo con el denominador partido.
+  ⚠️ **NO se pudo comprobar que los eventos LLEGUEN a Mixpanel.** El navegador de
+  pruebas bloquea los dominios de rastreo y el token es de mentira. Se verifica
+  creando la cuenta, poniendo el token real y mirando el **Live View** de
+  Mixpanel mientras se navega. Hasta entonces, la instrumentación está montada
+  pero no demostrada.
+  ⚠️ `correo_enviado` **no** es contacto nuevo: el muro le sale a cualquiera sin
+  sesión. Quién es nuevo lo dicen `cuenta_creada`/`cuenta_iniciada`, que se
+  disparan al abrir el enlace (`?entrada=` que pone el callback) — el único
+  momento en que se puede saber sin permitir enumerar usuarias.
+  ⚠️ **Grabación de sesión APAGADA**, al revés que El Charcu (graba el 100%): lo
+  que se grabaría son mujeres subiendo fotos de su trabajo y escribiendo dudas
+  desde su casa. Si algún día se enciende, la política de privacidad hay que
+  actualizarla ANTES.
+  ⚠️ A Mixpanel se le manda el **ID de Supabase, nunca el correo**, y con `ip:
+  false`.
+  🔴 **PENDIENTE: la política de privacidad no menciona Mixpanel.** Hay que
+  añadirlo antes de vender.
 - **Fase 6 · Errores.** `reportError` como único sitio por donde sale un fallo
   técnico, en JSON de una línea, sin proveedor. `error.tsx` / `global-error.tsx`.
   ⚠️ Nada personal en los logs: salen del edificio en cuanto haya un drain.

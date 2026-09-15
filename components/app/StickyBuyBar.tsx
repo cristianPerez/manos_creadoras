@@ -26,7 +26,7 @@ export function StickyBuyBar() {
         </p>
         <p className="text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>Plan anual</p>
       </div>
-      <GoldButton href={CHECKOUT_ANUAL} size="md">
+      <GoldButton href={CHECKOUT_ANUAL} plan="anual" size="md">
         Empezar →
       </GoldButton>
     </div>

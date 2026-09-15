@@ -374,6 +374,14 @@ async function guardarYResponder(
   return NextResponse.json({
     respuesta: textoFinal,
     uso: nuevoUso,
+    /*
+      Se le dice al navegador que la barrera actuó, para que lo mida.
+
+      ⚠️ Solo el SÍ/NO, nunca el texto que se bloqueó: es lo que el modelo
+      escribió sobre lo que esa alumna teje y vende. Lo que hay que vigilar es
+      si el número sube, no qué decía.
+    */
+    promesaBloqueada: !veredicto.limpia,
     consulta: { id: guardada?.id, createdAt: guardada?.created_at },
   });
 }

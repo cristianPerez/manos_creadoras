@@ -10,9 +10,14 @@ import { Oferta } from "@/components/app/sections/Oferta";
 import { Problema } from "@/components/app/sections/Problema";
 import { Solucion } from "@/components/app/sections/Solucion";
 import { StickyBuyBar } from "@/components/app/StickyBuyBar";
+import { Medir } from "@/components/app/Medir";
+import { EVENTOS } from "@/lib/analitica/eventos";
 
 export default function Home() {
   return (
+    <>
+      {/* Denominador de TODO el negocio: cuánta gente llega a la puerta. */}
+      <Medir evento={EVENTOS.paginaVentasVista} />
     <div className="flex flex-1 flex-col min-h-dvh">
       <Header />
       <main className="flex-1">
@@ -29,5 +34,6 @@ export default function Home() {
       <FooterLegal />
       <StickyBuyBar />
     </div>
+    </>
   );
 }

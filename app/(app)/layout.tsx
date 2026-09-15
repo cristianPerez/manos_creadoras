@@ -1,7 +1,18 @@
+import { Suspense } from "react";
+import { RegistrarEntrada } from "@/components/app/Analitica";
 import { BottomNav } from "@/components/app/BottomNav";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+  searchParams,
+}: {
+  children: React.ReactNode;
+  searchParams?: Promise<{ entrada?: string }>;
+}) {
+  // `?entrada=nueva|vuelve` lo pone `/auth/callback`: es el ÚNICO momento en que
+  // se puede saber si una cuenta acaba de nacer (ver el comentario de allí).
+  const params = await searchParams;
   /*
     La barra de abajo necesita saber si hay alguien dentro para no ofrecer "Mi
     cuenta" a quien no tiene ninguna. Se pregunta AQUÍ, en el servidor, y no en
@@ -22,6 +33,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {children}
       </main>
       <BottomNav haySesion={user !== null} />
+      <Suspense fallback={null}>
+        <RegistrarEntrada entrada={params?.entrada ?? null} />
+      </Suspense>
     </div>
   );
 }

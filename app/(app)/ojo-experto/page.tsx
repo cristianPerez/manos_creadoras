@@ -2,8 +2,10 @@ import { Camera, Info, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ConsultaOjoExperto } from "@/components/app/ConsultaOjoExperto";
+import { Medir } from "@/components/app/Medir";
 import { OfertaEnUnaLinea } from "@/components/app/OfertaEnUnaLinea";
 import { Reveal } from "@/components/app/Reveal";
+import { EVENTOS } from "@/lib/analitica/eventos";
 import { cargarOjoExperto } from "@/lib/ojo-experto";
 
 export const metadata: Metadata = { title: "El Ojo Experto — Manos Creadoras" };
@@ -117,6 +119,10 @@ export default async function OjoExperto() {
 function MuroDeCortesia() {
   return (
     <section className="mt-6">
+      {/* ⚠️ DENOMINADOR de `correo_enviado`. Sin este evento solo se sabría
+          cuántas dejaron el correo, nunca a cuántas se les pidió — y un "40% de
+          conversión" sobre un denominador que no existe no significa nada. */}
+      <Medir evento={EVENTOS.muroCorreoVisto} props={{ lugar: "ojo-experto" }} />
       {/*
         Los bloques entran ESCALONADOS (60-80 ms entre uno y otro) en vez de
         aparecer los tres a la vez. Es lo que hace que la conversación se lea

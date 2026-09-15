@@ -6,8 +6,10 @@ import { BarraProgreso } from "@/components/app/BarraProgreso";
 import { ContenidoLeccion } from "@/components/app/ContenidoLeccion";
 import { CountUp } from "@/components/app/CountUp";
 import { IconChip } from "@/components/app/IconChip";
+import { Medir } from "@/components/app/Medir";
 import { OfertaEnUnaLinea } from "@/components/app/OfertaEnUnaLinea";
 import { Reveal } from "@/components/app/Reveal";
+import { EVENTOS } from "@/lib/analitica/eventos";
 import {
   cargarCurso,
   formatearDuracion,
@@ -295,6 +297,10 @@ function CursoDeVisita({ curso }: { curso: Curso }) {
 
   return (
     <>
+      {/* El denominador del embudo nuevo: de cada 100 que llegan aquí, cuántas
+          ven un video, cuántas dejan el correo y cuántas compran. */}
+      <Medir evento={EVENTOS.cortesiaVista} props={{ tutoriales: planas.length }} />
+
       <Reveal>
         <header>
           <p

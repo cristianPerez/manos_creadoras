@@ -9,6 +9,8 @@ import { Eyebrow } from "@/components/app/Eyebrow";
 import { GoldSubmitButton } from "@/components/app/GoldButton";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medir } from "@/lib/analitica/mixpanel";
 import { requestMagicLink } from "@/lib/auth";
 
 type Status = "idle" | "loading" | "sent" | "error";
@@ -45,6 +47,19 @@ function Login() {
     setStatus("loading");
     const result = await requestMagicLink(email);
     if (result.ok) {
+      /*
+        ⚠️ ESTO NO ES "CONTACTO NUEVO", aunque lo parezca. Se dispara igual para
+        una alumna de siempre que volvió tras cerrar sesión, porque la pantalla
+        NO sabe si el correo existe — y no lo sabe a propósito: preguntarlo es
+        lo que permite enumerar a las usuarias de un sitio.
+
+        Quién es nueva de verdad lo dicen `cuenta_creada` / `cuenta_iniciada`,
+        que se disparan al abrir el enlace. Este mide otra cosa, también útil:
+        el paso "se le pidió el correo → lo dio".
+      */
+      // `next` lo pone el middleware cuando alguien intentaba llegar a otro
+      // sitio: distingue "venía del muro" de "abrió el login a propósito".
+      medir(EVENTOS.correoEnviado, { lugar: searchParams.get("next") ?? "login" });
       setStatus("sent");
     } else {
       setErrorMsg(result.error);
