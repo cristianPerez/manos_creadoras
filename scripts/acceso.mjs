@@ -40,9 +40,14 @@ if (!email || !email.includes("@")) {
   El motivo se valida AQUÍ además de en la base. La base lo rechazaría igual
   (tiene un `check`), pero el error que devuelve es de Postgres y no le dice a
   nadie cuáles son los valores válidos. Un error útil vale más que uno correcto.
+
+  ⚠️ SOLO al dar. `ver` y `quitar` no llevan motivo, y validarlo también en ellos
+  hacía que `npm run acceso:ver -- ana@ejemplo.com` muriera con "Motivo
+  desconocido" en cuanto npm colara cualquier argumento extra — un error que no
+  tenía nada que ver con lo que la dueña pidió.
 */
 const MOTIVOS = ["regalo", "compra", "manual"];
-if (!MOTIVOS.includes(motivo)) {
+if (accion === "dar" && !MOTIVOS.includes(motivo)) {
   console.error(`Motivo desconocido: "${motivo}".  Usa uno de: ${MOTIVOS.join(", ")}`);
   process.exit(1);
 }

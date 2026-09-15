@@ -67,19 +67,24 @@ reorganiza el repo.
 
 ### Fases (cada una se ejecuta con aprobación explícita)
 
-- **Fase 1 · Acceso — CÓDIGO HECHO, MIGRACIONES SIN APLICAR (2026-09-14).**
+- **Fase 1 · Acceso — ✅ HECHA Y VERIFICADA CONTRA QA (2026-09-15).**
   `0008_accesos.sql` (tabla `accesos` + `tiene_acceso_de` leyendo solo de ahí +
   `otorgar_acceso`/`revocar_acceso` + traspaso de las alumnas que ya tenían
   acceso) y `0009_lecciones_libres.sql` (`es_libre`, RLS `es_libre or
   tiene_acceso()`, las 3 libres son `s2-l01/02/03`). El webhook escribe
   concesiones (`sincronizarAcceso`), `lib/curso.ts` pregunta a la base en vez de
   reconstruir la regla, y existe `npm run acceso:dar|quitar|ver`.
-  🔴 **Las dos migraciones NO están aplicadas a QA**: el conector de Supabase de
-  la sesión no ve ningún proyecto (sin autorización) y el CLI no está enlazado.
-  Mientras no se apliquen, la app sigue funcionando con la regla vieja —la
-  función `tiene_acceso_de` antigua sigue en la base—, pero **el webhook no
-  otorgará nada** porque llamará a una función que aún no existe. Hay que
-  aplicarlas antes de probar una compra.
+  **Medido con la clave pública, como un desconocido:** ve 3 lecciones y 1
+  sección, y CERO en `accesos`/`profiles`/`user_progress`/`ai_conversations`;
+  `otorgar_acceso` y `tiene_acceso_de(uid)` le responden "permission denied".
+  Las 4 alumnas que ya tenían acceso lo conservaron. Probado dar y quitar a
+  mano: con `status='active'` en Hotmart y la concesión revocada, **no entra** —
+  que es la prueba de que el corte es real.
+  ⚠️ `0010` existe porque la `0009` tenía un fallo: la política preguntaba
+  `tiene_acceso()`, que estaba revocada para `anon` desde la 0002, así que el
+  visitante recibía un error 42501 y cero filas en vez de los videos libres.
+  **La primera prueba lo dio por bueno** porque no miraba el error, solo contaba
+  filas — de ahí la regla de mirar SIEMPRE el error, no el `length`.
 - **Fase 2 · Embudo sin registro.** Los 3 videos libres visibles sin cuenta;
   muro blando cerrable al tocar el Ojo Experto; `safeNext` en el callback; el
   enlace del correo devuelve a donde estaba, no a `/cursos` fijo.
@@ -105,6 +110,28 @@ reorganiza el repo.
 **Regla de trabajo de este plan:** un cambio de esquema = un archivo de
 migración nuevo, nunca SQL suelto. **Se aplican solo a QA**; a producción no
 entra ninguna sin aprobación explícita, cada vez.
+
+### Cómo se aplican las migraciones (2026-09-15)
+
+QA es **`cazqmaluaehyikkstkoi`** ("Manos Creadoras qa"). El repo está enlazado a
+ese proyecto; `npx supabase db push` aplica lo que falte.
+
+⚠️ **Existe un segundo proyecto, `icbhtsdalysatlizjlys` ("Manos Creadoras",
+creado el 2026-09-08), que parece ser el de PRODUCCIÓN.** No se ha tocado y no
+se ha comprobado qué tiene dentro. Antes de empujarle nada hay que confirmar con
+Cristian qué es y si ya tiene las migraciones 0001-0007.
+
+⚠️ **La libreta de migraciones estaba descuadrada** y costó un rato: la base
+tenía las 0001-0007 aplicadas pero anotadas con nombres de fecha
+(`20260802022423`…), mientras los archivos se llaman `0001`…`0007`. El CLI las
+veía como dos listas distintas y `db push` habría intentado recrear el proyecto
+entero. Se arregló con `migration repair --status applied 0001…0007` +
+`--status reverted` sobre las siete con nombre de fecha (eso solo toca el
+registro, nunca el esquema). **Producción tendrá el mismo descuadre** si se
+aplicó igual: comprobarlo ANTES de empujar allí, nunca con `db push` a ciegas.
+
+⚠️ El conector MCP de Supabase de la sesión **no ve ningún proyecto**; el que sí
+funciona es el CLI (`npx supabase`). No perder tiempo con el MCP.
 
 ---
 
