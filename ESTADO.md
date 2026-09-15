@@ -95,17 +95,21 @@ reorganiza el repo.
   🟡 **3 rondas del revisor: 28→29→31/40 usabilidad y 13→14/20 craft.** El
   listón es 36/40 y 16/20, así que **ninguna de las dos pantallas está lista**.
   Lo que falta, por impacto:
-  1. **Las franjas blancas del video vertical en 16:9** — es el defecto nº1 y ya
-     estaba anotado en "Problemas conocidos". El revisor confirma que es lo que
-     más baja la nota, no el color del reproductor. **Bloqueado por una pregunta
-     a la dueña: ¿TODO el curso es vertical?** Si lo es, el contenedor pasa a
-     `aspect-[9/16]`; si está mezclado, hay que hacerlo flexible.
-  2. La caja "Sube la foto de tu bolso…" del muro parece un campo de verdad y
-     lleva a la landing — el revisor lo lee como cebo. Cambiar la etiqueta a una
-     acción explícita o volverla botón secundario.
+  1. ~~Las franjas blancas del video~~ — **cerrado por decisión: el curso se
+     graba horizontal, el marco 16:9 se queda.** Lo que se ve hoy es el video de
+     prueba. El defecto que más bajaba la nota desaparece con el contenido real,
+     sin tocar código.
+  2. ~~La caja "Sube la foto de tu bolso…" parecía un campo real y llevaba a la
+     landing~~ — **corregido**: ahora es un botón secundario que dice
+     "Desbloquear para subir mi foto". Era una trampa que introduje yo.
   3. "Tutorial 2"/"Tutorial 3" se leen como marcadores de posición. Bloqueado
      por el material de la dueña (nombres reales).
   4. Faltan animaciones baseline en estas dos pantallas (CountUp en las cifras).
+
+  **No se volvió a pasar el revisor tras estos dos cierres** (Cristian pidió
+  avanzar). La última nota medida es 31/40 · 14/20 y los dos puntos de arriba no
+  están contados en ella: hay que volver a puntuar antes de dar la Fase 2 por
+  cerrada.
   ⚠️ **El revisor propuso DOS VECES anclar el precio en "$25"**. Ese es el pago
   único del producto VIEJO, que se eliminó de toda la app por ser información
   falsa. Los precios reales salen de `lib/config`. No revivirlo.
@@ -362,7 +366,7 @@ APP_URL=https://TU-APP.vercel.app npm run alumna:crear -- tu@correo.com anual ac
 ---
 
 ## Problemas conocidos ⚠️
-- ⚠️ **Los videos son VERTICALES y el contenedor está en 16:9** → salen dos franjas blancas a los lados, que sobre el fondo casi-negro se leen como un error. Pendiente de confirmar con la dueña si TODO el curso es vertical: si lo es, el contenedor pasa a vertical; si está mezclado, se deja flexible y se pinta el fondo del reproductor con el casi-negro de la marca (Bunny → Player). Visible en `.playwright-mcp/s10-bunny.png`.
+- ~~Los videos son verticales y el contenedor está en 16:9~~ — **RESUELTO POR DECISIÓN (2026-09-15, Cristian): el curso real se graba HORIZONTAL.** El marco 16:9 se queda como está y no se toca. Las franjas blancas que se ven hoy son del video de PRUEBA, que sí es vertical, y desaparecen al subir el contenido real. No hay nada que arreglar en código. 🟡 Opcional para la dueña: pintar el fondo del reproductor con el casi-negro de la marca (panel de Bunny → Player) para que cualquier video con proporción rara no muestre blanco.
 - La landing **no tiene testimonios con nombre**. Decisión deliberada: la dueña pidió inventarlos "mientras agregamos unos reales" y se rechazó (riesgo real de moderación de Hotmart y publicidad engañosa). Solo queda el agregado real (+1.200 alumnas · 4.9/5).
 - `direcciones-abc.html` sigue en la raíz — borrarlo antes del deploy (no va a producción).
 - Título de pestaña de `/login` no personalizado (es "use client" y no puede exportar `metadata`). Solucionable con un `layout.tsx` del grupo `(auth)`. No bloqueante.

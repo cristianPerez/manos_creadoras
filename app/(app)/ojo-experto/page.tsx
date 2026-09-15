@@ -1,4 +1,4 @@
-import { Camera, Info, Lock } from "lucide-react";
+import { Camera, Info } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ConsultaOjoExperto } from "@/components/app/ConsultaOjoExperto";
@@ -163,24 +163,27 @@ function MuroDeCortesia() {
         </Reveal>
 
         {/*
-          La caja de escribir, apagada pero PRESENTE.
+          El botón que dice lo que de verdad va a pasar.
 
-          Sin ella la pantalla no tiene ni un elemento tocable: el visitante lee
-          una conversación ajena y no entiende que esto es algo que él va a usar.
-          Es un enlace, no un input de verdad — un campo deshabilitado sería un
-          elemento con pinta de interactivo que no hace nada (regla UX 11); así,
-          tocarlo lleva justo a donde se consigue.
+          ⚠️ AQUÍ HABÍA UNA TRAMPA, y la puse yo. Era una caja con forma exacta
+          de campo de texto —cámara a la izquierda, "Sube la foto de tu bolso…"
+          en gris— que al tocarla sacaba a la página de ventas. El revisor la
+          leyó como cebo y tenía razón: la visitante espera que se le abra la
+          galería y acaba en un argumento de venta. Un elemento que parece una
+          cosa y hace otra cuesta más confianza de la que gana (regla UX 11).
+
+          Ahora es un botón secundario con borde dorado que anuncia el
+          desbloqueo. Sigue dando algo tocable —que era el motivo de ponerlo, la
+          pantalla no tenía ni un elemento vivo— sin prometer lo que no hace.
         */}
         <Reveal delay={0.28}>
           <Link
             href="/"
-            className="mt-4 flex items-center gap-2.5 rounded-full border border-border-strong bg-surface-tertiary px-4 py-3 transition-transform active:scale-[0.99] [touch-action:manipulation]"
+            className="mt-4 flex items-center justify-center gap-2 rounded-full border border-brand-primary/45 bg-brand-primary-soft px-4 py-3 text-brand-primary transition-transform active:scale-[0.98] [touch-action:manipulation]"
+            style={{ fontSize: "var(--text-sm)", fontWeight: 600 }}
           >
-            <Camera size={16} className="text-brand-primary shrink-0" aria-hidden="true" />
-            <span className="text-text-tertiary min-w-0 flex-1 truncate" style={{ fontSize: "var(--text-sm)" }}>
-              Sube la foto de tu bolso…
-            </span>
-            <Lock size={13} className="text-text-tertiary shrink-0" aria-hidden="true" />
+            <Camera size={16} className="shrink-0" aria-hidden="true" />
+            Desbloquear para subir mi foto
           </Link>
         </Reveal>
 
