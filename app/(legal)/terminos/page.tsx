@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LEY_DATOS, PAIS } from "@/lib/legal";
 
 export default function Terminos() {
   return (
@@ -75,7 +76,15 @@ export default function Terminos() {
           </p>
         </section>
         <section>
-          <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>7. Contacto</h2>
+          <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>7. Ley aplicable</h2>
+          <p className="mt-2">
+            Estos términos se rigen por las leyes de {PAIS}. El tratamiento de tus datos
+            personales sigue la {LEY_DATOS} — el detalle está en la{" "}
+            <Link href="/privacidad" className="text-brand-primary">Política de privacidad</Link>.
+          </p>
+        </section>
+        <section>
+          <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>8. Contacto</h2>
           <p className="mt-2">
             Dudas sobre estos términos: ver la página de{" "}
             <Link href="/contacto" className="text-brand-primary">Contacto</Link>.

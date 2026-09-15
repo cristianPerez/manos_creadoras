@@ -20,6 +20,10 @@
 ### ⚠️ Seguridad
 - [x] ~~**Confirmar que la clave secreta de Supabase fue ROTADA**~~ — ✅ **CONFIRMADO 2026-09-15 por Cristian.** Incidente del 2026-08-02 cerrado. Comprobado además que la clave que hay en `.env.local` funciona contra QA (4 perfiles), así que el rotado no dejó los scripts locales rotos.
 
+### 🔴 Dato legal que falta (bloquea vender)
+- [ ] **La identificación del responsable de los datos** (cédula o NIT de Elizabeth Valencia) **y un domicilio** para notificaciones. Cristian lo dejó pendiente el 2026-09-15. Va en `lib/legal.ts` (`IDENTIFICACION` / `DOMICILIO`) y las dos páginas legales lo recogen solas. ⚠️ **Por qué no es un adorno:** la Ley 1581 de 2012 exige que la alumna sepa QUIÉN tiene sus datos para poder reclamar. Mientras esté en `null` las páginas no inventan nada ni enseñan "[PENDIENTE]" — simplemente omiten la línea, así que el documento queda **incompleto, no falso**.
+- ✅ País confirmado: **Colombia** (Cristian, 2026-09-15). Privacidad y Términos ya citan la Ley 1581 de 2012 y la SIC como autoridad.
+
 ### Material de la dueña (bloquea la calidad, no el lanzamiento)
 - [ ] **Listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan; hoy hay 9 cargadas).
 - [ ] **Nombres reales de los tutoriales**: en Hotmart se llaman "Tutorial 2", "Tutorial 3"… La alumna no puede recordar dónde está la técnica que busca. Bastaría una línea por lección.

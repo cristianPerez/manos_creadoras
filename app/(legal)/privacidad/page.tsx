@@ -1,4 +1,12 @@
 import Link from "next/link";
+import {
+  AUTORIDAD_DATOS,
+  DOMICILIO,
+  IDENTIFICACION,
+  LEY_DATOS,
+  PAIS,
+  RESPONSABLE,
+} from "@/lib/legal";
 
 /**
  * ⚠️ CADA FRASE DE ESTA PÁGINA DESCRIBE ALGO QUE EL CÓDIGO HACE DE VERDAD. Se
@@ -40,6 +48,21 @@ export default function Privacidad() {
           En pocas palabras: guardamos lo mínimo para que el programa funcione, no vendemos tus
           datos a nadie, y puedes pedirnos que los borremos cuando quieras.
         </p>
+
+        <section>
+          <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>
+            Quién responde por tus datos
+          </h2>
+          <p className="mt-2">
+            <strong className="text-text-primary">{RESPONSABLE}</strong>
+            {IDENTIFICACION ? `, identificado con ${IDENTIFICACION}` : ""}
+            {DOMICILIO ? `, con domicilio en ${DOMICILIO}` : ""}. Puedes escribirnos desde{" "}
+            <Link href="/contacto" className="text-brand-primary">
+              Contacto
+            </Link>{" "}
+            para cualquier asunto relacionado con tu información.
+          </p>
+        </section>
 
         <section>
           <h2 className="text-text-primary font-semibold" style={{ fontSize: "var(--text-lg)" }}>
@@ -177,12 +200,33 @@ export default function Privacidad() {
             7. Tus derechos
           </h2>
           <p className="mt-2">
-            Puedes pedirnos en cualquier momento que te digamos qué datos tuyos tenemos, que los
-            corrijamos, o que los borremos. Escríbenos desde{" "}
+            Esta app se rige por la ley de {PAIS} ({LEY_DATOS} de protección de datos personales).
+            Como dueña de tus datos puedes, en cualquier momento:
+          </p>
+          <ul className="mt-2 flex flex-col gap-2">
+            <li>
+              <strong className="text-text-primary">Saber qué tenemos tuyo</strong> y de dónde salió.
+            </li>
+            <li>
+              <strong className="text-text-primary">Corregirlo</strong> si algo está mal o
+              incompleto.
+            </li>
+            <li>
+              <strong className="text-text-primary">Pedir que lo borremos</strong>, salvo lo que la
+              ley nos obligue a conservar (por ejemplo, el registro de una compra).
+            </li>
+            <li>
+              <strong className="text-text-primary">Retirar tu autorización</strong> para que lo
+              usemos.
+            </li>
+          </ul>
+          <p className="mt-2">
+            Escríbenos desde{" "}
             <Link href="/contacto" className="text-brand-primary">
               Contacto
             </Link>{" "}
-            y te respondemos.
+            y te respondemos. Si no lo hacemos o no quedas conforme, puedes acudir a la{" "}
+            {AUTORIDAD_DATOS}.
           </p>
         </section>
 
