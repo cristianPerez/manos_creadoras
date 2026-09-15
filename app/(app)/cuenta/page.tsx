@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ActivarAvisos } from "@/components/app/ActivarAvisos";
 import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
+import { FormularioAcceso } from "@/components/app/FormularioAcceso";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
 import { PRECIO_ANUAL, PRECIO_MENSUAL } from "@/lib/config";
@@ -27,13 +27,28 @@ export const metadata: Metadata = { title: "Mi cuenta — Manos Creadoras" };
 
 export default async function Cuenta() {
   const curso = await cargarCurso();
+
   /*
-    `alumna` es null cuando no hay sesión. El middleware ya manda al login antes
-    de llegar aquí, así que esto no debería pasar nunca — pero la comprobación se
-    queda: el día que alguien saque `/cuenta` de la lista de privadas por error,
-    lo que pasa es un redirect, no una pantalla rota enseñando "undefined".
+    SIN SESIÓN, ESTA PESTAÑA ES LA DE ENTRAR (2026-09-15, pedido de Cristian).
+
+    Antes rebotaba a `/login`, una página a pantalla completa sin barra de
+    navegación: tocabas una pestaña y la app desaparecía debajo de ti. Con el
+    formulario aquí dentro, entrar es una pestaña más — sigues viendo dónde
+    estás y puedes volver a los tutoriales sin usar el botón de atrás.
   */
-  if (!curso?.alumna) redirect("/login");
+  if (!curso?.alumna) {
+    /*
+      Centrado vertical: el formulario es corto y arriba del todo dejaba media
+      pantalla de vacío muerto encima de la barra. `min-h` en vez de `h-full`
+      para que si algún día crece —un aviso de enlace vencido, un error— empuje
+      hacia abajo en vez de recortarse.
+    */
+    return (
+      <div className="flex min-h-[68dvh] flex-col justify-center">
+        <FormularioAcceso lugar="pestaña-entrar" />
+      </div>
+    );
+  }
 
   const { alumna, completadas, totalLecciones, siguiente } = curso;
   const estado = estadoDeMembresia(alumna);

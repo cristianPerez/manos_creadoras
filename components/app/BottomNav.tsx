@@ -20,9 +20,14 @@ function nav(haySesion: boolean) {
   return [
     { href: "/cursos", label: haySesion ? "Mis cursos" : "Tutoriales", icono: GraduationCap },
     { href: "/ojo-experto", label: "Ojo Experto", icono: Sparkles },
-    haySesion
-      ? { href: "/cuenta", label: "Mi cuenta", icono: UserRound }
-      : { href: "/login", label: "Entrar", icono: UserRound },
+    /*
+      ⚠️ SIEMPRE `/cuenta`, tenga sesión o no. Esa pantalla sabe qué enseñar en
+      cada caso: la membresía si hay cuenta, el formulario de acceso si no.
+      Antes, sin sesión, esto llevaba a `/login` — una página a pantalla completa
+      SIN esta barra, así que tocar una pestaña hacía desaparecer la app entera.
+      Una pestaña que te saca de la app no es una pestaña.
+    */
+    { href: "/cuenta", label: haySesion ? "Mi cuenta" : "Entrar", icono: UserRound },
   ];
 }
 

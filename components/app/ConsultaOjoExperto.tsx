@@ -7,6 +7,7 @@ import { BarraProgreso } from "@/components/app/BarraProgreso";
 import { CountUp } from "@/components/app/CountUp";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
+import Link from "next/link";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import type { Consulta, Cupo, UsoMensual } from "@/lib/ojo-experto";
@@ -28,9 +29,20 @@ export function ConsultaOjoExperto({
   historialInicial,
   usoInicial,
   cupo,
+  sinCuenta = false,
 }: {
   historialInicial: Consulta[];
   usoInicial: UsoMensual;
+  /**
+   * Quien mira NO tiene cuenta.
+   *
+   * ⚠️ LA PANTALLA SE DIBUJA EXACTAMENTE IGUAL. Puede escribir, adjuntar su
+   * foto y tocar el botón; el freno aparece SOLO al enviar. Antes había una
+   * pantalla aparte para visitantes con un ejemplo de conversación, y eso le
+   * pedía imaginarse el producto. Así lo ve, lo toca, y la cuenta se le pide en
+   * el segundo en que la necesita — que es cuando tiene motivo para darla.
+   */
+  sinCuenta?: boolean;
   /**
    * Cuántas preguntas y fotos tiene al mes. Llega del servidor, que lo lee de
    * la tabla `cupos` (migración 0012).
@@ -51,6 +63,7 @@ export function ConsultaOjoExperto({
   const [mensajeError, setMensajeError] = useState("");
   const [historial, setHistorial] = useState<Consulta[]>(historialInicial);
   const [uso, setUso] = useState<UsoMensual>(usoInicial);
+  const [pidiendoCuenta, setPidiendoCuenta] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const peticionRef = useRef<AbortController | null>(null);
 
@@ -63,7 +76,12 @@ export function ConsultaOjoExperto({
 
   const sinPreguntas = uso.preguntas >= cupo.preguntas;
   const sinFotos = uso.fotos >= cupo.fotos;
-  const sinCupo = foto ? sinFotos : sinPreguntas;
+  /*
+    Para quien no tiene cuenta, el cupo NO bloquea el botón: no ha gastado nada
+    y lo que tiene que poder hacer es justamente intentarlo. El freno es el de
+    abajo, al enviar.
+  */
+  const sinCupo = !sinCuenta && (foto ? sinFotos : sinPreguntas);
   const hayAlgoQueEnviar = Boolean(foto) || pregunta.trim().length >= 3;
   const bloqueado = estado === "enviando" || !hayAlgoQueEnviar || sinCupo;
 
@@ -93,6 +111,23 @@ export function ConsultaOjoExperto({
   async function enviar(e: FormEvent) {
     e.preventDefault();
     if (bloqueado) return;
+
+    /*
+      EL MURO, en el único momento en que tiene sentido pedirlo: ya escribió su
+      duda. No se manda nada al servidor —no hay sesión con la que llamar— y su
+      pregunta NO se pierde: se queda escrita en la caja para cuando vuelva con
+      su cuenta. Perderle lo que acaba de escribir es la forma más rápida de que
+      no vuelva.
+
+      Aquí es donde se mide `muro_correo_visto`, y no al abrir la pantalla: esto
+      sí es "se le pidió la cuenta". Contarlo al entrar inflaría el denominador
+      con gente que solo pasó por delante.
+    */
+    if (sinCuenta) {
+      setPidiendoCuenta(true);
+      medir(EVENTOS.muroCorreoVisto, { lugar: "ojo-experto", con_foto: Boolean(foto) });
+      return;
+    }
 
     setEstado("enviando");
     setMensajeError("");
@@ -330,6 +365,41 @@ export function ConsultaOjoExperto({
               </>
             )}
           </button>
+
+          {/*
+            El muro. Aparece DEBAJO del botón que acaba de tocar, sin tapar lo
+            que escribió ni sacarla de la pantalla — sigue viendo su pregunta
+            ahí, esperándola.
+          */}
+          {pidiendoCuenta && (
+            <div className="mt-4 rounded-xl border border-brand-primary/40 bg-brand-primary-soft p-4 text-center">
+              <p
+                className="text-text-primary"
+                style={{ fontSize: "var(--text-sm)", fontWeight: 600, lineHeight: "var(--leading-snug)" }}
+              >
+                Crea tu cuenta para que el Ojo Experto te responda
+              </p>
+              <p
+                className="text-text-secondary mt-1.5"
+                style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
+              >
+                Es gratis y solo necesitas tu correo — sin contraseña. Tendrás{" "}
+                <span className="cifra">{cupo.preguntas}</span> consultas al mes, y tu pregunta te
+                espera aquí.
+              </p>
+              <Link
+                href="/cuenta"
+                className="mt-4 flex h-12 w-full items-center justify-center rounded-full font-semibold text-text-inverse transition-transform active:scale-[0.98] [touch-action:manipulation]"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end))",
+                  fontSize: "var(--text-sm)",
+                }}
+              >
+                Crear mi cuenta con el correo
+              </Link>
+            </div>
+          )}
 
           {/* Un botón apagado sin explicación deja a la alumna adivinando qué le falta. */}
           {!hayAlgoQueEnviar && !sinCupo && estado !== "enviando" && (

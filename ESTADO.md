@@ -44,6 +44,13 @@ Referencia leída: `~/Documents/goingTube/elcharcu` (ESTADO.md con D1–D21,
 FSD (`src/entities`, `src/features`) y aquí el layout plano de Next — no se
 reorganiza el repo.
 
+### Ajustes pedidos por Cristian tras probar en QA (2026-09-15)
+
+| # | Qué cambió | Por qué |
+|---|---|---|
+| A1 | **El acceso vive DENTRO de la pestaña "Entrar"**, no en una página aparte | Tocar una pestaña mandaba a `/login`, una pantalla completa SIN la barra de navegación: la app desaparecía debajo de ti. Una pestaña que te saca de la app no es una pestaña. `/cuenta` ahora enseña la membresía si hay sesión y el formulario si no. `/login` SIGUE existiendo —ahí aterrizan los enlaces vencidos del correo— y comparte el mismo componente `FormularioAcceso`. **Ya no queda ninguna ruta privada en el middleware**, y no es un descuido: ninguna pantalla decide quién ve qué, eso lo hace el RLS. |
+| A2 | **El Ojo Experto se ve IGUAL sin cuenta**; el muro sale al intentar enviar | Se quitó `MuroDeCortesia`, la pantalla aparte con un ejemplo de conversación. Enseñarle a alguien un EJEMPLO le obliga a imaginarse el producto; ahora ve el producto de verdad —su caja, sus preguntas sugeridas, su medidor "0 de 3"— y la cuenta se le pide en el segundo en que la necesita, con su duda ya escrita. ⚠️ **La pregunta NO se pierde**: se queda en la caja esperándola. ⚠️ `muro_correo_visto` se mide AHORA al intentar enviar, que es cuando de verdad "se le pidió la cuenta" — medirlo al abrir la pantalla inflaba el denominador con gente que solo pasó por delante. |
+
 ### Decisiones de este plan
 
 | #   | Decisión                                                                 | Por qué                                                                                                                                                                                    |
@@ -162,8 +169,11 @@ reorganiza el repo.
   llevaba desde la 0008 enseñando "membresía en pausa" a quien sí tenía acceso
   por regalo. Y `LIMITE_PREGUNTAS`/`LIMITE_FOTOS` salieron de `lib/config.ts`:
   ya no puede haber UN límite porque hay dos públicos.
-  🟡 **Pendiente de la charla del correo distinto** (ver abajo): las tres capas
-  no están hechas.
+  ✅ **La capa ② del correo distinto YA ESTÁ** (2026-09-15): tras "revisa tu
+  correo", el formulario avisa "¿no te llega? puede que hayas comprado con otro
+  correo" con salida a soporte. Es la que convierte un reembolso en un mensaje.
+  🟡 Faltan la ① (aviso en la landing junto al botón de compra) y la ③ (comando
+  `alumna:mover`).
 
 - **Correo distinto al de la compra — PENDIENTE, decidido el enfoque.**
   Alguien paga con un correo y entra con otro: hoy no le llega nada y cree que

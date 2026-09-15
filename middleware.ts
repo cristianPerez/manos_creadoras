@@ -14,11 +14,17 @@ import { NextResponse, type NextRequest } from "next/server";
  * visitante recibe lo sigue decidiendo el RLS de la base (migración 0009), que
  * desde el navegador no se puede burlar. Aquí solo se deja pasar al vestíbulo.
  *
- * `/cuenta` se queda: es la pantalla de "tu membresía, tu correo, tus avisos".
- * Sin cuenta no hay nada que enseñar ahí, y mandar al login es la respuesta
- * correcta y no un muro.
+ * ⚠️ `/cuenta` TAMBIÉN SALIÓ (2026-09-15). Ahora esa pantalla es la pestaña
+ * "Entrar" para quien no tiene sesión: enseña el formulario de acceso dentro de
+ * la app, con la barra de navegación visible. Rebotarla al login la sacaría de
+ * la app justo al tocar una pestaña.
+ *
+ * No queda ninguna ruta privada, y no es un descuido: **ninguna pantalla decide
+ * ya quién ve qué**. Eso lo decide el RLS de la base (migraciones 0009 y 0012),
+ * que desde el navegador no se puede burlar. El middleware solo refresca la
+ * sesión, que es lo que sigue haciendo abajo.
  */
-const PRIVADAS = ["/cuenta"];
+const PRIVADAS: string[] = [];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

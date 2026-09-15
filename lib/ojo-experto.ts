@@ -37,6 +37,16 @@ export type EstadoOjoExperto = {
   /** Tiene el programa completo (no solo cuenta). Decide qué cupo le toca. */
   tieneAcceso: boolean;
   nombre: string | null;
+  /**
+   * `true` cuando quien mira NO ha iniciado sesión.
+   *
+   * ⚠️ La pantalla se dibuja IGUAL que para una alumna — mismo chat, mismo
+   * medidor, mismo todo. Lo único que cambia es qué pasa al tocar "preguntar".
+   * Enseñar una pantalla distinta a quien no tiene cuenta le obliga a imaginarse
+   * el producto; enseñarle el producto y pedirle la cuenta en el momento en que
+   * lo va a usar le deja verlo primero.
+   */
+  sinCuenta: boolean;
   cupo: Cupo;
   /**
    * El cupo de quien SÍ tiene el programa. Lo necesita la pantalla para decirle
@@ -57,7 +67,10 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+
+  // Sin sesión ya NO se devuelve `null`: se devuelve el estado de un visitante,
+  // con el cupo que tendría si se registrara. La pantalla es la misma.
+  if (!user) return await cargarVisita(supabase);
 
   const [perfilRes, historialRes, usoRes, accesoRes, cuposRes] = await Promise.all([
     supabase
@@ -111,6 +124,7 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
       uso: { preguntas: 0, fotos: 0 },
       tieneAcceso: false,
       nombre: null,
+      sinCuenta: false,
       cupo: CUPO_DE_RESPALDO,
       cupoMiembro: CUPO_DE_RESPALDO,
     };
@@ -154,7 +168,39 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
     uso: usoRes.data ?? { preguntas: 0, fotos: 0 },
     tieneAcceso,
     nombre: perfil.nombre,
+    sinCuenta: false,
     cupo: aCupo(tieneAcceso ? "miembro" : "regalo", CUPO_DE_RESPALDO),
     cupoMiembro: aCupo("miembro", CUPO_DE_RESPALDO),
   };
 });
+
+/**
+ * El Ojo Experto tal como lo ve alguien SIN cuenta.
+ *
+ * Se le enseña el cupo `regalo` —lo que tendría al registrarse— y no un cero:
+ * el medidor diciendo "0 de 3" es parte de lo que le explica qué gana.
+ */
+async function cargarVisita(
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+): Promise<EstadoOjoExperto> {
+  const { data } = await supabase
+    .from("cupos")
+    .select("publico, preguntas_mes, fotos_mes")
+    .returns<{ publico: string; preguntas_mes: number; fotos_mes: number }[]>();
+
+  const filas = data ?? [];
+  const aCupo = (p: string): Cupo => {
+    const f = filas.find((c) => c.publico === p);
+    return f ? { preguntas: f.preguntas_mes, fotos: f.fotos_mes } : CUPO_DE_RESPALDO;
+  };
+
+  return {
+    historial: [],
+    uso: { preguntas: 0, fotos: 0 },
+    tieneAcceso: false,
+    nombre: null,
+    sinCuenta: true,
+    cupo: aCupo("regalo"),
+    cupoMiembro: aCupo("miembro"),
+  };
+}
