@@ -10,6 +10,7 @@ import {
   Mail,
   MessageCircle,
   ShieldCheck,
+  Sparkles,
   Trophy,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -189,6 +190,26 @@ function estadoDeMembresia(a: Alumna): EstadoMembresia {
       : a.plan === "mensual"
         ? `Plan mensual · USD ${PRECIO_MENSUAL} al mes`
         : "Membresía";
+
+  /*
+    `status` nulo = nunca compró (migración 0012). Es una cuenta gratuita, no una
+    membresía rota, y el `default` de abajo le habría dicho "Sin acceso al
+    programa · si crees que es un error, escríbenos" — asustando a alguien que no
+    tiene ningún problema y mandándole a soporte a preguntar por una compra que
+    nunca hizo.
+
+    Va ANTES del switch porque un `case null` no encaja con el enum y se leería
+    como un estado más, cuando en realidad es la ausencia de todos ellos.
+  */
+  if (a.status === null) {
+    return {
+      icono: Sparkles,
+      titulo: "Tu cuenta gratuita",
+      detalle:
+        "Tienes los tutoriales de cortesía y unas consultas al mes con el Ojo Experto. El programa completo abre todo lo demás.",
+      accion: { href: "/", label: "Ver el programa" },
+    };
+  }
 
   switch (a.status) {
     case "active":

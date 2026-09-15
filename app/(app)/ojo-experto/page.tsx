@@ -1,4 +1,4 @@
-import { Camera, Info } from "lucide-react";
+import { Camera, Info, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ConsultaOjoExperto } from "@/components/app/ConsultaOjoExperto";
@@ -39,34 +39,48 @@ export default async function OjoExperto() {
 
       {estado === null ? (
         <MuroDeCortesia />
-      ) : estado.tieneAcceso ? (
-        <ConsultaOjoExperto historialInicial={estado.historial} usoInicial={estado.uso} />
       ) : (
-        <Reveal delay={0.06}>
-          <section className="mt-6 rounded-xl border border-border-default bg-surface-primary p-6 text-center shadow-sm">
-            <h2 className="font-display font-normal text-text-primary" style={{ fontSize: "var(--text-xl)" }}>
-              El Ojo Experto está en pausa
-            </h2>
-            <p
-              className="text-text-secondary mt-2"
-              style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
-            >
-              Vuelve a estar disponible cuando reactives tu membresía. Tus consultas anteriores te
-              esperan aquí.
-            </p>
-            <Link
-              href="/contacto"
-              className="mt-5 inline-flex h-12 items-center justify-center rounded-full px-6 font-semibold text-text-inverse [touch-action:manipulation]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(to right, var(--brand-gradient-start), var(--brand-gradient-end))",
-                fontSize: "var(--text-sm)",
-              }}
-            >
-              Escribirle a Manos Creadoras
-            </Link>
-          </section>
-        </Reveal>
+        <>
+          {/*
+            ⚠️ AQUÍ HABÍA UN CALLEJÓN SIN SALIDA. Si no tenía el programa, esta
+            pantalla enseñaba "El Ojo Experto está en pausa" y un botón a
+            soporte — y nada más. Desde la 0012 eso ya no es cierto: con una
+            cuenta gratuita tiene 3 consultas al mes, y quien canceló también.
+            Enseñarle una puerta cerrada cuando la puerta está abierta a medias
+            es perder la única oportunidad de que pruebe lo que se le vende.
+
+            Ahora el chat se muestra siempre y lo único que cambia es el número.
+            El aviso de arriba dice qué tiene y qué ganaría — sin bloquear nada.
+          */}
+          {!estado.tieneAcceso && (
+            <Reveal delay={0.06}>
+              <section className="mt-6 flex items-start gap-3 rounded-xl border border-brand-primary/35 bg-brand-primary-soft p-4">
+                <Sparkles size={18} className="text-brand-primary mt-0.5 shrink-0" aria-hidden="true" />
+                <p
+                  className="text-text-secondary min-w-0"
+                  style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
+                >
+                  Tienes{" "}
+                  <span className="text-text-primary cifra" style={{ fontWeight: 600 }}>
+                    {estado.cupo.preguntas}
+                  </span>{" "}
+                  consultas al mes con tu cuenta. Con el programa completo son{" "}
+                  <span className="cifra">{estado.cupoMiembro.preguntas}</span> al mes y{" "}
+                  <Link href="/" className="text-brand-primary underline underline-offset-4">
+                    todos los tutoriales
+                  </Link>
+                  .
+                </p>
+              </section>
+            </Reveal>
+          )}
+
+          <ConsultaOjoExperto
+            historialInicial={estado.historial}
+            usoInicial={estado.uso}
+            cupo={estado.cupo}
+          />
+        </>
       )}
 
       <Reveal delay={0.24}>

@@ -43,7 +43,8 @@ export type Alumna = {
   nombre: string | null;
   email: string;
   plan: "mensual" | "anual" | null;
-  status: string;
+  /** `null` = nunca compró. La pantalla "Mi cuenta" lo traduce. */
+  status: string | null;
   accessUntil: string | null;
   primerPagoEn: string | null;
   /** Misma regla que la función `tiene_acceso_de` de la base. */
@@ -99,7 +100,8 @@ type FilaPerfil = {
   id: string;
   email: string;
   nombre: string | null;
-  status: string;
+  /** `null` = nunca compró (cuenta gratuita). Ver migración 0012. */
+  status: string | null;
   plan: "mensual" | "anual" | null;
   access_until: string | null;
   first_paid_at: string | null;

@@ -28,6 +28,17 @@ export const MESES_GRATIS_ANUAL = 2;
  * en la base (`lecciones.video_proveedor` / `video_id`).
  */
 
-// ── Uso justo del Ojo Experto (fuente única: la usan la API y la pantalla) ──
-export const LIMITE_PREGUNTAS = 40;
-export const LIMITE_FOTOS = 8;
+/*
+  ── Uso justo del Ojo Experto ──────────────────────────────────────────────
+  ⚠️ `LIMITE_PREGUNTAS` y `LIMITE_FOTOS` VIVÍAN AQUÍ y se borraron el 2026-09-15.
+  Se movieron a la tabla `cupos` de la base (migración 0012) por dos motivos:
+
+    · Ya no hay UN límite. Una cuenta gratuita tiene 3 preguntas y una alumna
+      40, así que una constante no podía ser correcta para las dos.
+    · Estas dos las importaban la API y la pantalla por separado. Eran dos
+      copias del mismo número esperando a que alguien cambiara solo una, y que
+      la pantalla prometiera una cifra y el servidor cortara en otra.
+
+  Ahora los lee `cupo_de(uid)` y bajan hasta la pantalla como props. Cambiar el
+  regalo de 3 a 5 es un `update` de una fila, sin desplegar nada.
+*/

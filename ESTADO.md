@@ -143,6 +143,36 @@ reorganiza el repo.
   ⚠️ Los dos bolsillos son **globales por público, no por persona**: una sola
   alumna puede agotar el de `miembro`. Con las alumnas de hoy da igual; con
   varias decenas activas hay que decidir si el tope pasa a ser por cuenta.
+- **Cuenta gratis con 3 consultas — ✅ HECHA Y MEDIDA (2026-09-15).** Opción B
+  de Cristian. Migración `0012`: se quitó `shouldCreateUser: false`, un
+  disparador en `auth.users` crea el perfil (con `status` NULO = nunca compró),
+  y los cupos viven en la tabla `cupos` — `regalo` 3 preguntas + 1 foto,
+  `miembro` 40 + 8. `publico_de` se simplificó a `tiene_acceso_de ? miembro :
+  regalo`: una sola regla en vez de mirar motivos de concesión.
+  **Medido con una sesión real de cuenta gratuita:** ve 3 lecciones y 1 sección,
+  `tiene_acceso()` = false, cupo 3/1. **Crear cuenta NO regala el curso.** Y al
+  comprar pasa a 40/8 sin perder nada.
+  El webhook usa `upsert` porque el disparador ya creó la fila — un `insert`
+  habría reventado dejando sin acceso a quien acababa de pagar.
+  **Se eliminó la TERCERA copia de la regla de acceso** (`lib/ojo-experto.ts`);
+  llevaba desde la 0008 enseñando "membresía en pausa" a quien sí tenía acceso
+  por regalo. Y `LIMITE_PREGUNTAS`/`LIMITE_FOTOS` salieron de `lib/config.ts`:
+  ya no puede haber UN límite porque hay dos públicos.
+  🟡 **Pendiente de la charla del correo distinto** (ver abajo): las tres capas
+  no están hechas.
+
+- **Correo distinto al de la compra — PENDIENTE, decidido el enfoque.**
+  Alguien paga con un correo y entra con otro: hoy no le llega nada y cree que
+  le robaron. Tres capas acordadas, ninguna implementada:
+  ① aviso en la landing junto al botón ("usa el correo donde quieres el
+  acceso"), ② en `/login`, tras "revisa tu correo", un "¿no te llega? puede que
+  hayas comprado con otro correo" con salida a soporte, ③ comando
+  `npm run alumna:mover -- viejo@x.com nuevo@y.com`.
+  ⚠️ El ③ es **solo comando**, nunca un botón ni un formulario en la app:
+  cualquier mecanismo automático de mover accesos es una forma de regalar
+  acceso a quien engañe al soporte. La verificación la hace la dueña contra el
+  comprobante de Hotmart.
+
 - **Fase 4 · Asistente.** `fake.ts` (E7), acotar `notas_tejido`, y la barrera
   propia en código: aquí el consejo no envenena a nadie, pero **prometer
   ingresos o precios de venta sí es riesgo legal y de Hotmart** — hoy solo está

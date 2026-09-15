@@ -17,11 +17,34 @@ export type Consulta = {
 
 export type UsoMensual = { preguntas: number; fotos: number };
 
+/**
+ * Cuánto puede usar al mes. Lo dice la tabla `cupos` (migración 0012), NO una
+ * constante del código: los límites los repetían la API y la pantalla, que es
+ * la forma clásica de que dentro de un mes prometan cosas distintas.
+ */
+export type Cupo = { preguntas: number; fotos: number };
+
+/**
+ * Si la consulta a `cupos` falla, se asume el cupo gratuito — el más pequeño.
+ * Fallar hacia abajo: en el peor caso alguien que pagó ve menos de lo suyo un
+ * momento, en vez de que alguien sin pagar gaste como si tuviera el programa.
+ */
+const CUPO_DE_RESPALDO: Cupo = { preguntas: 3, fotos: 1 };
+
 export type EstadoOjoExperto = {
   historial: Consulta[];
   uso: UsoMensual;
+  /** Tiene el programa completo (no solo cuenta). Decide qué cupo le toca. */
   tieneAcceso: boolean;
   nombre: string | null;
+  cupo: Cupo;
+  /**
+   * El cupo de quien SÍ tiene el programa. Lo necesita la pantalla para decirle
+   * a una cuenta gratuita qué ganaría al comprar — y se lee de la misma tabla
+   * en vez de escribir "40" a mano, que es la duplicación que esta migración
+   * vino a quitar.
+   */
+  cupoMiembro: Cupo;
 };
 
 function periodoActual() {
@@ -36,7 +59,7 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [perfilRes, historialRes, usoRes] = await Promise.all([
+  const [perfilRes, historialRes, usoRes, accesoRes, cuposRes] = await Promise.all([
     supabase
       .from("profiles")
       .select("nombre, status, access_until")
@@ -61,6 +84,13 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
       .select("preguntas, fotos")
       .eq("periodo", periodoActual())
       .maybeSingle<UsoMensual>(),
+    // Solo responde sobre quien llama (`auth.uid()` por dentro): no revela nada.
+    supabase.rpc("tiene_acceso"),
+    // Los cupos no son secretos — la pantalla tiene que poder decir "2 de 3".
+    supabase
+      .from("cupos")
+      .select("publico, preguntas_mes, fotos_mes")
+      .returns<{ publico: string; preguntas_mes: number; fotos_mes: number }[]>(),
   ]);
 
   const perfil = perfilRes.data;
@@ -76,14 +106,29 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
    * que la membresía está en pausa, con salida a soporte.
    */
   if (!perfil) {
-    return { historial: [], uso: { preguntas: 0, fotos: 0 }, tieneAcceso: false, nombre: null };
+    return {
+      historial: [],
+      uso: { preguntas: 0, fotos: 0 },
+      tieneAcceso: false,
+      nombre: null,
+      cupo: CUPO_DE_RESPALDO,
+      cupoMiembro: CUPO_DE_RESPALDO,
+    };
   }
 
-  const vigente = perfil.access_until ? new Date(perfil.access_until) > new Date() : false;
-  const tieneAcceso =
-    perfil.status === "active" ||
-    perfil.status === "past_due" ||
-    (perfil.status === "cancelled" && vigente);
+  /*
+    ⚠️ TERCERA COPIA DE LA REGLA DE ACCESO, ELIMINADA (2026-09-15). Aquí estaba
+    otra vez escrita a mano —`status === 'active' || past_due || (cancelled &&
+    access_until > hoy)`— igual que en `lib/curso.ts`. Eran tres sitios
+    respondiendo a la misma pregunta, y desde la 0008 los tres estaban además
+    MAL: el acceso ya no lo dice `profiles.status`, lo dicen las concesiones.
+    Esta pantalla llevaba desde entonces enseñando "membresía en pausa" a quien
+    sí tenía acceso por regalo.
+
+    Ahora se le pregunta a la base. Sin parámetro: solo responde sobre quien
+    llama, así que preguntarlo con la sesión de la alumna no revela nada.
+  */
+  const tieneAcceso = accesoRes.error ? false : accesoRes.data === true;
 
   const ahora = Date.now();
   const historial: Consulta[] = (historialRes.data ?? [])
@@ -96,10 +141,20 @@ export const cargarOjoExperto = cache(async (): Promise<EstadoOjoExperto | null>
       haceDias: Math.floor((ahora - new Date(c.created_at).getTime()) / 86_400_000),
     }));
 
+  // El cupo que le toca según tenga o no el programa. Si la tabla no contesta,
+  // el de respaldo — nunca se deja a alguien con "ilimitado" por un fallo.
+  const filas = cuposRes.data ?? [];
+  const aCupo = (p: string, respaldo: Cupo): Cupo => {
+    const f = filas.find((c) => c.publico === p);
+    return f ? { preguntas: f.preguntas_mes, fotos: f.fotos_mes } : respaldo;
+  };
+
   return {
     historial,
     uso: usoRes.data ?? { preguntas: 0, fotos: 0 },
     tieneAcceso,
     nombre: perfil.nombre,
+    cupo: aCupo(tieneAcceso ? "miembro" : "regalo", CUPO_DE_RESPALDO),
+    cupoMiembro: aCupo("miembro", CUPO_DE_RESPALDO),
   };
 });

@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { LIMITE_FOTOS, LIMITE_PREGUNTAS } from "@/lib/config";
+
 import { costoEnUsd, leerConsumo } from "@/lib/costo-ia";
 import { aiEnv } from "@/lib/env";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -70,14 +70,33 @@ export async function POST(req: Request) {
   }
   const userId = userData.user.id;
 
-  // El acceso también se valida en servidor: el cliente puede mentir.
-  // Usa la MISMA regla que la base de datos (activa, en gracia, o cancelada con período
-  // vigente). `tiene_acceso_de` solo la puede llamar el servidor — desde el navegador está
-  // revocada para que nadie pueda averiguar quién tiene membresía activa.
-  const { data: puedeEntrar } = await db.rpc("tiene_acceso_de", { uid: userId });
-  if (!puedeEntrar) {
-    return NextResponse.json({ error: "sin membresía activa" }, { status: 403 });
+  /*
+    ⚠️ AQUÍ HABÍA UN PORTAZO: `if (!tiene_acceso_de) → 403 sin membresía activa`.
+
+    Desde la 0012 el Ojo Experto ya no exige haber comprado: exige TENER CUENTA
+    y que te quede cupo. Quien se registró gratis entra con 3 consultas al mes;
+    quien tiene el programa, con 40. La puerta no es un sí/no, es un número.
+
+    El cupo lo dice la base (`cupo_de`), no una constante en el código: antes los
+    límites vivían en `lib/config.ts` y los repetían la API y la pantalla, que es
+    la forma clásica de que dentro de un mes prometan cosas distintas.
+
+    Sigue sin haber forma de entrar sin sesión: el token se valida arriba.
+  */
+  const { data: cupoFilas } = await db.rpc("cupo_de", { uid: userId });
+  const cupo = Array.isArray(cupoFilas) ? cupoFilas[0] : null;
+
+  if (!cupo) {
+    // La base no supo decir de qué público es. Fallar cerrado: sin cupo no se
+    // gasta IA. Es una situación imposible salvo que falten filas en `cupos`.
+    return NextResponse.json(
+      { error: "No pudimos verificar tu cupo. Vuelve a intentar." },
+      { status: 503 },
+    );
   }
+
+  const LIMITE_PREGUNTAS = cupo.preguntas_mes as number;
+  const LIMITE_FOTOS = cupo.fotos_mes as number;
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {

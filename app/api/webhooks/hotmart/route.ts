@@ -298,7 +298,17 @@ export async function POST(req: Request) {
       });
       if (authErr || !creado.user) throw authErr ?? new Error("no se pudo crear el usuario");
 
-      await db.from("profiles").insert({
+      /*
+        `upsert`, no `insert`. Desde la 0012 un disparador crea el perfil en
+        cuanto nace la cuenta, así que para cuando llegamos aquí la fila YA
+        existe y un `insert` reventaría por clave duplicada — dejando a una
+        alumna que acaba de pagar sin su acceso.
+
+        También cubre el caso de quien probó gratis y DESPUÉS compró: su perfil
+        existía con `status` nulo y aquí se completa con su plan y su compra, sin
+        perder nada de lo que hizo mientras tanto.
+      */
+      await db.from("profiles").upsert({
         id: creado.user.id,
         email,
         nombre,

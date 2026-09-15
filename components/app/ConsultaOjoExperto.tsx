@@ -7,8 +7,7 @@ import { BarraProgreso } from "@/components/app/BarraProgreso";
 import { CountUp } from "@/components/app/CountUp";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
-import { LIMITE_FOTOS, LIMITE_PREGUNTAS } from "@/lib/config";
-import type { Consulta, UsoMensual } from "@/lib/ojo-experto";
+import type { Consulta, Cupo, UsoMensual } from "@/lib/ojo-experto";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 const SUGERENCIAS = [
@@ -26,9 +25,21 @@ type Estado = "idle" | "enviando" | "respondido" | "error";
 export function ConsultaOjoExperto({
   historialInicial,
   usoInicial,
+  cupo,
 }: {
   historialInicial: Consulta[];
   usoInicial: UsoMensual;
+  /**
+   * Cuántas preguntas y fotos tiene al mes. Llega del servidor, que lo lee de
+   * la tabla `cupos` (migración 0012).
+   *
+   * ⚠️ ANTES ERAN DOS CONSTANTES IMPORTADAS de `lib/config.ts`, las mismas que
+   * usaba la API. Dos copias del mismo número: el día que una cambiara, la
+   * pantalla prometería "40 preguntas" y el servidor cortaría en otra cifra. Y
+   * con dos cupos distintos (gratis y alumna) la constante ya no podía ni ser
+   * correcta para los dos.
+   */
+  cupo: Cupo;
 }) {
   const [pregunta, setPregunta] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
@@ -48,8 +59,8 @@ export function ConsultaOjoExperto({
     };
   }, [vistaPrevia]);
 
-  const sinPreguntas = uso.preguntas >= LIMITE_PREGUNTAS;
-  const sinFotos = uso.fotos >= LIMITE_FOTOS;
+  const sinPreguntas = uso.preguntas >= cupo.preguntas;
+  const sinFotos = uso.fotos >= cupo.fotos;
   const sinCupo = foto ? sinFotos : sinPreguntas;
   const hayAlgoQueEnviar = Boolean(foto) || pregunta.trim().length >= 3;
   const bloqueado = estado === "enviando" || !hayAlgoQueEnviar || sinCupo;
@@ -317,8 +328,8 @@ export function ConsultaOjoExperto({
           >
             <AlertCircle size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
             {foto
-              ? `Llegaste a tus ${LIMITE_FOTOS} fotos de este mes. Se renuevan el día 1 — mientras tanto puedes escribirme tus dudas.`
-              : `Llegaste a tus ${LIMITE_PREGUNTAS} preguntas de este mes. Se renuevan el día 1 — mientras tanto, tus videos y patrones siguen disponibles.`}
+              ? `Llegaste a tus ${cupo.fotos} fotos de este mes. Se renuevan el día 1 — mientras tanto puedes escribirme tus dudas.`
+              : `Llegaste a tus ${cupo.preguntas} preguntas de este mes. Se renuevan el día 1 — mientras tanto, tus videos y patrones siguen disponibles.`}
           </p>
         )}
 
@@ -377,8 +388,8 @@ export function ConsultaOjoExperto({
           Tu uso este mes
         </p>
         <div className="mt-3 flex gap-6">
-          <Medidor label="Preguntas" usadas={uso.preguntas} total={LIMITE_PREGUNTAS} />
-          <Medidor label="Fotos" usadas={uso.fotos} total={LIMITE_FOTOS} />
+          <Medidor label="Preguntas" usadas={uso.preguntas} total={cupo.preguntas} />
+          <Medidor label="Fotos" usadas={uso.fotos} total={cupo.fotos} />
         </div>
         <p className="text-text-tertiary mt-3" style={{ fontSize: "var(--text-xs)" }}>
           Se renueva el 1 de cada mes. Incluido en tu membresía, sin costo extra.
