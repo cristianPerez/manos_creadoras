@@ -231,9 +231,30 @@ reorganiza el repo.
   false`.
   🔴 **PENDIENTE: la política de privacidad no menciona Mixpanel.** Hay que
   añadirlo antes de vender.
-- **Fase 6 · Errores.** `reportError` como único sitio por donde sale un fallo
-  técnico, en JSON de una línea, sin proveedor. `error.tsx` / `global-error.tsx`.
-  ⚠️ Nada personal en los logs: salen del edificio en cuanto haya un drain.
+- **Fase 6 · Errores — ✅ HECHA Y MEDIDA (2026-09-15).** `lib/fallos.ts` con
+  `reportarFallo` / `reportarAviso`: JSON de una línea, sin proveedor (hoy a la
+  consola, que en el servidor ya recoge Vercel). El día que entre Sentry o
+  Datadog se cablea en ESE archivo y en ninguno más.
+  **La distinción que lo hace útil:** aquí solo van las cosas ROTAS. Quedarse sin
+  cupo, sin presupuesto o que se corrija una promesa NO son fallos — son el
+  producto funcionando, y viven en Mixpanel. Mezclarlos hace que ninguna de las
+  dos herramientas cuente la verdad.
+  Conectado en 6 sitios donde antes el fallo se perdía, el más caro de ellos:
+  **el webhook fallando a mitad de darle acceso a alguien que ya pagó** — antes
+  solo quedaba una fila en `webhook_log` que nadie mira.
+  `app/(app)/error.tsx` YA EXISTÍA pero no reportaba nada: le enseñaba a la
+  alumna un mensaje amable y el fallo se perdía. Ahora reporta el `digest`.
+  Nuevo `app/global-error.tsx` para cuando revienta el layout raíz. ⚠️ No usa
+  NINGÚN token ni componente de la app, y los colores salen de
+  `lib/marca.ts` (`COLORES_SIN_CSS`): si se está pintando, lo que falló pudo ser
+  la carga del propio `globals.css`, y un error boundary que depende de lo que se
+  rompió deja la pantalla en blanco — justo lo que venía a evitar.
+  **Medido:** un webhook con basura en vez de JSON deja
+  `{"nivel":"error","area":"webhook","mensaje":"Hotmart mandó algo que no es
+  JSON","bytes":19}`. Revisados los 6 sitios: solo pasan códigos, contadores y
+  longitudes. **Cero correos en los registros.**
+  ⚠️ Nada personal en los logs, nunca: salen del edificio en cuanto haya un
+  recolector. Ni correos, ni nombres, ni el texto de las preguntas, ni fotos.
 
 **Regla de trabajo de este plan:** un cambio de esquema = un archivo de
 migración nuevo, nunca SQL suelto. **Se aplican solo a QA**; a producción no

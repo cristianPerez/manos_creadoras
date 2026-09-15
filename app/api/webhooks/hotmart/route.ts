@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPayload, isFresh, verifyHotmart } from "@/lib/hotmart-verify";
+import { reportarFallo } from "@/lib/fallos";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -162,6 +163,7 @@ export async function POST(req: Request) {
   try {
     payload = JSON.parse(raw);
   } catch {
+    reportarFallo("webhook", "Hotmart mandó algo que no es JSON", { bytes: raw.length });
     await registrar(db, null, null, "error");
     return NextResponse.json({ error: "payload inválido" }, { status: 400 });
   }
@@ -327,7 +329,21 @@ export async function POST(req: Request) {
 
     await registrar(db, eventId, eventType, "applied");
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (e) {
+    /*
+      ⚠️ ESTE ES EL FALLO MÁS CARO DE TODA LA APP: alguien pagó y algo se rompió
+      en medio de darle su acceso. Hasta hoy solo quedaba una fila en
+      `webhook_log` que nadie mira. Ahora sale por el canal único, así que el día
+      que haya un recolector de logs esto dispara una alerta.
+
+      Sin correo ni nombre: el `event_id` de Hotmart basta para encontrar la
+      compra en su panel, y no dice quién es nadie.
+    */
+    reportarFallo("webhook", "no se pudo aplicar un evento de compra", {
+      event_id: eventId ?? "sin-id",
+      tipo: eventType,
+      detalle: e instanceof Error ? e.message : "desconocido",
+    });
     // CRÍTICO: soltar la marca de idempotencia. Si la dejamos, el reintento de Hotmart se
     // descarta como duplicado y una alumna que YA PAGÓ nunca recibiría su acceso.
     await db.from("processed_events").delete().eq("event_id", eventId);

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { costoEnUsd, leerConsumo } from "@/lib/costo-ia";
+import { reportarAviso, reportarFallo } from "@/lib/fallos";
 import { respuestaSimulada, simulacionActiva } from "@/lib/ia-simulada";
 import { auditarPromesas, RESPUESTA_CORREGIDA } from "@/lib/promesas";
 import { aiEnv } from "@/lib/env";
@@ -285,7 +286,23 @@ export async function POST(req: Request) {
       fotos,
       periodo,
     });
-  } catch {
+  } catch (e) {
+    /*
+      Gemini no contestó, o contestó algo que reventó el camino.
+
+      ⚠️ Se apunta la CLASE de error y su mensaje técnico, nunca la pregunta de
+      la alumna ni la foto: eso es texto sobre lo que ella está tejiendo, y los
+      registros salen del edificio en cuanto haya un recolector.
+
+      Esto SÍ es un fallo técnico —algo está roto— a diferencia de quedarse sin
+      cupo o sin presupuesto, que son el producto funcionando y viven en
+      Mixpanel.
+    */
+    reportarFallo("ojo-experto", "la llamada a la IA falló", {
+      modelo: env.AI_MODEL,
+      publico,
+      detalle: e instanceof Error ? e.message : "desconocido",
+    });
     return NextResponse.json(
       { error: "No pudimos conectar con el Ojo Experto. Vuelve a intentar." },
       { status: 502 },
@@ -338,14 +355,9 @@ async function guardarYResponder(
       edificio en cuanto haya un recolector de logs. El número basta para lo
       único que hay que vigilar: si sube, el prompt se rompió.
     */
-    console.warn(
-      JSON.stringify({
-        nivel: "aviso",
-        donde: "ojo-experto",
-        que: "respuesta con promesa de ingresos, corregida",
-        coincidencias: veredicto.coincidencias,
-      }),
-    );
+    reportarAviso("ojo-experto", "respuesta con promesa de ingresos, corregida", {
+      coincidencias: veredicto.coincidencias,
+    });
   }
 
   // Se guarda la CORREGIDA, no la que traía la promesa: el historial lo vuelve a
@@ -399,6 +411,16 @@ function interpretar(crudo: string): { esDelTema: boolean; respuesta: string } {
     const json = JSON.parse(crudo) as { es_del_tema?: boolean; respuesta?: string };
     return { esDelTema: json.es_del_tema !== false, respuesta: (json.respuesta ?? "").trim() };
   } catch {
+    /*
+      El modelo devolvió algo que no es JSON válido — normalmente porque la
+      respuesta se cortó por el tope de tokens. Se rescata abajo, pero se apunta:
+      si esto sube, el tope se quedó corto y hay alumnas viendo frases a medias.
+
+      Es un AVISO y no un error: la alumna recibe su respuesta igual.
+    */
+    reportarAviso("ojo-experto", "la IA devolvió un JSON roto; se rescató el texto", {
+      largo: crudo.length,
+    });
     // JSON truncado o malformado: sacar el texto de "respuesta" aunque no cierre.
     const m = crudo.match(/"respuesta"\s*:\s*"((?:[^"\\]|\\.)*)/);
     const rescatado = m
