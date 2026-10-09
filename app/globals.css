@@ -1,69 +1,115 @@
 @import "tailwindcss";
 
-/* Tokens derivados de FICHA-ARTE.md — Opción B "Editorial de Revista" (cosa juzgada, no editar sin actualizar la ficha) */
+/* ============================================================================
+   PALETA DE MARCA — "Crema y tinta" (2026-10-09)
+   ============================================================================
+   Reemplaza la paleta oscura de la Opción B. La referencia nueva la dio
+   Cristian y, según el protocolo 16, la referencia del dueño MANDA sobre
+   cualquier decisión anterior.
+
+   ⚠️ POR QUÉ ESTE ARCHIVO FLIPEA LA APP ENTERA DE GOLPE. Las 12 pantallas no
+   usan ni un color suelto: todas piden `--surface-primary`, `--text-primary`,
+   `--border-default`… Así que remapear esos nombres a los valores claros
+   convierte la app entera sin tocar un solo componente. Es exactamente para
+   esto que existían los tokens.
+
+   ⚠️ LOS TOKENS VAN EN HEX, NO EN HSL como pedía el prompt. El HSL ahí era para
+   que los componentes de shadcn heredaran la paleta — y este proyecto no usa
+   shadcn: no hay `tailwind.config.ts` (Tailwind v4 declara el tema en este
+   mismo archivo con `@theme`). Meter HSL solo en estos doce y dejar el resto en
+   hex daría dos formatos conviviendo sin ganar nada.
+   ============================================================================ */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ====== SUPERFICIES ====== */
-  --surface-base: #090706;
-  --surface-primary: #120f0c;
-  --surface-secondary: #171310;
-  --surface-tertiary: #060504;
-  --surface-elevated: #171310;
-  --surface-overlay: rgba(5, 4, 3, 0.75);
+  /* ====== LOS 12 TOKENS DE MARCA — la fuente única ====== */
+  --cream: #FBF6EE;       /* fondo principal */
+  --sand: #F3E8D7;        /* secciones alternas, fondo del toggle */
+  --ivory: #FFFDF9;       /* tarjetas */
+  --line: #E5D6BF;        /* bordes y divisores */
 
-  /* ====== TEXTOS ====== */
-  --text-primary: #f6f1e7;
-  --text-secondary: #c9beac;
-  --text-tertiary: #8a8378;
-  --text-inverse: #1a1206;
+  --gold-light: #D9B97A;  /* ⚠️ acentos y badges SOLO sobre fondo oscuro */
+  --gold-pale: #F0D9A8;   /* precio dentro de la tarjeta oscura */
+  --gold: #8C6A2F;        /* ⚠️ el ÚNICO dorado válido sobre crema */
+  --gold-deep: #83602A;   /* final del degradado del botón principal */
+  --gold-start: #9C7638;  /* inicio del degradado del botón principal */
 
-  /* ====== BORDES ====== */
-  --border-default: rgba(225, 175, 74, 0.22);
-  --border-strong: rgba(225, 175, 74, 0.4);
-  --border-focus: #e1af4a;
+  --cacao: #6E4B2C;       /* inicio del degradado de la tarjeta destacada */
+  --espresso: #2A1F19;    /* texto principal, secciones y botones oscuros */
+  --ink-body: #5E4D40;    /* párrafos */
+  --ink-muted: #6B5A4C;   /* notas y textos secundarios */
 
-  /* ====== MARCA — dorado (único acento, 60-30-10) ====== */
-  --brand-primary: #e1af4a;
-  --brand-gradient-start: #ebcd8c;
-  --brand-gradient-end: #d48e00;
-  --brand-primary-soft: rgba(225, 175, 74, 0.12);
-  --brand-primary-text: #1a1206;
+  /*
+    ⚠️ REGLA DE CONTRASTE QUE NO SE PUEDE ROMPER: el dorado sobre crema es
+    SIEMPRE `--gold` (#8C6A2F). `--gold-light` sobre crema da 1,9:1 — ilegible,
+    y es el error más fácil de cometer porque en pantalla "se ve bonito".
+    `--gold-light` y `--gold-pale` existen solo para ir encima de espresso.
+  */
 
-  /* ====== ALIAS CORTOS ====== */
+  /* ====== ALIAS: los nombres que ya usan las 12 pantallas ====== */
+  /* Cambiar aquí los valores es lo que convierte la app entera. */
+  --surface-base: var(--cream);
+  --surface-primary: var(--ivory);
+  --surface-secondary: var(--sand);
+  --surface-tertiary: var(--sand);
+  --surface-elevated: var(--ivory);
+  --surface-overlay: rgba(42, 31, 25, 0.55);
+
+  --text-primary: var(--espresso);
+  --text-secondary: var(--ink-body);
+  --text-tertiary: var(--ink-muted);
+  --text-inverse: #FFFFFF;      /* texto sobre el botón dorado y sobre espresso */
+
+  --border-default: var(--line);
+  --border-strong: #D8C3A2;
+  --border-focus: var(--gold);
+
+  --brand-primary: var(--gold);
+  --brand-gradient-start: var(--gold-start);
+  --brand-gradient-end: var(--gold-deep);
+  --brand-primary-soft: rgba(140, 106, 47, 0.1);
+  --brand-primary-text: #FFFFFF;
+
+  /* Degradado de la tarjeta destacada de planes */
+  --card-destacada: linear-gradient(160deg, var(--cacao), #3B2A20 72%);
+
   --bg: var(--surface-base);
   --surface: var(--surface-primary);
   --text: var(--text-primary);
   --accent: var(--brand-primary);
 
-  /* ====== SEMÁNTICOS ====== */
-  --status-success: #4ade80;
-  --status-success-soft: rgba(74, 222, 128, 0.12);
-  --status-error: #f87171;
-  --status-error-soft: rgba(248, 113, 113, 0.12);
-  --status-warning: #f5a524;
-  --status-warning-soft: rgba(245, 165, 36, 0.12);
-  --status-info: #7dd3fc;
-  --status-info-soft: rgba(125, 211, 252, 0.12);
+  /* ====== SEMÁNTICOS — recalibrados para fondo CLARO ====== */
+  /* Los de antes (#4ade80, #f87171) brillaban sobre negro y sobre crema dan
+     menos de 3:1. Estos son las mismas señales, oscurecidas para que se lean. */
+  --status-success: #2F7D4F;
+  --status-success-soft: rgba(47, 125, 79, 0.1);
+  --status-error: #B3261E;
+  --status-error-soft: rgba(179, 38, 30, 0.08);
+  --status-warning: #8A5A00;
+  --status-warning-soft: rgba(138, 90, 0, 0.1);
+  --status-info: #2A5D8A;
+  --status-info-soft: rgba(42, 93, 138, 0.1);
 
-  /* ====== SOMBRAS — glow dorado ambiental (dispositivo firma) ====== */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
-  --shadow-gold: 0 20px 60px -20px rgba(225, 175, 74, 0.4);
-  --shadow-overlay: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  /* ====== SOMBRAS — cálidas y suaves ====== */
+  /* Las de antes eran negro puro al 50-70%: sobre crema eso es un borrón gris.
+     Estas tiran al espresso y son mucho más tenues. */
+  --shadow-sm: 0 1px 2px rgba(42, 31, 25, 0.06);
+  --shadow-md: 0 4px 12px -2px rgba(42, 31, 25, 0.08);
+  --shadow-lg: 0 12px 32px -8px rgba(42, 31, 25, 0.12);
+  --shadow-gold: 0 18px 44px -18px rgba(140, 106, 47, 0.28);
+  --shadow-overlay: 0 25px 50px -12px rgba(42, 31, 25, 0.25);
 
   /* ====== RADIOS ====== */
   --radius-sm: 0.5rem;    /* 8px — chips, badges */
-  --radius-md: 0.75rem;   /* 12px — inputs, botones secundarios */
-  --radius-lg: 1rem;      /* 16px — botones grandes no-pill */
-  --radius-xl: 1.5rem;    /* 24px — cards (medido del sitio actual) */
-  --radius-device: 2rem;  /* 32px — SOLO el marco de teléfono del carrusel, nunca cards de contenido */
-  --radius-full: 9999px;  /* pill — CTA primario */
+  --radius-md: 0.75rem;   /* 12px — inputs */
+  --radius-lg: 1.25rem;   /* 20px — tope bajo del rango 20-30 de la guía */
+  --radius-xl: 1.875rem;  /* 30px — tope alto: tarjetas grandes */
+  --radius-device: 2rem;  /* 32px — SOLO el marco de teléfono del carrusel */
+  --radius-full: 9999px;  /* píldora — botones */
 
   /* ====== TIPOGRAFÍA — las *-src las inyecta next/font desde app/layout.tsx ====== */
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
-  --font-body: var(--font-body-src), "Jost", system-ui, sans-serif;
+  --font-body: var(--font-body-src), "Manrope", system-ui, sans-serif;
 
   --text-xs: 0.75rem;     /* 12px — labels/eyebrows (tope del rango 11-12 de la ficha) */
   --text-sm: 0.875rem;    /* 14px — cuerpo (rango 13.5-15 de la ficha; mínimo legible del SO) */
@@ -135,8 +181,8 @@
   --color-status-warning: var(--status-warning);
 
   /* Stack completo, sin indirección: si aquí se pusiera var(--font-display) se auto-referencia */
-  --font-sans: var(--font-body-src), "Jost", system-ui, sans-serif;
-  --font-body: var(--font-body-src), "Jost", system-ui, sans-serif;
+  --font-sans: var(--font-body-src), "Manrope", system-ui, sans-serif;
+  --font-body: var(--font-body-src), "Manrope", system-ui, sans-serif;
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
 
   --radius-sm: var(--radius-sm);
@@ -163,9 +209,9 @@
 }
 
 body {
-  background:
-    radial-gradient(ellipse 900px 500px at 50% 0%, color-mix(in srgb, var(--brand-primary) 12%, transparent), transparent),
-    linear-gradient(180deg, var(--surface-tertiary) 0%, var(--bg) 55%);
+  /* Crema plano. El degradado radial de antes era un halo dorado sobre negro:
+     sobre crema se convierte en una mancha sucia en la parte de arriba. */
+  background: var(--bg);
   color: var(--text);
 }
 
@@ -180,7 +226,7 @@ body {
  * con ancho fijo — el tamaño y el peso siguen dando la jerarquía.
  */
 .cifra {
-  font-family: var(--font-body-src), "Jost", system-ui, sans-serif;
+  font-family: var(--font-body-src), "Manrope", system-ui, sans-serif;
   font-variant-numeric: lining-nums tabular-nums;
   letter-spacing: -0.01em;
 }
@@ -228,7 +274,10 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
+  /* `overlay` sobre un fondo claro es casi invisible; `multiply` sí deja el
+     grano del papel, que es el dispositivo ownable. Y baja la opacidad: lo que
+     sobre negro era sutil, sobre crema ensucia. */
+  opacity: 0.035;
+  mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { Analitica } from "@/components/app/Analitica";
 import { MotionProvider } from "@/components/app/MotionProvider";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
@@ -17,10 +17,17 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
-const jost = Jost({
+/*
+  Manrope reemplaza a Jost (2026-10-09, paleta nueva).
+
+  Pesos: la guía de marca pide 400, 600 y 700. Se añade el 500 porque las 12
+  pantallas que ya existen lo usan en decenas de sitios; quitarlo las haría caer
+  al 400 y perderían jerarquía sin que nadie tocara nada.
+*/
+const manrope = Manrope({
   variable: "--font-body-src",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -66,7 +73,7 @@ export default async function RootLayout({
   return (
     <html
       lang="es"
-      className={`${cormorant.variable} ${jost.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-dvh flex flex-col bg-surface-base text-text-primary font-body">
         <MotionProvider>{children}</MotionProvider>
