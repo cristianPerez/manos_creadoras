@@ -15,8 +15,19 @@ a propósito. Lo que se termina, se quita de aquí.
 
 ## ⏸️ Dónde estamos (2026-10-09)
 
-**El código está listo y probado contra servicios reales.** Lo que falta para
-vender no es código: son cuentas, contenido y dos datos de Cristian.
+**Rediseño en curso.** Cristian entregó una guía de marca y 7 pantallas de
+referencia (`design-ref/`). Con eso se hicieron tres cosas:
+
+1. La paleta pasó de **oscura a clara** ("crema y tinta"). Las 12 pantallas se
+   convirtieron solas porque ninguna tenía colores sueltos: todas piden tokens.
+2. Los planes pasaron de **uno a tres** (Aprendiz / Creadora / Maestra).
+3. El **home se reconstruyó entero** contra el diseño — 11 secciones nuevas.
+
+⚠️ **La FICHA-ARTE.md está DESACTUALIZADA**: describe el tema oscuro y la fuente
+Jost. La guía nueva (`design-ref/07-guia-de-marca.png`) la sustituye y manda
+sobre ella. Hay que reescribir la ficha antes de la próxima pantalla.
+
+**Lo que falta para vender no es código:** son cuentas, contenido y dos datos.
 
 QA vive en Vercel, es público y despliega solo con cada `push` a `develop`.
 
@@ -29,15 +40,44 @@ las 4 cuentas, las 8 concesiones y las 9 lecciones estaban intactas.
 
 ---
 
+## 🟡 Decisiones del home que esperan a Cristian
+
+El revisor visual puntuó el home en **26/40 usabilidad · 14/20 craft · 9/20
+copy**, con fidelidad al diseño **FIEL**. Los defectos técnicos se corrigieron;
+estos tres son decisiones de producto, no fallos:
+
+1. **El Ojo Experto no se nombra ni una vez.** La ficha de avatar dice que el
+   ángulo de venta es "la única escuela con un mentor de IA que revisa tus
+   fotos" — y el home nuevo no lo menciona. El producto tiene la función
+   construida y funcionando. Es el hallazgo más caro del reporte.
+2. **No hay sección de dolor.** El diseño va directo a enseñar producto. Para
+   quien ya teje y llega buscando, funciona; para tráfico frío de anuncios,
+   suele costar conversión.
+3. **No hay testimonios.** El diseño no los contempla y no tenemos ninguno real.
+
+---
+
 ## 🔴 Bloqueos para vender
 
-- [ ] **Hotmart: crear el producto de SUSCRIPCIÓN.** `lib/config.ts` apunta al
-      producto VIEJO de pago único ($25), así que los botones cobran lo que no
-      es. **Es el único que impide cobrar.** Después: webhook a
-      `https://DOMINIO/api/webhooks/hotmart` y el hottok en `HOTMART_HOTTOK`.
-      ⚠️ Verificar en su panel los nombres EXACTOS de los eventos de suscripción
-      y contrastarlos con la tabla `EVENTO_A_ESTADO` del webhook — el catálogo
-      varía por cuenta.
+- [ ] **El cobro: Hotmart SALE, entra OnePay** (decisión de Cristian,
+      2026-10-09). Esto ya no es "crear un producto": es **construir una
+      pantalla de pago**. Detalle largo en `lib/planes.ts`; lo esencial:
+      - OnePay **no tiene checkout alojado** para suscripciones. Hotmart daba un
+        enlace; OnePay exige tokenizar la tarjeta con su SDK **dentro de nuestra
+        app** + 3D Secure. Contradice la decisión cerrada de "no hay paywall
+        propio", que hay que reabrir.
+      - ✅ **Sí cobra en dólares** (confirmado por Cristian el 2026-10-09). La
+        investigación de El Charcu decía que solo COP; esa parte queda superada.
+      - ⚠️ El entorno lo decide la **CLAVE** (`sk_test_` vs `sk_live_`), no la
+        URL: una clave live en QA **cobra de verdad**.
+      - Webhook: la firma va en el header `Signature` (NO `x-onepay-signature`),
+        sobre el cuerpo CRUDO, comparación en tiempo constante, responder 2xx en
+        <10 s, y **idempotente** porque reintenta 6 veces con el mismo cuerpo.
+      - Investigación completa: `git show 6a644b2:ESTADO.md` en el repo elcharcu,
+        sección "1. Pagos — OnePay".
+      ✅ **Mientras tanto SE PUEDE COBRAR YA**: `npm run acceso:dar` activa a mano.
+      Cuando OnePay funcione, su webhook inserta una concesión más y no se
+      rediseña nada.
 - [ ] **La identificación del responsable de los datos** (cédula o NIT de
       Elizabeth Valencia) y un domicilio. Va en `lib/legal.ts`
       (`IDENTIFICACION` / `DOMICILIO`) y las dos páginas legales lo recogen
@@ -59,6 +99,14 @@ las 4 cuentas, las 8 concesiones y las 9 lecciones estaban intactas.
       busca, y en pantalla se leen como marcadores de posición.
 - [ ] **Listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan).
 - [ ] **2-3 testimonios reales** (capturas de WhatsApp) para la landing.
+      ⚠️ Ahora pesa más: el home nuevo **no tiene ni un testimonio**, porque el
+      diseño no los contempla. El revisor visual lo marcó como el fallo nº1.
+- [ ] **El nombre del curso gratis.** El diseño lo dejó como
+      `[NOMBRE DEL CURSO GRATIS]` y en `lib/planes.ts` sigue con una
+      descripción provisional.
+- [ ] **Confirmar la política de cancelación.** La respuesta del FAQ dice lo
+      único que hoy es verdad (se cancela escribiendo) sin prometer un botón
+      que no existe.
 
 ---
 
