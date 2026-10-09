@@ -158,6 +158,21 @@
 }
 
 @theme inline {
+  /* Los 12 tokens de marca, disponibles como clases: bg-cream, text-gold,
+     border-line… Es lo que permite escribir las pantallas sin un solo hex. */
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  --color-ivory: var(--ivory);
+  --color-line: var(--line);
+  --color-gold-light: var(--gold-light);
+  --color-gold-pale: var(--gold-pale);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-cacao: var(--cacao);
+  --color-espresso: var(--espresso);
+  --color-ink-body: var(--ink-body);
+  --color-ink-muted: var(--ink-muted);
+
   --color-surface-base: var(--surface-base);
   --color-surface-primary: var(--surface-primary);
   --color-surface-secondary: var(--surface-secondary);
@@ -220,10 +235,18 @@ body {
 }
 
 /*
- * Cormorant trae SOLO figuras de texto (el 0 se lee como una "o" chiquita y el 1 como
- * una "i") y la versión de Google no expone `lnum`: precioso en un párrafo, ilegible
- * en un dato. Por eso todo número que se LEE como dato se compone en la sans del kit,
- * con ancho fijo — el tamaño y el peso siguen dando la jerarquía.
+ * Números que se leen como DATO (medidores, contadores, "3 de 40").
+ *
+ * Cormorant trae solo figuras de texto —el 0 parece una "o" chiquita y el 1 una
+ * "i"— y la versión de Google no expone `lnum`: precioso en un párrafo,
+ * ilegible en un dato que hay que comparar de un vistazo. Por eso estos van en
+ * la sans del kit, con ancho fijo.
+ *
+ * ⚠️ NO SE APLICA A LOS PRECIOS. La guía de marca nueva (2026-10-09) pide
+ * Cormorant explícitamente para "titulares, cifras y precios", y en el diseño
+ * esas figuras de texto son justo el gesto editorial que hace que un precio
+ * parezca una boutique y no un carrito de compras. Un precio no se compara con
+ * otro de un vistazo: se lee una vez y se decide.
  */
 .cifra {
   font-family: var(--font-body-src), "Manrope", system-ui, sans-serif;
@@ -280,4 +303,53 @@ body {
   opacity: 0.035;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================================
+   UTILIDADES DE LA GUÍA DE MARCA
+   Tres piezas que se repiten en TODAS las secciones. Vivirían copiadas en diez
+   componentes, y el día que la guía cambie el tracking de los eyebrows habría
+   que acordarse de los diez.
+   ============================================================================ */
+
+/* Etiqueta pequeña sobre cada sección. Manrope 600, 12px, versales, dorado. */
+.eyebrow {
+  font-family: var(--font-body-src), "Manrope", system-ui, sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/*
+  Título de sección y H1 del héroe.
+
+  ⚠️ El tracking negativo es de la guía ("−1,5% en tamaños grandes") y solo
+  aplica aquí: en 14px apretar las letras las pega, pero en 54px el espaciado
+  por defecto de Cormorant abre demasiado y el titular se desarma.
+*/
+.titulo-seccion {
+  font-family: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(36px, 4vw, 54px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--espresso);
+}
+
+.titulo-hero {
+  font-family: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(46px, 5.6vw, 82px);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  color: var(--espresso);
+}
+
+/* La palabra clave del titular: cursiva y dorada. Es el gesto de la marca. */
+.clave {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--gold);
 }
