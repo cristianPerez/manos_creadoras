@@ -73,6 +73,15 @@
   /* Degradado de la tarjeta destacada de planes */
   --card-destacada: linear-gradient(160deg, var(--cacao), #3B2A20 72%);
 
+  /*
+   * El botón principal de la guía: degradado dorado con el texto en espresso.
+   *
+   * ⚠️ VA SOBRE ESPRESSO, NO SOBRE DORADO OSCURO. El degradado es claro, así
+   * que el texto encima tiene que ser el casi-negro; en blanco daría menos de
+   * 2:1 y sería ilegible justo en el elemento que más necesita leerse.
+   */
+  --boton-dorado: linear-gradient(135deg, var(--gold-light), var(--gold));
+
   --bg: var(--surface-base);
   --surface: var(--surface-primary);
   --text: var(--text-primary);

@@ -37,7 +37,7 @@ export function Planes() {
 
   return (
     <section id="planes" className="px-5 py-20 md:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <header className="text-center">
           <p className="eyebrow">Planes</p>
           <h2 className="titulo-seccion mt-3 text-balance">Elige cómo quieres crear.</h2>
@@ -209,7 +209,7 @@ function SelectorDePlan({
             role="radio"
             aria-checked={activo}
             onClick={() => alElegir(plan.id)}
-            className={`bg-ivory flex min-h-16 flex-col items-center justify-center rounded-2xl px-2 py-3 text-center transition-colors [touch-action:manipulation] ${
+            className={`bg-ivory flex min-h-16 flex-col items-center justify-center rounded-[var(--radius-lg)] px-2 py-3 text-center transition-colors [touch-action:manipulation] ${
               activo ? "border-gold border-2" : "border-line border"
             }`}
           >
@@ -319,17 +319,35 @@ function BotonPlan({
   const base =
     "mt-8 flex h-14 w-full items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98] [touch-action:manipulation]";
 
+  /*
+   * ⚠️ SIN PASARELA, EL BOTÓN TIENE QUE DECIR A DÓNDE LLEVA. Pulsar
+   * "Suscribirme" y aterrizar en un formulario de contacto sin aviso es una
+   * sorpresa justo en el momento de más intención — se lee como que la página
+   * está rota. La etiqueta se respeta (es la del diseño) y debajo se dice en
+   * una línea qué va a pasar, que es lo que faltaba.
+   */
+  const avisa = url === "" && plan.id !== "aprendiz";
+
   return (
-    <a
-      href={destino}
-      onClick={() => medir(EVENTOS.checkoutAbierto, { plan: plan.id, frecuencia })}
-      className={
-        destacado
-          ? `${base} bg-gold-light text-espresso`
-          : `${base} border-espresso text-espresso border`
-      }
-    >
-      {plan.cta}
-    </a>
+    <>
+      <a
+        href={destino}
+        onClick={() => medir(EVENTOS.checkoutAbierto, { plan: plan.id, frecuencia })}
+        className={
+          destacado
+            ? `${base} bg-gold-light text-espresso`
+            : `${base} border-espresso text-espresso border`
+        }
+      >
+        {plan.cta}
+      </a>
+      {avisa && (
+        <p
+          className={`mt-3 text-center text-xs ${destacado ? "text-white/60" : "text-ink-muted"}`}
+        >
+          Te escribimos para activar tu acceso.
+        </p>
+      )}
+    </>
   );
 }

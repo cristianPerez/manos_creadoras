@@ -1,54 +1,135 @@
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { CountUp } from "@/components/app/CountUp";
-import { Eyebrow } from "@/components/app/Eyebrow";
-import { GoldButton } from "@/components/app/GoldButton";
 import { Reveal } from "@/components/app/Reveal";
+import { BOLSO_DEL_MES, CIFRAS_HERO } from "@/lib/landing";
 
+/**
+ * El héroe: dos columnas en escritorio, apiladas en móvil.
+ *
+ * El diseño pone el texto a la izquierda y una foto grande del bolso del mes a
+ * la derecha, con una tarjeta flotante encima de la esquina inferior izquierda
+ * de la foto.
+ */
 export function Hero() {
+  /*
+   * `grain` es el dispositivo ownable de la marca y no se estaba aplicando en
+   * ningún sitio. Va en el héroe —la primera pantalla— porque es donde el papel
+   * tiene que notarse; regado por toda la página solo ensucia.
+   */
   return (
-    <section className="relative">
-      <div className="relative h-[70vh] w-full grain">
-        <Image
-          src="/images/bag-champagne-facetado.webp"
-          alt="Bolso de lujo en cuentas color champagne, tejido a mano"
-          fill
-          priority
-          className="object-cover brightness-[.55]"
-          sizes="100vw"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(9,7,6,.1) 0%, rgba(9,7,6,.25) 45%, var(--surface-base) 96%)",
-          }}
-        />
-        <div className="absolute inset-x-0 bottom-0 px-4 pb-8 max-w-3xl mx-auto md:px-8">
+    <section className="grain relative px-5 pt-10 pb-16 md:pt-16 md:pb-24">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
+        {/* ── Columna de texto ── */}
+        <div>
           <Reveal>
-            <Eyebrow>Programa premium · Edición 2026</Eyebrow>
+            <p className="flex items-center gap-3">
+              {/* La rayita dorada antes del eyebrow es un gesto del diseño: marca
+                  el inicio de la página sin pesar como un título. */}
+              <span aria-hidden="true" className="bg-gold h-px w-8" />
+              <span className="eyebrow">Membresía · Edición 2026</span>
+            </p>
           </Reveal>
+
           <Reveal delay={0.06}>
-            <h1
-              className="font-display font-normal text-text-primary mt-2"
-              style={{ fontSize: "clamp(2.75rem, 9vw, 3.5rem)", lineHeight: "var(--leading-tight)" }}
-            >
-              Teje bolsos de lujo{" "}
-              <em className="italic text-brand-primary">sin miedo a fallar</em>
+            <h1 className="titulo-hero mt-5 text-balance">
+              Cada mes, un bolso de <em className="clave">lujo</em> nuevo en tus manos.
             </h1>
           </Reveal>
+
           <Reveal delay={0.12}>
-            <p className="text-text-secondary mt-3 max-w-md" style={{ fontSize: "var(--text-base)", lineHeight: "var(--leading-base)" }}>
-              El programa de bolsos en cuentas y malla plástica con <strong className="text-text-primary font-medium">el Ojo Experto</strong>: sube una foto de tu tejido y tu asistente de IA te dice qué ajustar, antes de que sea tarde.
+            <p className="text-ink-body mt-6 max-w-lg text-lg">
+              Únete a la membresía y recibe cada mes un curso completo: video paso a paso, patrón
+              descargable y la lista de materiales. Aprende desde casa y convierte cada colección en
+              ingresos.
             </p>
           </Reveal>
-          <Reveal delay={0.18} className="mt-6 flex flex-col gap-4">
-            <GoldButton href="#oferta">Quiero tejer sin miedo →</GoldButton>
-            <p className="text-text-tertiary" style={{ fontSize: "var(--text-sm)" }}>
-              <span className="text-brand-primary tracking-wider">★★★★★</span>{" "}
-              +<CountUp to={1200} /> alumnas · 4.9/5 · Garantía 7 días
-            </p>
+
+          <Reveal delay={0.18}>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="#planes"
+                className="text-espresso flex h-14 items-center justify-center gap-2 rounded-full px-8 font-semibold transition-transform active:scale-[0.98]"
+                style={{ backgroundImage: "var(--boton-dorado)" }}
+              >
+                Tomar el curso gratis
+                <ArrowRight size={18} aria-hidden="true" />
+              </a>
+              <a
+                href="#como-funciona"
+                className="border-line text-espresso flex h-14 items-center justify-center rounded-full border px-8 font-semibold transition-colors"
+              >
+                Cómo funciona
+              </a>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.24}>
+            <dl className="border-line mt-10 grid grid-cols-3 gap-4 border-t pt-6">
+              {CIFRAS_HERO.map((c) => (
+                <div key={c.pie}>
+                  <dt className="sr-only">{c.pie}</dt>
+                  <dd>
+                    {/* `whitespace-nowrap` y un escalón menos en móvil: a 375px
+                        las tres columnas miden ~105px y "US$ 9,74" se partía
+                        justo por el espacio, dejando el precio en dos líneas. */}
+                    <span
+                      className="font-display text-espresso block text-xl whitespace-nowrap md:text-2xl"
+                      style={{ fontWeight: 500 }}
+                    >
+                      {"animar" in c ? <CountUp to={c.animar} prefix={c.prefijo} agruparSiempre /> : c.valor}
+                    </span>
+                    <span className="text-ink-muted mt-0.5 block text-xs">{c.pie}</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </Reveal>
         </div>
+
+        {/* ── Columna de la foto ── */}
+        <Reveal delay={0.1}>
+          {/*
+            `pb-16` deja sitio bajo la foto para que la tarjeta flotante pueda
+            sobresalir sin que su sombra se corte ni empuje la sección siguiente.
+          */}
+          <div className="relative pb-16 lg:pb-20">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)]">
+              <Image
+                src={`/images/${BOLSO_DEL_MES.imagen}.webp`}
+                alt={`${BOLSO_DEL_MES.nombre}, el bolso en cuentas del curso de este mes`}
+                fill
+                priority
+                sizes="(min-width: 1024px) 560px, 100vw"
+                className="object-cover"
+              />
+            </div>
+
+            {/* La tarjeta flotante. En móvil se centra; en escritorio muerde la
+                esquina inferior izquierda de la foto, como en el diseño. */}
+            <div className="bg-ivory absolute bottom-0 left-1/2 flex w-[min(20rem,90%)] -translate-x-1/2 items-center gap-4 rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-lg)] lg:left-0 lg:translate-x-0">
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-[var(--radius-lg)]">
+                <Image
+                  src={`/images/${BOLSO_DEL_MES.imagen}.webp`}
+                  alt=""
+                  fill
+                  sizes="56px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="eyebrow">Curso de este mes</p>
+                <p
+                  className="font-display text-espresso mt-0.5 truncate text-lg"
+                  style={{ fontWeight: 500 }}
+                >
+                  {BOLSO_DEL_MES.nombre}
+                </p>
+                <p className="text-ink-muted text-xs">Video + patrón + materiales</p>
+              </div>
+            </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

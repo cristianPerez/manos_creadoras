@@ -54,3 +54,4 @@ direcciones-abc.html
 .codex/
 # Archivos temporales del CLI de Supabase
 supabase/.temp/
+.capturas/
