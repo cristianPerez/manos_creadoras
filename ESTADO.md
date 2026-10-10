@@ -40,6 +40,55 @@ las 4 cuentas, las 8 concesiones y las 9 lecciones estaban intactas.
 
 ---
 
+## 👉 PASO SIGUIENTE (decidido por Cristian el 2026-10-10)
+
+**Entrar NO debe depender del webhook.** Como habrá un curso gratis, la
+plataforma tiene que dejar pasar pidiendo solo el correo — y nosotros tenemos
+que poder recorrerla.
+
+### ✅ Lo que YA está construido (no hay que hacerlo)
+
+Se comprobó en el código el 2026-10-10. Tres de las cuatro piezas existen:
+
+- **Se entra solo con el correo, sin contraseña.** `lib/auth.ts` usa enlace
+  mágico (`signInWithOtp`). No hay contraseña que recordar ni que recuperar.
+- **El webhook NUNCA hizo falta para crear la cuenta.** La migración 0012
+  (decisión de Cristian del 2026-09-15) ya creó la **cuenta gratis** con su
+  cupo propio: 3 preguntas y 1 foto al mes. El webhook solo *asciende* a quien
+  paga; no es la puerta.
+- **Ninguna pantalla está cerrada con llave.** `middleware.ts` tiene la lista
+  de rutas privadas VACÍA a propósito. Quién ve qué lo decide el RLS de la base
+  (migraciones 0009, 0010 y 0012), que desde el navegador no se puede burlar.
+- **Ya hay contenido visible sin siquiera entrar:** las lecciones `s2-l01`,
+  `s2-l02` y `s2-l03` están marcadas `es_libre` — 1h21m de clase real.
+
+### 🔴 Lo que falta de verdad
+
+El hueco no es técnico, es de **contenido y de recorrido**:
+
+1. **"3 lecciones sueltas" ≠ "1 curso completo".** El diseño promete en el plan
+   Aprendiz *"1 curso completo: [NOMBRE DEL CURSO GRATIS]"* más *"su patrón
+   descargable y lista de materiales"*. Hoy lo gratis son tres lecciones
+   sacadas de la mitad de la sección 2 — no un curso con principio y final, y
+   sin patrón asociado. **Hay que decidir cuál es el curso regalo y marcarlo
+   entero**, no tres filas sueltas.
+2. **Los tres videos libres son EL MISMO video de prueba.** Ya estaba apuntado
+   más abajo, pero ahora bloquea el camino: es justo lo primero que ve alguien
+   que entra, y hoy ve tres veces lo mismo.
+3. **El botón "Tomar el curso gratis" no lleva a entrar**, lleva a bajar hasta
+   los planes (`#planes`). Si entrar es solo poner el correo, ese botón debería
+   abrir el formulario y ya.
+4. **Para poder recorrer la plataforma** hace falta que Supabase esté
+   despierta (se pausa sola a las 3 semanas — ver el aviso de arriba) y tener
+   una cuenta de prueba. Se crea con el correo, sin tocar nada más.
+
+⚠️ Nada de esto necesita OnePay. Se puede dejar funcionando el camino completo
+—entrar, ver el curso gratis, toparse con el resto cerrado— **antes** de que
+exista la pasarela, y es el orden sensato: primero que la puerta funcione,
+después la caja.
+
+---
+
 ## 🟡 Decisiones del home que esperan a Cristian
 
 El revisor visual puntuó el home en **26/40 usabilidad · 14/20 craft · 9/20
@@ -94,6 +143,9 @@ estos tres son decisiones de producto, no fallos:
 - [ ] **Los videos reales.** Hoy las TRES lecciones de cortesía tienen el mismo
       video de prueba (`f8e8fda0-f7ac-40fb-8c29-b36f6bfe1b78`). Antes de
       enseñárselo a nadie hay que poner el de cada una.
+      🔼 **Subió de prioridad**: con el curso gratis como puerta de entrada,
+      esto es lo PRIMERO que ve quien llega. Ver tres veces el mismo video es
+      peor que no tener curso gratis. Ver el PASO SIGUIENTE arriba.
 - [ ] **Nombres reales de los tutoriales.** Hoy se llaman "Tutorial 2",
       "Tutorial 3"… La alumna no puede recordar dónde estaba la técnica que
       busca, y en pantalla se leen como marcadores de posición.
