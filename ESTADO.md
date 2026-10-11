@@ -72,9 +72,13 @@ El hueco no es técnico, es de **contenido y de recorrido**:
    sacadas de la mitad de la sección 2 — no un curso con principio y final, y
    sin patrón asociado. **Hay que decidir cuál es el curso regalo y marcarlo
    entero**, no tres filas sueltas.
-2. **Los tres videos libres son EL MISMO video de prueba.** Ya estaba apuntado
-   más abajo, pero ahora bloquea el camino: es justo lo primero que ve alguien
-   que entra, y hoy ve tres veces lo mismo.
+2. **🔴 Los tres videos libres NO EXISTEN.** Era peor de lo apuntado. No es que
+   los tres compartan un video de prueba: el id `f8e8fda0-f7ac-40fb-8c29-
+   b36f6bfe1b78` **no está en la biblioteca 723241 de Bunny**, así que el
+   reproductor carga y muestra un **404** (comprobado entrando como alumna el
+   2026-10-11). Hoy la plataforma se abre pero no se puede ver NADA.
+   Es el bloqueo nº1 del curso gratis: da igual lo bien que funcione la puerta
+   si al otro lado hay un 404.
 3. **El botón "Tomar el curso gratis" no lleva a entrar**, lleva a bajar hasta
    los planes (`#planes`). Si entrar es solo poner el correo, ese botón debería
    abrir el formulario y ya.

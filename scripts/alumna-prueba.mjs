@@ -71,8 +71,49 @@ async function crear(correo) {
     perfil.access_until = new Date(Date.now() + 20 * 24 * 3600 * 1000).toISOString();
   }
 
-  const { error: e2 } = await admin.from("profiles").insert(perfil);
-  if (e2) throw new Error(`No se pudo crear el perfil: ${e2.message}`);
+  /*
+   * `upsert` y no `insert`.
+   *
+   * ⚠️ ESTE SCRIPT LLEVABA ROTO DESDE LA MIGRACIÓN 0012 (2026-09-15). Esa
+   * migración añadió el disparador `al_crear_usuario`, que crea el perfil solo
+   * —con `status = null`, o sea cuenta gratis— en cuanto nace el usuario de
+   * auth. Así que cuando llegamos aquí el perfil YA existe y el `insert`
+   * reventaba con "duplicate key value violates unique constraint".
+   *
+   * Es justo el fallo que más molesta: el script existe para poder entrar sin
+   * depender del correo, y estaba fallando precisamente cuando hacía falta.
+   *
+   * El disparador tiene la última palabra sobre que el perfil exista; lo nuestro
+   * es ASCENDERLO al plan de prueba. Eso es un upsert, no un insert.
+   */
+  const { error: e2 } = await admin.from("profiles").upsert(perfil);
+  if (e2) throw new Error(`No se pudo preparar el perfil: ${e2.message}`);
+
+  /*
+   * EL ACCESO SE CONCEDE EN `accesos`, NO EN `profiles.status`.
+   *
+   * ⚠️ SEGUNDO DESFASE DEL SCRIPT, este desde la migración 0008. El perfil de
+   * arriba dice `status: 'active'`, pero desde esa migración quien decide si se
+   * ven las lecciones es `tiene_acceso()`, que mira la tabla `accesos` y ni se
+   * asoma a `profiles`. Resultado: la alumna de prueba entraba y se topaba con
+   * "Tu membresía no está activa" — el script decía haberla creado con plan
+   * anual activo y la pantalla decía que no. Las dos cosas eran ciertas; miraban
+   * sitios distintos.
+   *
+   * Se usa la MISMA función que usan el webhook y `npm run acceso:dar`, que es
+   * justo lo que este script promete imitar.
+   */
+  if (estado === "active") {
+    const { error: eAcceso } = await admin.rpc("otorgar_acceso", {
+      p_user_id: creado.user.id,
+      // `compra` y no `regalo`: este script imita al webhook cobrando, y el
+      // motivo es lo que después responde "¿y esta por qué tiene acceso?".
+      p_motivo: "compra",
+      p_vence_en: null,
+      p_otorgado_por: "script:alumna-prueba",
+    });
+    if (eAcceso) throw new Error(`No se pudo dar el acceso: ${eAcceso.message}`);
+  }
 
   const { data: link, error: e3 } = await admin.auth.admin.generateLink({
     type: "magiclink",
