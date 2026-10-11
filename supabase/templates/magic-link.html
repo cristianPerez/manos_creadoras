@@ -67,7 +67,7 @@
                     <td align="center" bgcolor="#d48e00" style="border-radius:9999px;
                         background-color:#d48e00;
                         background-image:linear-gradient(to right,#ebcd8c,#d48e00);">
-                      <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink"
+                      <a href="{{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/auth/callback{{ end }}?token_hash={{ .TokenHash }}&type=magiclink"
                          style="display:block; padding:16px 24px; font-family:'Jost',Helvetica,Arial,sans-serif;
                                 font-size:16px; font-weight:600; color:#14100c; text-decoration:none;
                                 border-radius:9999px;">
@@ -77,6 +77,19 @@
                   </tr>
                 </table>
 
+                <!-- ⚠️ EL DESTINO LO ELIGE LA APP, NO EL `Site URL`.
+                     Antes esto era `{{ .SiteURL }}` fijo, así que el enlace salía
+                     SIEMPRE hacia QA: daba igual que se pidiera desde localhost,
+                     el correo llegaba apuntando a qa.manoscreadoras.co y no había
+                     forma de entrar en local con el proceso normal.
+                     `.RedirectTo` es lo que la app pidió (`emailRedirectTo` en
+                     lib/auth.ts), y Supabase solo lo rellena si coincide con la
+                     lista de *Redirect URLs* — o sea que no se puede usar para
+                     mandar a una alumna a una web ajena.
+                     El `{{ else }}` conserva el comportamiento viejo para los
+                     correos que se disparan sin destino (invitar a mano desde el
+                     panel), que si no se quedarían con un enlace roto. -->
+
                 <!-- Respaldo: si el botón no se ve (correo en texto plano, cliente raro,
                      imágenes bloqueadas), el enlace sigue estando a la vista. -->
                 <p style="margin:24px 0 0; font-family:'Jost',Helvetica,Arial,sans-serif;
@@ -85,7 +98,7 @@
                 </p>
                 <p style="margin:6px 0 0; font-family:'Jost',Helvetica,Arial,sans-serif;
                           font-size:12px; line-height:1.6; color:#e1af4a; word-break:break-all;">
-                  {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink
+                  {{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/auth/callback{{ end }}?token_hash={{ .TokenHash }}&type=magiclink
                 </p>
               </td>
             </tr>

@@ -35,6 +35,16 @@ export async function requestMagicLink(email: string): Promise<MagicLinkResult> 
       // Sin `shouldCreateUser: false` → si el correo no tiene cuenta, se crea.
       // El disparador de la 0012 le monta su perfil; sin concesiones, así que
       // entra al mismo sitio que un visitante pero con sus 3 consultas.
+      /*
+       * El destino sale del navegador, así que entrar desde localhost manda a
+       * localhost y desde QA manda a QA. Esto funciona porque la plantilla del
+       * correo lo respeta: `supabase/templates/magic-link.html` arma el enlace
+       * con `{{ .RedirectTo }}`, no con el `Site URL` fijo (ver su README).
+       *
+       * ⚠️ SIN `?` NI PARÁMETROS. La plantilla pega `?token_hash=…` justo
+       * detrás; si aquí viniera ya una interrogación saldrían dos y el enlace
+       * llegaría roto al buzón de la alumna.
+       */
       emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   });
