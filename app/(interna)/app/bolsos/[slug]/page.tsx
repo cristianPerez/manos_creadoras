@@ -1,0 +1,189 @@
+import { ArrowLeft, Play, Sparkles } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ListaMateriales, TarjetaDirectorio } from "@/components/app/ListaMateriales";
+import { PasoAPaso } from "@/components/app/PasoAPaso";
+import { alumnaActual } from "@/lib/alumna";
+import { medidasEnTexto, medidasOrdenadas, obtenerBolso, siguienteVideo } from "@/lib/bolsos";
+import { PRECIO_DESDE } from "@/lib/planes";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const bolso = await obtenerBolso(slug);
+  return { title: bolso ? `${bolso.nombre} — Manos Creadoras` : "Manos Creadoras" };
+}
+
+export default async function Ficha({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const [bolso, alumna] = await Promise.all([obtenerBolso(slug), alumnaActual()]);
+
+  if (!bolso) notFound();
+
+  const bloqueado = !bolso.gratis && !alumna?.tieneAcceso;
+  const siguiente = siguienteVideo(bolso);
+  const medidas = medidasEnTexto(bolso.medidas);
+
+  return (
+    <main className="min-w-0 flex-1">
+      {/* ⚠️ SIN BARRA LATERAL, Y CON "VOLVER" ARRIBA. Aquí ya estás dentro de un
+          bolso: lo que necesitas es salir de él, no saltar a otra sección. */}
+      <div className="border-line bg-cream/90 sticky top-0 z-(--z-sticky) border-b backdrop-blur-sm">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5">
+          <Link
+            href="/app"
+            className="text-espresso flex items-center gap-2 text-sm font-semibold"
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+            Mis bolsos
+          </Link>
+          <Link
+            href={`/app/ojo?bolso=${bolso.slug}`}
+            className="text-gold flex items-center gap-2 text-sm font-semibold"
+          >
+            <Sparkles size={16} aria-hidden="true" />
+            Ojo Experto
+          </Link>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-5xl px-5 py-8 md:py-10">
+        <header className="grid gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-center">
+          <div className="bg-espresso relative aspect-square overflow-hidden rounded-[var(--radius-xl)]">
+            <span
+              aria-hidden="true"
+              className="font-display text-gold/25 absolute inset-0 flex items-center justify-center text-7xl"
+              style={{ fontWeight: 500 }}
+            >
+              {bolso.nombre.charAt(0)}
+            </span>
+          </div>
+
+          <div>
+            <h1 className="titulo-seccion">{bolso.nombre}</h1>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Chip>
+                {bolso.pasos.length} pasos · {bolso.videos} videos
+              </Chip>
+              {medidas && <Chip>{medidas}</Chip>}
+              {bolso.gratis && <Chip destacado>Gratis</Chip>}
+            </div>
+
+            <div className="mt-5 flex items-center gap-4">
+              <span className="bg-line h-1.5 flex-1 overflow-hidden rounded-full">
+                <span
+                  className="bg-gold block h-full rounded-full"
+                  style={{ width: `${Math.round((bolso.vistos / bolso.videos) * 100)}%` }}
+                />
+              </span>
+              <span className="text-ink-muted shrink-0 text-sm">
+                {bolso.vistos} de {bolso.videos}
+              </span>
+            </div>
+
+            {bloqueado ? (
+              /*
+                Bloqueado: se enseña TODO el índice —cuántos pasos, qué
+                materiales, las medidas— y solo se retiene el video. Es lo que
+                hace que valga la pena pagar: ya sabes exactamente qué recibes.
+              */
+              <div className="bg-sand mt-6 rounded-[var(--radius-lg)] p-5">
+                <p className="text-espresso font-semibold">Este bolso viene con el plan</p>
+                <p className="text-ink-body mt-1 text-sm">
+                  Puedes ver sus pasos y sus materiales. Para los videos necesitas Creadora o
+                  Maestra, desde {PRECIO_DESDE} al mes.
+                </p>
+                <Link
+                  href="/#planes"
+                  className="text-espresso mt-4 flex h-12 items-center justify-center rounded-full font-semibold"
+                  style={{ backgroundImage: "var(--boton-dorado)" }}
+                >
+                  Ver los planes
+                </Link>
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                {siguiente ? (
+                  <Link
+                    href={`/app/bolsos/${bolso.slug}/${siguiente.orden}`}
+                    className="text-espresso flex h-13 flex-1 items-center justify-center gap-2 rounded-full px-6 font-semibold"
+                    style={{ backgroundImage: "var(--boton-dorado)" }}
+                  >
+                    <Play size={16} fill="currentColor" aria-hidden="true" />
+                    <span className="truncate">Continuar: {siguiente.etiqueta}</span>
+                  </Link>
+                ) : (
+                  <p className="bg-sand text-espresso flex h-13 flex-1 items-center justify-center rounded-full px-6 font-semibold">
+                    ¡Bolso terminado!
+                  </p>
+                )}
+                <Link
+                  href={`/app/ojo?bolso=${bolso.slug}`}
+                  className="border-line text-espresso flex h-13 items-center justify-center rounded-full border px-6 font-semibold"
+                >
+                  Preguntar sobre este bolso
+                </Link>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <section>
+            <h2 className="font-display text-espresso text-2xl" style={{ fontWeight: 500 }}>
+              Paso a paso
+            </h2>
+            <div className="mt-5">
+              <PasoAPaso bolso={bolso} />
+            </div>
+          </section>
+
+          <section>
+            <ListaMateriales materiales={bolso.materiales} />
+            <TarjetaDirectorio />
+            {medidas && (
+              <div className="bg-sand mt-5 rounded-[var(--radius-lg)] p-5">
+                <h3 className="text-espresso font-semibold">Medidas del bolso terminado</h3>
+                <dl className="mt-3 flex flex-wrap gap-6">
+                  {medidasOrdenadas(bolso.medidas).map(([clave, valor]) => (
+                    <div key={clave}>
+                      <dd
+                        className="font-display text-espresso text-2xl"
+                        style={{ fontWeight: 500 }}
+                      >
+                        {String(valor).replace(".", ",")}
+                      </dd>
+                      <dt className="text-ink-muted text-xs">cm de {etiquetaMedida(clave)}</dt>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function Chip({ children, destacado = false }: { children: React.ReactNode; destacado?: boolean }) {
+  return (
+    <span
+      className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+        destacado ? "bg-gold-light text-espresso" : "bg-sand text-ink-body"
+      }`}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** `alto_con_asa` → "alto con asa". Las claves vienen del JSON y varían por bolso. */
+function etiquetaMedida(clave: string): string {
+  return clave.replace(/_/g, " ");
+}

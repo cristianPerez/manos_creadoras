@@ -67,7 +67,7 @@ export default function Completar() {
             enseguida.
           </p>
           <a
-            href="/login"
+            href="/entrar"
             className="bg-espresso mt-6 inline-flex h-12 items-center rounded-full px-6 font-semibold text-white"
           >
             Pedir otro enlace

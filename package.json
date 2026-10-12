@@ -3,17 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "alumna:crear": "node scripts/alumna-prueba.mjs crear",
     "alumna:borrar": "node scripts/alumna-prueba.mjs borrar",
+    "alumna:crear": "node scripts/alumna-prueba.mjs crear",
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "eslint",
+    "membresia:dar": "node scripts/membresia.mjs dar",
+    "membresia:quitar": "node scripts/membresia.mjs quitar",
+    "membresia:ver": "node scripts/membresia.mjs ver",
     "push:enviar": "node scripts/enviar-aviso.mjs",
-    "acceso:dar": "node scripts/acceso.mjs dar",
-    "acceso:quitar": "node scripts/acceso.mjs quitar",
-    "acceso:ver": "node scripts/acceso.mjs ver"
+    "seed:bolsos": "node scripts/seed-bolsos.mjs",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",

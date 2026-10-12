@@ -1,0 +1,171 @@
+"use client";
+
+import { Check, Loader2 } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { enviarContacto } from "@/app/(publicas)/contacto/acciones";
+import { PLANES, precioPorMes } from "@/lib/planes";
+
+const MOTIVOS = [
+  "Quiero unirme a un plan",
+  "Dudas del programa",
+  "Mi compra o reembolso",
+  "Otra cosa",
+] as const;
+
+/** Solo los de pago: nadie escribe para preguntar por el plan gratis. */
+const PLANES_DE_PAGO = PLANES.filter((p) => p.precioMes.anual !== null);
+
+export function FormularioContacto() {
+  const [motivo, setMotivo] = useState<string>(MOTIVOS[0]);
+  const [plan, setPlan] = useState<string>("creadora");
+  const [estado, setEstado] = useState<"listo" | "enviando" | "enviado">("listo");
+  const [error, setError] = useState<string | null>(null);
+
+  /* El plan solo se pregunta a quien viene a contratar. A los demás les sobra. */
+  const preguntarPlan = motivo === MOTIVOS[0];
+
+  async function enviar(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (estado === "enviando") return;
+
+    const datos = new FormData(e.currentTarget);
+    setEstado("enviando");
+    setError(null);
+
+    const r = await enviarContacto({
+      nombre: String(datos.get("nombre") ?? ""),
+      correo: String(datos.get("correo") ?? ""),
+      motivo,
+      planInteres: preguntarPlan ? plan : undefined,
+      mensaje: String(datos.get("mensaje") ?? "") || undefined,
+    });
+
+    if (r.ok) setEstado("enviado");
+    else {
+      setEstado("listo");
+      setError(r.error);
+    }
+  }
+
+  if (estado === "enviado") {
+    return (
+      <div className="bg-sand rounded-[var(--radius-xl)] p-8 text-center">
+        <span
+          aria-hidden="true"
+          className="bg-gold mx-auto flex size-12 items-center justify-center rounded-full text-white"
+        >
+          <Check size={22} strokeWidth={3} />
+        </span>
+        <h2 className="font-display text-espresso mt-4 text-2xl" style={{ fontWeight: 500 }}>
+          Nos llegó
+        </h2>
+        <p className="text-ink-body mt-2">
+          Te respondemos en 24 a 48 horas hábiles al correo que nos diste. Si era por un plan, te
+          mandamos el enlace de pago.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={enviar} className="flex flex-col gap-5">
+      <Campo etiqueta="Tu nombre" nombre="nombre" autoComplete="name" />
+      <Campo etiqueta="Tu correo" nombre="correo" tipo="email" autoComplete="email" />
+
+      <fieldset>
+        <legend className="text-espresso text-sm font-semibold">¿De qué se trata?</legend>
+        <div className="mt-2.5 flex flex-wrap gap-2.5">
+          {MOTIVOS.map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={motivo === m}
+              onClick={() => setMotivo(m)}
+              className={`flex h-11 items-center rounded-full px-4 text-sm font-semibold transition-colors [touch-action:manipulation] ${
+                motivo === m ? "bg-espresso text-white" : "border-line text-ink-body border"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      {preguntarPlan && (
+        <fieldset>
+          <legend className="text-espresso text-sm font-semibold">¿Cuál te interesa?</legend>
+          <div className="mt-2.5 flex flex-wrap gap-2.5">
+            {PLANES_DE_PAGO.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                aria-pressed={plan === p.id}
+                onClick={() => setPlan(p.id)}
+                className={`flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors [touch-action:manipulation] ${
+                  plan === p.id ? "bg-espresso text-white" : "border-line text-ink-body border"
+                }`}
+              >
+                {p.nombre}
+                <span className={plan === p.id ? "text-white/60" : "text-ink-muted"}>
+                  desde {precioPorMes(p.precioMes.anual)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
+      <label className="flex flex-col gap-2">
+        <span className="text-espresso text-sm font-semibold">
+          Cuéntanos <span className="text-ink-muted font-normal">(opcional)</span>
+        </span>
+        <textarea
+          name="mensaje"
+          rows={4}
+          className="bg-ivory border-line text-espresso rounded-[var(--radius-lg)] border p-4 outline-none focus-visible:border-(--gold)"
+        />
+      </label>
+
+      {error && (
+        <p role="alert" className="text-gold text-sm font-semibold">
+          {error}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={estado === "enviando"}
+        className="text-espresso flex h-14 items-center justify-center gap-2 rounded-full font-semibold transition-transform active:scale-[0.98] disabled:opacity-60"
+        style={{ backgroundImage: "var(--boton-dorado)" }}
+      >
+        {estado === "enviando" && <Loader2 size={18} className="animate-spin" aria-hidden="true" />}
+        {estado === "enviando" ? "Enviando…" : "Enviar"}
+      </button>
+    </form>
+  );
+}
+
+function Campo({
+  etiqueta,
+  nombre,
+  tipo = "text",
+  autoComplete,
+}: {
+  etiqueta: string;
+  nombre: string;
+  tipo?: string;
+  autoComplete?: string;
+}) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-espresso text-sm font-semibold">{etiqueta}</span>
+      <input
+        name={nombre}
+        type={tipo}
+        required
+        autoComplete={autoComplete}
+        className="bg-ivory border-line text-espresso h-13 rounded-full border px-5 outline-none focus-visible:border-(--gold)"
+      />
+    </label>
+  );
+}

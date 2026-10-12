@@ -90,6 +90,12 @@ tiene acceso a esta organización.
 Con eso el acceso funciona venga como venga el enlace. Falta que Cristian pegue
 las dos plantillas simplificadas y pruebe en QA.
 
+🟡 **Se ofreció leer el correo que llega desde el conector de Gmail** —sería la
+forma rápida de ver de una vez qué plantilla sale y a dónde apunta— y Cristian
+dijo que **por ahora no**. Queda como recurso si el problema sobrevive al
+cambio de plantillas. La otra vía es dar acceso al conector de Supabase a esta
+organización, para leer los registros de auth.
+
 ✅ **Mientras tanto SÍ se puede entrar en local**: `npm run alumna:crear -- correo`
 imprime un enlace que no pasa por el correo. Se arregló hoy (llevaba roto desde
 la migración 0008).
@@ -153,6 +159,126 @@ El hueco no es técnico, es de **contenido y de recorrido**:
 —entrar, ver el curso gratis, toparse con el resto cerrado— **antes** de que
 exista la pasarela, y es el orden sensato: primero que la puerta funcione,
 después la caja.
+
+---
+
+## 🔨 LAS 8 FASES DEL REDISEÑO, HECHAS (2026-10-12)
+
+La app pasó de **un curso** a **14 bolsos**. Todo construido contra
+`design-ref/manos-creadoras-claude-code/pantallas` (48 imágenes).
+
+**Rutas nuevas:** `/app` · `/app/bolsos/[slug]` · `/app/bolsos/[slug]/[orden]` ·
+`/app/directorio` · `/app/ojo` · `/app/cuenta` · `/entrar` · `/contacto` ·
+`/legal/[documento]` · `/bienvenida`.
+Las 9 viejas redirigen con 308 (están en correos ya enviados).
+
+**Decisiones que conviene no redescubrir:**
+- `lib/bolsos-logica.ts` vs `lib/bolsos.ts` están separados a propósito: los
+  componentes de cliente necesitan las reglas, y si vivieran junto a las
+  consultas arrastrarían `next/headers` al navegador y Next lo rechaza.
+- Los **pasos se CALCULAN** agrupando títulos consecutivos iguales. No hay
+  ningún número escrito: un bolso nuevo con otro reparto de partes sale solo.
+- El Ojo Experto sigue siendo **ruta de Next**, no edge function (decisión de
+  Cristian): conserva el control de gasto y el presupuesto por público.
+- `consumir_cupo` **mira y descuenta en la misma operación**. Antes eran dos
+  pasos y con dos pestañas abiertas se colaba una consulta gratis.
+- El texto legal se **movió palabra por palabra** a `components/legal/`. Solo se
+  cambiaron las menciones a Hotmart y los precios viejos.
+- `TextoDelOjo` pinta el Markdown sin librería ni `dangerouslySetInnerHTML`: el
+  texto lo escribe un modelo a partir de lo que teclea la alumna.
+
+**Retirado:** las plantillas de lección lectura/PDF, el carrusel, la barra de
+compra pegajosa, `lib/curso.ts`, `lib/ojo-experto.ts`, las secciones
+problema/agitación/solución/oferta/garantía y **el webhook de Hotmart** (llamaba
+a funciones que ya no existen).
+
+✅ **RESUELTO EL BLOQUEO DE LOS VIDEOS (2026-10-12).** Era la biblioteca: el
+`.env.local` apuntaba a **723241**, que ya no existe. La real es **772366**
+("manos creadoras", 100 videos) — se vio entrando al panel de Bunny con la
+sesión de Cristian en Chrome.
+Comprobados **los 75 videos uno por uno: los 75 reproducen**. Verificado también
+en pantalla: el paso 4 de Gota de Rocío carga el video de verdad.
+
+⚠️ **HAY QUE CAMBIARLO TAMBIÉN EN VERCEL.** El `.env.local` ya está corregido,
+pero QA y producción tienen su propia copia de `NEXT_PUBLIC_BUNNY_LIBRARY_ID`.
+Mientras no se cambie ahí, en QA siguen saliendo 404.
+
+✅ **Y se resolvió la otra incógnita del JSON:** `bolso_id` ES el id de la
+COLECCIÓN de Bunny. Confirmado: la colección "Gota de rocío" vive en
+`…/collections/e8bac115-3fbf-49c8-b0a9-1fdc73e67378`, que es exactamente el
+`bolso_id` del JSON.
+
+🔴 **FALTA UN BOLSO EN EL JSON: "Zafiro perlado" (4 videos).** Bunny tiene 15
+colecciones con contenido y el JSON trae 14. Las cuentas cuadran al vídeo: las
+colecciones suman 79 videos, el JSON 75, y la diferencia son exactamente los 4
+de Zafiro perlado. Hay que decidir si entra como bolso 15 o si se deja fuera a
+propósito.
+
+🟡 **21 videos sueltos** en la biblioteca sin colección (100 en total, 79 dentro
+de colecciones). Puede que sean tomas viejas o material sin clasificar.
+
+🟡 Pendientes menores: las 14 fotos de portada (hoy se pinta la inicial sobre
+espresso), los 33 enlaces de AliExpress (el botón dice "Enlace pronto"), y el
+webhook de OnePay.
+
+---
+
+## 🔨 FASE 1 APLICADA EN QA (2026-10-12)
+
+El contenido dejó de ser UN CURSO y pasó a ser **14 BOLSOS**. Migraciones 0013,
+0014 y 0015 aplicadas a QA, y el seed cargado.
+
+**En QA hay ahora:** 14 bolsos · 61 lecciones · **75 videos** · 72 materiales ·
+33 productos de directorio con 85 enlaces · 7 membresías · 3 planes de cupo.
+
+**Tablas que desaparecieron** (`secciones`, `modulos`, `lecciones` vieja,
+`user_progress`, `accesos`, `ai_conversations`, `ai_usage`, `cupos`).
+Respaldo de todas en `.respaldo/qa-antes-de-0013_2026-10-12.json` (fuera del
+repo). `user_progress` tenía **0 filas**: no se perdió el avance de nadie.
+Las 10 filas de `accesos` sí se migraron a `membresias`.
+
+**Decisiones que conviene no redescubrir:**
+- `membresias` sustituye a `accesos` con la forma de El Charcu: una fila por
+  cuenta y `vence_el`. Cancelar NO corta el acceso: lo deja hasta esa fecha.
+- Las funciones `tiene_acceso()` / `tiene_acceso_de()` **conservan su nombre** y
+  solo cambiaron por dentro. Son la frontera que permitió cambiar la tabla sin
+  tocar las 6 llamadas repartidas por el código.
+- Cupos nuevos: aprendiz 3/1 · creadora **200/30** · maestra **600/60**. Suben
+  mucho respecto a los 40/8 de antes porque Gemini salió barato y casi nadie
+  agota las fotos — comprobado en El Charcu.
+- `npm run acceso:dar` ya NO existe → `npm run membresia:dar -- correo creadora anual`.
+
+⚠️ **QA quedó medio vacía, y es lo esperado.** El código desplegado todavía lee
+las tablas viejas. No se cae —degrada y dice "vuelven pronto"— pero hasta las
+fases 3 y 5 no habrá contenido en pantalla. Ocho archivos por reescribir:
+`lib/curso.ts`, `lib/ojo-experto.ts`, `app/(app)/cursos/*`, `app/page.tsx`,
+`app/api/ojo-experto`, `app/api/webhooks/hotmart`.
+
+⚠️ **El criterio de aceptación dice "Gota de Rocío: 5 pasos" y son 4.**
+Comprobado contra el propio diseño (`08-ficha-del-bolso`): Materiales va sin
+número y la base es el paso 4 con dos partes. Los pasos se CALCULAN agrupando
+títulos del JSON; no hay ningún número escrito a mano.
+
+---
+
+## 📸 Capturas del estado actual (2026-10-12)
+
+Las **18 pantallas** de la app están capturadas en `.capturas/estado-actual/`,
+con un `LEEME.md` que explica qué es cada una. Se tomaron para rediseñarlas con
+Claude Design partiendo del estado real.
+
+Cubren: las 6 de dentro de la app (incluidas las TRES plantillas distintas de
+lección — video, lectura y PDF), las 4 que ve quien no ha entrado, y las 8
+públicas. A 375 px, salvo el home que va también a 1440.
+
+⚠️ La carpeta está en `.gitignore` — pesan 6,8 MB y no deben entrar al repo.
+
+Cuatro cosas que saltaron al revisarlas y que NO son fallos de diseño:
+- El reproductor de video muestra un **404** (el video no existe en Bunny).
+- **Contacto está casi vacía** y es donde aterrizan hoy los botones de pago.
+- **Mi cuenta muestra los precios VIEJOS** (USD 199/año) mientras el home vende
+  tres planes desde USD 9,74/mes. Se quedó atrás en el cambio de modelo.
+- Los nombres de los tutoriales siguen siendo de relleno.
 
 ---
 

@@ -15,6 +15,13 @@ export const dynamic = "force-dynamic";
 const bodySchema = z.object({
   pregunta: z.string().min(3).max(500),
   imagenBase64: z.string().max(7_000_000).optional(),
+  /*
+    De qué bolso y qué paso pregunta. Opcionales a propósito: se puede preguntar
+    algo general sin estar dentro de un bolso, y obligarla a elegir uno antes de
+    escribir sería un trámite para quien solo tiene una duda suelta.
+  */
+  bolsoSlug: z.string().max(80).optional(),
+  paso: z.number().int().min(0).max(99).optional(),
 });
 
 /**
@@ -118,27 +125,67 @@ export async function POST(req: Request) {
 
     Sigue sin haber forma de entrar sin sesión: el token se valida arriba.
   */
-  const { data: cupoFilas } = await db.rpc("cupo_de", { uid: userId });
-  const cupo = Array.isArray(cupoFilas) ? cupoFilas[0] : null;
+  const parsed = bodySchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ error: "consulta inválida" }, { status: 400 });
+  }
+  const { pregunta, imagenBase64, bolsoSlug, paso } = parsed.data;
+  const esFoto = Boolean(imagenBase64);
+
+  /*
+    ── Cupo del mes: se MIRA Y SE DESCUENTA EN LA MISMA OPERACIÓN ──────────
+
+    ⚠️ ANTES ERAN DOS PASOS —leer `ai_usage`, y actualizarlo al final— y entre
+    uno y otro cabía otra petición. Con la app abierta en el teléfono y en el
+    portátil, dos preguntas a la vez pasaban las dos la comprobación y gastaban
+    una sola. `consumir_cupo` lo hace dentro de una transacción, así que la
+    segunda espera y ve el número ya actualizado.
+
+    Los límites los dice la base (`plan_cupos`), no una constante aquí: antes
+    vivían en `lib/config.ts` repetidos por la API y la pantalla, que es la
+    forma clásica de que dentro de un mes prometan cosas distintas.
+  */
+  const { data: cupoFilas } = await db.rpc("consumir_cupo", {
+    p_user_id: userId,
+    p_fotos: esFoto ? 1 : 0,
+  });
+  const cupo = Array.isArray(cupoFilas) ? cupoFilas[0] : cupoFilas;
 
   if (!cupo) {
-    // La base no supo decir de qué público es. Fallar cerrado: sin cupo no se
-    // gasta IA. Es una situación imposible salvo que falten filas en `cupos`.
+    // Fallar CERRADO: si la base no supo responder, no se gasta IA.
     return NextResponse.json(
       { error: "No pudimos verificar tu cupo. Vuelve a intentar." },
       { status: 503 },
     );
   }
 
-  const LIMITE_PREGUNTAS = cupo.preguntas_mes as number;
-  const LIMITE_FOTOS = cupo.fotos_mes as number;
-
-  const parsed = bodySchema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "consulta inválida" }, { status: 400 });
+  if (!cupo.permitido) {
+    const agotadoFotos = esFoto && cupo.fotos_usadas + 1 > cupo.fotos_limite;
+    return NextResponse.json(
+      {
+        error: agotadoFotos
+          ? `Llegaste a tus ${cupo.fotos_limite} fotos de este mes. Se renuevan el día 1.`
+          : `Llegaste a tus ${cupo.preguntas_limite} preguntas de este mes. Se renuevan el día 1.`,
+      },
+      { status: 429 },
+    );
   }
-  const { pregunta, imagenBase64 } = parsed.data;
-  const esFoto = Boolean(imagenBase64);
+
+  /*
+    Si algo falla DESPUÉS de aquí, hay que devolverle lo que ya se le descontó.
+    Cobrarle una pregunta por un fallo nuestro es la forma más rápida de que
+    deje de confiar en el medidor.
+  */
+  const devolverCupo = async () => {
+    await db
+      .from("ojo_uso_mensual")
+      .update({
+        preguntas: Math.max(0, cupo.preguntas_usadas - 1),
+        fotos: Math.max(0, cupo.fotos_usadas - (esFoto ? 1 : 0)),
+      })
+      .eq("user_id", userId)
+      .eq("periodo", periodoActual());
+  };
 
   /*
     ── Circuit-breaker de gasto, con DOS BOLSILLOS ───────────────
@@ -154,8 +201,13 @@ export async function POST(req: Request) {
 
     Sigue estando ANTES de llamar a Gemini, que es lo que cuesta.
   */
-  const { data: publicoRaw } = await db.rpc("publico_de", { uid: userId });
-  const publico = publicoRaw === "miembro" ? "miembro" : "regalo";
+  /*
+    Los planes son TRES y los bolsillos de presupuesto siguen siendo DOS. No es
+    un descuido: el presupuesto separa a quien paga de quien no, y tanto
+    Creadora como Maestra pagan. Partirlo en tres haría que una Maestra pudiera
+    quedarse sin servicio mientras sobra saldo en el bolsillo de Creadora.
+  */
+  const publico = cupo.plan === "aprendiz" ? "regalo" : "miembro";
 
   const tope =
     publico === "miembro"
@@ -171,33 +223,48 @@ export async function POST(req: Request) {
     );
   }
 
-  // ── Uso justo mensual, contado en servidor ──────────────────
-  const periodo = periodoActual();
-  const { data: uso } = await db
-    .from("ai_usage")
-    .select("preguntas, fotos")
-    .eq("user_id", userId)
-    .eq("periodo", periodo)
-    .maybeSingle();
+  /*
+    El contexto del bolso: de dónde venía la pregunta. Es lo que convierte
+    "revisa cada 5 cuentas" en "revisa cada 5 cuentas" SABIENDO que está en la
+    base de Gota de Rocío y qué materiales usa.
+  */
+  let bolsoId: string | null = null;
+  let leccionId: string | null = null;
+  let fichaBolso = "";
 
-  const preguntas = uso?.preguntas ?? 0;
-  const fotos = uso?.fotos ?? 0;
+  if (bolsoSlug) {
+    const { data: b } = await db
+      .from("bolsos")
+      .select("id, nombre, medidas_cm, materiales(texto), lecciones(id, orden, titulo, parte)")
+      .eq("slug", bolsoSlug)
+      .maybeSingle();
 
-  if (esFoto && fotos >= LIMITE_FOTOS) {
-    return NextResponse.json(
-      { error: `Llegaste a tus ${LIMITE_FOTOS} fotos de este mes. Se renuevan el día 1.` },
-      { status: 429 },
-    );
-  }
-  if (!esFoto && preguntas >= LIMITE_PREGUNTAS) {
-    return NextResponse.json(
-      { error: `Llegaste a tus ${LIMITE_PREGUNTAS} preguntas de este mes. Se renuevan el día 1.` },
-      { status: 429 },
-    );
+    if (b) {
+      bolsoId = b.id;
+      const lecciones = [...(b.lecciones ?? [])].sort((x, y) => x.orden - y.orden);
+      const titulos = [...new Set(lecciones.map((l) => l.titulo))];
+      if (paso && paso > 0) {
+        leccionId = lecciones.find((l) => l.titulo === titulos[paso - 1])?.id ?? null;
+      }
+      const lineas = [
+        `BOLSO QUE ESTÁ TEJIENDO: ${b.nombre}.`,
+        `- Pasos, en orden: ${titulos.map((t, i) => `${i + 1}. ${t}`).join("; ")}.`,
+      ];
+      if (paso && titulos[paso - 1]) lineas.push(`- Va por el paso ${paso}: ${titulos[paso - 1]}.`);
+      if (b.materiales?.length) {
+        lineas.push(`- Materiales: ${b.materiales.map((m) => m.texto).join("; ")}.`);
+      }
+      if (b.medidas_cm) {
+        lineas.push(`- Medidas del bolso terminado: ${JSON.stringify(b.medidas_cm)}.`);
+      }
+      fichaBolso = lineas.join("\n");
+    }
   }
 
   // ── MEMORIA: su ficha + sus últimas consultas ───────────────
-  const contexto = await construirContexto(db, userId);
+  const contexto = [fichaBolso, await construirContexto(db, userId)]
+    .filter(Boolean)
+    .join("\n\n");
 
   /*
     ── Modo simulado (solo QA) ───────────────────────────────────
@@ -223,9 +290,9 @@ export async function POST(req: Request) {
       pregunta,
       respuesta: sim.texto,
       esFoto,
-      preguntas,
-      fotos,
-      periodo,
+      uso: { preguntas: cupo.preguntas_usadas, fotos: cupo.fotos_usadas },
+      bolsoId,
+      leccionId,
     });
   }
 
@@ -282,9 +349,9 @@ export async function POST(req: Request) {
       pregunta,
       respuesta,
       esFoto,
-      preguntas,
-      fotos,
-      periodo,
+      uso: { preguntas: cupo.preguntas_usadas, fotos: cupo.fotos_usadas },
+      bolsoId,
+      leccionId,
     });
   } catch (e) {
     /*
@@ -325,12 +392,13 @@ async function guardarYResponder(
     pregunta: string;
     respuesta: string;
     esFoto: boolean;
-    preguntas: number;
-    fotos: number;
-    periodo: string;
+    /** Ya descontado por `consumir_cupo`: aquí solo se devuelve a la pantalla. */
+    uso: { preguntas: number; fotos: number };
+    bolsoId: string | null;
+    leccionId: string | null;
   },
 ): Promise<NextResponse> {
-  const { userId, pregunta, respuesta, esFoto, preguntas, fotos, periodo } = datos;
+  const { userId, pregunta, respuesta, esFoto, uso, bolsoId, leccionId } = datos;
 
   /*
     ── SEGUNDA BARRERA: se revisa la respuesta antes de que la vea nadie ──
@@ -339,7 +407,7 @@ async function guardarYResponder(
     una instrucción, no una barrera: se dobla con una pregunta insistente, y un
     modelo que obedece el 99% de las veces incumple el 1% restante — que con
     volumen es todos los días. Prometer ganancias es publicidad engañosa y
-    motivo de que Hotmart tumbe el producto.
+    motivo de que una pasarela tumbe el producto.
 
     Es el mismo gesto que `cure-safety` en El Charcu, apuntando al riesgo que sí
     existe aquí: allí una dosis mal dada envenena, aquí una promesa incumplida
@@ -362,24 +430,33 @@ async function guardarYResponder(
 
   // Se guarda la CORREGIDA, no la que traía la promesa: el historial lo vuelve a
   // leer el modelo como contexto, y dejarla ahí sería enseñarle a repetirla.
-  const { data: guardada } = await db
-    .from("ai_conversations")
+  /*
+    El historial son MENSAJES, no filas de pregunta+respuesta. La pantalla nueva
+    es un chat: necesita pintar el hilo y poder guardar el pulgar arriba o abajo
+    de una respuesta concreta, y eso no cabe en una sola fila.
+  */
+  const { data: conversacion } = await db
+    .from("ojo_conversaciones")
     .insert({
       user_id: userId,
-      tipo: esFoto ? "foto" : "texto",
-      pregunta,
-      respuesta: textoFinal,
+      // El título es la propia pregunta recortada: es lo que la alumna
+      // reconocerá en la lista, mejor que "Consulta del 12 de octubre".
+      titulo: pregunta.slice(0, 60),
+      bolso_id: bolsoId,
+      leccion_id: leccionId,
     })
     .select("id, created_at")
     .single();
 
-  const nuevoUso = {
-    preguntas: esFoto ? preguntas : preguntas + 1,
-    fotos: esFoto ? fotos + 1 : fotos,
-  };
-  await db
-    .from("ai_usage")
-    .upsert({ user_id: userId, periodo, ...nuevoUso }, { onConflict: "user_id,periodo" });
+  if (conversacion) {
+    await db.from("ojo_mensajes").insert([
+      { conversacion_id: conversacion.id, rol: "alumna", texto: pregunta },
+      { conversacion_id: conversacion.id, rol: "ojo", texto: textoFinal },
+    ]);
+  }
+  const guardada = conversacion;
+
+  const nuevoUso = uso;
 
   // Se devuelve el uso ya actualizado para que el medidor de la pantalla muestre
   // el número REAL de la base y no una cuenta paralela del navegador.
@@ -443,27 +520,27 @@ async function construirContexto(
 ): Promise<string> {
   const [{ data: perfil }, { data: progreso }, { data: recientes }] = await Promise.all([
     db.from("profiles").select("nombre, notas_tejido").eq("id", userId).maybeSingle(),
-    db.from("user_progress").select("leccion_id").eq("user_id", userId),
+    db.from("progreso").select("video_id").eq("user_id", userId),
     db
-      .from("ai_conversations")
-      .select("pregunta, respuesta")
-      .eq("user_id", userId)
+      .from("ojo_mensajes")
+      .select("rol, texto, ojo_conversaciones!inner(user_id)")
+      .eq("ojo_conversaciones.user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(3),
+      .limit(6),
   ]);
 
   const lineas: string[] = ["CONTEXTO DE ESTA ALUMNA (úsalo, no lo repitas literal):"];
 
   if (perfil?.nombre) lineas.push(`- Se llama ${limpiar(perfil.nombre, 60)}.`);
-  if (progreso?.length) lineas.push(`- Lleva ${progreso.length} módulos completados.`);
+  if (progreso?.length) lineas.push(`- Lleva ${progreso.length} videos vistos.`);
   if (perfil?.notas_tejido) {
     lineas.push(`- Notas de su tejido: ${limpiar(perfil.notas_tejido, 300)}`);
   }
 
   if (recientes?.length) {
-    lineas.push("- Últimas consultas suyas:");
-    for (const c of recientes.reverse()) {
-      lineas.push(`  · Preguntó: "${c.pregunta}" → le dijiste: "${c.respuesta}"`);
+    lineas.push("- Lo último que hablasteis:");
+    for (const m of recientes.reverse()) {
+      lineas.push(`  · ${m.rol === "alumna" ? "Ella" : "Tú"}: "${limpiar(m.texto, 300)}"`);
     }
   }
 

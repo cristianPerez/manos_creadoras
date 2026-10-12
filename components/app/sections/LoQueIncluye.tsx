@@ -5,7 +5,7 @@ import { Reveal } from "@/components/app/Reveal";
  * Lo que incluye la membresía, en rejilla tipo bento.
  *
  * Las cuatro piezas NO son iguales a propósito: la tarjeta oscura de los videos
- * es la más grande porque los +50 tutoriales son el grueso de lo que se compra.
+ * es la más grande porque los 75 videos son el grueso de lo que se compra.
  * Si las cuatro midieran lo mismo, la rejilla diría que las cuatro valen lo
  * mismo, y no es verdad.
  */
@@ -31,7 +31,7 @@ export function LoQueIncluye() {
                 <PlaySquare size={20} aria-hidden="true" />
               </Chip>
               <h3 className="font-display mt-auto pt-10 text-2xl" style={{ fontWeight: 500 }}>
-                +50 tutoriales en video HD
+                75 videos paso a paso
               </h3>
               <p className="mt-2 max-w-md text-sm text-white/75">
                 Desde la base del bolso hasta los acabados finos, con tomas de cerca para que no se
@@ -44,8 +44,8 @@ export function LoQueIncluye() {
           <div className="grid gap-5 md:col-span-5 md:grid-cols-2">
             <Tarjeta
               icono={<FileText size={20} aria-hidden="true" />}
-              titulo="50 patrones y plantillas"
-              texto="Descargables, con medidas exactas para 25 modelos."
+              titulo="Ficha de materiales de cada bolso"
+              texto="Qué comprar y cuánto, con el enlace al proveedor."
               retraso={0.08}
             />
             <Tarjeta

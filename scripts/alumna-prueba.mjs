@@ -58,6 +58,12 @@ async function crear(correo) {
   });
   if (e1) throw new Error(`No se pudo crear la cuenta: ${e1.message}`);
 
+  /*
+   * ⚠️ `profiles.status` y `profiles.plan` YA NO DECIDEN NADA. Desde la
+   * migración 0014 eso vive en `membresias`, y quien manda es `tiene_acceso_de`.
+   * Se siguen rellenando porque las columnas existen y alguna pantalla vieja
+   * aún las lee, pero el acceso se da abajo, con `dar_membresia`.
+   */
   const perfil = {
     id: creado.user.id,
     email: correo,
@@ -104,15 +110,17 @@ async function crear(correo) {
    * justo lo que este script promete imitar.
    */
   if (estado === "active") {
-    const { error: eAcceso } = await admin.rpc("otorgar_acceso", {
+    const { error: eAcceso } = await admin.rpc("dar_membresia", {
       p_user_id: creado.user.id,
-      // `compra` y no `regalo`: este script imita al webhook cobrando, y el
-      // motivo es lo que después responde "¿y esta por qué tiene acceso?".
-      p_motivo: "compra",
-      p_vence_en: null,
-      p_otorgado_por: "script:alumna-prueba",
+      // El plan intermedio: es el que tendrá la mayoría, así que probar con él
+      // es probar lo que de verdad va a pasar.
+      p_plan: "creadora",
+      p_ciclo: plan === "mensual" ? "mensual" : "anual",
+      p_vence_el: null,
+      p_pasarela: "manual",
+      p_pasarela_id: null,
     });
-    if (eAcceso) throw new Error(`No se pudo dar el acceso: ${eAcceso.message}`);
+    if (eAcceso) throw new Error(`No se pudo dar la membresía: ${eAcceso.message}`);
   }
 
   const { data: link, error: e3 } = await admin.auth.admin.generateLink({

@@ -64,6 +64,12 @@ export const PASOS = [
 /**
  * Los ocho bolsos de la rejilla.
  *
+ * ⚠️ LOS NOMBRES SON LOS REALES DEL CATÁLOGO, no los de la maqueta. La maqueta
+ * usaba "Pearl Bow", "Gold Crystal"… que son nombres en inglés que no existen
+ * en el programa. Las FOTOS siguen siendo las que hay en el repo: hasta que
+ * lleguen las 14 reales, cada nombre se acompaña de la foto más parecida.
+ * El día que lleguen, esta lista se lee del catálogo y desaparece.
+ *
  * ⚠️ EN EL DISEÑO SON MARCADORES DE POSICIÓN (rectángulos con puntitos) porque
  * quien lo maquetó no tenía las fotos. Nosotros SÍ las tenemos: las nueve fotos
  * reales están en el repo desde agosto y los ocho nombres del diseño coinciden
@@ -71,19 +77,19 @@ export const PASOS = [
  * un hueco es respetar su intención, no apartarse de ella.
  */
 export const COLECCION = [
-  { nombre: "Pearl Bow", imagen: "bag-pearl-bow", etiqueta: "Este mes", estado: "Nuevo" },
-  { nombre: "Pearl Hobo", imagen: "bag-pearl-hobo", etiqueta: "Mes anterior", estado: "Disponible" },
-  { nombre: "Gold Crystal", imagen: "bag-gold-crystal", etiqueta: "Biblioteca", estado: "Disponible" },
-  { nombre: "Pearl Coin", imagen: "bag-pearl-coin", etiqueta: "Biblioteca", estado: "Disponible" },
+  { nombre: "Gota de Rocío", imagen: "bag-pearl-bow", etiqueta: "Este mes", estado: "Nuevo" },
+  { nombre: "Cristal Brillante", imagen: "bag-pearl-hobo", etiqueta: "Gratis", estado: "Gratis" },
+  { nombre: "Tornado de Aurora", imagen: "bag-gold-crystal", etiqueta: "Biblioteca", estado: "Disponible" },
+  { nombre: "Marfil Elegante", imagen: "bag-pearl-coin", etiqueta: "Biblioteca", estado: "Disponible" },
   {
-    nombre: "Champagne Facetado",
+    nombre: "Coquett Clásico",
     imagen: "bag-champagne-facetado",
     etiqueta: "Biblioteca",
     estado: "Disponible",
   },
-  { nombre: "Onix Cristal", imagen: "bag-onix-cristal", etiqueta: "Biblioteca", estado: "Disponible" },
-  { nombre: "Glacier Blue", imagen: "bag-glacier-blue", etiqueta: "Biblioteca", estado: "Disponible" },
-  { nombre: "Pearl Royale", imagen: "bag-pearl-royale", etiqueta: "Biblioteca", estado: "Disponible" },
+  { nombre: "Anillos de Seda", imagen: "bag-onix-cristal", etiqueta: "Biblioteca", estado: "Disponible" },
+  { nombre: "Celeste Cálido", imagen: "bag-glacier-blue", etiqueta: "Biblioteca", estado: "Disponible" },
+  { nombre: "Esmeralda", imagen: "bag-pearl-royale", etiqueta: "Biblioteca", estado: "Disponible" },
 ] as const;
 
 /** El bolso que se enseña en el héroe: siempre el del mes. */

@@ -111,6 +111,29 @@
   /* ====== RADIOS ====== */
   --radius-sm: 0.5rem;    /* 8px — chips, badges */
   --radius-md: 0.75rem;   /* 12px — inputs */
+  /*
+   * Anchos de las barras laterales de la app.
+   *
+   * Son dos y NO son iguales a propósito: la del Ojo Experto lleva el historial
+   * de conversaciones, con títulos largos que a 260px se cortarían a media
+   * palabra. Están nombradas para que la diferencia se lea como una decisión y
+   * no como un descuido de quien maquetó.
+   */
+  /*
+   * El ancho de la columna de conversación del Ojo Experto.
+   *
+   * 760px no es un número redondo por capricho: es el ancho al que una línea de
+   * texto cabe en unos 75 caracteres, que es donde el ojo deja de perderse al
+   * saltar de renglón. Más ancho y las respuestas largas se vuelven incómodas.
+   */
+  --columna-chat: 760px;
+  /* La foto que manda la alumna: grande para que se vea el tejido, pequeña para
+     que no tape la conversación. */
+  --foto-mensaje: 220px;
+
+  --barra-lateral: 260px;
+  --barra-lateral-ojo: 280px;
+
   --radius-lg: 1.25rem;   /* 20px — tope bajo del rango 20-30 de la guía */
   --radius-xl: 1.875rem;  /* 30px — tope alto: tarjetas grandes */
   --radius-device: 2rem;  /* 32px — SOLO el marco de teléfono del carrusel */

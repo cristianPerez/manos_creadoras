@@ -39,8 +39,8 @@ export function Hero() {
 
           <Reveal delay={0.12}>
             <p className="text-ink-body mt-6 max-w-lg text-lg">
-              Únete a la membresía y recibe cada mes un curso completo: video paso a paso, patrón
-              descargable y la lista de materiales. Aprende desde casa y convierte cada colección en
+              Únete a la membresía y recibe cada mes un bolso nuevo: los videos paso a paso, la ficha
+              de materiales y dónde comprarlos. Aprende desde casa y convierte cada colección en
               ingresos.
             </p>
           </Reveal>

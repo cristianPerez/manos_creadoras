@@ -101,8 +101,8 @@ export const PLANES: Plan[] = [
     beneficios: [
       // ⚠️ El nombre del curso gratis quedó sin definir en el encargo.
       // Se usa una descripción honesta en vez de un hueco visible.
-      "Un curso completo, de principio a fin",
-      "Su patrón descargable y lista de materiales",
+      "1 bolso completo: Cristal Brillante",
+      "Su ficha de materiales y sus 3 pasos",
       "Sin tarjeta, a tu ritmo",
     ],
     cta: "Tomar el curso gratis",
@@ -119,9 +119,9 @@ export const PLANES: Plan[] = [
       mensual: "Se cobra cada mes",
     },
     beneficios: [
-      "Un curso nuevo cada mes",
-      "+50 tutoriales en video HD",
-      "50 patrones y plantillas descargables",
+      "Los 14 bolsos, y uno nuevo cada mes",
+      "75 videos paso a paso",
+      "Ficha de materiales de cada bolso",
       "Directorio de proveedores",
       "Comunidad privada",
     ],
@@ -175,3 +175,18 @@ export function precioPorMes(valor: number | null): string {
   if (valor === null) return "Gratis";
   return `US$${valor.toFixed(2).replace(".", ",")}`;
 }
+
+/**
+ * El precio más bajo de un plan de pago, ya formateado: "US$9,74".
+ *
+ * ⚠️ SE CALCULA, NO SE ESCRIBE. Es la cifra que aparece en el "desde…" de la
+ * Cortesía, del cierre de la landing y del aviso de bolso bloqueado. Escrita a
+ * mano en esos tres sitios, el día que cambie el precio quedarían dos diciendo
+ * una cosa y uno diciendo otra — y el que se quede atrás será siempre el que
+ * nadie recuerda.
+ */
+export const PRECIO_DESDE = precioPorMes(
+  Math.min(
+    ...PLANES.map((p) => p.precioMes.anual).filter((v): v is number => v !== null),
+  ),
+);
