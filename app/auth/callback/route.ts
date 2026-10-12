@@ -55,7 +55,20 @@ export async function GET(request: Request) {
     fallo = error?.message ?? null;
     usuario = data.user;
   } else {
-    return NextResponse.redirect(`${origin}/login?error=enlace_invalido`);
+    /*
+     * NI `code` NI `token_hash`: entonces la sesión viene en el FRAGMENTO
+     * (`#access_token=…`), que es como responde Supabase en el flujo implícito.
+     *
+     * ⚠️ EL SERVIDOR NO PUEDE LEER EL FRAGMENTO. Lo que va detrás de `#` nunca
+     * se envía en la petición HTTP — es cosa del navegador. Antes esto se
+     * trataba como "enlace inválido", y por eso los enlaces de esa forma
+     * parecían rotos cuando en realidad traían una sesión perfectamente válida.
+     *
+     * Se rebota a una pantalla de cliente. El navegador ARRASTRA el fragmento
+     * al redirigir (el destino no tiene uno propio), así que allí sí se puede
+     * leer.
+     */
+    return NextResponse.redirect(`${origin}/auth/completar`);
   }
 
   if (fallo) {

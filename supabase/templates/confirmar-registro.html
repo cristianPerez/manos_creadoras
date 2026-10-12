@@ -78,7 +78,7 @@
                     <td align="center" bgcolor="#8C6A2F" style="border-radius:9999px;
                         background-color:#8C6A2F;
                         background-image:linear-gradient(to right,#D9B97A,#8C6A2F);">
-                      <a href="{{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/auth/callback{{ end }}?token_hash={{ .TokenHash }}&type=signup"
+                      <a href="{{ .ConfirmationURL }}"
                          style="display:block; padding:16px 24px; font-family:'Manrope',Helvetica,Arial,sans-serif;
                                 font-size:16px; font-weight:600; color:#2A1F19; text-decoration:none;
                                 border-radius:9999px;">
@@ -96,7 +96,7 @@
                 </p>
                 <p style="margin:6px 0 0; font-family:'Manrope',Helvetica,Arial,sans-serif;
                           font-size:12px; line-height:1.6; color:#8C6A2F; word-break:break-all;">
-                  {{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/auth/callback{{ end }}?token_hash={{ .TokenHash }}&type=signup
+                  {{ .ConfirmationURL }}
                 </p>
               </td>
             </tr>

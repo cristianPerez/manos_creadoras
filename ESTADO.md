@@ -40,6 +40,69 @@ las 4 cuentas, las 8 concesiones y las 9 lecciones estaban intactas.
 
 ---
 
+## 🔴 EN CURSO — no se puede entrar en localhost con el correo (2026-10-11)
+
+Cristian pide el enlace desde `localhost:3000` y el correo llega apuntando a
+`qa.manoscreadoras.co`. **Sigue sin resolverse.** Lo que ya está descartado, para
+no repetirlo:
+
+- ✅ **La app pide bien el destino.** Se capturó la petición real del navegador:
+  manda `redirect_to=http://localhost:3000/auth/callback`.
+- ✅ **El backend lo acepta.** Se le pidió el enlace a Supabase con el admin y lo
+  devuelve con ese mismo destino. La lista de *Redirect URLs* tiene localhost.
+- ✅ **La causa original era la plantilla**: `magic-link.html` armaba el enlace
+  con `{{ .SiteURL }}`, un valor FIJO del panel. El README ya lo advertía.
+- ❌ **Primer intento fallido:** `{{ if .RedirectTo }}…{{ else }}{{ .SiteURL }}…`.
+  Tras pegarla, el correo seguía llegando a QA → señal de que `.RedirectTo`
+  llega VACÍO y cae al respaldo.
+- ❌ **Segundo intento descartado ANTES de romperlo:** usar
+  `{{ .ConfirmationURL }}`. Supabase sí lo construye con el destino correcto,
+  pero se siguió el enlace de verdad y termina en
+  `…/auth/callback#access_token=…`. **Lo que va tras el `#` no llega al
+  servidor**, y nuestro callback es una ruta de servidor: vería la petición sin
+  `code` ni `token_hash` y rebotaría a "enlace inválido". No intentarlo otra vez.
+
+### Dónde quedó (2026-10-11, noche)
+
+Las plantillas **SÍ estaban guardadas** en el panel (comprobado en captura: la
+vista previa mostraba la versión nueva y *Save changes* en gris) y aun así
+llegaba **la plantilla por defecto de Supabase**.
+
+Sospecha principal: el `{{ if .RedirectTo }}` **falla al enviar** y Supabase cae
+en su plantilla. Encaja con algo que se vio en la captura — **la vista previa
+del panel NO evalúa las variables** (muestra `{{ .SiteURL }}` tal cual), así que
+una plantilla que revienta al enviarse se ve perfecta ahí. No se pudo confirmar
+en los registros: el conector de Supabase está conectado con una cuenta que no
+tiene acceso a esta organización.
+
+**Lo que se hizo, que no depende de resolver esa duda:**
+
+1. Las dos plantillas quedan en su forma MÁS SIMPLE: sin condiciones, con una
+   sola variable, `{{ .ConfirmationURL }}`. No puede fallar al procesarse, y el
+   destino lo construye Supabase — que ya probamos que lo hace bien.
+2. **`app/auth/callback` ya acepta las TRES formas** en que puede volver una
+   sesión: `?code=`, `?token_hash=` y `#access_token=`. Esta última nunca llega
+   al servidor, así que se rebota a `app/auth/completar`, una pantalla de
+   cliente que sí puede leer el fragmento.
+   ✅ Verificado de punta a punta: el enlace con `#` —que antes daba "enlace
+   inválido"— ahora entra a `/cursos` con la sesión abierta.
+
+Con eso el acceso funciona venga como venga el enlace. Falta que Cristian pegue
+las dos plantillas simplificadas y pruebe en QA.
+
+✅ **Mientras tanto SÍ se puede entrar en local**: `npm run alumna:crear -- correo`
+imprime un enlace que no pasa por el correo. Se arregló hoy (llevaba roto desde
+la migración 0008).
+
+🟡 **Pendiente de probar, y afecta a alumnas reales:** el `token_hash` que llega
+viene como `pkce_…`, que ata el enlace al navegador donde se pidió. El README de
+las plantillas eligió `token_hash` justamente para evitar eso (la alumna lo pide
+en Chrome y lo abre desde Gmail). La prueba es pedir el enlace en un navegador y
+abrirlo en otro; si falla, la solución es dejar de usar PKCE en
+`lib/supabase/client.ts`, no volver a tocar la plantilla.
+
+---
+
 ## 👉 PASO SIGUIENTE (decidido por Cristian el 2026-10-10)
 
 **Entrar NO debe depender del webhook.** Como habrá un curso gratis, la

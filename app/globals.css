@@ -362,3 +362,58 @@ body {
   font-weight: 400;
   color: var(--gold);
 }
+
+/* ============================================================================
+   LA MANITA EN TODO LO QUE SE PULSA
+
+   ⚠️ POR QUÉ HACE FALTA ESTO. Tailwind v4 cambió su "preflight": los `<button>`
+   pasaron de `cursor: pointer` a `cursor: default`, siguiendo el comportamiento
+   nativo del navegador. El resultado en la práctica es que los enlaces tenían
+   manita y los botones no, en la misma pantalla y con la misma pinta — y un
+   botón que no cambia el cursor se siente apagado, como si no respondiera.
+
+   Va aquí, en una regla, y no como `cursor-pointer` repartido por los
+   componentes: así lo nuevo que se escriba mañana lo hereda sin que nadie
+   tenga que acordarse. Repartirlo sería garantizar que algún botón se quede
+   fuera.
+
+   Se incluyen los `role=` porque en esta app hay controles que NO son `<button>`
+   nativos: el conmutador de facturación es un `role="switch"` y el selector de
+   plan de móvil son `role="radio"`.
+   ============================================================================ */
+
+button,
+summary,
+select,
+/* Solo las etiquetas de casillas y opciones, NO cualquier `label`: la etiqueta
+   de un campo de texto debe conservar el cursor de texto, porque al pulsarla se
+   pone a escribir, no se "acciona" nada. */
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]),
+[role="button"],
+[role="switch"],
+[role="radio"],
+[role="tab"],
+[role="option"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"]::file-selector-button {
+  cursor: pointer;
+}
+
+/*
+ * Lo que no se puede pulsar NO lleva manita: prometería una acción que no va a
+ * ocurrir. Va después para ganarle a la regla de arriba.
+ *
+ * `not-allowed` y no `default`: el cursor es la única pista de que el control
+ * existe pero está bloqueado — sin ella parece que la app se colgó.
+ */
+button:disabled,
+select:disabled,
+input:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
