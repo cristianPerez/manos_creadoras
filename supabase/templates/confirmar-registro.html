@@ -7,8 +7,19 @@
   Outlook usa el motor de Word y no entiende flexbox, grid ni degradados. Todo lo
   que aquí parece anticuado es lo único que se ve igual en todos lados.
 
-  Colores tomados de FICHA-ARTE.md (fondo #090706 · superficie #120f0c ·
-  texto #f6f1e7/#c9beac · dorado #ebcd8c→#d48e00).
+  Paleta: la guia de marca de design-ref/07-guia-de-marca.png (crema #FBF6EE ·
+  marfil #FFFDF9 · espresso #2A1F19 · dorado #8C6A2F sobre claro).
+  ⚠️ El dorado sobre crema es SIEMPRE #8C6A2F. El claro (#D9B97A) solo vale
+  dentro del boton, donde el fondo ya es oscuro por el degradado.
+-->
+<!--
+  ⚠️ EL DESTINO LO ELIGE QUIEN PIDE EL CORREO, NO EL `Site URL`.
+  Antes era `{{ .SiteURL }}` fijo y el enlace salia SIEMPRE hacia donde apuntara
+  ese ajuste del panel: pedias entrar desde localhost y el correo te mandaba a
+  QA. `.RedirectTo` es lo que pidio la app, y Supabase solo lo rellena si la
+  direccion esta en la lista de *Redirect URLs*, asi que no sirve para mandar a
+  nadie a una web ajena. El `{{ else }}` cubre los correos disparados a mano
+  desde el panel, que no traen destino.
 -->
 <!doctype html>
 <html lang="es">
@@ -16,18 +27,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Evita que Gmail/Outlook inviertan los colores por su cuenta en modo oscuro. -->
-    <meta name="color-scheme" content="dark" />
-    <meta name="supported-color-schemes" content="dark" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
     <title>Confirma tu correo · Manos Creadoras</title>
   </head>
-  <body style="margin:0; padding:0; background-color:#090706;">
+  <body style="margin:0; padding:0; background-color:#FBF6EE;">
     <!-- Texto de vista previa: lo que se lee en la bandeja antes de abrir. -->
     <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
       Confirma tu correo y entra a tu programa.
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-           style="background-color:#090706; margin:0; padding:0;">
+           style="background-color:#FBF6EE; margin:0; padding:0;">
       <tr>
         <td align="center" style="padding:32px 16px;">
 
@@ -37,8 +48,8 @@
             <!-- Marca -->
             <tr>
               <td align="center" style="padding-bottom:24px;">
-                <p style="margin:0; font-family:'Jost',Helvetica,Arial,sans-serif; font-size:12px;
-                          letter-spacing:3px; text-transform:uppercase; color:#e1af4a;">
+                <p style="margin:0; font-family:'Manrope',Helvetica,Arial,sans-serif; font-size:12px;
+                          letter-spacing:3px; text-transform:uppercase; color:#8C6A2F;">
                   Manos Creadoras
                 </p>
               </td>
@@ -46,16 +57,16 @@
 
             <!-- Tarjeta -->
             <tr>
-              <td style="background-color:#120f0c; border:1px solid #3d3125; border-radius:24px;
+              <td style="background-color:#FFFDF9; border:1px solid #E5D6BF; border-radius:24px;
                          padding:32px 28px;">
 
                 <h1 style="margin:0 0 12px; font-family:Georgia,'Cormorant Garamond','Times New Roman',serif;
-                           font-weight:400; font-size:28px; line-height:1.25; color:#f6f1e7;">
+                           font-weight:400; font-size:28px; line-height:1.25; color:#2A1F19;">
                   Confirma tu correo
                 </h1>
 
-                <p style="margin:0 0 28px; font-family:'Jost',Helvetica,Arial,sans-serif;
-                          font-size:15px; line-height:1.6; color:#c9beac;">
+                <p style="margin:0 0 28px; font-family:'Manrope',Helvetica,Arial,sans-serif;
+                          font-size:15px; line-height:1.6; color:#5E4D40;">
                   Toca el botón para confirmar que este correo es tuyo y entrar a tu programa.
                   El enlace vence pronto y solo se puede usar una vez.
                 </p>
@@ -64,12 +75,12 @@
                      el degradado y el radio del enlace. -->
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                   <tr>
-                    <td align="center" bgcolor="#d48e00" style="border-radius:9999px;
-                        background-color:#d48e00;
-                        background-image:linear-gradient(to right,#ebcd8c,#d48e00);">
-                      <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup"
-                         style="display:block; padding:16px 24px; font-family:'Jost',Helvetica,Arial,sans-serif;
-                                font-size:16px; font-weight:600; color:#14100c; text-decoration:none;
+                    <td align="center" bgcolor="#8C6A2F" style="border-radius:9999px;
+                        background-color:#8C6A2F;
+                        background-image:linear-gradient(to right,#D9B97A,#8C6A2F);">
+                      <a href="{{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/auth/callback{{ end }}?token_hash={{ .TokenHash }}&type=signup"
+                         style="display:block; padding:16px 24px; font-family:'Manrope',Helvetica,Arial,sans-serif;
+                                font-size:16px; font-weight:600; color:#2A1F19; text-decoration:none;
                                 border-radius:9999px;">
                         Confirmar mi correo
                       </a>
@@ -79,13 +90,13 @@
 
                 <!-- Respaldo: si el botón no se ve (correo en texto plano, cliente raro,
                      imágenes bloqueadas), el enlace sigue estando a la vista. -->
-                <p style="margin:24px 0 0; font-family:'Jost',Helvetica,Arial,sans-serif;
-                          font-size:12px; line-height:1.6; color:#8a7f70;">
+                <p style="margin:24px 0 0; font-family:'Manrope',Helvetica,Arial,sans-serif;
+                          font-size:12px; line-height:1.6; color:#6B5A4C;">
                   ¿No funciona el botón? Copia y pega esta dirección en tu navegador:
                 </p>
-                <p style="margin:6px 0 0; font-family:'Jost',Helvetica,Arial,sans-serif;
-                          font-size:12px; line-height:1.6; color:#e1af4a; word-break:break-all;">
-                  {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup
+                <p style="margin:6px 0 0; font-family:'Manrope',Helvetica,Arial,sans-serif;
+                          font-size:12px; line-height:1.6; color:#8C6A2F; word-break:break-all;">
+                  {{ if .RedirectTo }}{{ .RedirectTo }}{{ else }}{{ .SiteURL }}/auth/callback{{ end }}?token_hash={{ .TokenHash }}&type=signup
                 </p>
               </td>
             </tr>
@@ -93,12 +104,12 @@
             <!-- Pie -->
             <tr>
               <td align="center" style="padding-top:24px;">
-                <p style="margin:0 0 6px; font-family:'Jost',Helvetica,Arial,sans-serif;
-                          font-size:12px; line-height:1.6; color:#8a7f70;">
+                <p style="margin:0 0 6px; font-family:'Manrope',Helvetica,Arial,sans-serif;
+                          font-size:12px; line-height:1.6; color:#6B5A4C;">
                   Si no creaste esta cuenta, puedes ignorar este correo tranquila.
                 </p>
-                <p style="margin:0; font-family:'Jost',Helvetica,Arial,sans-serif;
-                          font-size:12px; color:#5c5347;">
+                <p style="margin:0; font-family:'Manrope',Helvetica,Arial,sans-serif;
+                          font-size:12px; color:#6B5A4C;">
                   Manos Creadoras · Bolsos de lujo en cuentas
                 </p>
               </td>
