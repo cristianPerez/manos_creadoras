@@ -313,8 +313,17 @@ function BotonPlan({
   frecuencia: Frecuencia;
   destacado: boolean;
 }) {
+  /*
+   * ⚠️ `/cuenta` ESTABA ROTO: esa ruta ya no existe (redirige a /app/cuenta), y
+   * además mandaba a la pantalla de cuenta cuando lo que hay que hacer es CREAR
+   * la cuenta. Ahora el gratis va a `/entrar` y los de pago a `/pagar`, que es
+   * la pantalla que cobrará cuando OnePay esté.
+   */
   const url = plan.checkout[frecuencia];
-  const destino = url !== "" ? url : plan.id === "aprendiz" ? "/cuenta" : "/contacto";
+  const destino =
+    plan.id === "aprendiz"
+      ? "/entrar"
+      : `/pagar?plan=${plan.id}&ciclo=${frecuencia}`;
 
   const base =
     "mt-8 flex h-14 w-full items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98] [touch-action:manipulation]";
@@ -327,6 +336,7 @@ function BotonPlan({
    * una línea qué va a pasar, que es lo que faltaba.
    */
   const avisa = url === "" && plan.id !== "aprendiz";
+  void url;
 
   return (
     <>

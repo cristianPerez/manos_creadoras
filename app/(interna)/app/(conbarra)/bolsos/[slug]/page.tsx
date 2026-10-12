@@ -119,12 +119,18 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
                   Puedes ver sus pasos y sus materiales. Para los videos necesitas Creadora o
                   Maestra, desde {PRECIO_DESDE} al mes.
                 </p>
+                {/*
+                  ⚠️ EL DESTINO DEPENDE DE QUIÉN MIRA, y la diferencia importa.
+                  Sin cuenta, lo siguiente es crearla; con cuenta y sin plan, lo
+                  siguiente es pagar. Mandar a las dos al mismo sitio obliga a
+                  una de ellas a dar un paso que ya dio.
+                */}
                 <Link
-                  href="/#planes"
+                  href={alumna ? "/pagar" : "/entrar"}
                   className="text-espresso mt-4 flex h-12 items-center justify-center rounded-full font-semibold"
                   style={{ backgroundImage: "var(--boton-dorado)" }}
                 >
-                  Ver los planes
+                  {alumna ? "Ver los planes" : "Crear mi cuenta gratis"}
                 </Link>
               </div>
             ) : (

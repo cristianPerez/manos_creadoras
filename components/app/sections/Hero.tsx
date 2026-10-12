@@ -56,8 +56,15 @@ export async function Hero() {
 
           <Reveal delay={0.18}>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              {/*
+                ⚠️ ANTES BAJABA A #planes, y era el peor enlace de la página: el
+                botón más visible prometía un curso gratis y lo que hacía era
+                enseñar precios. Ahora lleva a crear la cuenta —decisión de
+                Cristian: toda interacción interna pasa por ahí— que es donde se
+                le entrega el bolso gratis de verdad.
+              */}
               <a
-                href="#planes"
+                href="/entrar"
                 className="text-espresso flex h-14 items-center justify-center gap-2 rounded-full px-8 font-semibold transition-transform active:scale-[0.98]"
                 style={{ backgroundImage: "var(--boton-dorado)" }}
               >

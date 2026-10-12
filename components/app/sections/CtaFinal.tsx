@@ -33,7 +33,7 @@ export function CtaFinal() {
           </div>
 
           <a
-            href="#planes"
+            href="/pagar"
             className="text-espresso flex h-14 shrink-0 items-center justify-center gap-2 rounded-full px-8 font-semibold transition-transform active:scale-[0.98]"
             style={{ backgroundImage: "var(--boton-dorado)" }}
           >

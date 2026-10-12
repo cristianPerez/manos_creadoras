@@ -50,8 +50,21 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/*
+            ⚠️ FALTABA "ENTRAR", Y ERA EL PEOR HUECO DE LA LANDING. Una alumna
+            que ya paga entraba a manoscreadoras.co y no tenía por dónde pasar:
+            ni un enlace en toda la página. Va antes del botón de unirse porque
+            quien ya es alumna no viene a comprar otra vez.
+          */}
+          <Link
+            href="/entrar"
+            className="text-ink-body hover:text-espresso flex h-11 items-center px-3 text-sm font-semibold transition-colors"
+          >
+            Entrar
+          </Link>
+
           <a
-            href="#planes"
+            href="/pagar"
             className="bg-espresso flex h-11 items-center rounded-full px-5 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:px-7"
           >
             {/* En pantalla chica el texto largo no cabe junto al logo. */}

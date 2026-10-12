@@ -41,7 +41,7 @@ export default function Entrar() {
 
           <p className="text-ink-muted mt-8 text-center text-sm">
             ¿Todavía no tienes plan?{" "}
-            <Link href="/#planes" className="text-gold font-semibold underline">
+            <Link href="/pagar" className="text-gold font-semibold underline">
               Míralos desde {PRECIO_DESDE} al mes
             </Link>
           </p>

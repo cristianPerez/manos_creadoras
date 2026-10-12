@@ -142,12 +142,13 @@ function Invitacion({ bolsos }: { bolsos: Bolso[] }) {
       </div>
 
       <div className="shrink-0">
+        {/* Quien mira esto no tiene cuenta: lo siguiente es crearla, no pagar. */}
         <Link
-          href="/#planes"
+          href="/entrar"
           className="text-espresso flex h-14 items-center justify-center rounded-full px-7 font-semibold"
           style={{ backgroundImage: "var(--boton-dorado)" }}
         >
-          Ver los planes
+          Crear mi cuenta gratis
         </Link>
         <p className="mt-2 text-center text-xs text-white/60">Desde {PRECIO_DESDE} al mes</p>
       </div>

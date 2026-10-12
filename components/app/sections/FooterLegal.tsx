@@ -33,9 +33,9 @@ export function FooterLegal() {
 
           <nav className="flex flex-wrap justify-center">
             {[
-              { href: "/terminos", texto: "Términos" },
-              { href: "/privacidad", texto: "Privacidad" },
-              { href: "/reembolso", texto: "Reembolsos" },
+              { href: "/legal/terminos", texto: "Términos" },
+              { href: "/legal/privacidad", texto: "Privacidad" },
+              { href: "/legal/reembolso", texto: "Reembolsos" },
               { href: "/contacto", texto: "Contacto" },
             ].map((e) => (
               <Link

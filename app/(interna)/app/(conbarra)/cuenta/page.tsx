@@ -75,7 +75,7 @@ export default async function MiCuenta() {
             <div className="mt-6 flex flex-wrap gap-3">
               {alumna.plan !== "maestra" && (
                 <Link
-                  href="/#planes"
+                  href="/pagar"
                   className="text-espresso flex h-12 items-center rounded-full px-6 text-sm font-semibold"
                   style={{ backgroundImage: "var(--boton-dorado)" }}
                 >
