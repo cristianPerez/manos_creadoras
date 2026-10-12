@@ -92,6 +92,28 @@
                      correos que se disparan sin destino (invitar a mano desde el
                      panel), que si no se quedarían con un enlace roto. -->
 
+                <!-- ╔══════════════════════════════════════════════════════════╗
+                     ║ BLOQUE TEMPORAL DE DIAGNÓSTICO — QUITAR CUANDO SE RESUELVA ║
+                     ╚══════════════════════════════════════════════════════════╝
+                     Llevamos dos intentos y el correo sigue llegando con la
+                     dirección de QA. El problema es que el enlace que produce la
+                     plantilla VIEJA y el que produce la NUEVA con `.RedirectTo`
+                     vacío son EXACTAMENTE iguales, así que mirándolo no se puede
+                     saber cuál de las dos está activa.
+                     Estas tres líneas lo resuelven de un vistazo: si aparecen, la
+                     plantilla nueva está puesta; y dicen qué valor está llegando. -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                       style="margin:20px 0 0; background-color:#F3E8D7; border-radius:12px;">
+                  <tr>
+                    <td style="padding:12px 14px; font-family:'Manrope',Helvetica,Arial,sans-serif;
+                               font-size:11px; line-height:1.7; color:#5E4D40; word-break:break-all;">
+                      <strong style="color:#8C6A2F;">PLANTILLA v3 · diagnóstico</strong><br />
+                      SiteURL = {{ .SiteURL }}<br />
+                      RedirectTo = &laquo;{{ .RedirectTo }}&raquo;
+                    </td>
+                  </tr>
+                </table>
+
                 <!-- Respaldo: si el botón no se ve (correo en texto plano, cliente raro,
                      imágenes bloqueadas), el enlace sigue estando a la vista. -->
                 <p style="margin:24px 0 0; font-family:'Manrope',Helvetica,Arial,sans-serif;
