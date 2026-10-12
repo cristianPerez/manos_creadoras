@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Directorio } from "@/components/app/Directorio";
-import { BarraLateral } from "@/components/app/NavegacionApp";
 import { listarDirectorio } from "@/lib/bolsos";
 
 export const metadata: Metadata = {
@@ -12,7 +11,6 @@ export default async function PaginaDirectorio() {
 
   return (
     <>
-      <BarraLateral />
       <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
         <div className="mx-auto max-w-5xl">
           <header>

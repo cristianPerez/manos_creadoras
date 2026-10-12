@@ -4,6 +4,7 @@ import { alumnaActual, cupoActual } from "@/lib/alumna";
 import { agruparEnPasos, listarBolsos } from "@/lib/bolsos";
 import { supabaseServer } from "@/lib/supabase/server";
 import { FormularioAcceso } from "@/components/app/FormularioAcceso";
+import { BarraLateral } from "@/components/app/NavegacionApp";
 
 export const metadata: Metadata = { title: "El Ojo Experto — Manos Creadoras" };
 
@@ -27,7 +28,15 @@ export default async function PaginaOjo({
     quién es. No es un muro comercial, es que la función no existe sin cuenta.
   */
   if (!alumna) {
+    /*
+     * ⚠️ CON BARRA LATERAL TAMBIÉN AQUÍ. Esta pantalla pide entrar, y sin menú
+     * se convertía en un callejón: quien no quiere crear cuenta todavía no
+     * tenía cómo volver a los bolsos. Pedir algo y además cerrar la salida es
+     * la forma más rápida de que alguien cierre la pestaña.
+     */
     return (
+      <>
+      <BarraLateral />
       <main className="flex min-w-0 flex-1 items-center justify-center px-5 py-12">
         <div className="w-full max-w-md">
           <p className="eyebrow text-center">El Ojo Experto</p>
@@ -40,6 +49,7 @@ export default async function PaginaOjo({
           <FormularioAcceso lugar="ojo" />
         </div>
       </main>
+      </>
     );
   }
 

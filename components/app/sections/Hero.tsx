@@ -2,7 +2,8 @@ import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { CountUp } from "@/components/app/CountUp";
 import { Reveal } from "@/components/app/Reveal";
-import { BOLSO_DEL_MES, CIFRAS_HERO } from "@/lib/landing";
+import { CIFRAS_HERO } from "@/lib/landing";
+import { listarBolsos, ordenCatalogo } from "@/lib/bolsos";
 
 /**
  * El héroe: dos columnas en escritorio, apiladas en móvil.
@@ -11,7 +12,15 @@ import { BOLSO_DEL_MES, CIFRAS_HERO } from "@/lib/landing";
  * la derecha, con una tarjeta flotante encima de la esquina inferior izquierda
  * de la foto.
  */
-export function Hero() {
+export async function Hero() {
+  /*
+   * El bolso del héroe sale del CATÁLOGO, no de una lista aparte. Se enseña el
+   * gratis: es el único que quien llega puede abrir ahí mismo, así que la foto
+   * grande de la portada debe ser la de lo que sí puede tejer hoy.
+   */
+  const bolsos = ordenCatalogo(await listarBolsos());
+  const destacado = bolsos.find((b) => b.portadaUrl) ?? null;
+
   /*
    * `grain` es el dispositivo ownable de la marca y no se estaba aplicando en
    * ningún sitio. Va en el héroe —la primera pantalla— porque es donde el papel
@@ -96,8 +105,8 @@ export function Hero() {
           <div className="relative pb-16 lg:pb-20">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)]">
               <Image
-                src={`/images/${BOLSO_DEL_MES.imagen}.webp`}
-                alt={`${BOLSO_DEL_MES.nombre}, el bolso en cuentas del curso de este mes`}
+                src={destacado?.portadaUrl ?? "/images/bag-champagne-facetado.webp"}
+                alt={`${destacado?.nombre ?? "Bolso"}, en cuentas, del curso de este mes`}
                 fill
                 priority
                 sizes="(min-width: 1024px) 560px, 100vw"
@@ -110,7 +119,7 @@ export function Hero() {
             <div className="bg-ivory absolute bottom-0 left-1/2 flex w-[min(20rem,90%)] -translate-x-1/2 items-center gap-4 rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-lg)] lg:left-0 lg:translate-x-0">
               <div className="relative size-14 shrink-0 overflow-hidden rounded-[var(--radius-lg)]">
                 <Image
-                  src={`/images/${BOLSO_DEL_MES.imagen}.webp`}
+                  src={destacado?.portadaUrl ?? "/images/bag-champagne-facetado.webp"}
                   alt=""
                   fill
                   sizes="56px"
@@ -123,7 +132,7 @@ export function Hero() {
                   className="font-display text-espresso mt-0.5 truncate text-lg"
                   style={{ fontWeight: 500 }}
                 >
-                  {BOLSO_DEL_MES.nombre}
+                  {destacado?.nombre ?? "Cristal Brillante"}
                 </p>
                 <p className="text-ink-muted text-xs">Video + patrón + materiales</p>
               </div>

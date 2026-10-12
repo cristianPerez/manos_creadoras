@@ -1,9 +1,11 @@
 "use client";
 
 import { Play } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { TarjetaBolso } from "@/components/app/TarjetaBolso";
+import { PRECIO_DESDE } from "@/lib/planes";
 import { estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
 
 type Filtro = "todos" | "en-curso" | "terminados";
@@ -19,10 +21,13 @@ export function Catalogo({
   bolsos,
   continuar,
   tieneAcceso,
+  invitada = false,
 }: {
   bolsos: Bolso[];
   continuar: Bolso | null;
   tieneAcceso: boolean;
+  /** Quien mira no ha entrado: se le enseña la oferta junto al catálogo. */
+  invitada?: boolean;
 }) {
   const [filtro, setFiltro] = useState<Filtro>("todos");
 
@@ -41,6 +46,7 @@ export function Catalogo({
   return (
     <>
       {continuar && <ContinuaDondeQuedaste bolso={continuar} />}
+      {invitada && <Invitacion bolsos={bolsos} />}
 
       <div
         role="group"
@@ -102,6 +108,54 @@ export function Catalogo({
 }
 
 /**
+ * La oferta, para quien todavía no ha entrado.
+ *
+ * Va DENTRO del catálogo y no en una pantalla aparte: quien llega quiere ver
+ * los bolsos, y lo que la convence de pagar es tenerlos delante. Un muro antes
+ * de enseñar nada solo consigue que se vaya.
+ */
+function Invitacion({ bolsos }: { bolsos: Bolso[] }) {
+  const gratis = bolsos.find((b) => b.gratis);
+
+  return (
+    <section
+      className="mt-8 flex flex-col gap-6 rounded-[var(--radius-xl)] p-7 text-white md:flex-row md:items-center md:p-8"
+      style={{ backgroundImage: "var(--card-destacada)" }}
+    >
+      <div className="flex-1">
+        <h2 className="font-display text-2xl text-balance" style={{ fontWeight: 500 }}>
+          ¿Y si sigues hasta el bolso terminado?
+        </h2>
+        <p className="mt-2 max-w-lg text-sm text-white/75">
+          {gratis ? `${gratis.nombre} es tuyo ahora mismo. ` : ""}
+          Con un plan se abren los {bolsos.length}, uno nuevo cada mes, el directorio de
+          proveedores y el Ojo Experto.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
+            Garantía de 7 días
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
+            +1.200 alumnas · 4,9/5
+          </span>
+        </div>
+      </div>
+
+      <div className="shrink-0">
+        <Link
+          href="/#planes"
+          className="text-espresso flex h-14 items-center justify-center rounded-full px-7 font-semibold"
+          style={{ backgroundImage: "var(--boton-dorado)" }}
+        >
+          Ver los planes
+        </Link>
+        <p className="mt-2 text-center text-xs text-white/60">Desde {PRECIO_DESDE} al mes</p>
+      </div>
+    </section>
+  );
+}
+
+/**
  * La tarjeta de retomar.
  *
  * Es la pieza más importante de la pantalla: quien vuelve no quiere elegir,
@@ -116,10 +170,21 @@ function ContinuaDondeQuedaste({ bolso }: { bolso: Bolso }) {
       href={`/app/bolsos/${bolso.slug}/${siguiente.orden}`}
       className="bg-sand mt-8 grid overflow-hidden rounded-[var(--radius-lg)] sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
     >
+      {/* Mismo hueco negro que tenía la ficha: aquí también va la foto, con el
+          botón de play encima para que se lea como "sigue viendo". */}
       <div className="bg-espresso relative flex aspect-[16/10] items-center justify-center sm:aspect-auto">
+        {bolso.portadaUrl && (
+          <Image
+            src={bolso.portadaUrl}
+            alt=""
+            fill
+            sizes="(min-width: 640px) 320px, 100vw"
+            className="object-cover opacity-70"
+          />
+        )}
         <span
           aria-hidden="true"
-          className="bg-ivory/90 text-espresso flex size-14 items-center justify-center rounded-full"
+          className="bg-ivory/90 text-espresso relative flex size-14 items-center justify-center rounded-full"
         >
           <Play size={20} fill="currentColor" />
         </span>

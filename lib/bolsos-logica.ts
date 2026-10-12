@@ -173,6 +173,25 @@ export function continuarDonde(bolsos: Bolso[]): Bolso | null {
   return bolsos.find((b) => b.gratis) ?? bolsos[0] ?? null;
 }
 
+/**
+ * El orden en que se enseña el catálogo.
+ *
+ * ⚠️ EL BOLSO GRATIS VA PRIMERO, y no es lo mismo que el orden de Elizabeth.
+ * El campo `orden` es el suyo —el del PDF— y se respeta en todo lo demás; aquí
+ * se antepone el gratis porque esta lista la mira sobre todo quien AÚN NO HA
+ * EMPEZADO, y lo único que puede abrir sin pagar debe estar donde se ve sin
+ * desplazarse. Enterrado en la posición 10 es como no tenerlo.
+ *
+ * Se ordena al mostrar y no se cambia el dato: cambiar `orden` en la base
+ * perdería el orden original de Elizabeth, que es información suya.
+ */
+export function ordenCatalogo(bolsos: Bolso[]): Bolso[] {
+  return [...bolsos].sort((a, b) => {
+    if (a.gratis !== b.gratis) return a.gratis ? -1 : 1;
+    return a.orden - b.orden;
+  });
+}
+
 export function estadoDe(bolso: Bolso): "terminado" | "en-curso" | "nuevo" {
   if (bolso.vistos >= bolso.videos) return "terminado";
   return bolso.vistos > 0 ? "en-curso" : "nuevo";

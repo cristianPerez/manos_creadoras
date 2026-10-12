@@ -1,4 +1,5 @@
 import { ArrowLeft, Play, Sparkles } from "lucide-react";
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -30,15 +31,19 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
 
   return (
     <main className="min-w-0 flex-1">
-      {/* ⚠️ SIN BARRA LATERAL, Y CON "VOLVER" ARRIBA. Aquí ya estás dentro de un
-          bolso: lo que necesitas es salir de él, no saltar a otra sección. */}
+      {/*
+        La barra lateral está siempre (la pone el layout), así que esta barra de
+        arriba ya no tiene que servir de menú. Se queda porque sigue haciendo
+        dos cosas que la lateral no hace: decir DÓNDE estás dentro de la app y
+        dar el salto directo al Ojo Experto con el contexto de este bolso.
+      */}
       <div className="border-line bg-cream/90 sticky top-0 z-(--z-sticky) border-b backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5">
           <Link
             href="/app"
-            className="text-espresso flex items-center gap-2 text-sm font-semibold"
+            className="text-ink-muted hover:text-espresso flex items-center gap-2 text-sm"
           >
-            <ArrowLeft size={18} aria-hidden="true" />
+            <ArrowLeft size={16} aria-hidden="true" />
             Mis bolsos
           </Link>
           <Link
@@ -54,13 +59,29 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
       <div className="mx-auto max-w-5xl px-5 py-8 md:py-10">
         <header className="grid gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-center">
           <div className="bg-espresso relative aspect-square overflow-hidden rounded-[var(--radius-xl)]">
-            <span
-              aria-hidden="true"
-              className="font-display text-gold/25 absolute inset-0 flex items-center justify-center text-7xl"
-              style={{ fontWeight: 500 }}
-            >
-              {bolso.nombre.charAt(0)}
-            </span>
+            {bolso.portadaUrl ? (
+              <Image
+                src={bolso.portadaUrl}
+                alt={`Bolso ${bolso.nombre}, tejido en cuentas`}
+                fill
+                /* `priority`: es la imagen grande de la primera pantalla de la
+                   ficha. Cargarla tarde deja un rectángulo negro justo donde se
+                   mira primero. */
+                priority
+                sizes="(min-width: 768px) 420px, 100vw"
+                className="object-cover"
+              />
+            ) : (
+              /* Los cinco bolsos sin foto todavía: la inicial sobre espresso en
+                 vez de un rectángulo vacío que parezca que algo falló. */
+              <span
+                aria-hidden="true"
+                className="font-display text-gold/25 absolute inset-0 flex items-center justify-center text-7xl"
+                style={{ fontWeight: 500 }}
+              >
+                {bolso.nombre.charAt(0)}
+              </span>
+            )}
           </div>
 
           <div>

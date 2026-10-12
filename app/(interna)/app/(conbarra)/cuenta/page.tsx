@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ActivarAvisos } from "@/components/app/ActivarAvisos";
 import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
-import { BarraLateral } from "@/components/app/NavegacionApp";
 import { FormularioAcceso } from "@/components/app/FormularioAcceso";
 import { alumnaActual, cupoActual } from "@/lib/alumna";
 import { PLANES, precioPorMes } from "@/lib/planes";
@@ -26,8 +25,7 @@ export default async function MiCuenta() {
   if (!alumna) {
     return (
       <>
-        <BarraLateral />
-        <main className="min-w-0 flex-1 px-5 py-10">
+          <main className="min-w-0 flex-1 px-5 py-10">
           <div className="mx-auto max-w-md">
             <FormularioAcceso lugar="cuenta" />
           </div>
@@ -43,7 +41,6 @@ export default async function MiCuenta() {
 
   return (
     <>
-      <BarraLateral />
       <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
         <div className="mx-auto max-w-2xl">
           <p className="eyebrow">Tu cuenta</p>

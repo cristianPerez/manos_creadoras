@@ -162,6 +162,54 @@ después la caja.
 
 ---
 
+## 🧭 Navegación reorganizada (2026-10-12, pedido de Cristian)
+
+⚠️ **SE QUITÓ LA PANTALLA "CORTESÍA", y eso se aparta del diseño** (las
+pantallas 16 y 17 de `design-ref` la dibujan aparte). Cristian pidió que todo
+viva en `/app`, y tenía razón en el motivo: la Cortesía no tenía barra lateral
+ni forma de volver — era un callejón sin salida — y obligaba a mantener dos
+catálogos parecidos.
+
+**Ahora quien llega sin cuenta ve EL MISMO catálogo**: los 14 bolsos, el gratis
+primero y el resto con candado. Puede abrirlos y leer sus pasos, sus materiales
+y sus medidas; lo único que no puede es reproducir el video. La oferta va como
+una tarjeta DENTRO del catálogo, no como pantalla previa.
+
+**La barra lateral está SIEMPRE en escritorio.** Antes la ficha y la lección no
+la llevaban (la idea era "ya estás dentro de algo"), y se sentía como salirse
+de la app. Vive en `app/(interna)/app/(conbarra)/layout.tsx`, así que se hereda
+y no hay que acordarse de ponerla en cada pantalla nueva.
+El Ojo Experto sigue con su propia barra —lleva el historial— pero incluye los
+mismos enlaces de navegación.
+
+---
+
+## ⚙️ Ajustes hechos EN LOS PANELES (2026-10-12)
+
+No están en el código: viven en Supabase y en Bunny, y si alguien recrea los
+proyectos hay que volver a ponerlos.
+
+**Supabase → Authentication → Emails:**
+- *Magic link* y *Confirm sign up* con la plantilla de `supabase/templates/`.
+  Usan `{{ .ConfirmationURL }}`, que respeta el destino que pide la app — por
+  eso ya se puede entrar desde localhost.
+
+**Bunny → Stream → biblioteca 772366:**
+- *Player UI Primary Color* = **#D9B97A** (dorado claro, el válido sobre fondo
+  oscuro). Antes era el naranja de Bunny.
+- *Allowed referrers*: `qa.manoscreadoras.co`, `manoscreadoras.co` y
+  **`localhost`**. ⚠️ Este último hacía falta: con "Block direct url file
+  access" encendido, el navegador manda `Referer: localhost` y Bunny devolvía
+  **403** — los videos no se veían en desarrollo.
+- *Embed view token authentication*: ENCENDIDA. Comprobado que rechaza enlaces
+  sin firma, con firma inventada, vencidos, y el token de un video usado en
+  otro.
+
+🟡 Dos cosas del reproductor que siguen por defecto y conviene mirar: el idioma
+está en **inglés** y la fuente es **Rubik**, no la de la marca.
+
+---
+
 ## 🔨 LAS 8 FASES DEL REDISEÑO, HECHAS (2026-10-12)
 
 La app pasó de **un curso** a **14 bolsos**. Todo construido contra
@@ -213,6 +261,10 @@ colecciones con contenido y el JSON trae 14. Las cuentas cuadran al vídeo: las
 colecciones suman 79 videos, el JSON 75, y la diferencia son exactamente los 4
 de Zafiro perlado. Hay que decidir si entra como bolso 15 o si se deja fuera a
 propósito.
+
+🟡 **PENDIENTE ANOTADO (2026-10-12):** decidir si "Zafiro perlado" entra como
+bolso 15. Sus 4 videos están en Bunny y el JSON no lo trae. Cristian lo deja
+para después.
 
 🟡 **21 videos sueltos** en la biblioteca sin colección (100 en total, 79 dentro
 de colecciones). Puede que sean tomas viejas o material sin clasificar.

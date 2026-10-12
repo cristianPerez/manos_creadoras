@@ -61,39 +61,16 @@ export const PASOS = [
 
 /* ── La colección ───────────────────────────────────────────────────── */
 
-/**
- * Los ocho bolsos de la rejilla.
+/*
+ * ⚠️ AQUÍ VIVÍA UNA LISTA DE OCHO BOLSOS ESCRITA A MANO, y se borró.
  *
- * ⚠️ LOS NOMBRES SON LOS REALES DEL CATÁLOGO, no los de la maqueta. La maqueta
- * usaba "Pearl Bow", "Gold Crystal"… que son nombres en inglés que no existen
- * en el programa. Las FOTOS siguen siendo las que hay en el repo: hasta que
- * lleguen las 14 reales, cada nombre se acompaña de la foto más parecida.
- * El día que lleguen, esta lista se lee del catálogo y desaparece.
+ * Era una segunda fuente de verdad: el home decía que "Cristal Brillante" era
+ * una foto y la app decía que era otra. Cinco de los ocho habían divergido ya.
  *
- * ⚠️ EN EL DISEÑO SON MARCADORES DE POSICIÓN (rectángulos con puntitos) porque
- * quien lo maquetó no tenía las fotos. Nosotros SÍ las tenemos: las nueve fotos
- * reales están en el repo desde agosto y los ocho nombres del diseño coinciden
- * exactamente con ocho de ellas. Poner las fotos de verdad donde el diseño dejó
- * un hueco es respetar su intención, no apartarse de ella.
+ * La sección `Coleccion` lee ahora el catálogo de la base, igual que `/app`.
+ * El bolso del héroe también sale de ahí.
  */
-export const COLECCION = [
-  { nombre: "Gota de Rocío", imagen: "bag-pearl-bow", etiqueta: "Este mes", estado: "Nuevo" },
-  { nombre: "Cristal Brillante", imagen: "bag-pearl-hobo", etiqueta: "Gratis", estado: "Gratis" },
-  { nombre: "Tornado de Aurora", imagen: "bag-gold-crystal", etiqueta: "Biblioteca", estado: "Disponible" },
-  { nombre: "Marfil Elegante", imagen: "bag-pearl-coin", etiqueta: "Biblioteca", estado: "Disponible" },
-  {
-    nombre: "Coquett Clásico",
-    imagen: "bag-champagne-facetado",
-    etiqueta: "Biblioteca",
-    estado: "Disponible",
-  },
-  { nombre: "Anillos de Seda", imagen: "bag-onix-cristal", etiqueta: "Biblioteca", estado: "Disponible" },
-  { nombre: "Celeste Cálido", imagen: "bag-glacier-blue", etiqueta: "Biblioteca", estado: "Disponible" },
-  { nombre: "Esmeralda", imagen: "bag-pearl-royale", etiqueta: "Biblioteca", estado: "Disponible" },
-] as const;
 
-/** El bolso que se enseña en el héroe: siempre el del mes. */
-export const BOLSO_DEL_MES = COLECCION[0];
 
 /* ── La mentora ─────────────────────────────────────────────────────── */
 
