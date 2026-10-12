@@ -110,28 +110,39 @@ export async function Hero() {
             sobresalir sin que su sombra se corte ni empuje la sección siguiente.
           */}
           <div className="relative pb-16 lg:pb-20">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)]">
+            <div className="bg-espresso relative aspect-[4/5] overflow-hidden rounded-[var(--radius-xl)]">
+              {/*
+                ⚠️ SIN RESPALDO A UN ARCHIVO CONCRETO. Antes caía en una foto
+                escrita a mano, y el día que esa foto se borró el respaldo quedó
+                apuntando a un 404 — peor que no tener respaldo. Si ningún bolso
+                tiene portada, no se pinta imagen: el espresso de detrás ya es
+                un fondo digno.
+              */}
+              {destacado?.portadaUrl && (
               <Image
-                src={destacado?.portadaUrl ?? "/images/bag-champagne-facetado.webp"}
-                alt={`${destacado?.nombre ?? "Bolso"}, en cuentas, del curso de este mes`}
+                src={destacado.portadaUrl}
+                alt={`${destacado.nombre}, en cuentas, del curso de este mes`}
                 fill
                 priority
                 sizes="(min-width: 1024px) 560px, 100vw"
                 className="object-cover"
               />
+              )}
             </div>
 
             {/* La tarjeta flotante. En móvil se centra; en escritorio muerde la
                 esquina inferior izquierda de la foto, como en el diseño. */}
             <div className="bg-ivory absolute bottom-0 left-1/2 flex w-[min(20rem,90%)] -translate-x-1/2 items-center gap-4 rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-lg)] lg:left-0 lg:translate-x-0">
-              <div className="relative size-14 shrink-0 overflow-hidden rounded-[var(--radius-lg)]">
+              <div className="bg-espresso relative size-14 shrink-0 overflow-hidden rounded-[var(--radius-lg)]">
+                {destacado?.portadaUrl && (
                 <Image
-                  src={destacado?.portadaUrl ?? "/images/bag-champagne-facetado.webp"}
+                  src={destacado.portadaUrl}
                   alt=""
                   fill
                   sizes="56px"
                   className="object-cover"
                 />
+                )}
               </div>
               <div className="min-w-0">
                 <p className="eyebrow">Curso de este mes</p>

@@ -66,7 +66,8 @@
         "Nombre provisional: el original usaba una marca registrada.",
         "Hilo corregido de '7 mm' a '0,7 mm'."
       ],
-      "portada_url": "/images/bag-pearl-hobo.webp"
+      "portada_url": "/images/bolso-perla-tejida.jpg",
+      "nota_portada": "POR CONFIRMAR: 'Perla Clásica' — las perlas son lisas, no Shamballa, asi que no es Coquett"
     },
     {
       "orden": 2,
@@ -119,7 +120,8 @@
         }
       ],
       "gratis": false,
-      "portada_url": "/images/bag-pearl-coin.webp"
+      "portada_url": "/images/bolso-brillo-lunar.jpg",
+      "nota_portada": "confirmada: mismo nombre, y se ve el cierre de boquilla de su ficha"
     },
     {
       "orden": 3,
@@ -209,7 +211,8 @@
       "notas": [
         "Nombre provisional: el original usaba una marca registrada."
       ],
-      "portada_url": "/images/bag-onix-cristal.webp"
+      "portada_url": null,
+      "nota_portada": "SIN FOTO A PROPÓSITO. La de la landing muestra la caja de DIOR al fondo y los dijes D-I-O-R colgando del bolso. A este bolso se le cambió el nombre precisamente porque el original usaba esa marca registrada (ver `notas`), así que esa portada devolvería la marca justo donde se quitó. Hace falta una foto del mismo bolso sin el logo."
     },
     {
       "orden": 4,
@@ -295,7 +298,8 @@
         }
       ],
       "gratis": false,
-      "portada_url": "/images/bag-pearl-royale.webp"
+      "portada_url": "/images/bolso-marfil-elegante.jpg",
+      "nota_portada": "confirmada: mismo nombre"
     },
     {
       "orden": 5,
@@ -364,7 +368,8 @@
       "notas": [
         "Hilo del asa corregido de '45 mm' a '0,45 mm'."
       ],
-      "portada_url": null
+      "portada_url": "/images/bolso-encantado-dorado.jpg",
+      "nota_portada": "confirmada: mismo nombre, y el marco dorado de su ficha"
     },
     {
       "orden": 6,
@@ -451,7 +456,8 @@
       "notas": [
         "Nombre provisional: el original usaba una marca registrada."
       ],
-      "portada_url": null
+      "portada_url": "/images/bolso-silueta-nacar.jpg",
+      "nota_portada": "confirmada: la landing la llama 'Nácar Soñado'"
     },
     {
       "orden": 7,
@@ -543,7 +549,8 @@
         }
       ],
       "gratis": false,
-      "portada_url": "/images/bag-pink-crystal.webp"
+      "portada_url": "/images/bolso-tornado-de-aurora.jpg",
+      "nota_portada": "confirmada: cuentas tornasoladas, y la landing la llama 'Aurora Tornasol'"
     },
     {
       "orden": 8,
@@ -623,7 +630,8 @@
       "notas": [
         "La base viene en 2 videos: se muestran como un solo paso con parte 1 y parte 2."
       ],
-      "portada_url": "/images/bag-pearl-bow.webp"
+      "portada_url": "/images/bolso-gota-de-rocio.jpg",
+      "nota_portada": "confirmada: mismo nombre"
     },
     {
       "orden": 9,
@@ -734,7 +742,8 @@
       "notas": [
         "Bolso gratis del plan Aprendiz."
       ],
-      "portada_url": "/images/bag-champagne-facetado.webp"
+      "portada_url": "/images/bolso-cristal-brillante.jpg",
+      "nota_portada": "confirmada: mismo nombre, marco plateado y cuentas champaña"
     },
     {
       "orden": 11,
@@ -805,7 +814,8 @@
         }
       ],
       "gratis": false,
-      "portada_url": "/images/bag-gold-crystal.webp"
+      "portada_url": "/images/bolso-coquett-clasico.jpg",
+      "nota_portada": "POR CONFIRMAR: cuentas metalicas tipo Shamballa; NO se puso en Celeste Calido porque 'celeste' es azul y esta es plata"
     },
     {
       "orden": 12,
@@ -885,7 +895,7 @@
         }
       ],
       "gratis": false,
-      "portada_url": "/images/bag-glacier-blue.webp"
+      "portada_url": null
     },
     {
       "orden": 13,
@@ -1251,5 +1261,5 @@
     ]
   },
   "nota_orden": "El orden de las lecciones es el que definió Elizabeth (tal cual el PDF). El video de materiales siempre va primero.",
-  "nota_portadas": "⚠️ Solo 'cristal-brillante' está verificado contra su ficha de materiales (marco plateado + cuentas champaña). Los demás se emparejaron por parecido y Elizabeth debe confirmarlos: una foto equivocada hace que una alumna elija un bolso que no es el que va a tejer. Para corregir: cambiar 'portada_url' aquí y correr 'npm run seed:bolsos'."
+  "nota_portadas": "Las fotos salen de la landing sparkle-bag-studio.lovable.app, donde cada imagen trae el nombre del bolso en su texto alternativo. OCHO están confirmadas por el nombre o por los materiales de la propia ficha. DOS son por parecido y Elizabeth debe confirmarlas: 'perla-tejida' (la landing la llama 'Perla Clásica') y 'coquett-clasico' (la llama 'Malla Plateada'). ⚠️ A 'celeste-calido' NO se le puso la foto plateada aunque su ficha mencione malla: 'celeste' es azul y la foto es plata — una portada que contradice el nombre confunde más que un hueco. Cinco siguen sin foto: Anillos de Seda (ver su nota: la disponible lleva el logo de Dior), Cherry, Celeste Cálido, Esmeralda y Boho. Para cambiar una: editar 'portada_url' y correr 'npm run seed:bolsos'."
 }
