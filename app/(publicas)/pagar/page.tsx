@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * La página de pago. PROVISIONAL Y A PROPÓSITO.
+ * La página de pago.
  *
  * ⚠️ ESTÁ SIN DISEÑAR PORQUE CRISTIAN LA VA A DISEÑAR. Lleva lo imprescindible
  * —los planes, su precio y un botón por plan— con los tokens de la marca pero
@@ -25,9 +25,9 @@ export const metadata: Metadata = {
 export default async function Pagar({
   searchParams,
 }: {
-  searchParams: Promise<{ plan?: string; ciclo?: string }>;
+  searchParams: Promise<{ ciclo?: string }>;
 }) {
-  const { plan, ciclo } = await searchParams;
+  const { ciclo } = await searchParams;
   const alumna = await alumnaActual();
 
   return (
@@ -35,15 +35,14 @@ export default async function Pagar({
       <div className="mx-auto max-w-3xl">
         <header className="text-center">
           <p className="eyebrow">Tu plan</p>
-          <h1 className="titulo-seccion mt-2 text-balance">Elige cómo quieres crear</h1>
+          <h1 className="titulo-seccion mt-2 text-balance">Un solo plan, todo incluido</h1>
           <p className="text-ink-body mt-3">
-            Puedes cambiar de plan o cancelar cuando quieras.
+            Paga cada mes o ahorra pagando el año. Cancelas cuando quieras.
           </p>
         </header>
 
         <SelectorDePago
-          planInicial={plan ?? null}
-          cicloInicial={ciclo === "mensual" ? "mensual" : "anual"}
+          frecuenciaInicial={ciclo === "mensual" ? "mensual" : "anual"}
           /*
             Si ya entró, no se le vuelve a pedir el correo después de pagar.
             Si no, hace falta saber a quién darle el acceso — por eso el aviso.

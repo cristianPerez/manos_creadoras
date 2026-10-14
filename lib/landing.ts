@@ -147,10 +147,21 @@ export const CIERRE = {
 
 /* ── Navegación ─────────────────────────────────────────────────────── */
 
+/**
+ * El menú del home.
+ *
+ * ⚠️ ESTAS ANCLAS TIENEN QUE EXISTIR EN LA PÁGINA. Hasta el home v2 apuntaban a
+ * cinco secciones que ya se habían borrado (#como-funciona, #coleccion,
+ * #planes, #mentora, #preguntas): el menú estaba entero y ninguno de sus cinco
+ * enlaces llevaba a ningún sitio. Un menú que no hace nada es peor que no tener
+ * menú, porque se prueba una vez y se deja de confiar en toda la página.
+ *
+ * Si se borra o renombra una sección del home, esta lista se toca EN EL MISMO
+ * commit.
+ */
 export const NAVEGACION = [
-  { texto: "Cómo funciona", destino: "#como-funciona" },
-  { texto: "Cada mes", destino: "#coleccion" },
-  { texto: "Planes", destino: "#planes" },
-  { texto: "Mentoría", destino: "#mentora" },
-  { texto: "Preguntas", destino: "#preguntas" },
+  { texto: "Cápsulas gratis", destino: "#capsulas" },
+  { texto: "Curso gratis", destino: "#gratis" },
+  { texto: "Ojo Experto", destino: "#ojo" },
+  { texto: "Precio", destino: "#precio" },
 ] as const;

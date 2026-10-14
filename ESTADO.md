@@ -1,6 +1,6 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-10-09.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-10-14.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El detalle de por qué algo se hizo así vive en el comentario de
 cabecera de cada archivo y en los mensajes de commit, que en este repo son largos
 a propósito. Lo que se termina, se quita de aquí.
@@ -159,6 +159,63 @@ El hueco no es técnico, es de **contenido y de recorrido**:
 —entrar, ver el curso gratis, toparse con el resto cerrado— **antes** de que
 exista la pasarela, y es el orden sensato: primero que la puerta funcione,
 después la caja.
+
+---
+
+## 🏠 HOME V2 Y PLAN ÚNICO (2026-10-14)
+
+Cristian entregó un diseño nuevo del home (17 pantallas, en `.respaldo/diseno/home-v2`)
+y con él una decisión de negocio.
+
+🔴 **UN SOLO PLAN** (migración 0016, aplicada en QA). Se acabaron los tres
+niveles: US$35/mes o US$350/año (US$29,17/mes · ahorra 17%). El cambio NO se
+quedó en `lib/planes.ts` — bajó a la base, porque los tres nombres vivían en el
+`check` de `membresias.plan` y en `plan_cupos`. Dejar el código con un plan y la
+base aceptando tres habría permitido escribir 'maestra' a mano para siempre.
+· `plan_cupos`: ahora `gratis` (3/1) y `completo` (600/60 — hereda los de
+  maestra: el plan único se vende como "todo incluido", no puede dar menos que
+  el más caro de antes).
+· **Las 9 membresías se migraron sin perder un día pagado** (6 → completo, 3 → gratis).
+· `plan_efectivo()` CONSERVA nombre y firma: es la frontera entre "cómo se
+  guarda el plan" y "quién ve qué"; cambiarla obligaría a tocar seis llamadas.
+
+**HOME V2** en `components/home/`: HeroSlider · Capsulas (+ StoryViewer) ·
+CursoGratis · OjoDemo · PrecioHome · BarraInferiorHome · Entrada ·
+NumeroQueCuenta. Se borraron 9 secciones viejas (~1.000 líneas).
+⚠️ Las cápsulas son UN componente con dos presentaciones (tarjetas en escritorio,
+historias circulares en móvil), no dos: mismos datos, mismo visor, misma lógica
+de "vistas". El ORDEN cambia con `order` en el flex de `main` — en escritorio van
+debajo del banner, en móvil encima.
+
+🔴 **EL OJO EXPERTO YA RESPONDE SIN CUENTA** (migración 0017). Eso abre el gasto
+de IA a tráfico anónimo, así que lleva DOS frenos: 2 preguntas por huella
+contadas en la base (`consumir_visitante` — borrar la cookie no regala más) y un
+TERCER bolsillo de presupuesto ('visitante'), separado del de quien paga. Misma
+lección de la 0011. La huella es un hash de IP + sal: **nunca la IP en claro**.
+
+⚠️ **EL REVISOR VISUAL LO REPRUEBA: 29/40 usabilidad · 14/20 craft** (el listón
+es 36 y 16). Se corrigió lo que tenía razón. **Queda abierto y lo decide
+Cristian:** el revisor pide bloques de dolor/testimonios/FAQ (su diseño los quita
+a propósito) y reescribir el copy del héroe (es el suyo, palabra por palabra).
+
+**Tres fallos que encontró Cristian al verlo, ya corregidos:**
+· La página **se iba sola hasta el Ojo Experto al abrirla**: el chat llamaba a
+  `scrollIntoView` al montarse, vacío — y esa función no mueve solo su caja,
+  mueve la ventana. Arreglado con dos cambios (solo baja si ya hay mensajes, y
+  `block: "nearest"`).
+· Las cápsulas salían encima del banner también en escritorio.
+· ⚠️ **EL AIRE DE UNA SECCIÓN SE SUMA AL DE LA SIGUIENTE.** Dos `py-16` seguidos
+  daban 128px de blanco: cada sección se veía bien aislada y el conjunto no.
+  Bajado a 48+48. Si hace falta más aire, se da DENTRO del bloque, nunca entre
+  bloques.
+
+🟡 En pantallas de 812px el CTA del héroe sigue cayendo bajo la barra fija. No
+cabe: header (76) + cápsulas (136) + foto + titular + botón. La barra lleva
+"Bolso gratis" al mismo destino y está visible siempre.
+
+🔴 **NO EXISTEN LOS VIDEOS DE LAS CÁPSULAS.** `capsulas.video_id` es nulo y el
+visor enseña la portada diciéndolo. Los 5 textos son del prompt del diseño, no de
+Elizabeth. (Posible pista: los 21 videos sueltos sin colección en Bunny.)
 
 ---
 

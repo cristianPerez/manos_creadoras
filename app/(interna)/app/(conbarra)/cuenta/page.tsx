@@ -5,7 +5,7 @@ import { ActivarAvisos } from "@/components/app/ActivarAvisos";
 import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
 import { FormularioAcceso } from "@/components/app/FormularioAcceso";
 import { alumnaActual, cupoActual } from "@/lib/alumna";
-import { PLANES, precioPorMes } from "@/lib/planes";
+import { precioPorMes } from "@/lib/planes";
 
 export const metadata: Metadata = { title: "Mi cuenta — Manos Creadoras" };
 
@@ -35,9 +35,8 @@ export default async function MiCuenta() {
   }
 
   const cupo = await cupoActual(alumna.id);
-  const plan = PLANES.find((p) => p.id === alumna.plan);
-  const precio =
-    plan && alumna.ciclo ? precioPorMes(plan.precioMes[alumna.ciclo]) : null;
+  /* Un solo plan: lo que varía es cómo lo paga, no cuál tiene. */
+  const precio = alumna.tieneAcceso && alumna.ciclo ? precioPorMes(alumna.ciclo) : null;
 
   return (
     <>
@@ -52,11 +51,11 @@ export default async function MiCuenta() {
             style={{ backgroundImage: "var(--card-destacada)" }}
           >
             <p className="text-gold-light text-xs font-bold tracking-[0.18em] uppercase">
-              {alumna.tieneAcceso ? "Membresía activa" : "Plan gratuito"}
+              {alumna.tieneAcceso ? "Membresía activa" : "Sin plan"}
             </p>
             <h2 className="font-display mt-2 text-2xl" style={{ fontWeight: 500 }}>
-              Plan {plan?.nombre ?? "Aprendiz"}
-              {alumna.ciclo ? ` · ${alumna.ciclo}` : ""}
+              {alumna.tieneAcceso ? "Curso completo" : "Cuenta gratuita"}
+              {alumna.tieneAcceso && alumna.ciclo ? ` · ${alumna.ciclo}` : ""}
             </h2>
             {/* ⚠️ El precio sale de `lib/planes.ts`. Aquí vivían los precios
                 VIEJOS (USD 199/año) mientras la landing ya vendía otra cosa. */}
@@ -73,13 +72,14 @@ export default async function MiCuenta() {
             )}
 
             <div className="mt-6 flex flex-wrap gap-3">
-              {alumna.plan !== "maestra" && (
+              {/* Con un solo plan ya no hay a qué "subir": o lo tienes o lo compras. */}
+              {!alumna.tieneAcceso && (
                 <Link
                   href="/pagar"
                   className="text-espresso flex h-12 items-center rounded-full px-6 text-sm font-semibold"
                   style={{ backgroundImage: "var(--boton-dorado)" }}
                 >
-                  {alumna.tieneAcceso ? "Pasar a Maestra" : "Ver los planes"}
+                  Ver el plan
                 </Link>
               )}
               {alumna.tieneAcceso && (

@@ -14,7 +14,8 @@
     "push:enviar": "node scripts/enviar-aviso.mjs",
     "seed:bolsos": "node scripts/seed-bolsos.mjs",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:capsulas": "node scripts/seed-capsulas.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",

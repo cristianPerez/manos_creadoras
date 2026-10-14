@@ -1,30 +1,22 @@
-"use client";
-
-import { Menu, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
 import { NAVEGACION } from "@/lib/landing";
 
 /**
  * La cabecera del home.
  *
- * ⚠️ EL DISEÑO SOLO RESUELVE ESCRITORIO. En la referencia la navegación son
- * cinco enlaces en fila, que a 375px no caben ni encogiéndolos. Como el diseño
- * móvil (imagen 04) tampoco los muestra, la decisión es nuestra: los cinco
- * enlaces se guardan en un panel que se abre con el botón de menú, y el CTA
- * se queda SIEMPRE visible.
+ * ⚠️ EN MÓVIL SE QUEDA EN LO MÍNIMO: logo y "Entrar". Antes había un menú
+ * hamburguesa, pero el home v2 trae una barra fija abajo (Inicio · Bolso gratis
+ * · Ojo Experto · Entrar) que está siempre a la vista. Dos formas de navegar lo
+ * mismo acaban siempre igual: una de las dos se queda sin actualizar.
  *
- * Que el CTA no se esconda es deliberado: es la única acción de toda la
- * cabecera que da dinero, y meterla detrás de un menú la mata.
+ * Ya no es un componente de cliente: sin menú desplegable no hay estado que
+ * guardar, así que se renderiza en el servidor y baja menos JavaScript.
  */
 export function Header() {
-  const [abierto, setAbierto] = useState(false);
-
   return (
     <header className="bg-cream/90 sticky top-0 z-(--z-sticky) backdrop-blur-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-        <Link href="/" className="flex items-center gap-3" onClick={() => setAbierto(false)}>
+        <Link href="/" className="flex items-center gap-3">
           <Logo />
           {/* `whitespace-nowrap`: a 375px, junto al botón y al menú, el nombre
               se partía en dos líneas y duplicaba la altura de la cabecera. */}
@@ -37,7 +29,7 @@ export function Header() {
         </Link>
 
         {/* Los enlaces, en escritorio */}
-        <nav className="hidden items-center gap-8 lg:flex">
+        <nav className="hidden items-center gap-7 md:flex">
           {NAVEGACION.map((e) => (
             <a
               key={e.destino}
@@ -51,61 +43,36 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           {/*
-            ⚠️ FALTABA "ENTRAR", Y ERA EL PEOR HUECO DE LA LANDING. Una alumna
-            que ya paga entraba a manoscreadoras.co y no tenía por dónde pasar:
-            ni un enlace en toda la página. Va antes del botón de unirse porque
-            quien ya es alumna no viene a comprar otra vez.
+            ⚠️ "ENTRAR" FALTABA, Y ERA EL PEOR HUECO DE LA LANDING: una alumna
+            que ya paga entraba a manoscreadoras.co y no tenía por dónde pasar.
+
+            En escritorio va discreto y antes del botón oscuro —quien ya es
+            alumna no viene a comprar otra vez—. En móvil es el ÚNICO botón, y
+            por eso ahí sí va destacado.
           */}
           <Link
             href="/entrar"
-            className="text-ink-body hover:text-espresso flex h-11 items-center px-3 text-sm font-semibold transition-colors"
+            className="text-ink-body hover:text-espresso hidden h-11 items-center px-3 text-sm font-semibold transition-colors md:flex"
+          >
+            Entrar
+          </Link>
+
+          <Link
+            href="/entrar"
+            className="bg-espresso flex h-11 items-center rounded-full px-6 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:hidden"
           >
             Entrar
           </Link>
 
           <a
-            href="/pagar"
-            className="bg-espresso flex h-11 items-center rounded-full px-5 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:px-7"
+            href="#gratis"
+            className="bg-espresso hidden h-11 items-center rounded-full px-7 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:flex"
           >
-            {/* En pantalla chica el texto largo no cabe junto al logo. */}
-            <span className="hidden sm:inline">Unirme a la membresía</span>
-            <span className="sm:hidden">Unirme</span>
+            Empieza gratis
           </a>
-
-          <button
-            type="button"
-            onClick={() => setAbierto((v) => !v)}
-            aria-expanded={abierto}
-            aria-label={abierto ? "Cerrar el menú" : "Abrir el menú"}
-            className="text-espresso flex size-11 items-center justify-center lg:hidden"
-          >
-            {abierto ? <X size={22} /> : <Menu size={22} />}
-          </button>
         </div>
       </div>
 
-      <AnimatePresence initial={false}>
-        {abierto && (
-        <motion.nav
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="border-line bg-cream overflow-hidden border-t px-5 lg:hidden"
-        >
-          {NAVEGACION.map((e) => (
-            <a
-              key={e.destino}
-              href={e.destino}
-              onClick={() => setAbierto(false)}
-              className="text-ink-body hover:text-espresso flex h-12 items-center text-base transition-colors"
-            >
-              {e.texto}
-            </a>
-          ))}
-        </motion.nav>
-        )}
-      </AnimatePresence>
     </header>
   );
 }

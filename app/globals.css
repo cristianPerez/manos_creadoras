@@ -131,6 +131,46 @@
      que no tape la conversación. */
   --foto-mensaje: 220px;
 
+  /*
+   * El arena de los puntitos inactivos del carrusel. Es el mismo arena de la
+   * paleta pero un punto más oscuro: sobre crema, `--sand` no se distingue del
+   * fondo y los puntos desaparecían.
+   */
+  --punto-inactivo: #d8c6a8;
+
+  /*
+   * El anillo dorado de las historias en móvil. Cónico y con cuatro paradas
+   * para que el dorado gire como metal, no como un degradado plano — es lo que
+   * separa "anillo de Instagram" de "círculo con borde".
+   */
+  --anillo-historia: conic-gradient(
+    var(--gold-light), var(--gold), var(--gold-pale), var(--gold-deep), var(--gold-light)
+  );
+
+  /* El radio de las piezas grandes del home: foto del héroe, tarjeta del curso
+     y visor de cápsulas. Más generoso que `--radius-xl` porque son bloques de
+     media pantalla y ahí un radio pequeño se lee como esquina viva. */
+  --radius-foto: 28px;
+  /* Las tarjetas de cápsula: entre `--radius-lg` (20) y `--radius-xl` (30). */
+  --radius-capsula: 22px;
+
+  /*
+   * El visor de cápsulas en escritorio: 380 × 676, que es la proporción 9:16 de
+   * un teléfono. Se mantiene esa forma aunque estemos en un monitor porque el
+   * video se graba en vertical — encajarlo en un modal apaisado dejaría dos
+   * franjas negras a los lados.
+   */
+  --visor-ancho: 380px;
+  --visor-alto: 676px;
+
+  /*
+   * La franja de vidrio sobre el video del curso gratis. El desenfoque y la
+   * opacidad van juntos: menos desenfoque y el texto se pierde sobre la foto;
+   * más opacidad y deja de verse el bolso, que es lo que vende.
+   */
+  --vidrio-fondo: rgba(42, 31, 25, 0.42);
+  --vidrio-desenfoque: 14px;
+
   --barra-lateral: 260px;
   --barra-lateral-ojo: 280px;
 
@@ -200,6 +240,9 @@
   --color-gold-pale: var(--gold-pale);
   --color-gold: var(--gold);
   --color-gold-deep: var(--gold-deep);
+  /* El arena de los puntitos del carrusel: se declara aquí para que exista
+     `bg-punto-inactivo`. En Tailwind v4 una variable de `:root` NO genera clase. */
+  --color-punto-inactivo: var(--punto-inactivo);
   --color-cacao: var(--cacao);
   --color-espresso: var(--espresso);
   --color-ink-body: var(--ink-body);
@@ -304,6 +347,18 @@ body {
 }
 
 /* Celebración — SOLO hitos reales (ej. compra confirmada), nunca decorativo */
+/*
+ * El fundido de la foto del carrusel al cambiar de bolso.
+ *
+ * Solo opacidad: mover o escalar una foto de 350px al pasar de una a otra
+ * marea, y aquí el gesto ya lo da el dedo o la flecha. El fundido solo evita
+ * el salto seco.
+ */
+@keyframes aparecer {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @keyframes celebrate {
   0% {
     transform: scale(0.8);

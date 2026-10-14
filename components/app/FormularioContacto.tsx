@@ -3,7 +3,7 @@
 import { Check, Loader2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { enviarContacto } from "@/app/(publicas)/contacto/acciones";
-import { PLANES, precioPorMes } from "@/lib/planes";
+import { precioPorMes, type Frecuencia } from "@/lib/planes";
 
 const MOTIVOS = [
   "Quiero unirme a un plan",
@@ -12,16 +12,19 @@ const MOTIVOS = [
   "Otra cosa",
 ] as const;
 
-/** Solo los de pago: nadie escribe para preguntar por el plan gratis. */
-const PLANES_DE_PAGO = PLANES.filter((p) => p.precioMes.anual !== null);
+/** Hay un solo plan: lo que se pregunta es cómo quiere pagarlo. */
+const CICLOS: { id: Frecuencia; texto: string }[] = [
+  { id: "anual", texto: "Anual" },
+  { id: "mensual", texto: "Mensual" },
+];
 
 export function FormularioContacto() {
   const [motivo, setMotivo] = useState<string>(MOTIVOS[0]);
-  const [plan, setPlan] = useState<string>("creadora");
+  const [ciclo, setCiclo] = useState<Frecuencia>("anual");
   const [estado, setEstado] = useState<"listo" | "enviando" | "enviado">("listo");
   const [error, setError] = useState<string | null>(null);
 
-  /* El plan solo se pregunta a quien viene a contratar. A los demás les sobra. */
+  /* El ciclo solo se pregunta a quien viene a contratar. A los demás les sobra. */
   const preguntarPlan = motivo === MOTIVOS[0];
 
   async function enviar(e: FormEvent<HTMLFormElement>) {
@@ -36,7 +39,7 @@ export function FormularioContacto() {
       nombre: String(datos.get("nombre") ?? ""),
       correo: String(datos.get("correo") ?? ""),
       motivo,
-      planInteres: preguntarPlan ? plan : undefined,
+      planInteres: preguntarPlan ? `Curso completo · ${ciclo}` : undefined,
       mensaje: String(datos.get("mensaje") ?? "") || undefined,
     });
 
@@ -93,21 +96,21 @@ export function FormularioContacto() {
 
       {preguntarPlan && (
         <fieldset>
-          <legend className="text-espresso text-sm font-semibold">¿Cuál te interesa?</legend>
+          <legend className="text-espresso text-sm font-semibold">¿Cómo prefieres pagarlo?</legend>
           <div className="mt-2.5 flex flex-wrap gap-2.5">
-            {PLANES_DE_PAGO.map((p) => (
+            {CICLOS.map((c) => (
               <button
-                key={p.id}
+                key={c.id}
                 type="button"
-                aria-pressed={plan === p.id}
-                onClick={() => setPlan(p.id)}
+                aria-pressed={ciclo === c.id}
+                onClick={() => setCiclo(c.id)}
                 className={`flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors [touch-action:manipulation] ${
-                  plan === p.id ? "bg-espresso text-white" : "border-line text-ink-body border"
+                  ciclo === c.id ? "bg-espresso text-white" : "border-line text-ink-body border"
                 }`}
               >
-                {p.nombre}
-                <span className={plan === p.id ? "text-white/60" : "text-ink-muted"}>
-                  desde {precioPorMes(p.precioMes.anual)}
+                {c.texto}
+                <span className={ciclo === c.id ? "text-white/60" : "text-ink-muted"}>
+                  {precioPorMes(c.id)}/mes
                 </span>
               </button>
             ))}

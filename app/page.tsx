@@ -1,54 +1,163 @@
+import type { Metadata } from "next";
 import { Medir } from "@/components/app/Medir";
-import { BarraAnuncio } from "@/components/app/sections/BarraAnuncio";
-import { Coleccion } from "@/components/app/sections/Coleccion";
-import { ComoFunciona } from "@/components/app/sections/ComoFunciona";
-import { CtaFinal } from "@/components/app/sections/CtaFinal";
-import { Faq } from "@/components/app/sections/Faq";
+import { EVENTOS } from "@/lib/analitica/eventos";
 import { FooterLegal } from "@/components/app/sections/FooterLegal";
 import { Header } from "@/components/app/sections/Header";
-import { Hero } from "@/components/app/sections/Hero";
-import { LoQueIncluye } from "@/components/app/sections/LoQueIncluye";
-import { Mentora } from "@/components/app/sections/Mentora";
-import { Planes } from "@/components/app/sections/Planes";
-import { EVENTOS } from "@/lib/analitica/eventos";
+import { BarraInferiorHome } from "@/components/home/BarraInferiorHome";
+import { Capsulas } from "@/components/home/Capsulas";
+import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
+import { HeroSlider, type FotoHero } from "@/components/home/HeroSlider";
+import { OjoDemo } from "@/components/home/OjoDemo";
+import { PrecioHome } from "@/components/home/PrecioHome";
+import { listarCapsulas } from "@/lib/capsulas";
+import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
+
+export const metadata: Metadata = {
+  title: "Manos Creadoras — Crea bolsos de lujo en cuentas desde casa",
+  description:
+    "Aprende a tejer bolsos de perlas desde cero con Elizabeth Valencia. 5 cápsulas y un bolso completo gratis, sin tarjeta.",
+};
 
 /**
- * El home.
+ * Los subtítulos del carrusel. Describen la TÉCNICA, no el bolso.
  *
- * ⚠️ LA ESTRUCTURA CAMBIÓ Y NO ES UN RETOQUE. La landing anterior seguía el
- * guion clásico de respuesta directa: problema → agitación → solución → oferta
- * → garantía. El diseño que mandó Cristian propone otro recorrido: enseñar el
- * producto y dejar que convenza (héroe → cómo funciona → qué incluye → la
- * colección → planes → quién enseña → dudas → cierre).
- *
- * Se sigue el diseño porque la referencia del dueño manda. Pero conviene saber
- * qué se dejó atrás: ya NO hay una sección que nombre el dolor de la alumna
- * antes de ofrecerle la cura, y la garantía pasó de sección entera a una línea
- * bajo los planes. Para una audiencia fría eso suele costar conversión; para
- * quien ya teje y llega buscando, enseñar los bolsos funciona mejor. Si algún
- * día se quiere recuperar, las secciones viejas están en el historial de git.
+ * ⚠️ VIVEN AQUÍ Y NO EN LA BASE a propósito: son copy de la página de ventas,
+ * no un dato del producto. "Bandolera de perlas" es cómo se vende Gota de Rocío
+ * en el banner; dentro de la app el mismo bolso se describe por sus medidas y
+ * sus pasos. Mezclarlos obligaría a que un cambio de copy pasara por una
+ * migración.
  */
-export default function Home() {
+const SUBTITULOS: Record<string, string> = {
+  "gota-de-rocio": "Bandolera de perlas",
+  "cristal-brillante": "Cristal facetado",
+  "marfil-elegante": "Perla marfil",
+  "encantado-dorado": "Perla y marco dorado",
+  "brillo-lunar": "Boquilla metálica",
+  "tornado-de-aurora": "Cristal tornasol",
+  "perla-tejida": "Perlas de 10 y 30 mm",
+  "coquett-clasico": "Shamballa de 14 mm",
+  "silueta-nacar": "Cuentas de 10 mm",
+};
+
+/** El orden del carrusel: lo manda el diseño, no el catálogo. */
+const ORDEN_CARRUSEL = Object.keys(SUBTITULOS);
+
+export default async function Home() {
+  const [bolsos, capsulas] = await Promise.all([listarBolsos(), listarCapsulas()]);
+
+  const porSlug = new Map(bolsos.map((b) => [b.slug, b]));
+  const fotos: FotoHero[] = ORDEN_CARRUSEL.flatMap((slug) => {
+    const b = porSlug.get(slug);
+    if (!b?.portadaUrl) return [];
+    return [{ slug, nombre: b.nombre, subtitulo: SUBTITULOS[slug], url: b.portadaUrl }];
+  });
+
+  /* El bolso gratis sale de la BASE (`gratis = true`), no de un slug escrito
+     aquí: el día que el regalo sea otro bolso, esta sección lo sigue sola. */
+  const gratisBreve = ordenCatalogo(bolsos).find((b) => b.gratis) ?? null;
+  const gratis = gratisBreve ? await obtenerBolso(gratisBreve.slug) : null;
+
+  const pasos: PasoGratis[] = gratis
+    ? [
+        {
+          orden: 0,
+          numero: null,
+          titulo: "Materiales",
+          descripcion:
+            gratis.materiales.length > 0
+              ? `${gratis.materiales.map((m) => m.texto).join(", ")}. Te mostramos cómo elegirlos.`
+              : "Lo que necesitas antes de empezar.",
+        },
+        ...agruparEnPasos(gratis.lecciones).map((p) => ({
+          orden: p.partes[0].orden,
+          numero: p.numero,
+          titulo: p.titulo,
+          descripcion: `${p.partes.length} video${p.partes.length > 1 ? "s" : ""} paso a paso.`,
+        })),
+      ]
+    : [];
+
   return (
     <>
-      {/* Denominador de TODO el negocio: cuánta gente llega a la puerta. */}
       <Medir evento={EVENTOS.paginaVentasVista} />
+      <Header />
 
-      <div className="flex min-h-dvh flex-1 flex-col">
-        <BarraAnuncio />
-        <Header />
-        <main className="flex-1">
-          <Hero />
-          <ComoFunciona />
-          <LoQueIncluye />
-          <Coleccion />
-          <Planes />
-          <Mentora />
-          <Faq />
-          <CtaFinal />
-        </main>
-        <FooterLegal />
-      </div>
+      {/*
+        ⚠️ EL ORDEN CAMBIA CON EL ANCHO, y por eso `main` es un flex con `order`.
+
+        En MÓVIL las cápsulas van arriba del todo, como historias: es lo primero
+        que se toca y así lo pide el diseño. En ESCRITORIO van DEBAJO del banner,
+        porque ahí el banner es la pieza que vende y mandarlo al segundo lugar
+        sería enterrar el titular.
+
+        Se hace con `order` y no duplicando componentes: un solo bloque de
+        cápsulas, un solo estado de "vistas", un solo visor.
+
+        `pb-20` en móvil: la barra fija mide 64px y sin este respiro taparía el pie.
+      */}
+      <main className="flex flex-col pb-20 md:pb-0">
+        {/*
+          ⚠️ LAS CÁPSULAS VAN ANTES DEL BANNER, y no es un capricho de orden.
+          El diseño móvil las pone justo bajo el header, y además arregla un
+          fallo real: con el banner primero, el botón dorado "Empezar mi bolso
+          gratis" caía en y=781 de una pantalla de 844 — justo DEBAJO de la
+          barra fija, que se quedaba con el clic. El botón más importante del
+          home no se podía pulsar.
+
+          En escritorio el orden visual no cambia: la sección de cápsulas de
+          escritorio se dibuja después del banner igualmente.
+        */}
+        <div className="order-1 md:order-2">
+          <Capsulas capsulas={capsulas} />
+        </div>
+        <div className="order-2 md:order-1">
+          <HeroSlider fotos={fotos} />
+        </div>
+        <div className="order-3">
+        {gratis && (
+          <CursoGratis
+            slug={gratis.slug}
+            nombre={gratis.nombre}
+            pasos={pasos}
+            portadaUrl={gratis.portadaUrl}
+          />
+        )}
+        <OjoDemo bolsoGratis={gratis?.slug ?? null} />
+        <PrecioHome />
+        </div>
+
+        {/* El cierre, solo en escritorio: en móvil el precio ya queda pegado a la
+            barra de abajo y una tarjeta más entre medias solo alarga el scroll. */}
+        <section className="order-4 max-md:hidden px-5 pb-16">
+          <div
+            className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-6 rounded-[var(--radius-xl)] p-9 text-white"
+            style={{ backgroundImage: "var(--card-destacada)" }}
+          >
+            <div>
+              <h2 className="font-display text-2xl text-balance" style={{ fontWeight: 500 }}>
+                ¿Te gustó? Hay{" "}
+                <em className="text-gold-light italic" style={{ fontWeight: 400 }}>
+                  {bolsos.length} bolsos
+                </em>{" "}
+                esperándote.
+              </h2>
+              <p className="mt-2 max-w-xl text-sm text-white/70">
+                {bolsos.reduce((s, b) => s + b.videos, 0)} videos paso a paso, la ficha de
+                materiales de cada bolso y el Ojo Experto sin límite de 2 preguntas.
+              </p>
+            </div>
+            <a
+              href="#precio"
+              className="flex h-13 shrink-0 items-center rounded-full border border-white/25 px-7 font-semibold text-white"
+            >
+              Ver precio
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <FooterLegal />
+      <BarraInferiorHome />
     </>
   );
 }

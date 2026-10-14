@@ -98,19 +98,64 @@ function limpiar(texto: string, tope: number): string {
     .slice(0, tope);
 }
 
+/** Cuántas preguntas regala el home a quien no tiene cuenta. */
+const PREGUNTAS_DE_VISITANTE = 2;
+
+/**
+ * Identifica a un visitante sin guardar quién es.
+ *
+ * ⚠️ NO SE GUARDA LA IP EN CLARO, Y NO ES UN DETALLE. Para contar dos preguntas
+ * basta un hash; almacenar direcciones de gente que ni siquiera tiene cuenta
+ * sería recoger un dato personal sin ningún motivo, y habría que declararlo en
+ * la política de privacidad.
+ *
+ * Se mezcla la IP con una sal del servidor: sin ella, cualquiera con la lista de
+ * IPs posibles podría recalcular los hashes y saber quién preguntó.
+ */
+async function huellaDelVisitante(req: Request): Promise<string> {
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "desconocida";
+  const sal = process.env.SUPABASE_SECRET_KEY ?? "sin-sal";
+  const datos = new TextEncoder().encode(`${sal}:${ip}`);
+  const hash = await crypto.subtle.digest("SHA-256", datos);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 export async function POST(req: Request) {
   const env = aiEnv();
   const db = supabaseAdmin();
 
-  // ── Autorización: token del usuario validado EN SERVIDOR ────
-  const token = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!token) return NextResponse.json({ error: "no autenticado" }, { status: 401 });
+  /*
+    ── Quién pregunta: alumna con cuenta, o VISITANTE del home ───────────────
 
-  const { data: userData, error: userErr } = await db.auth.getUser(token);
-  if (userErr || !userData.user) {
-    return NextResponse.json({ error: "sesión inválida" }, { status: 401 });
+    ⚠️ DESDE EL HOME V2 ESTA RUTA RESPONDE TAMBIÉN SIN CUENTA, y eso abre el
+    gasto de IA a tráfico anónimo: cualquiera que pase por la landing cuesta
+    dinero, y una landing con ads recibe miles de visitas. Por eso el camino del
+    visitante lleva DOS frenos que el de la alumna no necesita:
+
+      · dos preguntas por huella, contadas en la BASE (`consumir_visitante`).
+        Borrar la cookie no regala preguntas nuevas si la IP ya gastó las suyas.
+      · su propio bolsillo de presupuesto diario ('visitante'), separado del de
+        quien paga. Si se agota, el Ojo calla EN EL HOME y quien pagó lo sigue
+        teniendo entero.
+
+    El token se sigue validando EN SERVIDOR cuando viene: que el navegador diga
+    quién es nunca ha bastado.
+  */
+  const token = req.headers.get("authorization")?.replace("Bearer ", "");
+  let userId: string | null = null;
+
+  if (token) {
+    const { data: userData, error: userErr } = await db.auth.getUser(token);
+    if (userErr || !userData.user) {
+      return NextResponse.json({ error: "sesión inválida" }, { status: 401 });
+    }
+    userId = userData.user.id;
   }
-  const userId = userData.user.id;
 
   /*
     ⚠️ AQUÍ HABÍA UN PORTAZO: `if (!tiene_acceso_de) → 403 sin membresía activa`.
@@ -133,33 +178,74 @@ export async function POST(req: Request) {
   const esFoto = Boolean(imagenBase64);
 
   /*
-    ── Cupo del mes: se MIRA Y SE DESCUENTA EN LA MISMA OPERACIÓN ──────────
+    ── Cuántas le quedan ────────────────────────────────────────────────────
 
-    ⚠️ ANTES ERAN DOS PASOS —leer `ai_usage`, y actualizarlo al final— y entre
-    uno y otro cabía otra petición. Con la app abierta en el teléfono y en el
-    portátil, dos preguntas a la vez pasaban las dos la comprobación y gastaban
-    una sola. `consumir_cupo` lo hace dentro de una transacción, así que la
-    segunda espera y ve el número ya actualizado.
+    En los dos casos se MIRA Y SE DESCUENTA EN LA MISMA OPERACIÓN. Antes eran
+    dos pasos y entre uno y otro cabía otra petición: con la app abierta en el
+    teléfono y en el portátil, dos preguntas a la vez pasaban las dos la
+    comprobación y gastaban una sola.
 
-    Los límites los dice la base (`plan_cupos`), no una constante aquí: antes
-    vivían en `lib/config.ts` repetidos por la API y la pantalla, que es la
-    forma clásica de que dentro de un mes prometan cosas distintas.
+    Los límites los dice la base, no una constante aquí: antes vivían en
+    `lib/config.ts` repetidos por la API y la pantalla, que es la forma clásica
+    de que dentro de un mes prometan cosas distintas.
   */
-  const { data: cupoFilas } = await db.rpc("consumir_cupo", {
-    p_user_id: userId,
-    p_fotos: esFoto ? 1 : 0,
-  });
-  const cupo = Array.isArray(cupoFilas) ? cupoFilas[0] : cupoFilas;
+  let cupo: { permitido: boolean; preguntas_usadas: number; fotos_usadas: number; preguntas_limite: number; fotos_limite: number; plan: string };
 
-  if (!cupo) {
-    // Fallar CERRADO: si la base no supo responder, no se gasta IA.
-    return NextResponse.json(
-      { error: "No pudimos verificar tu cupo. Vuelve a intentar." },
-      { status: 503 },
-    );
+  if (userId) {
+    const { data } = await db.rpc("consumir_cupo", { p_user_id: userId, p_fotos: esFoto ? 1 : 0 });
+    const fila = Array.isArray(data) ? data[0] : data;
+    if (!fila) {
+      // Fallar CERRADO: si la base no supo responder, no se gasta IA.
+      return NextResponse.json(
+        { error: "No pudimos verificar tu cupo. Vuelve a intentar." },
+        { status: 503 },
+      );
+    }
+    cupo = fila;
+  } else {
+    /*
+      El visitante no puede mandar fotos: analizar una imagen cuesta bastante más
+      que responder texto, y aquí no hay ni cuenta a la que atribuir el gasto.
+      Para eso está la cuenta gratis, que sí trae una foto al mes.
+    */
+    if (esFoto) {
+      return NextResponse.json(
+        { error: "Crea tu cuenta gratis para mandarle fotos al Ojo Experto.", necesitaCuenta: true },
+        { status: 403 },
+      );
+    }
+
+    const { data } = await db.rpc("consumir_visitante", {
+      p_huella: await huellaDelVisitante(req),
+      p_limite: PREGUNTAS_DE_VISITANTE,
+    });
+    const fila = Array.isArray(data) ? data[0] : data;
+    if (!fila) {
+      return NextResponse.json(
+        { error: "No pudimos atenderte ahora. Vuelve a intentar." },
+        { status: 503 },
+      );
+    }
+    cupo = {
+      permitido: fila.permitido,
+      preguntas_usadas: fila.usadas,
+      fotos_usadas: 0,
+      preguntas_limite: fila.limite,
+      fotos_limite: 0,
+      plan: "visitante",
+    };
   }
 
   if (!cupo.permitido) {
+    if (!userId) {
+      return NextResponse.json(
+        {
+          error: `Usaste tus ${PREGUNTAS_DE_VISITANTE} preguntas gratis. Crea tu cuenta y seguimos.`,
+          necesitaCuenta: true,
+        },
+        { status: 429 },
+      );
+    }
     const agotadoFotos = esFoto && cupo.fotos_usadas + 1 > cupo.fotos_limite;
     return NextResponse.json(
       {
@@ -177,6 +263,7 @@ export async function POST(req: Request) {
     deje de confiar en el medidor.
   */
   const devolverCupo = async () => {
+    if (!userId) return; // al visitante no se le lleva cuenta mensual
     await db
       .from("ojo_uso_mensual")
       .update({
@@ -202,12 +289,13 @@ export async function POST(req: Request) {
     Sigue estando ANTES de llamar a Gemini, que es lo que cuesta.
   */
   /*
-    Los planes son TRES y los bolsillos de presupuesto siguen siendo DOS. No es
-    un descuido: el presupuesto separa a quien paga de quien no, y tanto
-    Creadora como Maestra pagan. Partirlo en tres haría que una Maestra pudiera
-    quedarse sin servicio mientras sobra saldo en el bolsillo de Creadora.
+    TRES bolsillos, y cada uno gasta de lo suyo: quien paga, quien tiene cuenta
+    gratis, y quien ni siquiera tiene cuenta. Es la misma lección de la 0011 —
+    al agotarse un tope compartido se agotaba para TODAS, incluida la alumna que
+    puso el dinero. El visitante del home es justo el que más riesgo trae: llega
+    por un anuncio, en volumen y sin haber dado nada.
   */
-  const publico = cupo.plan === "aprendiz" ? "regalo" : "miembro";
+  const publico = !userId ? "visitante" : cupo.plan === "gratis" ? "regalo" : "miembro";
 
   const tope =
     publico === "miembro"
@@ -262,7 +350,9 @@ export async function POST(req: Request) {
   }
 
   // ── MEMORIA: su ficha + sus últimas consultas ───────────────
-  const contexto = [fichaBolso, await construirContexto(db, userId)]
+  /* Al visitante no se le puede construir memoria: no hay ficha ni historial
+     suyos. Se queda con el contexto del bolso, que ya es bastante. */
+  const contexto = [fichaBolso, userId ? await construirContexto(db, userId) : ""]
     .filter(Boolean)
     .join("\n\n");
 
@@ -388,7 +478,8 @@ export async function POST(req: Request) {
 async function guardarYResponder(
   db: ReturnType<typeof supabaseAdmin>,
   datos: {
-    userId: string;
+    /** Nulo cuando pregunta un visitante del home: no hay conversación que guardar. */
+    userId: string | null;
     pregunta: string;
     respuesta: string;
     esFoto: boolean;
@@ -435,10 +526,14 @@ async function guardarYResponder(
     es un chat: necesita pintar el hilo y poder guardar el pulgar arriba o abajo
     de una respuesta concreta, y eso no cabe en una sola fila.
   */
-  const { data: conversacion } = await db
+  /* El visitante no tiene dónde guardar un historial: no hay cuenta a la que
+     colgarlo. Su conversación vive solo en su pantalla. */
+  const { data: conversacion } = !userId
+    ? { data: null }
+    : await db
     .from("ojo_conversaciones")
     .insert({
-      user_id: userId,
+      user_id: userId!,
       // El título es la propia pregunta recortada: es lo que la alumna
       // reconocerá en la lista, mejor que "Consulta del 12 de octubre".
       titulo: pregunta.slice(0, 60),
