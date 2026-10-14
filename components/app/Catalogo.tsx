@@ -15,7 +15,7 @@ type Filtro = "todos" | "en-curso" | "terminados";
  *
  * Es de cliente solo por los filtros. Todo lo demás —los datos, el avance, qué
  * está bloqueado— se calcula en el servidor y llega resuelto: así la primera
- * pintada ya trae los 14 bolsos y no hay un parpadeo de carga.
+ * pintada ya trae todos los bolsos y no hay un parpadeo de carga.
  */
 export function Catalogo({
   bolsos,
@@ -90,7 +90,9 @@ export function Catalogo({
             onClick={() => setFiltro("todos")}
             className="text-gold font-semibold underline"
           >
-            Ver los 14
+            {/* El total sale de los datos: escrito a mano se queda viejo
+                en cuanto entra un bolso nuevo. */}
+            Ver los {bolsos.length}
           </button>
           .
         </p>

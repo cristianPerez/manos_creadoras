@@ -19,7 +19,7 @@ export default async function MisBolsos() {
    * solo enseñaba el bolso gratis. Era un callejón sin salida —no había cómo
    * volver— y partía la app en dos sitios que había que mantener iguales.
    *
-   * Ahora quien llega sin cuenta ve EL CATÁLOGO ENTERO: los 14 bolsos, el
+   * Ahora quien llega sin cuenta ve EL CATÁLOGO ENTERO: todos los bolsos, el
    * gratis primero y el resto con candado. Puede mirarlos, leer sus pasos y
    * sus materiales; lo único que no puede es reproducir el video. Enseñar lo
    * que hay dentro es lo que hace que valga la pena pagar — esconderlo solo

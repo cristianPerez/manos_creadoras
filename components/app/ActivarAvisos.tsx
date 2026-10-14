@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellOff, Check, Loader2, Share, Smartphone } from "lucide-react";
+import { Bell, BellOff, Check, Loader2, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { IconChip } from "@/components/app/IconChip";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -146,14 +146,26 @@ export function ActivarAvisos() {
 
   if (estado === "cargando" || estado === "no-soportado") return null;
 
-  // ── iPhone sin instalar: instrucción, no un botón que va a fallar ──
+  /*
+   * ── iPhone sin instalar ──
+   *
+   * ⚠️ AQUÍ HABÍA UN "INSTALA LA APP" Y SE QUITÓ (Cristian, 2026-10-14): NO HAY
+   * APP QUE DESCARGAR. Lo que hay es esta web, y pedirle a alguien que la
+   * "instale" promete algo que no existe — quien lo lea va a buscarla en la
+   * tienda y no la va a encontrar.
+   *
+   * El motivo técnico sigue siendo cierto: en iPhone los avisos web SOLO
+   * funcionan si el sitio está en la pantalla de inicio, y eso lo decide Apple,
+   * no nosotros. Así que no se empuja a instalar nada: se dice que en iPhone
+   * todavía no hay avisos. Mejor un "aún no" claro que un camino que termina en
+   * una tienda vacía.
+   */
   if (estado === "ios-sin-instalar") {
     return (
-      <Tarjeta icono={Smartphone} titulo="Instala la app para recibir avisos">
-        <span className="flex flex-wrap items-center gap-1">
-          En iPhone toca <Share size={13} className="inline text-brand-primary" aria-hidden="true" />
-          <span className="text-text-primary">Compartir</span> y luego
-          <span className="text-text-primary">Agregar a inicio</span>. Desde ahí podrás activarlos.
+      <Tarjeta icono={Smartphone} titulo="Los avisos todavía no llegan a iPhone">
+        <span>
+          Apple solo permite avisos web en condiciones que aún no cubrimos. Mientras tanto te
+          escribimos al correo cuando entra un bolso nuevo.
         </span>
       </Tarjeta>
     );

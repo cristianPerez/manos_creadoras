@@ -42,7 +42,7 @@ export const DOCUMENTOS: Record<
   cancelar: {
     titulo: "Cómo cancelar",
     resumen:
-      "Se cancela escribiéndonos. Conservas el acceso hasta el final del período que ya pagaste, y los cursos que descargaste siguen siendo tuyos.",
+      "Se cancela escribiéndonos. Conservas el acceso hasta el final del período que ya pagaste.",
     Contenido: ContenidoCancelar,
   },
 };

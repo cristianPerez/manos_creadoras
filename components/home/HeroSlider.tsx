@@ -15,7 +15,7 @@ export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: s
  * lee el titular le roba el ojo justo en la frase que tiene que convencerle. Se
  * mueve cuando ella quiere: flecha, puntito, dedo o teclado.
  */
-export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
+export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBolsos: number }) {
   const [i, setI] = useState(0);
   const tocado = useRef<number | null>(null);
 
@@ -165,11 +165,15 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
               <Play size={16} fill="currentColor" aria-hidden="true" />
               Empezar mi bolso gratis
             </a>
+            {/* ⚠️ EL NÚMERO SE CALCULA. Estaba escrito a mano ("los 14 bolsos")
+                y al entrar Zafiro Perlado y Nácar Soñado el botón siguió
+                diciendo 14 mientras el cierre de la página ya decía 16. Dos
+                cifras distintas en la misma pantalla para lo mismo. */}
             <Link
               href="/app"
               className="border-line text-espresso flex h-14 items-center justify-center rounded-full border px-8 font-semibold"
             >
-              Ver los 14 bolsos
+              Ver los {totalBolsos} bolsos
             </Link>
           </div>
 

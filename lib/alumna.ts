@@ -25,7 +25,7 @@ export type Alumna = {
   ciclo: "mensual" | "anual" | null;
   estado: "activa" | "vencida" | "cancelada";
   venceEl: string | null;
-  /** Lo que de verdad abre la puerta a los 14 bolsos. */
+  /** Lo que de verdad abre la puerta al catálogo completo. */
   tieneAcceso: boolean;
   miembroDesde: string | null;
 };

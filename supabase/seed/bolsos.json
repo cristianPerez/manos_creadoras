@@ -1,21 +1,13 @@
 {
-  "version": "2026-10-11b",
-  "fuente": "Manos_Creadoras_Fichas_14_Bolsos.pdf (corregido)",
-  "pendiente_confirmar": [
-    "Nombres provisionales de Perla Tejida, Anillos de Seda y Silueta Nácar",
-    "Función del bolso_id (¿colección de Bunny?)",
-    "Medidas faltantes en 7 bolsos y cantidades de Cherry",
-    "Fotos de portada y duraciones (leer de Bunny)",
-    "Enlaces de AliExpress del directorio"
-  ],
-  "total_videos": 75,
   "bolsos": [
     {
       "orden": 1,
       "nombre": "Perla Tejida",
       "slug": "perla-tejida",
+      "nombre_original": "Bolso Bottega",
       "bolso_id": "43df1231-6956-45d8-a074-d14e5427afb1",
       "video_materiales_id": "17222a07-6882-4f5b-87ec-f628c14a6517",
+      "medidas_cm": null,
       "materiales": [
         {
           "texto": "Perlas de 10 mm y 30 mm",
@@ -37,7 +29,6 @@
           ]
         }
       ],
-      "medidas_cm": null,
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -60,21 +51,21 @@
           "orden": 4
         }
       ],
-      "gratis": false,
-      "nombre_original": "Bolso Bottega",
-      "notas": [
-        "Nombre provisional: el original usaba una marca registrada.",
-        "Hilo corregido de '7 mm' a '0,7 mm'."
-      ],
       "portada_url": "/images/bolso-perla-tejida.jpg",
-      "nota_portada": "POR CONFIRMAR: 'Perla Clásica' — las perlas son lisas, no Shamballa, asi que no es Coquett"
+      "gratis": false
     },
     {
       "orden": 2,
       "nombre": "Brillo Lunar",
       "slug": "brillo-lunar",
+      "nombre_original": null,
       "bolso_id": "c2016fe2-6f00-4fd1-9f02-c5fc77dfe28c",
       "video_materiales_id": "33bfc3cb-9953-4283-8b7d-8f1cac5828c8",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 12,
+        "ancho": 10.5
+      },
       "materiales": [
         {
           "texto": "Cuentas de 8 mm: 500 g",
@@ -102,11 +93,6 @@
           ]
         }
       ],
-      "medidas_cm": {
-        "largo": 19,
-        "alto": 12,
-        "ancho": 10.5
-      },
       "lecciones": [
         {
           "titulo": "Tejido del cuerpo",
@@ -119,25 +105,26 @@
           "orden": 2
         }
       ],
-      "gratis": false,
       "portada_url": "/images/bolso-brillo-lunar.jpg",
-      "nota_portada": "confirmada: mismo nombre, y se ve el cierre de boquilla de su ficha"
+      "gratis": false
     },
     {
       "orden": 3,
       "nombre": "Anillos de Seda",
       "slug": "anillos-de-seda",
+      "nombre_original": "Bolso Dior",
       "bolso_id": "df9ed181-4d50-4ae1-8d1b-24e8fa330e37",
       "video_materiales_id": "13fe18b9-c7c6-4e3a-be7f-0163f604500b",
+      "medidas_cm": null,
       "materiales": [
         {
-          "texto": "Cuentas de 10 mm: aprox. 1.500 unidades",
+          "texto": "Cuentas de 10 mm: aproximadamente 1.500 unidades",
           "directorio_ids": [
             "cuentas-10"
           ]
         },
         {
-          "texto": "Cuentas de cristal de 8 mm: aprox. 250 unidades",
+          "texto": "Cuentas de cristal de 8 mm: aproximadamente 250 unidades",
           "directorio_ids": [
             "cristal-8"
           ]
@@ -161,7 +148,7 @@
           ]
         },
         {
-          "texto": "Remaches o protectores inferiores (patas): 4 unidades",
+          "texto": "Remaches o protectores inferiores para bolso (patas): 4 unidades",
           "directorio_ids": [
             "patas"
           ]
@@ -173,7 +160,6 @@
           ]
         }
       ],
-      "medidas_cm": null,
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -206,20 +192,21 @@
           "orden": 6
         }
       ],
-      "gratis": false,
-      "nombre_original": "Bolso Dior",
-      "notas": [
-        "Nombre provisional: el original usaba una marca registrada."
-      ],
       "portada_url": null,
-      "nota_portada": "SIN FOTO A PROPÓSITO. La de la landing muestra la caja de DIOR al fondo y los dijes D-I-O-R colgando del bolso. A este bolso se le cambió el nombre precisamente porque el original usaba esa marca registrada (ver `notas`), así que esa portada devolvería la marca justo donde se quitó. Hace falta una foto del mismo bolso sin el logo."
+      "gratis": false
     },
     {
       "orden": 4,
       "nombre": "Marfil Elegante",
       "slug": "marfil-elegante",
+      "nombre_original": null,
       "bolso_id": "2dc5d011-62bf-4f0f-9e47-7750f44b0396",
       "video_materiales_id": "a15373d0-47a9-4a76-bbf7-2176b9c7ab1f",
+      "medidas_cm": {
+        "largo": 25,
+        "alto": 14,
+        "ancho": 6
+      },
       "materiales": [
         {
           "texto": "Cuentas Shambala de 14 mm: 500 g",
@@ -265,11 +252,6 @@
           ]
         }
       ],
-      "medidas_cm": {
-        "largo": 25,
-        "alto": 14,
-        "ancho": 6
-      },
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -297,16 +279,17 @@
           "orden": 5
         }
       ],
-      "gratis": false,
       "portada_url": "/images/bolso-marfil-elegante.jpg",
-      "nota_portada": "confirmada: mismo nombre"
+      "gratis": false
     },
     {
       "orden": 5,
       "nombre": "Encantado Dorado",
       "slug": "encantado-dorado",
+      "nombre_original": null,
       "bolso_id": "476df89c-353a-434e-b75f-e03039cef7df",
       "video_materiales_id": "39a681e6-3e8b-4de5-9689-748ee314420c",
+      "medidas_cm": null,
       "materiales": [
         {
           "texto": "Perlas de 10 mm: 800 piezas",
@@ -332,16 +315,8 @@
             "tijeras",
             "alicates"
           ]
-        },
-        {
-          "texto": "Para el asa: perlas de 10 mm (150 piezas) e hilo de 0,45 mm",
-          "directorio_ids": [
-            "perlas-10",
-            "nylon-045"
-          ]
         }
       ],
-      "medidas_cm": null,
       "lecciones": [
         {
           "titulo": "Tejido del cuerpo",
@@ -364,19 +339,22 @@
           "orden": 4
         }
       ],
-      "gratis": false,
-      "notas": [
-        "Hilo del asa corregido de '45 mm' a '0,45 mm'."
-      ],
       "portada_url": "/images/bolso-encantado-dorado.jpg",
-      "nota_portada": "confirmada: mismo nombre, y el marco dorado de su ficha"
+      "gratis": false
     },
     {
       "orden": 6,
       "nombre": "Silueta Nácar",
       "slug": "silueta-nacar",
+      "nombre_original": "Bolso Balenciaga",
       "bolso_id": "c2c6bf06-26fc-4f52-8d6d-4eda82f98362",
       "video_materiales_id": "64e9c357-ea3d-41f0-805a-fe37d8e515b5",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 13,
+        "alto_con_asa": 19,
+        "ancho": 5
+      },
       "materiales": [
         {
           "texto": "Consumo de cuentas: 1.800 unidades",
@@ -417,13 +395,6 @@
           ]
         }
       ],
-      "medidas_cm": {
-        "largo": 19,
-        "largo_estrechamiento": 12,
-        "alto": 13,
-        "alto_con_asa": 19,
-        "ancho": 5
-      },
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -451,20 +422,17 @@
           "orden": 5
         }
       ],
-      "gratis": false,
-      "nombre_original": "Bolso Balenciaga",
-      "notas": [
-        "Nombre provisional: el original usaba una marca registrada."
-      ],
-      "portada_url": "/images/bolso-silueta-nacar.jpg",
-      "nota_portada": "confirmada: la landing la llama 'Nácar Soñado'"
+      "portada_url": null,
+      "gratis": false
     },
     {
       "orden": 7,
       "nombre": "Tornado de Aurora",
       "slug": "tornado-de-aurora",
+      "nombre_original": null,
       "bolso_id": "9964dd02-44e7-4bcc-8b13-aafb94153507",
       "video_materiales_id": "7869edba-fc67-4a65-bc9c-e9a837b360da",
+      "medidas_cm": null,
       "materiales": [
         {
           "texto": "Para el bolso: 2 mosquetones",
@@ -491,6 +459,12 @@
           ]
         },
         {
+          "texto": "Hilo de pesca/nylon de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
           "texto": "Herraje para bolso",
           "directorio_ids": [
             "herraje"
@@ -510,7 +484,6 @@
           ]
         }
       ],
-      "medidas_cm": null,
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -548,16 +521,21 @@
           "orden": 7
         }
       ],
-      "gratis": false,
       "portada_url": "/images/bolso-tornado-de-aurora.jpg",
-      "nota_portada": "confirmada: cuentas tornasoladas, y la landing la llama 'Aurora Tornasol'"
+      "gratis": false
     },
     {
       "orden": 8,
       "nombre": "Gota de Rocío",
       "slug": "gota-de-rocio",
+      "nombre_original": null,
       "bolso_id": "e8bac115-3fbf-49c8-b0a9-1fdc73e67378",
       "video_materiales_id": "bd76ca7b-9a4a-4b4c-b908-81d354923b82",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 12,
+        "ancho": 5
+      },
       "materiales": [
         {
           "texto": "Cuentas de 10 mm: 500 g",
@@ -592,11 +570,6 @@
           ]
         }
       ],
-      "medidas_cm": {
-        "largo": 19,
-        "alto": 12,
-        "ancho": 5
-      },
       "lecciones": [
         {
           "titulo": "Tejido del cuerpo",
@@ -616,29 +589,27 @@
         {
           "titulo": "Tejido de la base",
           "video_id": "14a9d0d0-e8f4-4e06-b3ef-3cfaab1c3b0d",
-          "parte": "1 de 2",
-          "orden": 4
+          "orden": 4,
+          "parte": "1 de 2"
         },
         {
           "titulo": "Tejido de la base",
           "video_id": "7c65c9f3-a896-41f2-9ee5-2e4a11aa5325",
-          "parte": "2 de 2",
-          "orden": 5
+          "orden": 5,
+          "parte": "2 de 2"
         }
       ],
-      "gratis": false,
-      "notas": [
-        "La base viene en 2 videos: se muestran como un solo paso con parte 1 y parte 2."
-      ],
       "portada_url": "/images/bolso-gota-de-rocio.jpg",
-      "nota_portada": "confirmada: mismo nombre"
+      "gratis": false
     },
     {
       "orden": 9,
       "nombre": "Cherry",
       "slug": "cherry",
+      "nombre_original": null,
       "bolso_id": "1b21b1fa-8168-410e-8857-17cf2df64426",
       "video_materiales_id": "f9634d78-a2f2-4a74-a3cc-8c8de4a9dd53",
+      "medidas_cm": null,
       "materiales": [
         {
           "texto": "Cuentas acrílicas de 10 mm",
@@ -665,7 +636,6 @@
           ]
         }
       ],
-      "medidas_cm": null,
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -688,18 +658,17 @@
           "orden": 4
         }
       ],
-      "gratis": false,
-      "notas": [
-        "Faltan cantidades de cuentas e hilo."
-      ],
-      "portada_url": null
+      "portada_url": null,
+      "gratis": false
     },
     {
       "orden": 10,
       "nombre": "Cristal Brillante",
       "slug": "cristal-brillante",
+      "nombre_original": null,
       "bolso_id": "c7019c85-f653-4ba6-8ed9-3eff7071c86c",
       "video_materiales_id": "19763686-6992-4bed-b91c-279dc2e31530",
+      "medidas_cm": null,
       "materiales": [
         {
           "texto": "Marco color plata de 15 cm",
@@ -720,7 +689,6 @@
           ]
         }
       ],
-      "medidas_cm": null,
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -738,19 +706,22 @@
           "orden": 3
         }
       ],
-      "gratis": true,
-      "notas": [
-        "Bolso gratis del plan Aprendiz."
-      ],
       "portada_url": "/images/bolso-cristal-brillante.jpg",
-      "nota_portada": "confirmada: mismo nombre, marco plateado y cuentas champaña"
+      "gratis": false
     },
     {
       "orden": 11,
       "nombre": "Coquett Clásico",
       "slug": "coquett-clasico",
+      "nombre_original": null,
       "bolso_id": "5d683977-8261-444c-bc2b-49b77449d014",
       "video_materiales_id": "335faba4-4af8-443f-909f-3ed6a3bd3d3a",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 11.5,
+        "alto_con_asa": 21,
+        "ancho": 6
+      },
       "materiales": [
         {
           "texto": "Cuentas Shamballa de 14 mm: 500 g",
@@ -785,12 +756,6 @@
           ]
         }
       ],
-      "medidas_cm": {
-        "largo": 19,
-        "alto": 11.5,
-        "alto_con_asa": 21,
-        "ancho": 6
-      },
       "lecciones": [
         {
           "titulo": "Tejido del cuerpo",
@@ -813,19 +778,20 @@
           "orden": 4
         }
       ],
-      "gratis": false,
       "portada_url": "/images/bolso-coquett-clasico.jpg",
-      "nota_portada": "POR CONFIRMAR: cuentas metalicas tipo Shamballa; NO se puso en Celeste Calido porque 'celeste' es azul y esta es plata"
+      "gratis": false
     },
     {
       "orden": 12,
       "nombre": "Celeste Cálido",
       "slug": "celeste-calido",
+      "nombre_original": null,
       "bolso_id": "33a5db0a-561d-46bd-b69a-58a1d4ed85a3",
       "video_materiales_id": "2d422c99-ac7c-42d1-95c0-13d8cb32b95d",
+      "medidas_cm": null,
       "materiales": [
         {
-          "texto": "Malla plástica redonda: 33 × 17 cm, celdas de 2 mm",
+          "texto": "Malla plástica de forma redonda: 33 × 17 cm, celdas de 2 mm",
           "directorio_ids": [
             "malla-plastica"
           ]
@@ -871,7 +837,6 @@
           ]
         }
       ],
-      "medidas_cm": null,
       "lecciones": [
         {
           "titulo": "Tejido de la base",
@@ -894,15 +859,22 @@
           "orden": 4
         }
       ],
-      "gratis": false,
-      "portada_url": null
+      "portada_url": null,
+      "gratis": false
     },
     {
       "orden": 13,
       "nombre": "Esmeralda",
       "slug": "esmeralda",
+      "nombre_original": null,
       "bolso_id": "b36bb10d-df11-47f2-9837-e027fa160b67",
       "video_materiales_id": "c08de635-ac19-4e13-a468-e82263b40617",
+      "medidas_cm": {
+        "largo": 14.5,
+        "alto": 8,
+        "alto_con_asa": 17,
+        "ancho": 10.5
+      },
       "materiales": [
         {
           "texto": "Cuentas de 10 mm: 500 g",
@@ -924,12 +896,6 @@
           ]
         }
       ],
-      "medidas_cm": {
-        "largo": 14.5,
-        "alto": 8,
-        "alto_con_asa": 17,
-        "ancho": 10.5
-      },
       "lecciones": [
         {
           "titulo": "Cierre del bolso",
@@ -947,15 +913,22 @@
           "orden": 3
         }
       ],
-      "gratis": false,
-      "portada_url": null
+      "portada_url": null,
+      "gratis": false
     },
     {
       "orden": 14,
       "nombre": "Boho",
       "slug": "boho",
+      "nombre_original": null,
       "bolso_id": "dd2c976c-5d3a-493f-82f3-4ef8355d9747",
       "video_materiales_id": "0a18431e-cda3-456b-b93f-9c0dbc2f8c4f",
+      "medidas_cm": {
+        "largo": 22.5,
+        "alto": 13,
+        "alto_con_asa": 24,
+        "ancho": 5
+      },
       "materiales": [
         {
           "texto": "Cuentas de 10 mm: 500 g",
@@ -989,12 +962,6 @@
           ]
         }
       ],
-      "medidas_cm": {
-        "diametro": 22.5,
-        "alto": 13,
-        "alto_con_asa": 24,
-        "ancho": 5
-      },
       "lecciones": [
         {
           "titulo": "Cierre de laterales",
@@ -1022,8 +989,148 @@
           "orden": 5
         }
       ],
-      "gratis": false,
-      "portada_url": null
+      "portada_url": null,
+      "gratis": false
+    },
+    {
+      "orden": 15,
+      "nombre": "Zafiro Perlado",
+      "slug": "zafiro-perlado",
+      "nombre_original": null,
+      "bolso_id": "ec65d10a-b309-40e4-bf56-5c5467036c79",
+      "video_materiales_id": "c842997b-6287-4284-9070-b06c07ed43f1",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Marco para bolso: 26,5 cm × 16 cm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Hilo de pesca de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
+          "texto": "Perlas acrílicas de 10 mm",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Cadena para el bolso",
+          "directorio_ids": [
+            "cadena"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo del bolso",
+          "video_id": "eed54d8d-aa30-4cdc-9cbd-8c41e5b1bc4e",
+          "orden": 1,
+          "parte": "1 de 3"
+        },
+        {
+          "titulo": "Tejido del cuerpo del bolso",
+          "video_id": "4a04a0d5-51b4-42ee-8b1a-9a2ff611aa9f",
+          "orden": 2,
+          "parte": "2 de 3"
+        },
+        {
+          "titulo": "Tejido del cuerpo del bolso",
+          "video_id": "fc108835-7b42-4afd-ba6f-c274d3ddbcc4",
+          "orden": 3,
+          "parte": "3 de 3"
+        },
+        {
+          "titulo": "Cierre del bolso",
+          "video_id": "816008f3-b1cf-4bc0-97b8-16a8269e0df3",
+          "orden": 4
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "b9fae52a-1aa7-4213-b82e-c43266492049",
+          "orden": 5
+        }
+      ],
+      "portada_url": null,
+      "gratis": false
+    },
+    {
+      "orden": 16,
+      "nombre": "Nácar Soñado",
+      "slug": "nacar-sonado",
+      "nombre_original": null,
+      "bolso_id": "4124e1c6-26b3-40bc-b758-3f6cf5dec309",
+      "video_materiales_id": "8edc4736-729f-422c-8f6f-ba0713041a9d",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 12,
+        "alto_con_asa": 26,
+        "ancho": 5
+      },
+      "materiales": [
+        {
+          "texto": "Perlas de 10 mm: 500 gramos",
+          "directorio_ids": [
+            "perlas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de nailon de 0,7 mm: 40 metros",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "Ganchos tipo mosquetón: 2 unidades (opcionales)",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "Tijeras o pinzas",
+          "directorio_ids": [
+            "tijeras"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Cuerpo del bolso",
+          "video_id": "b97edf8e-d103-4c0c-9be2-58fc911a193f",
+          "orden": 1
+        },
+        {
+          "titulo": "Forro del bolso",
+          "video_id": "99c80ab0-5cd6-49a6-9cdc-88df8fe214d3",
+          "orden": 2
+        },
+        {
+          "titulo": "Laterales",
+          "video_id": "2e3dafaa-edb8-4bad-8af4-371c54f5bfe2",
+          "orden": 3
+        },
+        {
+          "titulo": "Asa del bolso",
+          "video_id": "9bee9f19-edbc-4d1e-bb6e-96e94e582e5a",
+          "orden": 4
+        },
+        {
+          "titulo": "Botón magnético y cadena",
+          "video_id": "12c93ca7-d293-439a-944c-ffd98407b257",
+          "orden": 5
+        }
+      ],
+      "portada_url": "/images/bolso-silueta-nacar.jpg",
+      "gratis": true
     }
   ],
   "directorio": {
@@ -1260,6 +1367,8 @@
       }
     ]
   },
-  "nota_orden": "El orden de las lecciones es el que definió Elizabeth (tal cual el PDF). El video de materiales siempre va primero.",
-  "nota_portadas": "Las fotos salen de la landing sparkle-bag-studio.lovable.app, donde cada imagen trae el nombre del bolso en su texto alternativo. OCHO están confirmadas por el nombre o por los materiales de la propia ficha. DOS son por parecido y Elizabeth debe confirmarlas: 'perla-tejida' (la landing la llama 'Perla Clásica') y 'coquett-clasico' (la llama 'Malla Plateada'). ⚠️ A 'celeste-calido' NO se le puso la foto plateada aunque su ficha mencione malla: 'celeste' es azul y la foto es plata — una portada que contradice el nombre confunde más que un hueco. Cinco siguen sin foto: Anillos de Seda (ver su nota: la disponible lleva el logo de Dior), Cherry, Celeste Cálido, Esmeralda y Boho. Para cambiar una: editar 'portada_url' y correr 'npm run seed:bolsos'."
+  "nota_fuente": "Generado por `node scripts/pdf-a-seed.mjs` desde las fichas en PDF de Elizabeth (2026-10-14). NO se transcribe a mano: un carácter cambiado deja un video que no carga y nadie se entera hasta que una alumna lo abre. Si el PDF cambia, se vuelve a correr el script. Las erratas corregidas y SU MOTIVO están en la constante ERRATAS del script.",
+  "nota_gratis": "El bolso de cortesía es NÁCAR SOÑADO desde el 2026-10-14. Lo decide `gratis: true` y nada más: ni un slug en el código ni una constante.",
+  "nota_portadas": "⚠️ CORREGIDO: `bolso-silueta-nacar.jpg` estaba en Silueta Nácar (ex-Balenciaga) porque la landing la llamaba 'Nácar Soñado'. Nácar Soñado resultó ser el bolso 16, otro distinto — la foto es suya. Siete sin portada: Anillos de Seda (la disponible lleva el logo de Dior), Silueta Nácar, Cherry, Celeste Cálido, Esmeralda, Boho y Zafiro Perlado.",
+  "total_videos": 87
 }

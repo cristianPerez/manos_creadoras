@@ -65,6 +65,29 @@ function urlBunny(videoId: string): string | null {
   return `${base}?token=${firma}&expires=${expira}`;
 }
 
+/**
+ * La miniatura que Bunny genera de cada video.
+ *
+ * ⚠️ VA POR OTRO HOSTNAME, y no se puede deducir del id de la biblioteca. Bunny
+ * sirve los videos desde `iframe.mediadelivery.net` pero las imágenes desde la
+ * zona de pull de la cuenta (`vz-36dca6c8-7e1.b-cdn.net`), que es un valor suyo
+ * y hay que leerlo del propio reproductor. Por eso va en variable de entorno:
+ * el día que Bunny la cambie, no hay que recompilar.
+ *
+ * Se usa como PÓSTER: la pantalla enseña esta imagen con nuestro botón de play
+ * encima y NO monta el iframe hasta que alguien lo pulsa. Así el home no carga
+ * dieciséis reproductores de golpe, y hasta el clic todo lo que se ve es
+ * nuestro — misma tipografía, mismo dorado.
+ *
+ * Devuelve `null` si no está configurada: quien lo use debe tener su propio
+ * respaldo (la portada del bolso), no un hueco.
+ */
+export function urlDeMiniatura(videoId: string): string | null {
+  const zona = process.env.NEXT_PUBLIC_BUNNY_CDN_HOST;
+  if (!zona) return null;
+  return `https://${zona}/${encodeURIComponent(videoId)}/thumbnail.jpg`;
+}
+
 /** Vimeo. Los videos privados llevan un hash: se guarda como "123456789/abc123def". */
 function urlVimeo(id: string): string {
   const [numero, hash] = id.split("/");

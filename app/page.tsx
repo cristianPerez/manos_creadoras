@@ -11,6 +11,7 @@ import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
 import { listarCapsulas } from "@/lib/capsulas";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
+import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 
 export const metadata: Metadata = {
   title: "Manos Creadoras — Crea bolsos de lujo en cuentas desde casa",
@@ -57,6 +58,17 @@ export default async function Home() {
   const gratisBreve = ordenCatalogo(bolsos).find((b) => b.gratis) ?? null;
   const gratis = gratisBreve ? await obtenerBolso(gratisBreve.slug) : null;
 
+  /*
+   * ⚠️ LAS URLS SE FIRMAN AQUÍ, EN EL SERVIDOR. `BUNNY_TOKEN_KEY` no puede bajar
+   * al navegador: con ella cualquiera generaría enlaces válidos para los 87
+   * videos, incluidos los de pago. Lo que viaja al cliente es la URL ya firmada
+   * y caducable, nunca la clave.
+   *
+   * Esta página es dinámica (ƒ), así que cada visita genera firmas nuevas. Si
+   * algún día se cacheara, habría que recordar que caducan a las 6 horas.
+   */
+  const videoFirmado = (id: string) => urlDelReproductor({ proveedor: "bunny", id });
+
   const pasos: PasoGratis[] = gratis
     ? [
         {
@@ -67,12 +79,16 @@ export default async function Home() {
             gratis.materiales.length > 0
               ? `${gratis.materiales.map((m) => m.texto).join(", ")}. Te mostramos cómo elegirlos.`
               : "Lo que necesitas antes de empezar.",
+          urlVideo: videoFirmado(gratis.videoMaterialesId),
+          poster: urlDeMiniatura(gratis.videoMaterialesId),
         },
         ...agruparEnPasos(gratis.lecciones).map((p) => ({
           orden: p.partes[0].orden,
           numero: p.numero,
           titulo: p.titulo,
           descripcion: `${p.partes.length} video${p.partes.length > 1 ? "s" : ""} paso a paso.`,
+          urlVideo: videoFirmado(p.partes[0].videoId),
+          poster: urlDeMiniatura(p.partes[0].videoId),
         })),
       ]
     : [];
@@ -111,7 +127,7 @@ export default async function Home() {
           <Capsulas capsulas={capsulas} />
         </div>
         <div className="order-2 md:order-1">
-          <HeroSlider fotos={fotos} />
+          <HeroSlider fotos={fotos} totalBolsos={bolsos.length} />
         </div>
         <div className="order-3">
         {gratis && (

@@ -162,6 +162,66 @@ después la caja.
 
 ---
 
+## 📚 LOS 16 BOLSOS, LEÍDOS DEL PDF (2026-10-14)
+
+Elizabeth entregó fichas nuevas (`Manos_Creadoras_Fichas_16_Bolsos.pdf`).
+
+⚠️ **YA NO SE TRANSCRIBE A MANO.** `scripts/pdf-a-seed.mjs` lee el PDF y genera
+el seed: **16 bolsos · 71 lecciones · 87 videos · 81 materiales**. Si el PDF
+cambia, se vuelve a correr. (Al compararlo salió que los 89 identificadores
+transcritos a mano la primera vez estaban TODOS bien — pero no hay por qué
+volver a arriesgarse.)
+
+· Los dos que faltaban son **Zafiro Perlado** y **Nácar Soñado** — resuelve el
+  pendiente de los 21 videos sueltos en Bunny.
+· El PDF numera las partes de dos formas (`(ID 1)` y `— parte 1`) y Zafiro llama
+  a su parte 1 con un título más largo que a las otras: agrupando por TÍTULO
+  salía "parte 3 de 2". Se agrupan por SECUENCIA.
+· ⚠️ **ERRATA CORREGIDA con su motivo en el script** (constante `ERRATAS`):
+  Perla Tejida decía "Hilo de pescar de 7 mm" — eso es cuerda, no hilo de
+  ensartar; los otros quince usan 0,4-0,7. Si Elizabeth confirma que el PDF está
+  bien, se revierte en una línea.
+
+🔴 **EL BOLSO GRATIS ES NÁCAR SOÑADO** (antes Cristal Brillante). Lo decide
+`gratis: true` en el seed y NADA más: ni un slug escrito en el código.
+
+⚠️ Corregido un error anterior: `bolso-silueta-nacar.jpg` estaba asignada a
+Silueta Nácar (ex-Balenciaga) porque la landing la llamaba "Nácar Soñado". Nácar
+Soñado resultó ser el bolso 16, otro distinto — la foto es suya.
+
+**EL VIDEO SE REPRODUCE EN EL HOME** (`ReproductorEnSitio`). Antes había que
+salir a `/app/bolsos/…` para ver el primer video gratis: tres clics para el
+gancho de toda la página. Ahora el temario cambia qué video está cargado y nadie
+se mueve de sitio.
+⚠️ HASTA EL CLIC NO HAY IFRAME: montar el de Bunny de entrada costaría ~500 KB
+por video, y trae SU diseño (su botón, su barra), con lo que la pantalla deja de
+parecer nuestra. Se enseña un póster nuestro con el botón dorado y el iframe se
+monta al pulsar, ya reproduciendo.
+
+**BUNNY SÍ DA MINIATURA**: `https://<pull-zone>/<video>/thumbnail.jpg` (74 KB) y
+un `preview.webp` animado. La zona es `vz-36dca6c8-7e1.b-cdn.net` — NO se deduce
+del id de la biblioteca, se lee del HTML del reproductor. Va en
+`NEXT_PUBLIC_BUNNY_CDN_HOST`.
+⚠️ **El CDN de IMÁGENES tiene su propia lista de referers, distinta de la del
+reproductor**, y bloquea `localhost` (403) aunque permita QA (200). El
+componente cae solo a la portada del bolso cuando la miniatura falla, así que no
+hace falta tocar nada — pero si se quiere la miniatura real en desarrollo, hay
+que añadir localhost a los referers del PULL ZONE, no de la librería de Stream.
+
+**LA FRANJA DE VIDRIO SE APAGA MIENTRAS SE VE EL VIDEO** y vuelve al pausar, al
+terminar y al cambiar de paso. Quieto dice qué paso es y cuánto queda; en marcha
+tapaba justo las manos de Elizabeth.
+⚠️ Se escuchan los eventos de Bunny por `player.js` (`postMessage`). **La
+suscripción va al recibir `ready`, NUNCA en un temporizador**: el primer intento
+la mandaba 800ms después de montar el iframe y no llegaba ningún evento, porque
+el reproductor todavía no escuchaba. Comprobado: 0 reproduciendo → 1 pausado →
+0 reanudado.
+
+🟡 Siete bolsos sin portada: Anillos de Seda (la disponible lleva el logo de
+Dior), Silueta Nácar, Cherry, Celeste Cálido, Esmeralda, Boho y Zafiro Perlado.
+
+---
+
 ## 🏠 HOME V2 Y PLAN ÚNICO (2026-10-14)
 
 Cristian entregó un diseño nuevo del home (17 pantallas, en `.respaldo/diseno/home-v2`)

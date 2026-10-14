@@ -44,7 +44,7 @@ export const PASOS = [
     n: "01",
     titulo: "Te unes y entras a todo",
     texto:
-      "Acceso inmediato a +50 lecciones en video, los 50 patrones y el directorio de proveedores.",
+      "Acceso inmediato a los 16 bolsos en video, su ficha de materiales y el directorio de proveedores.",
   },
   {
     n: "02",
@@ -109,7 +109,7 @@ export const PREGUNTAS = [
   },
   {
     q: "¿Qué incluye cada plan?",
-    a: "Aprendiz es gratis e incluye un curso completo con su patrón. Creadora suma el curso nuevo de cada mes, los +50 tutoriales, los 50 patrones, el directorio de proveedores y la comunidad. Maestra añade mentoría mensual con Elizabeth, feedback personal de tus piezas y las guías de precios y fotografía.",
+    a: "Hay un solo plan, con todo incluido: los 16 bolsos en video, uno nuevo cada mes, la ficha de materiales de cada uno, el directorio de proveedores, el Ojo Experto y la comunidad. Solo eliges si lo pagas cada mes o de una vez al año.",
   },
   {
     /*
@@ -120,7 +120,7 @@ export const PREGUNTAS = [
      * inventar un botón de "cancelar suscripción" que no existe.
      */
     q: "¿Puedo cancelar cuando quiera?",
-    a: "Sí. Escríbenos y cancelamos la renovación; conservas el acceso hasta que termine el período que ya pagaste, y los cursos que descargaste siguen siendo tuyos.",
+    a: "Sí. Escríbenos y cancelamos la renovación; conservas el acceso hasta que termine el período que ya pagaste.",
   },
   {
     q: "¿Los materiales los compro yo?",
@@ -128,7 +128,7 @@ export const PREGUNTAS = [
   },
   {
     q: "¿Puedo vender lo que fabrique?",
-    a: "Sí, las piezas que tejes son tuyas y puedes venderlas. Lo que no se puede es revender o compartir los videos y patrones: eso es el curso, no la pieza.",
+    a: "Sí, las piezas que tejes son tuyas y puedes venderlas. Lo que no se puede es revender ni compartir los videos: eso es el curso, no la pieza.",
   },
   {
     q: "¿Cómo recibo el acceso después de pagar?",

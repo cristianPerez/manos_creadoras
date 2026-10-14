@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import { Entrada } from "@/components/home/Entrada";
 import Link from "next/link";
+import { ReproductorEnSitio } from "@/components/home/ReproductorEnSitio";
 import { useState } from "react";
 
 export type PasoGratis = {
@@ -13,6 +14,10 @@ export type PasoGratis = {
   numero: number | null;
   titulo: string;
   descripcion: string;
+  /** La URL FIRMADA del embed. La firma el servidor; la clave nunca baja aquí. */
+  urlVideo: string | null;
+  /** La miniatura que genera Bunny del propio video. */
+  poster: string | null;
 };
 
 /**
@@ -34,6 +39,16 @@ export function CursoGratis({
   portadaUrl: string | null;
 }) {
   const [abierto, setAbierto] = useState(0);
+
+  /*
+   * ⚠️ LA FRANJA DESAPARECE MIENTRAS SE VE EL VIDEO. Es lo que la hace útil y no
+   * un estorbo: cuando el video está quieto dice qué paso es y cuánto queda —
+   * información que ayuda a decidir—; en cuanto empieza a reproducir, esa misma
+   * franja tapa justo las manos de Elizabeth, que es lo único que importa.
+   *
+   * Vuelve al pausar, al terminar y al cambiar de paso.
+   */
+  const [viendo, setViendo] = useState(false);
   const paso = pasos[abierto] ?? pasos[0];
 
   if (!paso) return null;
@@ -66,71 +81,76 @@ export function CursoGratis({
         </header>
 
         <div className="mt-8 grid gap-6 md:grid-cols-[minmax(0,55fr)_minmax(0,45fr)] md:gap-8">
-          {/* ── La tarjeta del video ── */}
-          <Link
-            href={`/app/bolsos/${slug}/${paso.orden}`}
-            className="bg-espresso relative block overflow-hidden rounded-(--radius-foto) max-md:h-95 md:min-h-130"
-          >
-            {portadaUrl && (
-              <Image
-                src={portadaUrl}
-                alt={`Bolso ${nombre}`}
-                fill
-                sizes="(min-width: 768px) 620px, 100vw"
-                className="object-cover"
+          {/*
+            ⚠️ ESTO YA NO LLEVA A OTRA PANTALLA. Antes era un enlace a
+            `/app/bolsos/…`: para ver el primer video gratis había que salir del
+            home, aterrizar en la app y buscar el paso. Tres clics para algo que
+            es el gancho de toda la página.
+
+            Ahora el video se reproduce AQUÍ. El temario de al lado cambia qué
+            video está cargado, y nadie se mueve de sitio.
+          */}
+          <div>
+            <div className="relative overflow-hidden rounded-(--radius-foto) max-md:h-95 md:h-130">
+              <ReproductorEnSitio
+                /* `key` por paso: al cambiar de paso se monta un reproductor
+                   nuevo en vez de reutilizar el anterior, que se quedaría con el
+                   video viejo dentro. */
+                key={paso.orden}
+                onReproduciendo={setViendo}
+                url={paso.urlVideo}
+                poster={paso.poster}
+                respaldo={portadaUrl}
+                titulo={`${nombre} · ${paso.titulo}`}
+                className="size-full"
               />
-            )}
 
-            <span className="bg-gold-light text-espresso absolute top-5 left-5 rounded-full px-4 py-2 text-xs font-bold tracking-wider uppercase">
-              Gratis · sin cuenta
-            </span>
-
-            <span
-              aria-hidden="true"
-              className="bg-cream text-espresso absolute top-1/2 left-1/2 flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
-            >
-              <Play size={28} fill="currentColor" />
-            </span>
-
-            {/*
-              ⚠️ VIDRIO, NO UN BLOQUE NEGRO. La franja tiene que dejar ver la
-              foto detrás: un rectángulo opaco encima tapa justo la parte del
-              bolso que convence, y convierte una pieza bonita en un banner.
-            */}
-            <span
-              className="absolute inset-x-4 bottom-4 block rounded-[var(--radius-capsula)] border border-white/20 p-5"
-              style={{
-                background: "var(--vidrio-fondo)",
-                backdropFilter: "blur(var(--vidrio-desenfoque))",
-              }}
-            >
-              <span className="text-gold-light block text-xs font-bold tracking-[0.16em] uppercase">
-                {eyebrow}
-              </span>
               <span
-                className="font-display text-cream mt-1.5 block text-balance"
-                style={{ fontWeight: 500, fontSize: "clamp(26px, 3vw, 34px)", lineHeight: 1.1 }}
+                className={`bg-gold-light text-espresso pointer-events-none absolute top-5 left-5 rounded-full px-4 py-2 text-xs font-bold tracking-wider uppercase transition-opacity duration-300 ${
+                  viendo ? "opacity-0" : "opacity-100"
+                }`}
               >
-                {paso.titulo}
+                Gratis · sin cuenta
               </span>
 
-              <span className="mt-4 flex items-center gap-3">
-                <span className="block h-1.5 flex-1 overflow-hidden rounded-full bg-white/25">
-                  {/* Crece hasta su valor en vez de saltar: es lo que hace que
-                      el temario y el video se sientan la misma pieza. */}
-                  <motion.span
-                    className="bg-gold-light block h-full rounded-full"
-                    initial={false}
-                    animate={{ width: `${((abierto + 1) / pasos.length) * 100}%` }}
-                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  />
+              <span
+                /* Se desvanece, no se quita de golpe: un bloque que desaparece
+                   de un fotograma a otro se lee como un fallo. */
+                aria-hidden={viendo}
+                className={`pointer-events-none absolute inset-x-4 bottom-4 block rounded-[var(--radius-capsula)] border border-white/20 p-5 transition-opacity duration-300 ${
+                  viendo ? "opacity-0" : "opacity-100"
+                }`}
+                style={{
+                  background: "var(--vidrio-fondo)",
+                  backdropFilter: "blur(var(--vidrio-desenfoque))",
+                }}
+              >
+                <span className="text-gold-light block text-xs font-bold tracking-[0.16em] uppercase">
+                  {eyebrow}
                 </span>
-                <span className="shrink-0 text-xs text-white/70">
-                  {abierto + 1} de {pasos.length}
+                <span
+                  className="font-display text-cream mt-1.5 block text-balance"
+                  style={{ fontWeight: 500, fontSize: "clamp(26px, 3vw, 34px)", lineHeight: 1.1 }}
+                >
+                  {paso.titulo}
+                </span>
+
+                <span className="mt-4 flex items-center gap-3">
+                  <span className="block h-1.5 flex-1 overflow-hidden rounded-full bg-white/25">
+                    <motion.span
+                      className="bg-gold-light block h-full rounded-full"
+                      initial={false}
+                      animate={{ width: `${((abierto + 1) / pasos.length) * 100}%` }}
+                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    />
+                  </span>
+                  <span className="shrink-0 text-xs text-white/70">
+                    {abierto + 1} de {pasos.length}
+                  </span>
                 </span>
               </span>
-            </span>
-          </Link>
+            </div>
+          </div>
 
           {/* ── El temario ── */}
           <div>
@@ -154,7 +174,10 @@ export function CursoGratis({
                     >
                       <button
                         type="button"
-                        onClick={() => setAbierto(i)}
+                        onClick={() => {
+                          setAbierto(i);
+                          setViendo(false);
+                        }}
                         aria-expanded={activo}
                         aria-controls={`paso-${p.orden}`}
                         className="flex w-full items-center gap-3.5 p-4 text-left [touch-action:manipulation]"
@@ -179,18 +202,27 @@ export function CursoGratis({
                         <div id={`paso-${p.orden}`} className="px-4 pb-4">
                           <p className="text-ink-body text-sm">{p.descripcion}</p>
                           <div className="mt-3.5 flex flex-wrap gap-2.5">
-                            <Link
-                              href={`/app/bolsos/${slug}/${p.orden}`}
+                            {/* Antes era un enlace que sacaba del home. Ahora
+                                solo marca cuál se reproduce arriba. */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAbierto(i);
+                                setViendo(false);
+                              }}
                               className="text-espresso flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold"
                               style={{ backgroundImage: "var(--boton-dorado)" }}
                             >
                               <Play size={14} fill="currentColor" aria-hidden="true" />
                               Ver este paso
-                            </Link>
+                            </button>
                             {i < pasos.length - 1 && (
                               <button
                                 type="button"
-                                onClick={() => setAbierto(i + 1)}
+                                onClick={() => {
+                                  setAbierto(i + 1);
+                                  setViendo(false);
+                                }}
                                 className="border-line text-espresso flex h-11 items-center rounded-full border px-5 text-sm font-semibold"
                               >
                                 Siguiente paso
