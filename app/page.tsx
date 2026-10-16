@@ -12,6 +12,8 @@ import { PrecioHome } from "@/components/home/PrecioHome";
 import { listarCapsulas } from "@/lib/capsulas";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
+import { enlacesDeCobro } from "@/lib/checkout";
+import { RegistrarPais } from "@/components/app/RegistrarPais";
 
 export const metadata: Metadata = {
   title: "Manos Creadoras — Crea bolsos de lujo en cuentas desde casa",
@@ -44,7 +46,11 @@ const SUBTITULOS: Record<string, string> = {
 const ORDEN_CARRUSEL = Object.keys(SUBTITULOS);
 
 export default async function Home() {
-  const [bolsos, capsulas] = await Promise.all([listarBolsos(), listarCapsulas()]);
+  const [bolsos, capsulas, cobro] = await Promise.all([
+    listarBolsos(),
+    listarCapsulas(),
+    enlacesDeCobro(),
+  ]);
 
   const porSlug = new Map(bolsos.map((b) => [b.slug, b]));
   const fotos: FotoHero[] = ORDEN_CARRUSEL.flatMap((slug) => {
@@ -96,6 +102,7 @@ export default async function Home() {
   return (
     <>
       <Medir evento={EVENTOS.paginaVentasVista} />
+      <RegistrarPais />
       <Header />
 
       {/*
@@ -139,7 +146,7 @@ export default async function Home() {
           />
         )}
         <OjoDemo bolsoGratis={gratis?.slug ?? null} />
-        <PrecioHome />
+        <PrecioHome enlaces={cobro.url} />
         </div>
 
         {/* El cierre, solo en escritorio: en móvil el precio ya queda pegado a la

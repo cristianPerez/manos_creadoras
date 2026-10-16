@@ -301,6 +301,64 @@ mismos enlaces de navegación.
 
 ---
 
+## 🗄️ LAS MIGRACIONES SE APLICAN CON EL CLI, NO A MANO (2026-10-16)
+
+⚠️ **ERROR COMETIDO Y YA CORREGIDO.** Las migraciones 0016, 0017 y 0018 se
+aplicaron pegándolas en el editor SQL del panel, porque el conector de Supabase
+perdió el permiso y no había `SUPABASE_DB_PASSWORD`. El esquema quedó bien pero
+**Supabase no lo registró**: su historial seguía sin esas tres versiones.
+
+Lo detectó Cristian preguntando dónde estaban las migraciones. Producción estaba
+a salvo (vacía, un `db push` la construye entera), pero el siguiente `db push`
+contra QA habría intentado crear esas tablas otra vez y **habría fallado**.
+
+Reparado con `supabase migration repair --status applied <3 versiones>`.
+Comprobado: 18 migraciones, ninguna sin registrar.
+
+**LA REGLA, de ahora en adelante:** se aplican con `supabase db push` y se
+comprueba con `supabase migration list`. Si el CLI no se puede usar, **se para y
+se avisa** — no se aplica a mano y se sigue. Un esquema correcto con un historial
+mentiroso no falla hoy: falla cuando alguien despliegue.
+(`SUPABASE_DB_PASSWORD` ya está en `.env.local`.)
+
+---
+
+## 💳 ONEPAY: ENLACE SEGÚN EL PAÍS (2026-10-16) — EN STAGE, SIN COMMITEAR
+
+⚠️ **CRISTIAN PIDIÓ DETECTAR EL PAÍS "POR EL USER-AGENT" Y ESO NO EXISTE.** El
+User-Agent lleva navegador, sistema y dispositivo — ahí no hay geografía. Sobre
+él, a una alumna de México se le daría el enlace colombiano. Se usa
+`x-vercel-ip-country`, que Vercel calcula de la IP y añade gratis a cada
+petición. El user-agent se guarda igual, pero como lo que es: el dispositivo.
+
+**Migración 0018, aplicada en QA.** Dos tablas:
+· `plan_checkout` (plan, ciclo, región, url) — tabla APARTE, no columnas en
+  `plan_cupos`: abrir un país nuevo es INSERTAR UNA FILA, no migrar. Y
+  `plan_cupos` lo lee `consumir_cupo`, que no se toca para guardar una URL.
+  Hoy solo hay MENSUAL (colombia + internacional); el anual no existe en OnePay.
+· `sesiones_pais` (sesion_id, user_id, huella, pais, fuente, user_agent) —
+  ⚠️ **NUNCA LA IP EN CLARO**, solo un hash con sal, igual que `ojo_visitantes`.
+  ⚠️ La columna `fuente` ('vercel'|'idioma'|'defecto') ES LA ALARMA: si un día
+  la mayoría dice 'defecto', la detección se rompió — y se sabrá mirando eso, no
+  descubriéndolo por las ventas que no entran.
+
+**El respaldo es INTERNACIONAL a propósito:** si no se sabe el país, mejor que
+una colombiana vea el enlace de fuera (puede pagar igual) a que una mexicana se
+tope con un cobro en pesos colombianos.
+
+Verificado inyectando la cabecera: CO → enlace colombiano · MX/PE/US/sin
+cabecera → internacional · el anual lleva a contacto y lo dice · la sesión se
+guarda sin ninguna columna de IP.
+
+🟡 **EL ANUAL ES EL QUE SE EMPUJA Y ES EL ÚNICO QUE NO SE PUEDE PAGAR.** El
+conmutador abre en "Anual" con el "Ahorra 17%" y ese botón va a contacto. Hay
+que crear el plan anual en OnePay, o cambiar el valor por defecto mientras tanto.
+
+🟡 **FALTA CONFIRMAR `x-vercel-ip-country` EN QA.** En local no existe: toda la
+verificación se hizo inyectándola a mano. Es la pieza sobre la que descansa todo.
+
+---
+
 ## 📧 LOS CORREOS: LA CAUSA ERA LA CODIFICACIÓN (2026-10-15)
 
 Las alumnas recibían correos con el diseño viejo o con basura. La causa la

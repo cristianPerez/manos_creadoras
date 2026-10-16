@@ -70,3 +70,39 @@ npx supabase migration repair --status reverted <version> # "esta anotación sob
 
 ⚠️ **Producción (`icbhtsdalysatlizjlys`) tendrá el mismo descuadre** si se montó
 igual. Comprobarlo ANTES de empujarle nada, nunca con `db push` a ciegas.
+
+## ⚠️ CÓMO SE APLICAN (y el error que se cometió el 2026-10-16)
+
+**Siempre con el CLI, nunca pegando en el editor SQL del panel.**
+
+```bash
+supabase db push        # aplica las que falten
+supabase migration list # comprueba que local y remoto coinciden
+```
+
+### Qué pasó
+
+Las migraciones 0016, 0017 y 0018 se aplicaron **pegándolas en el editor SQL**
+del panel, porque el conector de Supabase perdió el permiso a mitad de sesión y
+no había `SUPABASE_DB_PASSWORD` en `.env.local`.
+
+El esquema quedó bien, pero **Supabase no se enteró**: su tabla
+`supabase_migrations.schema_migrations` seguía sin esas tres versiones. Lo
+detectó Cristian preguntando "¿dónde están las migraciones?".
+
+**Por qué importa:** producción estaba a salvo —vacía, un `db push` limpio la
+construye entera—, pero en QA el historial decía que 0016-0018 no se habían
+ejecutado. El siguiente `db push` habría intentado crear esas tablas otra vez y
+**habría fallado**, porque ya existían.
+
+Se arregló con:
+
+```bash
+supabase migration repair --status applied 20261013100000 20261013110000 20261016100000
+```
+
+### La regla
+
+Si no se puede usar el CLI, **se para y se dice** — no se aplica a mano y se
+sigue. Un esquema correcto con un historial mentiroso es peor que no haber
+aplicado nada: no falla hoy, falla cuando alguien despliegue.

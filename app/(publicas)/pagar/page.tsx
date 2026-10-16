@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SelectorDePago } from "@/components/app/SelectorDePago";
 import { alumnaActual } from "@/lib/alumna";
+import { enlacesDeCobro } from "@/lib/checkout";
+import { RegistrarPais } from "@/components/app/RegistrarPais";
 
 export const metadata: Metadata = {
   title: "Elige tu plan — Manos Creadoras",
@@ -28,7 +30,7 @@ export default async function Pagar({
   searchParams: Promise<{ ciclo?: string }>;
 }) {
   const { ciclo } = await searchParams;
-  const alumna = await alumnaActual();
+  const [alumna, cobro] = await Promise.all([alumnaActual(), enlacesDeCobro()]);
 
   return (
     <main className="px-5 py-12">
@@ -41,7 +43,9 @@ export default async function Pagar({
           </p>
         </header>
 
+        <RegistrarPais />
         <SelectorDePago
+          enlaces={cobro.url}
           frecuenciaInicial={ciclo === "mensual" ? "mensual" : "anual"}
           /*
             Si ya entró, no se le vuelve a pedir el correo después de pagar.

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   AHORRO_ANUAL_PCT,
-  CHECKOUT,
   GARANTIA,
   INCLUYE,
   NOTA_PAGO,
@@ -22,14 +21,21 @@ import {
  * es mes o año. Eso simplifica la decisión justo donde más cuesta tomarla.
  */
 export function SelectorDePago({
+  enlaces,
   frecuenciaInicial,
   correo,
 }: {
+  /*
+   * ⚠️ LOS ENLACES LLEGAN YA RESUELTOS POR REGIÓN. Esta pantalla NO decide de
+   * qué país es nadie: eso se hace en el servidor, que es quien ve la cabecera
+   * de Vercel. Aquí solo se pinta lo que toque.
+   */
+  enlaces: Record<Frecuencia, string | null>;
   frecuenciaInicial: Frecuencia;
   correo: string | null;
 }) {
   const [frecuencia, setFrecuencia] = useState<Frecuencia>(frecuenciaInicial);
-  const url = CHECKOUT[frecuencia];
+  const url = enlaces[frecuencia];
 
   return (
     <div className="mt-10">
@@ -90,7 +96,7 @@ export function SelectorDePago({
             formulario es una sorpresa justo en el momento de más intención.
           */}
           <Link
-            href={url !== "" ? url : "/contacto"}
+            href={url ?? "/contacto"}
             className="text-espresso mt-7 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
             style={{ backgroundImage: "var(--boton-dorado)" }}
           >
@@ -98,7 +104,7 @@ export function SelectorDePago({
           </Link>
 
           <p className="mt-3 text-center text-xs text-white/55">
-            {url !== "" ? NOTA_PAGO : "Te escribimos al correo con el enlace de pago y tu acceso."}
+            {url ? NOTA_PAGO : "Te escribimos al correo con el enlace de pago y tu acceso."}
           </p>
 
           {correo && (

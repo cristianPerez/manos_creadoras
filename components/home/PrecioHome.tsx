@@ -28,7 +28,7 @@ import {
  *
  * Las cifras salen de `lib/planes.ts`: ni una escrita en el JSX.
  */
-export function PrecioHome() {
+export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | null> }) {
   const [frecuencia, setFrecuencia] = useState<Frecuencia>("anual");
 
   return (
@@ -114,15 +114,25 @@ export function PrecioHome() {
             </p>
             <p className="mt-2 text-sm text-white/65">{notaDelCobro(frecuencia)}</p>
 
+            {/*
+              ⚠️ SI NO HAY ENLACE PARA ESE CICLO, NO SE FINGE QUE SE PUEDE PAGAR.
+              Hoy el plan ANUAL todavía no existe en OnePay: ese botón lleva a
+              contacto y lo DICE debajo. Un botón que promete pagar y abre un
+              formulario es una sorpresa en el peor momento.
+            */}
             <Link
-              href={`/pagar?ciclo=${frecuencia}`}
+              href={enlaces[frecuencia] ?? `/pagar?ciclo=${frecuencia}`}
               className="text-espresso mt-7 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
               style={{ backgroundImage: "var(--boton-dorado)" }}
             >
               Quiero el plan {frecuencia === "anual" ? "anual" : "mensual"}
             </Link>
 
-            <p className="mt-3 text-center text-xs text-white/55">{NOTA_PAGO}</p>
+            <p className="mt-3 text-center text-xs text-white/55">
+              {enlaces[frecuencia]
+                ? NOTA_PAGO
+                : "Te escribimos al correo con el enlace de pago y tu acceso."}
+            </p>
           </div>
 
           <div className="border-t border-white/12 pt-7 md:border-t-0 md:border-l md:pt-0 md:pl-10">
