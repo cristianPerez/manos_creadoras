@@ -301,6 +301,37 @@ mismos enlaces de navegación.
 
 ---
 
+## 📧 LOS CORREOS: LA CAUSA ERA LA CODIFICACIÓN (2026-10-15)
+
+Las alumnas recibían correos con el diseño viejo o con basura. La causa la
+sospechó Cristian y era exacta: **esta terminal tiene `LC_CTYPE="C"`, no UTF-8**,
+así que `pbcopy` marca el texto como Latin-1 y al pegarlo en el panel de Supabase
+los acentos y las ñ se destrozan:
+
+    ⚠️ POR QUÉ ESTÁ   →   ,ÕfÕJ¤ POR QUé/Á ESTÁ
+    crema · marfil    →   crema —¡ marfil
+
+⚠️ **Y SE GUARDA SIN AVISAR.** El panel dice "Successfully updated" y todo
+parece bien. Por eso duró días: nada falla, solo llega mal.
+
+**Se arregla copiando con `LC_CTYPE=UTF-8 pbcopy`** — o mejor, con
+`npm run correo:copiar <plantilla>`, que lo hace y ADEMÁS comprueba que el
+portapapeles conserve los acentos antes de dejarte pegar.
+
+Estado de las SEIS plantillas tras la revisión:
+· **Magic link** y **Confirm sign up**: repuestas con los acentos correctos y
+  verificadas en el Preview del panel.
+· **Reset password**, **Invite user**, **Reauthentication**, **Change email**:
+  devueltas a la plantilla POR DEFECTO de Supabase (decisión de Cristian). Las
+  tres primeras no se disparan nunca —esta app no tiene contraseñas, se entra
+  con enlace mágico— y la cuarta estaba 🔴 **BRANDEADA COMO "EL CHARCU"**: si una
+  alumna cambiaba su correo, recibía un email de otro negocio.
+
+⚠️ Al pegar una plantilla, MIRAR SIEMPRE EL PREVIEW antes de guardar. Es lo
+único que delata el problema.
+
+---
+
 ## ⚙️ Ajustes hechos EN LOS PANELES (2026-10-12)
 
 No están en el código: viven en Supabase y en Bunny, y si alguien recrea los
