@@ -1,9 +1,19 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-10-14.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-10-17.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El detalle de por qué algo se hizo así vive en el comentario de
 cabecera de cada archivo y en los mensajes de commit, que en este repo son largos
 a propósito. Lo que se termina, se quita de aquí.
+
+> ⚠️ **ESTE ARCHIVO MIDE ~970 LÍNEAS Y LA REGLA SON 200.** Ya no cumple su
+> trabajo: es demasiado largo para releerlo al empezar una sesión, que es
+> justo para lo que existe. Y el riesgo no es teórico — el 2026-10-16 un punto
+> de "Bloqueos para vender" afirmaba que OnePay *no* tenía checkout alojado,
+> cuando sí lo tiene; esa línea obsoleta por poco hace construir una pantalla
+> de pago entera que no hacía falta.
+>
+> **Pendiente real: podarlo.** Casi todo lo de 2026-10-09 a 2026-10-14 ya está
+> hecho y vive en los mensajes de commit, que son largos a propósito.
 
 > El 2026-10-09 este archivo se reescribió porque se estaba contradiciendo:
 > decía "7 migraciones" cuando hay 12, decía que el login no crea cuentas cuando
@@ -744,25 +754,47 @@ estos tres son decisiones de producto, no fallos:
 
 ## 🔴 Bloqueos para vender
 
-- [ ] **El cobro: Hotmart SALE, entra OnePay** (decisión de Cristian,
-      2026-10-09). Esto ya no es "crear un producto": es **construir una
-      pantalla de pago**. Detalle largo en `lib/planes.ts`; lo esencial:
-      - OnePay **no tiene checkout alojado** para suscripciones. Hotmart daba un
-        enlace; OnePay exige tokenizar la tarjeta con su SDK **dentro de nuestra
-        app** + 3D Secure. Contradice la decisión cerrada de "no hay paywall
-        propio", que hay que reabrir.
-      - ✅ **Sí cobra en dólares** (confirmado por Cristian el 2026-10-09). La
-        investigación de El Charcu decía que solo COP; esa parte queda superada.
-      - ⚠️ El entorno lo decide la **CLAVE** (`sk_test_` vs `sk_live_`), no la
-        URL: una clave live en QA **cobra de verdad**.
-      - Webhook: la firma va en el header `Signature` (NO `x-onepay-signature`),
-        sobre el cuerpo CRUDO, comparación en tiempo constante, responder 2xx en
-        <10 s, y **idempotente** porque reintenta 6 veces con el mismo cuerpo.
-      - Investigación completa: `git show 6a644b2:ESTADO.md` en el repo elcharcu,
-        sección "1. Pagos — OnePay".
-      ✅ **Mientras tanto SE PUEDE COBRAR YA**: `npm run acceso:dar` activa a mano.
-      Cuando OnePay funcione, su webhook inserta una concesión más y no se
-      rediseña nada.
+- [x] ~~**El cobro: Hotmart SALE, entra OnePay**~~ ✅ **HECHO el 2026-10-16.**
+      ⚠️ Lo que decía este punto resultó FALSO y por poco cuesta trabajo de más:
+      afirmaba que OnePay *"no tiene checkout alojado y exige tokenizar la
+      tarjeta con su SDK dentro de nuestra app"*. **Sí lo tiene**: los planes se
+      cobran con un enlace suyo (`pagos.onepay.la/plan/…`), igual que hacía
+      Hotmart, y **no hubo que construir ninguna pantalla de pago**. Venía de la
+      investigación vieja de El Charcu y nadie la había vuelto a comprobar.
+      Hoy: enlaces en `plan_checkout`, webhook vivo y verificado, correo de
+      bienvenida al pagar. Para activar a mano sigue estando `npm run
+      membresia:dar` (el punto decía `acceso:dar`, que ya no existe).
+
+- [ ] 🔴 **BOTÓN "CANCELAR MI MEMBRESÍA"** — lo último grande del circuito de
+      pagos, y el más delicado de todos los pendientes.
+
+      **Por qué urge:** hoy la alumna **no puede darse de baja sola**. El FAQ
+      dice que se cancela escribiendo, que es lo único cierto, pero una
+      suscripción que se contrata en dos clics y se cancela escribiendo un
+      correo es justo lo que produce devoluciones y quejas — y en varios países
+      de LATAM obligar a contactar para cancelar es directamente ilegal.
+
+      **La dificultad real:** ⚠️ **OnePay NO tiene API de cancelación**
+      documentada. Se revisó su documentación el 2026-10-16. Así que el botón
+      no puede, hoy, cortar el cobro en la pasarela. Opciones, de mejor a peor:
+      1. Preguntar a OnePay si existe endpoint de cancelación sin documentar
+         (Cristian tiene contacto directo con el dueño — ya lo usó para
+         aclarar lo de "Mensual · 12 ciclos"). **Empezar por aquí.**
+      2. Si no existe: el botón marca la membresía como `cancelada` en nuestra
+         base **y avisa a Elizabeth** para que la cancele en el panel. La
+         alumna ve "cancelada, conservas el acceso hasta el <fecha>" y no tiene
+         que escribir a nadie. ⚠️ Hay que cerrar el círculo: si nadie la
+         cancela en OnePay, **se le vuelve a cobrar** y la app estaría
+         mintiendo.
+      3. Lo que hay hoy: escribir a contacto. Insuficiente para vender.
+
+      **Lo que YA está listo para engancharlo** (no hay que construirlo):
+      - `cancelar_membresia()` existe en la base desde la migración 0014.
+      - El webhook ya trata `suscripcion.cancelada` y **conserva el acceso
+        hasta `vence_el`** — cancelar no corta el acceso pagado. Probado.
+      - La pantalla `/app/plan` ya muestra el estado "cancelada" con su fecha.
+      - Falta: el botón en `/app/cuenta` o `/app/plan`, su confirmación (es
+        irreversible → confirmar, no deshacer), y el aviso a Elizabeth.
 - [ ] **La identificación del responsable de los datos** (cédula o NIT de
       Elizabeth Valencia) y un domicilio. Va en `lib/legal.ts`
       (`IDENTIFICACION` / `DOMICILIO`) y las dos páginas legales lo recogen
@@ -794,7 +826,9 @@ estos tres son decisiones de producto, no fallos:
       descripción provisional.
 - [ ] **Confirmar la política de cancelación.** La respuesta del FAQ dice lo
       único que hoy es verdad (se cancela escribiendo) sin prometer un botón
-      que no existe.
+      que no existe. ⚠️ **Cuando se construya el botón de cancelar (ver arriba),
+      este texto del FAQ hay que cambiarlo en el MISMO commit** — si no, la app
+      tendrá un botón y el FAQ seguirá mandando a escribir un correo.
 
 ---
 
