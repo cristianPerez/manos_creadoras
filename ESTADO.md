@@ -195,28 +195,39 @@ pena revisar qué otras credenciales de El Charcu viven en este repo.
 el dominio es `.co`. Corregido a `.co` — falta que Cristian confirme que ese
 buzón existe y recibe.
 
-### 🔴 EL WEBHOOK QUEDÓ EN LA EMPRESA VIEJA (2026-10-17)
+### ✅ CIRCUITO DE PAGO COMPLETO EN LA EMPRESA MANOS CREADORAS (2026-10-17)
 Cristian renombró a **"El charcu"** la empresa de OnePay donde vivía todo (NIT
-GOINGTUBE S.A.S.), para dedicarla a otro negocio. Se vio porque el checkout
+GOINGTUBE S.A.S.) para dedicarla a otro negocio. Se destapó porque el checkout
 público enseñaba "El charcu" a quien iba a pagar un curso de bolsos.
 
-Los planes se recrearon en la empresa que sí se llama **Manos Creadoras**, con
-su paleta (#2A1F19) en el checkout — verificado: el portal dice "Manos
-Creadoras" y cobra US$9,99 / US$80. Migración **0028**.
+Rehecho entero en la empresa **Manos Creadoras**:
+- **Planes** (migración 0028): Mensual US$9,99 · Ilimitado · `01a14b95-f607…`
+  y Anual US$80 · Mensual · 12 ciclos · `01a14b96-796a…`. Sin período de prueba.
+- **Checkout** con la paleta de la marca (#2A1F19). El portal dice "Manos
+  Creadoras" y cobra lo que la página anuncia.
+- **Webhook `ab3b6206`** → `https://qa.manoscreadoras.co/api/webhooks/onepay`,
+  9 eventos de suscripción. Claves nuevas en `.env.local` y en Vercel (Preview).
 
-🔴 **Pero el webhook `2e09a72f` sigue en la empresa vieja, y los webhooks NO se
-comparten entre empresas.** Hoy una alumna puede pagar y la app NO se entera:
-no se activa su membresía ni le llega la bienvenida.
+**Probado de punta a punta contra QA:** sin firma → 401 · pago → membresía
+activa + **correo de bienvenida enviado** (visto en el panel de Resend) ·
+mismo evento repetido → `repetido` · cancelación → estado `cancelada`
+conservando el acceso hasta la fecha pagada (`tiene_acceso` sigue `true`).
 
-**Lo que falta** (en la empresa Manos Creadoras → Desarrolladores → Webhooks):
-crear el webhook a `https://qa.manoscreadoras.co/api/webhooks/onepay` con los 9
-eventos de suscripción, copiar su **Secreto** y su **Header**, y reemplazar
-`ONEPAY_WEBHOOK_SECRET` / `ONEPAY_WEBHOOK_TOKEN` en `.env.local` y en Vercel
-(Preview). Después: `npm run webhook:probar -- --url https://qa.manoscreadoras.co`.
+⚠️ **DOS VARIABLES DE VERCEL SEGUÍAN APUNTANDO A EL CHARCU** y por eso el
+correo no salía: `RESEND_API_KEY` y `RESEND_FROM` llevaban 39 días sin tocar,
+con el remitente `contacto.elcharcu.co`. Actualizadas en Preview.
+🔴 **Producción NO se ha revisado** — es muy probable que tenga el mismo
+problema.
 
 ⚠️ Quedaron DOS planes huérfanos en "El charcu" (`01a14b90-305d…` y
-`01a14b90-adb4…`), creados ahí por error antes de saber lo del renombrado.
-Conviene archivarlos para que nadie los use.
+`01a14b90-adb4…`), creados ahí antes de saber lo del renombrado. Archivarlos.
+
+### 🔜 Cuando aprueben la cuenta de producción (pedido de Cristian)
+Crear un plan de **US$1** en producción para hacer un cobro real de prueba, y
+repetir esta misma verificación con el webhook de producción. Recordar que en
+producción hacen falta: webhook propio (los webhooks NO se comparten entre
+empresas NI entre modos), sus claves en Vercel (Production) y revisar que
+`RESEND_API_KEY`/`RESEND_FROM` de Production no sean las de El Charcu.
 
 ### 🔴 Lo que sigue sin cuadrar y decide Cristian
 1. **El plan ANUAL no existe en OnePay.** Solo está creado el mensual, así que el
