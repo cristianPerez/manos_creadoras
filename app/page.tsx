@@ -7,6 +7,7 @@ import { BarraInferiorHome } from "@/components/home/BarraInferiorHome";
 import { Capsulas } from "@/components/home/Capsulas";
 import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
 import { HeroSlider, type FotoHero } from "@/components/home/HeroSlider";
+import { LlamadaAPlanes } from "@/components/home/LlamadaAPlanes";
 import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
 import { listarCapsulas } from "@/lib/capsulas";
@@ -145,7 +146,27 @@ export default async function Home() {
             portadaUrl={gratis.portadaUrl}
           />
         )}
+        {/*
+          ⚠️ EL CTA VA AQUÍ, JUSTO DESPUÉS DEL BOLSO GRATIS. Es el punto de más
+          deseo de todo el home: acaba de ver un bolso entero, gratis y completo,
+          y la pregunta que se hace sola es "¿y los demás?". Ponerlo antes sería
+          pedir dinero por algo que todavía no ha visto.
+        */}
+        <LlamadaAPlanes
+          tono="dorado"
+          /* El cierre de escritorio (abajo del todo) ya usa "¿Te gustó? Hay N
+             bolsos esperándote": este dice lo mismo con otras palabras a
+             propósito, para que quien baje entero no lea dos veces la frase. */
+          titulo={`Acabas de hacer uno. Te faltan ${bolsos.length - 1}.`}
+          texto={`${bolsos.reduce((s, b) => s + b.videos, 0)} videos paso a paso, la ficha de materiales de cada bolso y el Ojo Experto sin límite.`}
+        />
+
         <OjoDemo bolsoGratis={gratis?.slug ?? null} />
+
+        {/* El segundo momento: ya probó el Ojo Experto y se topó con el límite
+            de 2 preguntas. Aquí el plan deja de ser un precio y es la salida. */}
+        <LlamadaAPlanes titulo="¿Sin preguntas? Con el plan no se acaban." />
+
         <PrecioHome enlaces={cobro.url} />
         </div>
 
@@ -173,7 +194,7 @@ export default async function Home() {
               href="#precio"
               className="flex h-13 shrink-0 items-center rounded-full border border-white/25 px-7 font-semibold text-white"
             >
-              Ver precio
+              Ver los planes
             </a>
           </div>
         </section>

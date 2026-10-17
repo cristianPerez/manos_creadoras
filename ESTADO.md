@@ -13,6 +13,174 @@ a propósito. Lo que se termina, se quita de aquí.
 
 ---
 
+## ✅ Webhook de OnePay vivo en QA (2026-10-16)
+
+Creado en el panel, **modo prueba**, en la cuenta **Manos Creadoras / GOINGTUBE
+S.A.S.** (la del logo de perlas). Se descartó la otra organización homónima
+—Manos Creadoras / Goingtube s.a.s— porque está **vacía**: cero planes.
+
+- Webhook `2e09a72f` · `https://qa.manoscreadoras.co/api/webhooks/onepay` · Activo
+- 9 eventos de Suscripciones marcados (los nombres técnicos reales se sabrán con
+  el primer pago de verdad; los que no acierten caen en `desconocido` y quedan
+  guardados, no se pierden).
+- `ONEPAY_WEBHOOK_SECRET` (el "Secreto" del panel) y `ONEPAY_WEBHOOK_TOKEN` (su
+  "Header") están en `.env.local` y en Vercel **solo en Preview** — en producción
+  tienen que ir las de producción, no estas.
+
+**Probado de punta a punta contra QA** (16-oct): pago → membresía activa con
+`vence_el`; mismo evento repetido → `repetido: true` (no duplica); cancelación →
+estado `cancelada` **conservando `vence_el`** (no se le quita el mes pagado);
+correo desconocido → queda `huerfano` con nota legible en `webhook_eventos`.
+`marcela@manoscreadoras.test` quedó en ese estado de prueba.
+
+### 🔴🔴 DOS BUGS CRÍTICOS ENCONTRADOS Y ARREGLADOS (2026-10-16)
+Los dos venían del MISMO sitio: la migración 0016 (un solo plan) renombró los
+planes a `gratis`/`completo` pero dejó cabos sueltos. Ninguno de los dos daba
+la cara en el uso diario, por eso llevaban 3 días vivos.
+
+1. **Nadie podía registrarse** (migración **0023**).
+   `crear_perfil_al_registrarse()` seguía insertando el plan `'aprendiz'`, que
+   ya no pasa el `check`. Cualquier cuenta nueva reventaba. No se notó porque
+   todas las cuentas existentes son anteriores al 13-oct.
+
+2. **Quien pagaba NO tenía acceso** (migración **0024**) — el peor posible.
+   `tiene_acceso_de()` preguntaba por `plan in ('creadora','maestra')`, planes
+   que ya no existen → devolvía `false` para TODO el mundo. Una alumna pagaba
+   US$250 y seguía viendo el candado en todos los bolsos.
+   Verificado tras el arreglo: con plan `completo` → acceso `true`; con
+   `gratis` → `false`.
+
+También se corrigió el tipo `Plan` de `lib/alumna.ts`, que seguía declarando
+`"aprendiz" | "creadora" | "maestra"`.
+
+**Se encontraron por accidente**, creando una cuenta de prueba para revisar la
+pantalla de planes. ⚠️ Conviene repasar si quedó algo más del renombrado.
+
+### ℹ️ El plan anual de OnePay: "Mensual · 12 ciclos" es correcto
+En el panel el plan anual (`01a14752…`) se lee **"Frecuencia: Mensual · Ciclos:
+12"** y parece "$250 cada mes, doce veces" = $3.000. **No lo es.** Según el
+dueño de OnePay (Cristian habló con él el 2026-10-16), esos dos campos se leen
+juntos: **cobra cada 12 meses**. Queda anotado porque es contraintuitivo.
+
+⚠️ Pero ese plan **sí tiene 7 días de prueba** y el mensual no: quien contrate
+el anual no paga hoy, paga a los 7 días. **La app todavía no lo dice** — el
+copy promete "Se cobra US$250 una vez al año". Falta decidir si se quitan los
+días de prueba o se refleja en el copy.
+
+### ✅ Planes conectados y camino a la compra sin fricción (2026-10-16)
+- **Migración 0022**: el plan ANUAL ya tiene enlace, y Colombia e internacional
+  apuntan al MISMO (decisión de Cristian). Además hoy es lo único correcto: el
+  enlace "colombiano" viejo (`01a1455f…`) no está en la cuenta donde vive el
+  webhook, así que un pago por ahí nunca nos avisaría. La estructura por región
+  se conserva para cuando haya pasarela colombiana de verdad.
+- **El home ya no manda a otra página**: los CTA bajan a `#precio` con scroll
+  suave (`html { scroll-behavior }` + `scroll-padding-top: 80px` por el header
+  pegajoso). Tres CTA: tras el bolso gratis (dorado, el momento de más deseo),
+  tras el Ojo Experto, y el cierre de escritorio.
+- **"Planes" en los menús**: barra superior, barra inferior del home (ahora 5
+  destinos, textos acortados para que no se partan) y barra lateral de la app.
+- **`/pagar` → `/app/plan`**: deja de ser página pública y pasa a ser la
+  pantalla de mejora DENTRO de la app, con su navegación. `/pagar` se conserva
+  como reenvío porque puede estar pegado en correos viejos.
+  Quien ya paga no ve planes: ve su estado y qué incluye.
+
+### ⚠️ "Mi plan" NO está declarada lista (revisor: 27/40 · 14/20 · 12/20)
+El `revisor-visual` la puntuó dos veces. Tras corregir, sigue sin pasar los tres
+gates. Lo hecho: fuera la jerga "OnePay", garantía UNA vez, correo fuera de la
+tarjeta de venta, entrada escalonada, píldora deslizante con `layoutId`,
+`whileTap`, **precio que cuenta** al cambiar de plan y crossfade de la nota.
+
+⚠️ Un bug que salió al probarlo: se usó `NumeroQueCuenta` (que cuenta al entrar
+en pantalla) para un valor que cambia por interacción → al volver a "Anual" el
+precio se quedaba en **US$0,00**. Se reemplazó por `PrecioQueCuenta`, local a
+`SelectorDePago`, que anima al cambiar el valor. Verificado en los dos sentidos.
+
+**Lo que falta para que pase (bloqueante según el revisor):** el copy no tiene
+NI prueba social NI el dolor del avatar — el eje "emoción" se queda en 1/4.
+🔴 **No se añadió a propósito**: el revisor sugiere "+1.200 alumnas · 4.9★" y
+**no consta que esos números sean reales**. Inventar prueba social es ilegal
+además de falso. Cristian tiene que dar las cifras verdaderas (o testimonios
+reales) antes de escribir esa línea.
+
+Menor, también pendiente: el CTA no tiene estado de carga.
+
+### ✅ Precio alineado con OnePay (2026-10-16)
+Cristian decidió: **US$25 al mes / US$250 al año** (antes 35/350). Cambiadas las
+dos constantes de `lib/planes.ts`; todo lo demás —el "al mes" del anual, el
+ahorro, las notas de cobro— se calcula solo. El descuento anual sigue siendo
+**17%** (ahora US$50). Verificado renderizado a 375px en `/pagar` y en el home.
+
+### ✉️ Correo de bienvenida (2026-10-16)
+Cuando entra un pago, la alumna recibe "Ya estás dentro" con el botón de entrar,
+el correo con el que debe entrar y 3 primeros pasos. No lleva contraseña ni
+enlace mágico a propósito (es lo que hacen las estafas).
+
+- `lib/correo.ts` — la única puerta de envío. **Nunca lanza**: si Resend falla,
+  el webhook no puede devolver 500, porque OnePay reintentaría el pago y podría
+  acabar desactivando el endpoint.
+- `lib/correos/bienvenida.ts` — la plantilla, con los colores de la ficha en
+  línea (Gmail tira las hojas de estilo).
+- Migración **0021**: `membresias.bienvenida_enviada_el`. Sin ella, cada
+  renovación mensual mandaría otra vez "ya estás dentro". Se RESERVA la marca
+  antes de enviar (gana la carrera entre reintentos) y se DEVUELVE si el envío
+  falla, para no dejar a nadie sin su correo.
+- El formulario de contacto pasó a usar la misma puerta.
+
+### ✅ RESUELTO — era la clave, no el dominio (2026-10-16)
+Cristian creó una clave nueva en el espacio correcto y la puso en `.env.local` y
+en Vercel. Verificada: ahora ve `contacto.manoscreadoras.co [verified]`.
+
+**Prueba final, con la app corriendo y correo real a través de Resend:**
+pago → membresía activa + bienvenida **enviada** (aparece en el panel de
+Resend); renovación → mueve `vence_el` y **NO vuelve a mandar el correo**
+(`bienvenida_enviada_el` no cambia). `marcela@manoscreadoras.test` quedó activa
+hasta dic-2026 como usuaria de prueba.
+
+El historial de Resend también aclara que los correos de acceso llevan días
+entregándose bien: **lo roto era solo la copia local**, no QA.
+
+<details><summary>El diagnóstico, por si vuelve a pasar</summary>
+
+### 🔴 LA CLAVE DE RESEND EN LOCAL ERA DE OTRO PROYECTO (EL CHARCU)
+Resend devolvió **403 "contacto.manoscreadoras.co is not verified"** — pero el
+dominio **SÍ está verificado** (Cristian lo mostró). La primera lectura fue
+equivocada: el problema no es el dominio, es **la clave**.
+
+Preguntando a Resend con la clave de `.env.local` (`GET /domains`), el único
+dominio que ve es **`contacto.elcharcu.co`**. Es decir: la clave pertenece al
+espacio de trabajo de **El Charcu**, no al de Manos Creadoras. Desde ahí,
+nuestro dominio sencillamente no existe → 403.
+
+En el espacio correcto (`cperez354`) hay una clave llamada **"Manos creadoras
+qa"** (`re_Mh89g2tL…`), usada hace 1 día — distinta de la local
+(`re_27seKCgk…`). **Probablemente Vercel SÍ tenga la buena y solo esté mal el
+`.env.local`**, pero el valor en Vercel está oculto y no se pudo comparar:
+queda por confirmar enviando de verdad desde QA.
+
+⚠️ Es el TERCER cruce de cuentas entre los dos proyectos: ya pasó con la
+plantilla de correo de Supabase y con la organización activa de OnePay. Vale la
+pena revisar qué otras credenciales de El Charcu viven en este repo.
+
+</details>
+
+### ⚠️ El buzón de contacto apuntaba a un dominio ajeno
+`app/(publicas)/contacto/acciones.ts` mandaba a `hola@manoscreadoras.**com**` y
+el dominio es `.co`. Corregido a `.co` — falta que Cristian confirme que ese
+buzón existe y recibe.
+
+### 🔴 Lo que sigue sin cuadrar y decide Cristian
+1. **El plan ANUAL no existe en OnePay.** Solo está creado el mensual, así que el
+   botón del anual —que es el que sale por defecto— manda a contacto en vez de
+   cobrar. Hay que crear el plan anual de US$250 en el panel.
+2. **Falta el plan colombiano**: en esa cuenta solo está el enlace
+   INTERNACIONAL (`01a1458d…`). El colombiano (`01a1455f…`) no aparece — si vive
+   en otra cuenta, hará falta **un webhook por cuenta**.
+3. **No hay "enviar evento de prueba"** en el panel: para ver el payload REAL de
+   OnePay (y confirmar si manda el correo) hay que hacer una suscripción de
+   prueba en el enlace de pago. Eso lo tiene que hacer Cristian.
+
+---
+
 ## ⏸️ Dónde estamos (2026-10-09)
 
 **Rediseño en curso.** Cristian entregó una guía de marca y 7 pantallas de

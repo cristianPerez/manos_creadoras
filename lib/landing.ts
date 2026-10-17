@@ -163,5 +163,7 @@ export const NAVEGACION = [
   { texto: "Cápsulas gratis", destino: "#capsulas" },
   { texto: "Curso gratis", destino: "#gratis" },
   { texto: "Ojo Experto", destino: "#ojo" },
-  { texto: "Precio", destino: "#precio" },
+  // "Planes" y no "Precio": lo que se mira antes de comprar es qué se lleva uno,
+  // y es la palabra que la gente busca en un menú.
+  { texto: "Planes", destino: "#precio" },
 ] as const;

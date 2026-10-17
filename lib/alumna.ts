@@ -15,7 +15,16 @@ import { supabaseServer } from "@/lib/supabase/server";
  * La base es la única que decide; esto solo la consulta.
  */
 
-export type Plan = "aprendiz" | "creadora" | "maestra";
+/*
+ * ⚠️ ESTE TIPO MENTÍA DESDE EL 2026-10-13. Decía
+ * `"aprendiz" | "creadora" | "maestra"` cuando la migración 0016 dejó solo dos
+ * planes. Como el valor llega de la base con un `as Plan`, TypeScript no podía
+ * avisar: el tipo describía unos nombres y la base devolvía otros.
+ *
+ * Es la misma familia de fallos que las migraciones 0023 y 0024 — renombrar los
+ * planes dejó cabos sueltos en varios sitios a la vez.
+ */
+export type Plan = "gratis" | "completo";
 
 export type Alumna = {
   id: string;
@@ -55,7 +64,7 @@ export const alumnaActual = cache(async (): Promise<Alumna | null> => {
     nombre: perfil?.nombre ?? null,
     // Sin fila de membresía el suelo es Aprendiz, igual que en la base. Pasa
     // solo en cuentas creadas antes de la 0014; no es un error que mostrar.
-    plan: (membresia?.plan as Plan) ?? "aprendiz",
+    plan: (membresia?.plan as Plan) ?? "gratis",
     ciclo: membresia?.ciclo ?? null,
     estado: membresia?.estado ?? "activa",
     venceEl: membresia?.vence_el ?? null,

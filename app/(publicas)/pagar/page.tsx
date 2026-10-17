@@ -1,28 +1,16 @@
-import type { Metadata } from "next";
-import { SelectorDePago } from "@/components/app/SelectorDePago";
-import { alumnaActual } from "@/lib/alumna";
-import { enlacesDeCobro } from "@/lib/checkout";
-import { RegistrarPais } from "@/components/app/RegistrarPais";
-
-export const metadata: Metadata = {
-  title: "Elige tu plan — Manos Creadoras",
-  // No se indexa: es un paso del embudo, no una página que deba salir en Google.
-  // La que vende es la landing; esta solo cobra.
-  robots: { index: false },
-};
+import { redirect } from "next/navigation";
 
 /**
- * La página de pago.
+ * `/pagar` ya no es una pantalla: es un reenvío.
  *
- * ⚠️ ESTÁ SIN DISEÑAR PORQUE CRISTIAN LA VA A DISEÑAR. Lleva lo imprescindible
- * —los planes, su precio y un botón por plan— con los tokens de la marca pero
- * sin composición propia. No se le puso más trabajo encima del que va a
- * reemplazarse.
+ * ⚠️ NO SE BORRÓ LA RUTA A PROPÓSITO. El contenido se mudó a `/app/plan` (ver
+ * el comentario de cabecera de esa página), pero `/pagar` puede estar pegado en
+ * un correo enviado, en un mensaje de WhatsApp o en el historial de alguien que
+ * ya lo abrió una vez. Un 404 en un enlace de pago es una venta perdida sin que
+ * nadie se entere.
  *
- * ⚠️ TODAVÍA NO COBRA. OnePay no está integrado: los botones llevan a contacto,
- * donde se explica que el enlace de pago llega por correo. El día que exista,
- * se rellena `checkout` en `lib/planes.ts` y estos botones apuntan solos — no
- * hay que tocar esta pantalla.
+ * Se conserva `?ciclo=` porque es lo que decide si llega viendo el plan mensual
+ * o el anual.
  */
 export default async function Pagar({
   searchParams,
@@ -30,30 +18,5 @@ export default async function Pagar({
   searchParams: Promise<{ ciclo?: string }>;
 }) {
   const { ciclo } = await searchParams;
-  const [alumna, cobro] = await Promise.all([alumnaActual(), enlacesDeCobro()]);
-
-  return (
-    <main className="px-5 py-12">
-      <div className="mx-auto max-w-3xl">
-        <header className="text-center">
-          <p className="eyebrow">Tu plan</p>
-          <h1 className="titulo-seccion mt-2 text-balance">Un solo plan, todo incluido</h1>
-          <p className="text-ink-body mt-3">
-            Paga cada mes o ahorra pagando el año. Cancelas cuando quieras.
-          </p>
-        </header>
-
-        <RegistrarPais />
-        <SelectorDePago
-          enlaces={cobro.url}
-          frecuenciaInicial={ciclo === "mensual" ? "mensual" : "anual"}
-          /*
-            Si ya entró, no se le vuelve a pedir el correo después de pagar.
-            Si no, hace falta saber a quién darle el acceso — por eso el aviso.
-          */
-          correo={alumna?.email ?? null}
-        />
-      </div>
-    </main>
-  );
+  redirect(ciclo === "mensual" ? "/app/plan?ciclo=mensual" : "/app/plan");
 }

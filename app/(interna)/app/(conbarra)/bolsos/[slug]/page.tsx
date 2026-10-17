@@ -126,7 +126,7 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
                   una de ellas a dar un paso que ya dio.
                 */}
                 <Link
-                  href={alumna ? "/pagar" : "/entrar"}
+                  href={alumna ? "/app/plan" : "/entrar"}
                   className="text-espresso mt-4 flex h-12 items-center justify-center rounded-full font-semibold"
                   style={{ backgroundImage: "var(--boton-dorado)" }}
                 >

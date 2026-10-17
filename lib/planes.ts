@@ -52,8 +52,15 @@ export type Frecuencia = "anual" | "mensual";
  * y la cifra que miente es siempre la del descuento, que es justo la que decide
  * la compra.
  */
-export const PRECIO_MENSUAL = 35;
-export const PRECIO_ANUAL = 350;
+/*
+ * ⚠️ 2026-10-16: BAJARON DE 35/350 A 25/250 PARA CUADRAR CON ONEPAY. El plan
+ * creado en la pasarela cobra $25 y la app decía US$35: el precio que se promete
+ * y el que se cobra TIENEN que ser el mismo número, o la alumna ve una cifra en
+ * la página y otra distinta al pagar — que es donde se abandona la compra.
+ * El anual se puso en 250 para conservar el mismo descuento de siempre (~17%).
+ */
+export const PRECIO_MENSUAL = 25;
+export const PRECIO_ANUAL = 250;
 
 /** Lo que cuesta cada mes según cómo se pague. El anual sale de dividir. */
 export const PRECIO_POR_MES: Record<Frecuencia, number> = {
@@ -90,7 +97,20 @@ export const CHECKOUT: Record<Frecuencia, string> = {
 
 export const FRECUENCIA_POR_DEFECTO: Frecuencia = "anual";
 
-export const NOTA_PAGO = "Compra con OnePay · Garantía de 7 días";
+/*
+ * ⚠️ ANTES DECÍA "Compra con OnePay · Garantía de 7 días" y tenía dos fallos
+ * que señaló el revisor:
+ *
+ *   · "OnePay" es jerga nuestra. A la alumna no le dice nada el nombre de la
+ *     pasarela; le dice que algo raro pasa justo cuando va a dar su tarjeta.
+ *   · La garantía salía DOS veces en la misma pantalla —aquí y en la tarjeta
+ *     del escudo— con dos tamaños distintos. Repetir una promesa no la hace
+ *     más creíble: la hace sonar a letra pequeña.
+ *
+ * Ahora dice lo único que aquí importa: que el pago es seguro y que no hay
+ * permanencia. La garantía vive UNA vez, en su tarjeta.
+ */
+export const NOTA_PAGO = "Pago seguro · Cancelas cuando quieras";
 
 export const GARANTIA = {
   titulo: "Garantía de 7 días",
@@ -107,7 +127,7 @@ export function precioPorMes(frecuencia: Frecuencia): string {
   return `US$${PRECIO_POR_MES[frecuencia].toFixed(2).replace(".", ",")}`;
 }
 
-/** "US$350" — el cobro de verdad, sin decimales si son redondos. */
+/** "US$250" — el cobro de verdad, sin decimales si son redondos. */
 export function precioDelCobro(frecuencia: Frecuencia): string {
   const v = frecuencia === "anual" ? PRECIO_ANUAL : PRECIO_MENSUAL;
   return `US$${Number.isInteger(v) ? v : v.toFixed(2).replace(".", ",")}`;

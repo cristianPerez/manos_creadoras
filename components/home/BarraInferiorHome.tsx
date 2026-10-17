@@ -1,12 +1,20 @@
 "use client";
 
-import { House, LogIn, ShoppingBag, Sparkles } from "lucide-react";
+import { House, LogIn, ShoppingBag, Sparkles, Tag } from "lucide-react";
 import Link from "next/link";
 
+/*
+ * ⚠️ LOS TEXTOS SE ACORTARON AL ENTRAR "PLANES". Con cuatro destinos cabía
+ * "Bolso gratis"; con cinco, a 375px cada uno dispone de ~75px y ese texto se
+ * partía en dos líneas, descuadrando la altura de toda la barra. Antes que
+ * dejar fuera los planes —que es a donde queremos llevar a la gente— se
+ * recortan las etiquetas: el icono ya dice de qué va cada una.
+ */
 const DESTINOS = [
   { href: "#capsulas", texto: "Inicio", Icono: House, ancla: true },
-  { href: "#gratis", texto: "Bolso gratis", Icono: ShoppingBag, ancla: true },
-  { href: "#ojo", texto: "Ojo Experto", Icono: Sparkles, ancla: true },
+  { href: "#gratis", texto: "Gratis", Icono: ShoppingBag, ancla: true },
+  { href: "#ojo", texto: "Ojo", Icono: Sparkles, ancla: true },
+  { href: "#precio", texto: "Planes", Icono: Tag, ancla: true },
   { href: "/entrar", texto: "Entrar", Icono: LogIn, ancla: false },
 ] as const;
 

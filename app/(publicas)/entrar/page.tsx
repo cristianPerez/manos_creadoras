@@ -41,7 +41,10 @@ export default function Entrar() {
 
           <p className="text-ink-muted mt-8 text-center text-sm">
             ¿Todavía no tienes plan?{" "}
-            <Link href="/pagar" className="text-gold font-semibold underline">
+            {/* Al HOME, no a `/app/plan`: quien lee esto no ha entrado, y la
+                pantalla interna lo mandaría de vuelta aquí a iniciar sesión —
+                un círculo. En el home ve los planes sin tener que registrarse. */}
+            <Link href="/#precio" className="text-gold font-semibold underline">
               Míralos desde {PRECIO_DESDE} al mes
             </Link>
           </p>

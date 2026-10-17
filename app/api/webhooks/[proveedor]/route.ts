@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { enviarCorreo } from "@/lib/correo";
+import { correoDeBienvenida } from "@/lib/correos/bienvenida";
 import { reportarAviso } from "@/lib/fallos";
 import { proveedorPorNombre } from "@/lib/webhooks/registro";
 import type { EventoNormalizado } from "@/lib/webhooks/tipos";
@@ -114,7 +116,13 @@ export async function POST(
     return NextResponse.json({ error: "no se pudo guardar" }, { status: 500 });
   }
 
-  await aplicar(db, fila.id, nombre, evento);
+  /*
+   * El origen de ESTA petición es el sitio donde vive la app (QA o producción),
+   * así que el enlace del correo apunta solo al entorno correcto sin tener que
+   * configurar un dominio a mano — que es justo la clase de variable que se
+   * olvida en un entorno y manda a las alumnas de QA a producción.
+   */
+  await aplicar(db, fila.id, nombre, evento, new URL(req.url).origin);
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }
@@ -141,6 +149,72 @@ async function anotar(
 }
 
 /**
+ * Le manda el correo de "ya estás dentro" — una sola vez en la vida.
+ *
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ SE RESERVA EL ENVÍO ANTES DE ENVIAR, Y ESE ORDEN IMPORTA
+ * ════════════════════════════════════════════════════════════════════════════
+ * El `update ... where bienvenida_enviada_el is null` es lo que decide quién
+ * manda: si devuelve una fila, esta ejecución se lo ha quedado; si devuelve
+ * cero, otra ya iba por ello. Comprobar-y-luego-enviar dejaría una ventana en
+ * la que dos reintentos simultáneos de OnePay mandan dos correos.
+ *
+ * Y si después el envío falla, la marca se DEVUELVE a null: de lo contrario la
+ * alumna se quedaría sin su correo para siempre, porque el sistema creería que
+ * ya se lo mandó. Se prefiere el riesgo de un correo repetido —molesto— al de
+ * uno que nunca llega, que es alguien que pagó y no sabe cómo entrar.
+ * ════════════════════════════════════════════════════════════════════════════
+ */
+async function darLaBienvenida(
+  db: ReturnType<typeof supabaseAdmin>,
+  userId: string,
+  origen: string,
+) {
+  const { data: reservada } = await db
+    .from("membresias")
+    .update({ bienvenida_enviada_el: new Date().toISOString() })
+    .eq("user_id", userId)
+    .is("bienvenida_enviada_el", null)
+    .select("user_id");
+
+  // Ya se la mandamos antes: esto es una renovación, no una entrada.
+  if (!reservada || reservada.length === 0) return;
+
+  const devolverLaMarca = () =>
+    db.from("membresias").update({ bienvenida_enviada_el: null }).eq("user_id", userId);
+
+  /*
+   * ⚠️ SE ESCRIBE AL CORREO DE SU CUENTA, NO AL DEL CHECKOUT. Son el mismo en
+   * el caso normal, pero cuando no lo son el de la cuenta es el único por el
+   * que puede entrar — mandarle el acceso al otro sería decirle "entra con un
+   * correo que no tiene cuenta".
+   */
+  const { data: perfil } = await db
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!perfil?.email) {
+    await devolverLaMarca();
+    reportarAviso("correo", "activada sin correo al que escribir", { userId });
+    return;
+  }
+
+  const resultado = await enviarCorreo(
+    correoDeBienvenida({ para: perfil.email, inicio: `${origen}/app` }),
+  );
+
+  if (!resultado.enviado) {
+    await devolverLaMarca();
+    reportarAviso("correo", "la bienvenida no salió", {
+      userId,
+      motivo: resultado.motivo,
+    });
+  }
+}
+
+/**
  * Lleva el evento a la membresía de la alumna.
  *
  * ⚠️ TODAVÍA NO SABEMOS DE QUIÉN ES CADA PAGO. El webhook trae el id de cliente
@@ -154,6 +228,8 @@ async function aplicar(
   eventoId: string,
   proveedor: string,
   evento: EventoNormalizado,
+  /** El origen de la app, para componer el enlace del correo de bienvenida. */
+  origen: string,
 ) {
   const cerrar = (estado: string, nota?: string) =>
     db
@@ -238,6 +314,7 @@ async function aplicar(
       { onConflict: "user_id" },
     );
     await cerrar("procesado");
+    await darLaBienvenida(db, userId, origen);
     return;
   }
 

@@ -25,6 +25,9 @@
 export type Area =
   | "ojo-experto"
   | "webhook"
+  // Resend. Un correo que no sale es un fallo de verdad: el de bienvenida lleva
+  // el acceso de alguien que acaba de pagar, y su silencio parece una estafa.
+  | "correo"
   | "acceso"
   | "curso"
   | "video"

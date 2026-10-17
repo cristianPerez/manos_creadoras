@@ -75,7 +75,7 @@ export default async function MiCuenta() {
               {/* Con un solo plan ya no hay a qué "subir": o lo tienes o lo compras. */}
               {!alumna.tieneAcceso && (
                 <Link
-                  href="/pagar"
+                  href="/app/plan"
                   className="text-espresso flex h-12 items-center rounded-full px-6 text-sm font-semibold"
                   style={{ backgroundImage: "var(--boton-dorado)" }}
                 >

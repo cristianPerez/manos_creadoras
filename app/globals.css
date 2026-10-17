@@ -298,6 +298,27 @@
   }
 }
 
+/*
+ * ⚠️ EL SCROLL DE LAS ANCLAS, QUE AHORA ES EL CAMINO A LA COMPRA.
+ *
+ * Desde el 2026-10-16 los botones de "ver los planes" no navegan a otra página:
+ * bajan a la sección de precio de este mismo home. Eso obliga a dos cosas:
+ *
+ *   · `scroll-behavior: smooth` — un salto seco a mitad de página desorienta,
+ *     porque no se ve que lo que hay debajo es la MISMA página.
+ *   · `scroll-padding-top` — el header es `sticky`, así que sin esto el ancla
+ *     queda DEBAJO de él y el titular de la sección aparece cortado justo
+ *     cuando se acaba de pedir verlo.
+ *
+ * El bloque de `prefers-reduced-motion` de arriba ya devuelve `auto` a quien
+ * pide menos movimiento, así que esto no se le impone a nadie.
+ */
+html {
+  scroll-behavior: smooth;
+  /* La altura del header pegajoso (h-11 + padding) con un respiro. */
+  scroll-padding-top: 80px;
+}
+
 body {
   /* Crema plano. El degradado radial de antes era un halo dorado sobre negro:
      sobre crema se convierte en una mancha sucia en la parte de arriba. */

@@ -1,7 +1,23 @@
 "use server";
 
 import { z } from "zod";
+import { enviarCorreo } from "@/lib/correo";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+
+/**
+ * A dónde llegan los mensajes de contacto.
+ *
+ * ⚠️ AQUÍ DECÍA `hola@manoscreadoras.COM` Y EL DOMINIO ES `.CO`. Detectado el
+ * 2026-10-16: todos los mensajes de contacto —incluidos los de gente diciendo
+ * "quiero pagar"— se estaban mandando a un dominio que no es nuestro. Cristian
+ * tiene que confirmar que este buzón existe y recibe.
+ */
+const BUZON_INTERNO = "hola@manoscreadoras.co";
+
+/** Para que un "<" en el mensaje de alguien no rompa el HTML del correo. */
+function escapar(t: string): string {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 
 const esquema = z.object({
   nombre: z.string().min(2).max(80),
@@ -41,34 +57,28 @@ export async function enviarContacto(datos: unknown): Promise<ResultadoContacto>
     mensaje ya está guardado, así que decirle "algo salió mal" la haría escribir
     otra vez para nada.
   */
-  const clave = process.env.RESEND_API_KEY;
-  const desde = process.env.RESEND_FROM;
-  if (clave && desde) {
-    try {
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${clave}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: desde,
-          to: "hola@manoscreadoras.com",
-          reply_to: v.data.correo,
-          subject: `Contacto: ${v.data.motivo} — ${v.data.nombre}`,
-          text: [
-            `Nombre: ${v.data.nombre}`,
-            `Correo: ${v.data.correo}`,
-            `Motivo: ${v.data.motivo}`,
-            v.data.planInteres ? `Plan que le interesa: ${v.data.planInteres}` : null,
-            "",
-            v.data.mensaje ?? "(sin mensaje)",
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        }),
-      });
-    } catch {
-      // Silencio a propósito: ver el comentario de arriba.
-    }
-  }
+  const cuerpo = [
+    `Nombre: ${v.data.nombre}`,
+    `Correo: ${v.data.correo}`,
+    `Motivo: ${v.data.motivo}`,
+    v.data.planInteres ? `Plan que le interesa: ${v.data.planInteres}` : null,
+    "",
+    v.data.mensaje ?? "(sin mensaje)",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  /*
+   * `enviarCorreo` nunca lanza y ya deja su propio aviso si falla, así que el
+   * resultado se ignora a conciencia: ver el comentario de arriba.
+   */
+  await enviarCorreo({
+    para: BUZON_INTERNO,
+    responderA: v.data.correo,
+    asunto: `Contacto: ${v.data.motivo} — ${v.data.nombre}`,
+    texto: cuerpo,
+    html: `<pre style="font:14px/1.6 ui-monospace,monospace;white-space:pre-wrap;">${escapar(cuerpo)}</pre>`,
+  });
 
   return { ok: true };
 }

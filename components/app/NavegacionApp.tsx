@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Store, ShoppingBag, User } from "lucide-react";
+import { Sparkles, Store, ShoppingBag, Tag, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -19,6 +19,14 @@ export const DESTINOS = [
   { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag, enMovil: true },
   { href: "/app/directorio", texto: "Directorio", Icono: Store, enMovil: false },
   { href: "/app/ojo", texto: "Ojo Experto", Icono: Sparkles, enMovil: true },
+  /*
+   * ⚠️ `enMovil: false` NO ES UN OLVIDO, por el mismo motivo que el Directorio.
+   * La barra de abajo ya va con tres y a cuatro el texto empieza a partirse.
+   *
+   * En móvil se llega igual: "Mi cuenta" lleva aquí, y la ficha de un bolso
+   * bloqueado también — que es justo cuando interesa, no cuando se mira el menú.
+   */
+  { href: "/app/plan", texto: "Mi plan", Icono: Tag, enMovil: false },
   { href: "/app/cuenta", texto: "Mi cuenta", Icono: User, enMovil: true },
 ] as const;
 

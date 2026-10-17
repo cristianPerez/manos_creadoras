@@ -21,7 +21,7 @@ import {
  * El precio, en el home.
  *
  * ⚠️ EL PRECIO SE ENSEÑA SIEMPRE POR MES, pague como pague. Es lo único que se
- * puede comparar de un vistazo: "US$350 al año" frente a "US$35 al mes" obliga a
+ * puede comparar de un vistazo: "US$250 al año" frente a "US$25 al mes" obliga a
  * dividir mentalmente, y quien tiene que hacer cuentas para entender una oferta
  * normalmente no la acepta. El cobro real va debajo, en letra pequeña pero
  * dicho con todas las palabras.
