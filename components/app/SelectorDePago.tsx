@@ -3,13 +3,14 @@
 import { Check, ShieldCheck } from "lucide-react";
 import { AnimatePresence, animate, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
+import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
 import { useEffect, useId, useRef, useState } from "react";
 import {
-  AHORRO_ANUAL_PCT,
+  ahorroAnualDe,
   GARANTIA,
   INCLUYE,
   NOTA_PAGO,
-  PRECIO_POR_MES,
+  precioPorMesDe,
   notaDelCobro,
   type Frecuencia,
 } from "@/lib/planes";
@@ -21,54 +22,11 @@ import {
  * pantalla ofrecía tres niveles; ahora hay uno y lo único que decide la alumna
  * es mes o año. Eso simplifica la decisión justo donde más cuesta tomarla.
  */
-/**
- * El precio, contando hasta su valor cada vez que cambia.
- *
- * ⚠️ NO SIRVE `NumeroQueCuenta`, Y SE INTENTÓ. Aquel cuenta cuando el número
- * ENTRA EN PANTALLA (`useInView` + `once: true`), que es lo correcto para el
- * home. Aquí el número no entra: ya está a la vista y lo que cambia es el plan
- * elegido. Montándolo de nuevo con `key` el contador arrancaba en 0 y se
- * quedaba ahí — al volver a "Anual" el precio se leía **US$0,00**, que en una
- * pantalla de cobro es lo más parecido a un error que puede pasar.
- *
- * Este cuenta al cambiar el VALOR, sin mirar el scroll.
- */
-function PrecioQueCuenta({ hasta, quieto }: { hasta: number; quieto: boolean }) {
-  const [n, setN] = useState(hasta);
-  const anterior = useRef(hasta);
-
-  useEffect(() => {
-    // Con `prefers-reduced-motion` no se anima NI se toca el estado: el valor
-    // se pinta directo abajo. Escribirlo aquí sería un `setState` en un efecto
-    // para nada.
-    if (quieto) return;
-    const control = animate(anterior.current, hasta, {
-      duration: 0.5,
-      ease: [0.16, 1, 0.3, 1],
-      onUpdate: setN,
-    });
-    anterior.current = hasta;
-    return () => control.stop();
-  }, [hasta, quieto]);
-
-  const texto = (v: number) => `US$${v.toFixed(2).replace(".", ",")}`;
-
-  /* El ancho se reserva con el valor final invisible: si no, el renglón entero
-     se movería a cada cifra mientras cuenta. */
-  return (
-    <span className="relative inline-grid">
-      <span aria-hidden="true" className="invisible col-start-1 row-start-1">
-        {texto(hasta)}
-      </span>
-      <span className="col-start-1 row-start-1">{texto(quieto ? hasta : n)}</span>
-    </span>
-  );
-}
-
 export function SelectorDePago({
   enlaces,
   frecuenciaInicial,
   correo,
+  enOferta,
 }: {
   /*
    * ⚠️ LOS ENLACES LLEGAN YA RESUELTOS POR REGIÓN. Esta pantalla NO decide de
@@ -78,6 +36,12 @@ export function SelectorDePago({
   enlaces: Record<Frecuencia, string | null>;
   frecuenciaInicial: Frecuencia;
   correo: string | null;
+  /*
+   * ⚠️ SI ESTA PERSONA SIGUE DENTRO DE SUS 24h DE OFERTA. Llega como dato y no
+   * se calcula aquí: depende de una cookie que solo el servidor lee, y además
+   * decide el PRECIO — tenerlo en dos sitios es tener dos precios.
+   */
+  enOferta: boolean;
 }) {
   const [frecuencia, setFrecuencia] = useState<Frecuencia>(frecuenciaInicial);
   const url = enlaces[frecuencia];
@@ -127,7 +91,7 @@ export function SelectorDePago({
                       activo ? "bg-gold-light text-espresso" : "bg-gold-light/50 text-ink-body"
                     }`}
                   >
-                    Ahorra {AHORRO_ANUAL_PCT}%
+                    Ahorra {ahorroAnualDe(enOferta).pct}%
                   </span>
                 )}
               </motion.button>
@@ -160,7 +124,7 @@ export function SelectorDePago({
                 `key` fuerza que se remonte en cada cambio, que es lo que
                 dispara el conteo otra vez.
               */}
-              <PrecioQueCuenta hasta={PRECIO_POR_MES[frecuencia]} quieto={Boolean(quieto)} />
+              <PrecioQueCuenta hasta={precioPorMesDe(enOferta)[frecuencia]} quieto={Boolean(quieto)} />
             </span>
             <span className="text-lg text-white/60">/mes</span>
           </p>
@@ -178,7 +142,7 @@ export function SelectorDePago({
                 exit={quieto ? undefined : { opacity: 0, y: -4 }}
                 transition={{ duration: 0.2 }}
               >
-                {notaDelCobro(frecuencia)}
+                {notaDelCobro(frecuencia, enOferta)}
               </motion.p>
             </AnimatePresence>
           </div>

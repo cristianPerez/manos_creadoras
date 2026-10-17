@@ -1,61 +1,36 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useSyncExternalStore } from "react";
-import { AHORRO_ANUAL, AHORRO_ANUAL_PCT, PRECIO_ANUAL, PRECIO_MENSUAL } from "@/lib/planes";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { descuentoDeLanzamiento, dolares, type Frecuencia } from "@/lib/planes";
 
 /**
- * La barra de ahorro, arriba del todo.
+ * La barra de oferta de lanzamiento, arriba del todo.
  *
  * ════════════════════════════════════════════════════════════════════════════
- * ⚠️ POR QUÉ NO LLEVA CUENTA ATRÁS (decidido con Cristian el 2026-10-17)
+ * ⚠️ EL RELOJ ES DE VERDAD. Cuando llega a cero, el precio SUBE.
  * ════════════════════════════════════════════════════════════════════════════
- * La referencia que trajo era «Oferta relámpago: ~~US$70~~ US$19,70 · termina
- * en 10:16:50», con el reloj guardado en una cookie para que cada dispositivo
- * tuviera el suyo. Eso no se pudo hacer tal cual, por dos motivos concretos:
+ * Pasadas las 24 horas, `lib/oferta.ts` deja de dar la oferta por activa y
+ * toda la app —esta barra, el bloque de precio del home y la pantalla de
+ * planes— pasa a US$35 / US$350 para esa persona.
  *
- * 1. **US$70 no ha sido nunca el precio.** Hoy son US$25 al mes y US$250 al
- *    año. Tachar un precio que no existió es publicidad engañosa —en Colombia
- *    lo sanciona la SIC— y basta que una alumna mire el histórico para perder
- *    la confianza en todo lo demás de la página.
+ * Eso es lo que separa una oferta de un engaño, y no es una cuestión de buenas
+ * maneras: un contador que se reinicia al recargar se descubre en treinta
+ * segundos, y quien lo descubre deja de creerse también el precio, la garantía
+ * y los testimonios. La urgencia falsa no es fea, es que se nota.
  *
- * 2. **El botón cobraría otra cosa.** En OnePay solo existen los planes de
- *    US$25 y US$250. Una barra que promete US$19,70 llevando a un cobro de
- *    US$25 no es una oferta: es cobrar de más, y son devoluciones seguras.
- *
- * Así que la barra anuncia el descuento que SÍ existe y que el botón SÍ
- * cumple: pagar el año sale US$250 en vez de US$300. Y como ese descuento es
- * permanente, **no lleva reloj**: un contador sobre algo que no caduca es el
- * dark pattern que más rápido se descubre —basta recargar— y el sistema de
- * este proyecto los prohíbe.
- *
- * El día que haya un plan de oferta de verdad en OnePay, esto se convierte en
- * una cuenta atrás honesta cambiando dos cosas: el enlace y una fecha de fin.
+ * El reloj NO se reinicia entre visitas: la cookie guarda el instante de la
+ * primera y no se vuelve a tocar (ver `middleware.ts`).
  * ════════════════════════════════════════════════════════════════════════════
  *
- * La COOKIE sigue haciendo falta, pero para lo contrario de lo que suele
- * usarse: recuerda que esta persona ya la cerró, para no volver a ponérsela
- * encima en cada visita. Caduca a los 7 días, así que vuelve a verla más
- * adelante —que es lo que pidió Cristian— sin resultar insistente.
+ * El TOGGLE arranca en "anual" porque es donde el descuento se ve más grande
+ * —de US$350 a US$80— y porque es el plan que conviene vender: cobra el año
+ * entero por adelantado.
  */
 
-const COOKIE = "oferta_cerrada";
-const DIAS_OCULTA = 7;
+const COOKIE_CERRADA = "oferta_cerrada";
 
-/*
- * ⚠️ LA COOKIE SE LEE CON `useSyncExternalStore` Y NO CON `useEffect`.
- *
- * El primer intento ponía `setVisible(true)` dentro de un efecto y el linter lo
- * rechazó con razón: un `setState` síncrono en un efecto provoca un render en
- * cascada —pinta, decide, vuelve a pintar— en lo PRIMERO que se ve de la
- * página. `document.cookie` es exactamente lo que React llama un "almacén
- * externo", y este hook existe para leerlos sin ese doble render.
- *
- * `leerEnServidor` devuelve `true` a propósito: durante el HTML del servidor no
- * hay cookies, y si devolviera `false` la barra entraría con un salto visible
- * en cuanto hidratara. Quien la haya cerrado la ve desaparecer en el primer
- * fotograma, que es mucho menos molesto que verla aparecer de golpe cada vez.
- */
+/* El almacén externo: `document.cookie`. Ver el comentario en el componente. */
 const oyentes = new Set<() => void>();
 
 function suscribir(avisar: () => void) {
@@ -63,48 +38,100 @@ function suscribir(avisar: () => void) {
   return () => oyentes.delete(avisar);
 }
 
-function leerEnCliente(): boolean {
-  return !document.cookie.split("; ").some((c) => c.startsWith(`${COOKIE}=`));
+function leerCerradaCliente(): boolean {
+  return document.cookie.split("; ").some((c) => c.startsWith(`${COOKIE_CERRADA}=`));
 }
 
-function leerEnServidor(): boolean {
-  return true;
+/* En el HTML del servidor no hay cookies. Se asume NO cerrada para que el
+   servidor y el navegador pinten lo mismo en el primer fotograma. */
+function leerCerradaServidor(): boolean {
+  return false;
 }
 
-export function BarraDeOferta() {
-  const visible = useSyncExternalStore(suscribir, leerEnCliente, leerEnServidor);
+export function BarraDeOferta({
+  /** Cuándo termina, en ms desde la época. `null` = ya terminó o no hay. */
+  terminaEn,
+}: {
+  terminaEn: number | null;
+}) {
+  const [frecuencia, setFrecuencia] = useState<Frecuencia>("anual");
+  const [restante, setRestante] = useState<number | null>(null);
 
-  if (!visible) return null;
+  /*
+   * ⚠️ EL CONTADOR SE CALCULA EN EL NAVEGADOR, pero contra una fecha de FIN que
+   * viene del servidor. Si el servidor mandara "quedan 8 horas" y la pestaña
+   * se quedara abierta, el número se congelaría; con la fecha de fin, el
+   * navegador recalcula solo y el reloj sigue bien aunque vuelva de dormir.
+   */
+  useEffect(() => {
+    if (terminaEn == null) return;
+    const tic = () => setRestante(Math.max(0, terminaEn - Date.now()));
+    tic();
+    const id = setInterval(tic, 1000);
+    return () => clearInterval(id);
+  }, [terminaEn]);
+
+  /*
+   * ⚠️ LA COOKIE SE LEE CON `useSyncExternalStore`, NO CON UN EFECTO.
+   *
+   * Hacerlo con `useEffect` + `setState` provoca un render en cascada —pinta,
+   * decide, vuelve a pintar— en lo PRIMERO que se ve de la página. Y
+   * `document.cookie` es exactamente lo que React llama un almacén externo:
+   * este hook existe para leerlos sin ese doble render.
+   */
+  const yaCerrada = useSyncExternalStore(suscribir, leerCerradaCliente, leerCerradaServidor);
+
+  // Sin fecha de fin la oferta terminó: la barra no existe, no "se apaga".
+  if (terminaEn == null || yaCerrada) return null;
+  // `restante` es null en el primer fotograma, antes de que corra el efecto.
+  if (restante !== null && restante <= 0) return null;
+
+  const { antes, ahora, pct } = descuentoDeLanzamiento(frecuencia);
 
   const cerrar = () => {
-    const caduca = new Date(Date.now() + DIAS_OCULTA * 864e5).toUTCString();
-    // `SameSite=Lax` y sin `Secure` para que funcione igual en localhost.
-    document.cookie = `${COOKIE}=1; path=/; expires=${caduca}; SameSite=Lax`;
+    const caduca = new Date(Date.now() + 7 * 864e5).toUTCString();
+    document.cookie = `${COOKIE_CERRADA}=1; path=/; expires=${caduca}; SameSite=Lax`;
     // La cookie cambió, pero nadie se entera solo: hay que avisar al hook.
     for (const avisar of oyentes) avisar();
   };
 
   return (
     <div className="bg-espresso relative text-white">
-      {/*
-        `pr-12` deja sitio a la X: sin ese hueco, en un móvil estrecho el texto
-        pasa por debajo del botón de cerrar y se lee a medias.
-      */}
-      <a
-        href="#precio"
-        className="flex min-h-11 items-center justify-center px-5 py-3 pr-12 text-center text-xs leading-snug [touch-action:manipulation] md:text-sm"
-      >
-        <span>
-          Paga el año y ahorras{" "}
-          <strong className="text-gold-light font-semibold">
-            US${AHORRO_ANUAL} ({AHORRO_ANUAL_PCT}%)
-          </strong>
-          <span className="hidden sm:inline">
-            {" "}
-            · US${PRECIO_ANUAL} en vez de US${PRECIO_MENSUAL * 12}
-          </span>
-        </span>
-      </a>
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-4 gap-y-2 px-5 py-3 pr-12 text-center">
+        {/*
+          El toggle: dos palabras, no un interruptor. A 375px un control con
+          fondo y píldora ocuparía media barra y dejaría el precio sin sitio.
+        */}
+        <div className="flex items-center gap-1 rounded-full bg-white/10 p-1">
+          {(["anual", "mensual"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              aria-pressed={frecuencia === f}
+              onClick={() => setFrecuencia(f)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors [touch-action:manipulation] ${
+                frecuencia === f ? "bg-white/90 text-espresso" : "text-white/70"
+              }`}
+            >
+              {f === "anual" ? "Anual" : "Mensual"}
+            </button>
+          ))}
+        </div>
+
+        <a href="#precio" className="text-xs [touch-action:manipulation] md:text-sm">
+          <span className="text-white/60 line-through">{dolares(antes)}</span>{" "}
+          <strong className="text-gold-light font-semibold">{dolares(ahora)}</strong>
+          <span className="text-white/70"> · −{pct}%</span>
+          {restante !== null && (
+            <span className="text-white/70">
+              {" · termina en "}
+              <strong className="text-gold-light font-semibold tabular-nums">
+                {reloj(restante)}
+              </strong>
+            </span>
+          )}
+        </a>
+      </div>
 
       <button
         type="button"
@@ -116,4 +143,18 @@ export function BarraDeOferta() {
       </button>
     </div>
   );
+}
+
+/**
+ * "09:41:07" — horas, minutos y segundos.
+ *
+ * `tabular-nums` en quien lo pinta: sin eso, cada segundo cambia el ancho de
+ * las cifras y el texto de al lado baila.
+ */
+function reloj(ms: number): string {
+  const total = Math.floor(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
 }

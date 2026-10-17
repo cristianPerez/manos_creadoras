@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { TarjetaBolso } from "@/components/app/TarjetaBolso";
-import { PRECIO_DESDE } from "@/lib/planes";
 import { estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
 
 type Filtro = "todos" | "en-curso" | "terminados";
@@ -22,12 +21,19 @@ export function Catalogo({
   continuar,
   tieneAcceso,
   invitada = false,
+  desde,
 }: {
   bolsos: Bolso[];
   continuar: Bolso | null;
   tieneAcceso: boolean;
   /** Quien mira no ha entrado: se le enseña la oferta junto al catálogo. */
   invitada?: boolean;
+  /*
+   * "US$6,67" ya formateado. Llega hecho desde el servidor porque el precio
+   * depende de si esta persona sigue dentro de sus 24h de oferta, y eso solo
+   * se sabe leyendo una cookie — que aquí, en el navegador, ya no se mira.
+   */
+  desde: string;
 }) {
   const [filtro, setFiltro] = useState<Filtro>("todos");
 
@@ -46,7 +52,7 @@ export function Catalogo({
   return (
     <>
       {continuar && <ContinuaDondeQuedaste bolso={continuar} />}
-      {invitada && <Invitacion bolsos={bolsos} />}
+      {invitada && <Invitacion bolsos={bolsos} desde={desde} />}
 
       <div
         role="group"
@@ -116,7 +122,7 @@ export function Catalogo({
  * los bolsos, y lo que la convence de pagar es tenerlos delante. Un muro antes
  * de enseñar nada solo consigue que se vaya.
  */
-function Invitacion({ bolsos }: { bolsos: Bolso[] }) {
+function Invitacion({ bolsos, desde }: { bolsos: Bolso[]; desde: string }) {
   const gratis = bolsos.find((b) => b.gratis);
 
   return (
@@ -154,7 +160,7 @@ function Invitacion({ bolsos }: { bolsos: Bolso[] }) {
         >
           Crear mi cuenta gratis
         </Link>
-        <p className="mt-2 text-center text-xs text-white/60">Desde {PRECIO_DESDE} al mes</p>
+        <p className="mt-2 text-center text-xs text-white/60">Desde {desde} al mes</p>
       </div>
     </section>
   );

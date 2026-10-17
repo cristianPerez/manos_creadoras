@@ -1,19 +1,18 @@
 "use client";
 
 import { Check, ShieldCheck } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
-import { NumeroQueCuenta } from "@/components/home/NumeroQueCuenta";
+import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
 import { Entrada } from "@/components/home/Entrada";
 import {
-  AHORRO_ANUAL_PCT,
-  PRECIO_POR_MES,
+  ahorroAnualDe,
+  precioPorMesDe,
   GARANTIA,
   INCLUYE,
   NOTA_PAGO,
   notaDelCobro,
-  precioPorMes,
   type Frecuencia,
 } from "@/lib/planes";
 
@@ -28,8 +27,20 @@ import {
  *
  * Las cifras salen de `lib/planes.ts`: ni una escrita en el JSX.
  */
-export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | null> }) {
+export function PrecioHome({
+  enlaces,
+  enOferta,
+}: {
+  enlaces: Record<Frecuencia, string | null>;
+  /*
+   * ⚠️ SI ESTA PERSONA SIGUE DENTRO DE SUS 24h DE OFERTA. Llega como dato y no
+   * se calcula aquí: depende de una cookie que solo el servidor lee, y además
+   * decide el PRECIO — tenerlo en dos sitios es tener dos precios.
+   */
+  enOferta: boolean;
+}) {
   const [frecuencia, setFrecuencia] = useState<Frecuencia>("anual");
+  const quieto = useReducedMotion();
 
   return (
     <section id="precio" className="px-5 py-10 md:py-12">
@@ -78,7 +89,7 @@ export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | n
                         activo ? "bg-gold-light text-espresso" : "bg-gold-light/55 text-ink-body"
                       }`}
                     >
-                      Ahorra {AHORRO_ANUAL_PCT}%
+                      Ahorra {ahorroAnualDe(enOferta).pct}%
                     </span>
                   )}
                 </button>
@@ -101,18 +112,23 @@ export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | n
                 className="font-display text-gold-pale"
                 style={{ fontWeight: 500, fontSize: "clamp(56px, 8vw, 84px)", lineHeight: 1 }}
               >
-                {/* ⚠️ El número CUENTA, pero el formato sigue saliendo de
-                    `lib/planes.ts`: la animación no puede inventarse una cifra. */}
-                US$
-                <NumeroQueCuenta
-                  key={frecuencia}
-                  hasta={PRECIO_POR_MES[frecuencia]}
-                  formato={(n) => n.toFixed(2).replace(".", ",")}
+                {/*
+                  ⚠️ `PrecioQueCuenta` Y NO `NumeroQueCuenta`, y la diferencia
+                  importa: aquel cuenta cuando el número ENTRA EN PANTALLA
+                  (`useInView` + `once`), que vale para el home pero no aquí.
+                  Este número ya está a la vista y lo que cambia es el ciclo
+                  elegido — con el otro, al cambiar se quedaba en **US$0,00**,
+                  que en un bloque de precio es lo más parecido a un error.
+                  El mismo fallo apareció antes en la pantalla de planes.
+                */}
+                <PrecioQueCuenta
+                  hasta={precioPorMesDe(enOferta)[frecuencia]}
+                  quieto={Boolean(quieto)}
                 />
               </span>
               <span className="text-lg text-white/60">/mes</span>
             </p>
-            <p className="mt-2 text-sm text-white/65">{notaDelCobro(frecuencia)}</p>
+            <p className="mt-2 text-sm text-white/65">{notaDelCobro(frecuencia, enOferta)}</p>
 
             {/*
               ⚠️ SI NO HAY ENLACE PARA ESE CICLO, NO SE FINGE QUE SE PUEDE PAGAR.

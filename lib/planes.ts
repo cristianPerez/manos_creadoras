@@ -45,32 +45,72 @@
 export type Frecuencia = "anual" | "mensual";
 
 /**
- * Lo que se cobra, en dólares.
+ * ════════════════════════════════════════════════════════════════════════════
+ * LOS PRECIOS. UNA SOLA FUENTE PARA TODA LA APP.
+ * ════════════════════════════════════════════════════════════════════════════
  *
- * ⚠️ EL MENSUAL ES EL PRECIO REAL; el "al mes" del plan anual se CALCULA. Si se
- * escribieran los dos a mano, el día que cambie uno el otro se queda mintiendo —
- * y la cifra que miente es siempre la del descuento, que es justo la que decide
- * la compra.
+ * ⚠️ HABÍA TRES SITIOS CON PRECIOS Y LOS TRES DECÍAN COSAS DISTINTAS. El
+ * 2026-10-17 se encontraron: aquí 25/250, en `lib/landing.ts` un "US$ 9,74 al
+ * mes" y en `lib/config.ts` otros 19,99/199 con enlaces de Hotmart. Los dos
+ * últimos estaban MUERTOS —nadie los importaba— pero eran una trampa: bastaba
+ * que alguien los usara creyéndolos buenos. Se borraron. Si un precio no sale
+ * de este archivo, es un precio inventado.
+ *
+ * ── HAY DOS JUEGOS DE PRECIOS, Y CUÁL SE APLICA DEPENDE DE LA PERSONA ──────
+ *
+ * Desde el 2026-10-17 la app vende en oferta de lanzamiento: durante sus
+ * primeras 24 horas, cada visitante ve el precio rebajado; pasadas, ve el
+ * normal. Quién está dentro de esas 24h lo decide `lib/oferta.ts` leyendo una
+ * cookie, y el resultado se pasa a estas funciones.
+ *
+ * ⚠️ EL PRECIO SUBE DE VERDAD AL EXPIRAR, y eso no es un detalle: es lo que
+ * separa una oferta de un engaño. Un reloj que llega a cero sin que cambie
+ * nada se descubre recargando la página, y a partir de ahí no se cree nada más
+ * de lo que diga el sitio.
  */
-/*
- * ⚠️ 2026-10-16: BAJARON DE 35/350 A 25/250 PARA CUADRAR CON ONEPAY. El plan
- * creado en la pasarela cobra $25 y la app decía US$35: el precio que se promete
- * y el que se cobra TIENEN que ser el mismo número, o la alumna ve una cifra en
- * la página y otra distinta al pagar — que es donde se abandona la compra.
- * El anual se puso en 250 para conservar el mismo descuento de siempre (~17%).
- */
-export const PRECIO_MENSUAL = 25;
-export const PRECIO_ANUAL = 250;
 
-/** Lo que cuesta cada mes según cómo se pague. El anual sale de dividir. */
-export const PRECIO_POR_MES: Record<Frecuencia, number> = {
-  mensual: PRECIO_MENSUAL,
-  anual: PRECIO_ANUAL / 12,
-};
+export type Precios = { mensual: number; anual: number };
+
+/** Lo que cuesta normalmente. Fue el precio real hasta el 2026-10-16. */
+export const PRECIO_NORMAL: Precios = { mensual: 35, anual: 350 };
+
+/** Lo que cuesta durante las primeras 24 horas de cada visitante. */
+export const PRECIO_OFERTA: Precios = { mensual: 9.99, anual: 80 };
+
+/** El juego de precios que le toca a quien está mirando. */
+export function preciosDe(enOferta: boolean): Precios {
+  return enOferta ? PRECIO_OFERTA : PRECIO_NORMAL;
+}
+
+/**
+ * Lo que cuesta cada mes según cómo se pague.
+ *
+ * ⚠️ EL "AL MES" DEL ANUAL SE CALCULA, nunca se escribe a mano. Si se
+ * escribieran los dos, el día que cambie uno el otro se queda mintiendo — y la
+ * cifra que miente es siempre la del descuento, que es la que decide la compra.
+ */
+export function precioPorMesDe(enOferta: boolean): Record<Frecuencia, number> {
+  const p = preciosDe(enOferta);
+  return { mensual: p.mensual, anual: p.anual / 12 };
+}
 
 /** Lo que se ahorra pagando el año de golpe, en dólares y en porcentaje. */
-export const AHORRO_ANUAL = PRECIO_MENSUAL * 12 - PRECIO_ANUAL;
-export const AHORRO_ANUAL_PCT = Math.round((AHORRO_ANUAL / (PRECIO_MENSUAL * 12)) * 100);
+export function ahorroAnualDe(enOferta: boolean): { dolares: number; pct: number } {
+  const p = preciosDe(enOferta);
+  const dolares = Math.round(p.mensual * 12 - p.anual);
+  return { dolares, pct: Math.round((dolares / (p.mensual * 12)) * 100) };
+}
+
+/** Lo que se ahorra frente al precio NORMAL. Es el número de la oferta. */
+export function descuentoDeLanzamiento(frecuencia: Frecuencia): {
+  antes: number;
+  ahora: number;
+  pct: number;
+} {
+  const antes = PRECIO_NORMAL[frecuencia];
+  const ahora = PRECIO_OFERTA[frecuencia];
+  return { antes, ahora, pct: Math.round(((antes - ahora) / antes) * 100) };
+}
 
 /** Lo que incluye. Es la misma lista para los dos ciclos: cambia el cobro, no el curso. */
 export const INCLUYE = [
@@ -117,28 +157,37 @@ export const GARANTIA = {
   texto: "Si el curso no es para ti, pides tu reembolso dentro de los primeros 7 días.",
 } as const;
 
-/**
- * "US$29,17" — siempre por mes, que es como se compara.
- *
- * Coma decimal: la audiencia es LATAM (MX/CO/PE/CL) y ahí "29.17" se lee como
- * veintinueve mil ciento setenta.
- */
-export function precioPorMes(frecuencia: Frecuencia): string {
-  return `US$${PRECIO_POR_MES[frecuencia].toFixed(2).replace(".", ",")}`;
-}
-
-/** "US$250" — el cobro de verdad, sin decimales si son redondos. */
-export function precioDelCobro(frecuencia: Frecuencia): string {
-  const v = frecuencia === "anual" ? PRECIO_ANUAL : PRECIO_MENSUAL;
+/** "US$9,99" — en dólares, con coma decimal porque la audiencia es LATAM:
+ *  ahí "9.99" se lee como nueve mil noventa y nueve. */
+export function dolares(v: number): string {
   return `US$${Number.isInteger(v) ? v : v.toFixed(2).replace(".", ",")}`;
 }
 
+/** "US$6,67" — siempre por mes, que es como se comparan los dos ciclos. */
+export function precioPorMes(frecuencia: Frecuencia, enOferta: boolean): string {
+  return `US$${precioPorMesDe(enOferta)[frecuencia].toFixed(2).replace(".", ",")}`;
+}
+
+/** "US$80" — el cobro de verdad, sin decimales si son redondos. */
+export function precioDelCobro(frecuencia: Frecuencia, enOferta: boolean): string {
+  return dolares(preciosDe(enOferta)[frecuencia]);
+}
+
 /** La línea bajo el precio: qué se cobra y cuándo. */
-export function notaDelCobro(frecuencia: Frecuencia): string {
+export function notaDelCobro(frecuencia: Frecuencia, enOferta: boolean): string {
+  const ahorro = ahorroAnualDe(enOferta).dolares;
   return frecuencia === "anual"
-    ? `Se cobra ${precioDelCobro("anual")} una vez al año · ahorras US$${AHORRO_ANUAL}`
+    ? `Se cobra ${precioDelCobro("anual", enOferta)} una vez al año · ahorras US$${ahorro}`
     : "Se cobra cada mes · cancelas cuando quieras";
 }
 
-/** El precio más bajo al mes, ya formateado. Es el del plan anual. */
-export const PRECIO_DESDE = precioPorMes("anual");
+/**
+ * "desde US$6,67 al mes" — el gancho corto que usan varias pantallas.
+ *
+ * ⚠️ YA NO ES UNA CONSTANTE. Era `PRECIO_DESDE`, calculada una vez al cargar el
+ * módulo; con dos juegos de precios eso congelaba uno de los dos para todo el
+ * servidor. Ahora es función y cada pantalla pasa lo que le toca a quien mira.
+ */
+export function precioDesde(enOferta: boolean): string {
+  return precioPorMes("anual", enOferta);
+}

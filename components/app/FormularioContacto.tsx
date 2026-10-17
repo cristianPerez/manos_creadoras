@@ -3,6 +3,13 @@
 import { Check, Loader2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { enviarContacto } from "@/app/(publicas)/contacto/acciones";
+/*
+ * ⚠️ AQUÍ SE ENSEÑA EL PRECIO NORMAL, NO EL DE OFERTA (`false`). Este
+ * formulario es de cliente y no ve la cookie que dice si alguien sigue dentro
+ * de sus 24 horas. Enseñar el de oferta por defecto prometería un descuento
+ * que podría estar caducado; el normal, como mucho, se queda corto — y ese es
+ * el error barato de los dos.
+ */
 import { precioPorMes, type Frecuencia } from "@/lib/planes";
 
 const MOTIVOS = [
@@ -110,7 +117,7 @@ export function FormularioContacto() {
               >
                 {c.texto}
                 <span className={ciclo === c.id ? "text-white/60" : "text-ink-muted"}>
-                  {precioPorMes(c.id)}/mes
+                  {precioPorMes(c.id, false)}/mes
                 </span>
               </button>
             ))}

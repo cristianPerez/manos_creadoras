@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { Catalogo } from "@/components/app/Catalogo";
 import { alumnaActual, nombreCorto } from "@/lib/alumna";
 import { continuarDonde, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
+import { precioDesde } from "@/lib/planes";
+import { estadoDeLaOferta } from "@/lib/oferta-servidor";
 
 export const metadata: Metadata = {
   title: "Mis bolsos — Manos Creadoras",
 };
 
 export default async function MisBolsos() {
+  const oferta = await estadoDeLaOferta();
   const [alumna, todos] = await Promise.all([alumnaActual(), listarBolsos()]);
   const bolsos = ordenCatalogo(todos);
   const totalVideos = bolsos.reduce((suma, b) => suma + b.videos, 0);
@@ -51,6 +54,7 @@ export default async function MisBolsos() {
         </header>
 
         <Catalogo
+          desde={precioDesde(oferta.activa)}
           bolsos={bolsos}
           continuar={alumna ? continuarDonde(bolsos) : null}
           tieneAcceso={alumna?.tieneAcceso ?? false}

@@ -15,6 +15,7 @@ import { listarCapsulas } from "@/lib/capsulas";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 import { enlacesDeCobro } from "@/lib/checkout";
+import { estadoDeLaOferta } from "@/lib/oferta-servidor";
 import { RegistrarPais } from "@/components/app/RegistrarPais";
 
 export const metadata: Metadata = {
@@ -52,10 +53,11 @@ const SUBTITULOS: Record<string, string> = {
 const ORDEN_CARRUSEL = Object.keys(SUBTITULOS);
 
 export default async function Home() {
-  const [bolsos, capsulas, cobro] = await Promise.all([
+  const [bolsos, capsulas, cobro, oferta] = await Promise.all([
     listarBolsos(),
     listarCapsulas(),
     enlacesDeCobro(),
+    estadoDeLaOferta(),
   ]);
 
   const porSlug = new Map(bolsos.map((b) => [b.slug, b]));
@@ -112,7 +114,7 @@ export default async function Home() {
       {/* Antes del Header a propósito: el Header es `sticky top-0` y la barra
           NO lo es. Así se ve al llegar y desaparece al bajar, en vez de robarle
           sitio a la navegación durante todo el scroll. */}
-      <BarraDeOferta />
+      <BarraDeOferta terminaEn={oferta.activa ? oferta.terminaEn : null} />
       <Header />
 
       {/*
@@ -176,7 +178,7 @@ export default async function Home() {
             de 2 preguntas. Aquí el plan deja de ser un precio y es la salida. */}
         <LlamadaAPlanes titulo="¿Sin preguntas? Con el plan no se acaban." />
 
-        <PrecioHome enlaces={cobro.url} />
+        <PrecioHome enlaces={cobro.url} enOferta={oferta.activa} />
         </div>
 
         {/* El cierre, solo en escritorio: en móvil el precio ya queda pegado a la

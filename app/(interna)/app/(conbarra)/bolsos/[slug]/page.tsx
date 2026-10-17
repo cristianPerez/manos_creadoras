@@ -7,7 +7,8 @@ import { ListaMateriales, TarjetaDirectorio } from "@/components/app/ListaMateri
 import { PasoAPaso } from "@/components/app/PasoAPaso";
 import { alumnaActual } from "@/lib/alumna";
 import { medidasEnTexto, medidasOrdenadas, obtenerBolso, siguienteVideo } from "@/lib/bolsos";
-import { PRECIO_DESDE } from "@/lib/planes";
+import { precioDesde } from "@/lib/planes";
+import { estadoDeLaOferta } from "@/lib/oferta-servidor";
 
 export async function generateMetadata({
   params,
@@ -20,6 +21,7 @@ export async function generateMetadata({
 }
 
 export default async function Ficha({ params }: { params: Promise<{ slug: string }> }) {
+  const oferta = await estadoDeLaOferta();
   const { slug } = await params;
   const [bolso, alumna] = await Promise.all([obtenerBolso(slug), alumnaActual()]);
 
@@ -117,7 +119,7 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
                 <p className="text-espresso font-semibold">Este bolso viene con el plan</p>
                 <p className="text-ink-body mt-1 text-sm">
                   Puedes ver sus pasos y sus materiales. Para los videos necesitas Creadora o
-                  Maestra, desde {PRECIO_DESDE} al mes.
+                  Maestra, desde {precioDesde(oferta.activa)} al mes.
                 </p>
                 {/*
                   ⚠️ EL DESTINO DEPENDE DE QUIÉN MIRA, y la diferencia importa.
