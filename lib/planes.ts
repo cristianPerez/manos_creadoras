@@ -103,13 +103,34 @@ export function ahorroAnualDe(enOferta: boolean): { dolares: number; pct: number
 
 /** Lo que se ahorra frente al precio NORMAL. Es el número de la oferta. */
 export function descuentoDeLanzamiento(frecuencia: Frecuencia): {
+  /** Lo que se cobra de una vez: US$350 → US$80 en el anual. */
   antes: number;
   ahora: number;
+  /**
+   * Lo mismo repartido AL MES: US$29,17 → US$6,67.
+   *
+   * ⚠️ ES LO QUE ENSEÑA LA BARRA, no el cobro anual. Toda la app habla "al
+   * mes" —el bloque de precio, la ficha del bolso, el "desde US$X"— y la barra
+   * decía US$80 mientras la sección de abajo decía US$6,67. Eran el mismo
+   * precio dicho de dos maneras, y en una barra de oferta eso se lee como que
+   * los números no cuadran. Al mes, además, la cifra asusta menos justo donde
+   * se decide seguir leyendo.
+   */
+  antesPorMes: number;
+  ahoraPorMes: number;
   pct: number;
 } {
   const antes = PRECIO_NORMAL[frecuencia];
   const ahora = PRECIO_OFERTA[frecuencia];
-  return { antes, ahora, pct: Math.round(((antes - ahora) / antes) * 100) };
+  const meses = frecuencia === "anual" ? 12 : 1;
+  return {
+    antes,
+    ahora,
+    antesPorMes: antes / meses,
+    ahoraPorMes: ahora / meses,
+    // El porcentaje es el mismo se mire al mes o al año: es una proporción.
+    pct: Math.round(((antes - ahora) / antes) * 100),
+  };
 }
 
 /** Lo que incluye. Es la misma lista para los dos ciclos: cambia el cobro, no el curso. */

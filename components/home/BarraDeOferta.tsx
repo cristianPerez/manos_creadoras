@@ -86,7 +86,7 @@ export function BarraDeOferta({
   // `restante` es null en el primer fotograma, antes de que corra el efecto.
   if (restante !== null && restante <= 0) return null;
 
-  const { antes, ahora, pct } = descuentoDeLanzamiento(frecuencia);
+  const { antesPorMes, ahoraPorMes, pct } = descuentoDeLanzamiento(frecuencia);
 
   const cerrar = () => {
     const caduca = new Date(Date.now() + 7 * 864e5).toUTCString();
@@ -119,9 +119,12 @@ export function BarraDeOferta({
         </div>
 
         <a href="#precio" className="text-xs [touch-action:manipulation] md:text-sm">
-          <span className="text-white/60 line-through">{dolares(antes)}</span>{" "}
-          <strong className="text-gold-light font-semibold">{dolares(ahora)}</strong>
-          <span className="text-white/70"> · −{pct}%</span>
+          {/* "al mes" explícito: sin eso, "US$6,67" junto a un plan anual se
+              lee como el precio del año entero, que sería demasiado bueno para
+              ser verdad y hace dudar en vez de atraer. */}
+          <span className="text-white/60 line-through">{dolares(antesPorMes)}</span>{" "}
+          <strong className="text-gold-light font-semibold">{dolares(ahoraPorMes)}</strong>
+          <span className="text-white/70">/mes · −{pct}%</span>
           {restante !== null && (
             <span className="text-white/70">
               {" · termina en "}
