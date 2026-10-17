@@ -57,9 +57,33 @@ export function Header() {
             Entrar
           </Link>
 
+          {/*
+            ⚠️ "PLANES" EN MÓVIL, AÑADIDO EL 2026-10-17 POR UN HUECO MEDIDO.
+            A 375px la página mide 5.115px y el primer acceso a los planes
+            estaba a 2.449px — media página de scroll. Arriba no había NINGUNO:
+            el menú de escritorio que lo lleva es `hidden md:flex`, así que en
+            móvil el único era el iconito de la barra de abajo.
+
+            Va como texto y no como botón a propósito: el botón oscuro sigue
+            siendo "Entrar", y el CTA principal de la página sigue siendo el
+            bolso gratis. Esto solo resuelve "¿cuánto cuesta?" sin tener que
+            bajar media página — no adelanta el precio por delante del valor.
+          */}
+          {/* `#precio` sin la barra, igual que los enlaces del menú de
+              escritorio: esta cabecera solo vive en el home, así que es un
+              ancla dentro de la misma página, no una navegación. Con `/#precio`
+              el linter de Next lo trata como ruta y pide `<Link>`, que para un
+              ancla estorba —intercepta el clic y rompe el scroll suave—. */}
+          <a
+            href="#precio"
+            className="text-ink-body hover:text-espresso flex h-11 items-center px-2 text-sm font-semibold transition-colors md:hidden"
+          >
+            Planes
+          </a>
+
           <Link
             href="/entrar"
-            className="bg-espresso flex h-11 items-center rounded-full px-6 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:hidden"
+            className="bg-espresso flex h-11 items-center rounded-full px-5 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:hidden"
           >
             Entrar
           </Link>
