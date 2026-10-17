@@ -380,6 +380,19 @@ body {
   to   { opacity: 1; }
 }
 
+/*
+ * La rayita de las historias, llenándose de izquierda a derecha.
+ *
+ * ⚠️ VA EN CSS Y NO EN REACT A PROPÓSITO: animar esto con estado obligaría a
+ * repintar —y a remontar el iframe del video— decenas de veces por minuto. Con
+ * `scaleX` el navegador la anima en el compositor, sin tocar el hilo principal.
+ * Ver `components/home/historias/BarraDeAvance.tsx`.
+ */
+@keyframes avanceHistoria {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
 @keyframes celebrate {
   0% {
     transform: scale(0.8);

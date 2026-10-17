@@ -195,6 +195,37 @@ pena revisar qué otras credenciales de El Charcu viven en este repo.
 el dominio es `.co`. Corregido a `.co` — falta que Cristian confirme que ese
 buzón existe y recibe.
 
+### 📱 Visor de cápsulas estilo Instagram (2026-10-17)
+Componentes NUEVOS en `components/home/historias/`, sin tocar el anterior:
+`VisorDeHistorias` · `BarraDeAvance` · `VideoDeHistoria`. El viejo
+`StoryViewer.tsx` sigue en el repo sin que nadie lo importe — volver es cambiar
+una línea en `Capsulas.tsx`.
+
+Gestos: tocar a la derecha avanza, a la izquierda retrocede; deslizar a la
+izquierda retrocede (lo pidió Cristian así) y a la derecha avanza; mantener
+pulsado pausa; deslizar hacia abajo cierra. **Retroceder desde la primera
+cierra el visor.** Probado todo con eventos reales en el navegador.
+
+La rayita se llena con una animación CSS (`@keyframes avanceHistoria`), no
+repintando React: con estado remontaría el iframe decenas de veces por minuto.
+La duración sale del propio video (Bunny la dice por `player.js`); si no
+contesta, 15s por defecto.
+
+⚠️ **BUNNY NO DEJA OCULTAR LOS CONTROLES DESDE LA URL.** Se probó
+`controls=false` y `controls=` y los ignora; su documentación lo confirma —
+solo se apagan en el panel, POR BIBLIOTECA, y esta misma sirve las lecciones
+del curso, donde la alumna SÍ necesita pausar. Solución: una franja opaca de
+72px tapa la barra. El botón central de Plyr solo aparece con el puntero
+encima, así que en móvil no se ve (verificado quitando el ratón).
+🔜 Lo limpio sería una biblioteca aparte para cápsulas, con el reproductor sin
+controles. A valorar cuando lleguen los videos definitivos.
+
+### 🎬 Las 5 cápsulas comparten video provisional
+Migración **0029**: las cinco apuntan a `cecd18a8-15a0-4a60-aa88-2162b543050d`
+y su subtítulo es "Tipo de hilo", por pedido de Cristian mientras llegan los
+definitivos. Los títulos NO se tocaron (son los de los círculos del home).
+Cuando lleguen: un `UPDATE` por cápsula y listo.
+
 ### ✅ CIRCUITO DE PAGO COMPLETO EN LA EMPRESA MANOS CREADORAS (2026-10-17)
 Cristian renombró a **"El charcu"** la empresa de OnePay donde vivía todo (NIT
 GOINGTUBE S.A.S.) para dedicarla a otro negocio. Se destapó porque el checkout

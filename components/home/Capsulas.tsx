@@ -4,7 +4,7 @@ import { Play } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Entrada } from "@/components/home/Entrada";
-import { StoryViewer } from "@/components/home/StoryViewer";
+import { VisorDeHistorias } from "@/components/home/historias/VisorDeHistorias";
 import type { Capsula } from "@/lib/capsulas";
 
 /** Dónde se recuerda qué cápsulas vio quien no tiene cuenta. */
@@ -23,7 +23,18 @@ const LLAVE = "mc_capsulas_vistas";
  * cinco a la vez. En móvil son historias circulares: el gesto ya lo conoce
  * cualquiera que use Instagram, y no hay que explicarlo.
  */
-export function Capsulas({ capsulas }: { capsulas: Capsula[] }) {
+export function Capsulas({
+  capsulas,
+  urlsDeVideo,
+}: {
+  capsulas: Capsula[];
+  /*
+   * ⚠️ LAS URLS LLEGAN YA FIRMADAS DESDE EL SERVIDOR. `BUNNY_TOKEN_KEY` no
+   * puede bajar al navegador: con ella cualquiera generaría enlaces válidos
+   * para todos los videos, incluidos los de pago.
+   */
+  urlsDeVideo: Record<string, string | null>;
+}) {
   const [vistas, setVistas] = useState<string[]>([]);
   const [abierta, setAbierta] = useState<number | null>(null);
 
@@ -216,13 +227,13 @@ export function Capsulas({ capsulas }: { capsulas: Capsula[] }) {
       </section>
 
       {abierta !== null && (
-        <StoryViewer
+        <VisorDeHistorias
           capsulas={capsulas}
           indice={abierta}
-          vistas={vistas}
           irA={setAbierta}
           marcarVista={marcarVista}
           cerrar={() => setAbierta(null)}
+          urlsDeVideo={urlsDeVideo}
         />
       )}
     </div>

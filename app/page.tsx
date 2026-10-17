@@ -83,6 +83,15 @@ export default async function Home() {
    */
   const videoFirmado = (id: string) => urlDelReproductor({ proveedor: "bunny", id });
 
+  /*
+   * Las cápsulas, firmadas por id. Se hace aquí por el mismo motivo que los
+   * pasos del bolso gratis: la clave de Bunny vive en el servidor y lo único
+   * que viaja al navegador es el enlace ya firmado, que además caduca.
+   */
+  const urlsDeCapsulas = Object.fromEntries(
+    capsulas.map((c) => [c.id, c.videoId ? videoFirmado(c.videoId) : null]),
+  );
+
   const pasos: PasoGratis[] = gratis
     ? [
         {
@@ -143,7 +152,7 @@ export default async function Home() {
           escritorio se dibuja después del banner igualmente.
         */}
         <div className="order-1 md:order-2">
-          <Capsulas capsulas={capsulas} />
+          <Capsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas} />
         </div>
         <div className="order-2 md:order-1">
           <HeroSlider fotos={fotos} totalBolsos={bolsos.length} />
