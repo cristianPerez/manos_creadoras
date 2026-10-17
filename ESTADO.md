@@ -220,11 +220,26 @@ encima, así que en móvil no se ve (verificado quitando el ratón).
 🔜 Lo limpio sería una biblioteca aparte para cápsulas, con el reproductor sin
 controles. A valorar cuando lleguen los videos definitivos.
 
-### 🎬 Las 5 cápsulas comparten video provisional
-Migración **0029**: las cinco apuntan a `cecd18a8-15a0-4a60-aa88-2162b543050d`
-y su subtítulo es "Tipo de hilo", por pedido de Cristian mientras llegan los
-definitivos. Los títulos NO se tocaron (son los de los círculos del home).
-Cuando lleguen: un `UPDATE` por cápsula y listo.
+### 🎬 Las cápsulas, con sus videos reales (migración 0030)
+| # | Círculo | Técnica |
+|---|---|---|
+| 1 | Grosor | Tipo de grosor |
+| 2 | Columna | Cómo iniciar una nueva columna |
+| 3 | Unir hilo | Cómo unir un hilo nuevo cuando se acaba |
+| 4 | Firmeza | Técnica para tener firmeza en los bolsos |
+| 5 | Grosor | ⚠️ **repetida** — falta el quinto video |
+
+⚠️ **La 5ª repite el video de la 1ª** por pedido de Cristian, para completar las
+cinco. Parece un error de datos (dos círculos "Grosor") y no lo es: es un hueco.
+Cuando llegue el quinto video → `UPDATE capsulas ... where orden = 5`.
+
+⚠️ Se corrigió "Tipo de **gruesor**" → "Tipo de **grosor**": la primera no es
+palabra del español y es de los primeros textos que ve una clienta.
+
+🔴 **LOS VIDEOS LLEVAN MARCA DE AGUA DE CAPCUT** (el logo arriba a la
+izquierda; en uno pone "CapCut AI"). Se ve en una página que cobra US$80 y
+delata con qué se editó. Hay que reexportarlos sin ella — en CapCut se quita
+con la opción de quitar marca de agua antes de exportar.
 
 ### ✅ CIRCUITO DE PAGO COMPLETO EN LA EMPRESA MANOS CREADORAS (2026-10-17)
 Cristian renombró a **"El charcu"** la empresa de OnePay donde vivía todo (NIT

@@ -245,9 +245,23 @@ export function VisorDeHistorias({
         aria-label={`Cápsula ${indice + 1} de ${capsulas.length}: ${capsula.titulo}`}
         className="bg-espresso relative flex w-full flex-col overflow-hidden outline-none select-none max-md:h-dvh md:h-[88vh] md:max-h-(--visor-alto) md:w-(--visor-ancho) md:rounded-(--radius-foto)"
       >
-        {/* ── El fondo: el video, o la portada mientras no haya ────────── */}
-        <div className="absolute inset-0">
-          {capsula.portadaUrl && (
+        {/* ── El fondo ─────────────────────────────────────────────────── */}
+        <div className="bg-espresso absolute inset-0">
+          {/*
+            ⚠️ LA PORTADA SOLO SE PINTA SI NO HAY VIDEO. Antes iba siempre
+            debajo, y se veía mal de dos formas a la vez:
+              · Al abrir la cápsula aparecía la foto del bolso y un segundo
+                después saltaba al video — dos imágenes distintas seguidas, con
+                un corte muy visible justo al entrar.
+              · Como el video no llena todo el alto, por los bordes asomaba la
+                foto y quedaba marcada una línea donde acababa uno y empezaba
+                la otra.
+
+            Ahora el fondo es espresso liso: lo que sobra del encuadre se funde
+            con el visor en vez de enseñar otra imagen. La portada sigue
+            estando en los círculos del home, que es donde hace falta.
+          */}
+          {!urlVideo && capsula.portadaUrl && (
             <Image src={capsula.portadaUrl} alt="" fill sizes="380px" priority className="object-cover" />
           )}
 
