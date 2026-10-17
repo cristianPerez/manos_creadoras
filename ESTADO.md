@@ -84,6 +84,23 @@ días de prueba o se refleja en el copy.
   como reenvío porque puede estar pegado en correos viejos.
   Quien ya paga no ve planes: ve su estado y qué incluye.
 
+### 🔎 Instrumentación de los webhooks (2026-10-17) — manual en `docs/WEBHOOKS.md`
+- `npm run webhook:probar` — dispara un evento FIRMADO como lo haría OnePay,
+  con las claves de `.env.local`. No salta la seguridad: sin las claves buenas
+  recibe el mismo 401 que cualquiera. Tipos: pagada · cancelada · impagada ·
+  vencida · basura, más `--repetir` (comprobar que no duplica) y `--url` (QA).
+- `npm run webhook:ver [--malos] [--traza X]` — qué ha pasado, sin SQL.
+- **Migración 0025**: `traza` (código de 8 letras que une la fila con TODAS sus
+  líneas de log) y `duracion_ms`. ⚠️ OnePay corta a los 10s y si se repite
+  **desactiva el endpoint**; ahora se mide y el log marca `lento` a los 8s.
+
+**Decidido: ni Datadog ni Mixpanel ni Edge Function.** El razonamiento completo
+está en `docs/WEBHOOKS.md`. En corto: `webhook_eventos` ya guarda el cuerpo
+entero para siempre (más que Datadog, sin coste); Mixpanel responde otra
+pregunta (negocio, no fallos); y mover el webhook a Supabase obligaría a
+duplicar `lib/webhooks`, `lib/correo` y `lib/planes` en Deno y a mirar los logs
+en dos sitios, sin resolver ningún problema actual.
+
 ### ⚠️ "Mi plan" NO está declarada lista (revisor: 27/40 · 14/20 · 12/20)
 El `revisor-visual` la puntuó dos veces. Tras corregir, sigue sin pasar los tres
 gates. Lo hecho: fuera la jerga "OnePay", garantía UNA vez, correo fuera de la

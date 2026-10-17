@@ -16,7 +16,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "seed:capsulas": "node scripts/seed-capsulas.mjs",
-    "correo:copiar": "bash scripts/copiar-correo.sh"
+    "correo:copiar": "bash scripts/copiar-correo.sh",
+    "webhook:probar": "node scripts/webhook-probar.mjs",
+    "webhook:ver": "node scripts/webhook-ver.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",

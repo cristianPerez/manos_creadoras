@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { enviarCorreo } from "@/lib/correo";
 import { correoDeBienvenida } from "@/lib/correos/bienvenida";
 import { reportarAviso } from "@/lib/fallos";
+import { abrirRastro, type Rastro } from "@/lib/webhooks/rastro";
 import { proveedorPorNombre } from "@/lib/webhooks/registro";
 import type { EventoNormalizado } from "@/lib/webhooks/tipos";
 
@@ -37,9 +38,11 @@ export async function POST(
   { params }: { params: Promise<{ proveedor: string }> },
 ) {
   const { proveedor: nombre } = await params;
+  const rastro = abrirRastro(nombre);
   const proveedor = proveedorPorNombre(nombre);
 
   if (!proveedor) {
+    rastro.cerrar("proveedor desconocido");
     // Esta sí es 404: nadie legítimo llama a una pasarela que no existe.
     return NextResponse.json({ error: "proveedor desconocido" }, { status: 404 });
   }
@@ -51,18 +54,31 @@ export async function POST(
    * leyendo el código.
    */
   const cuerpoCrudo = await req.text();
+  rastro.paso("recibido", { bytes: cuerpoCrudo.length });
 
   const verificacion = proveedor.verificar(req.headers, cuerpoCrudo);
   if (!verificacion.valido) {
-    reportarAviso("webhook", `firma rechazada (${nombre})`, { motivo: verificacion.motivo });
+    /*
+     * La traza va TAMBIÉN en el aviso: una firma rechazada es lo primero que se
+     * investiga cuando alguien dice "pagué y no me llegó", y sin ella no hay
+     * forma de atar este rechazo con la petición que lo provocó.
+     */
+    reportarAviso("webhook", `firma rechazada (${nombre})`, {
+      traza: rastro.traza,
+      motivo: verificacion.motivo,
+    });
+    rastro.cerrar("rechazado", { motivo: verificacion.motivo });
     return NextResponse.json({ error: "no autorizado" }, { status: 401 });
   }
+
+  rastro.paso("firma correcta");
 
   let cuerpo: unknown;
   try {
     cuerpo = JSON.parse(cuerpoCrudo);
   } catch {
-    await anotar(nombre, "error", "cuerpo que no es JSON", cuerpoCrudo);
+    await anotar(nombre, "error", "cuerpo que no es JSON", cuerpoCrudo, undefined, rastro.traza);
+    rastro.cerrar("cuerpo no es JSON");
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
@@ -73,10 +89,20 @@ export async function POST(
      * un cambio en su API o un formato que no previmos: hay que mirarlo, no
      * descartarlo.
      */
-    await anotar(nombre, "error", "cuerpo con forma desconocida", cuerpoCrudo, cuerpo);
-    reportarAviso("webhook", `cuerpo no reconocido de ${nombre}`, {});
+    await anotar(nombre, "error", "cuerpo con forma desconocida", cuerpoCrudo, cuerpo, rastro.traza);
+    reportarAviso("webhook", `cuerpo no reconocido de ${nombre}`, { traza: rastro.traza });
+    rastro.cerrar("forma desconocida");
     return NextResponse.json({ ok: true }, { status: 200 });
   }
+
+  rastro.paso("entendido", {
+    evento: evento.evento,
+    tipo: evento.tipo,
+    recurso: evento.recursoId,
+    // Si trae correo o no es LA pregunta clave: sin él, un pago de alguien
+    // desconocido se queda huérfano. Se apunta si viene, no cuál.
+    con_correo: Boolean(evento.correo),
+  });
 
   const db = supabaseAdmin();
   const huella = createHash("sha256")
@@ -101,6 +127,7 @@ export async function POST(
       huella,
       cuerpo,
       estado: "recibido",
+      traza: rastro.traza,
     })
     .select("id")
     .single();
@@ -108,9 +135,14 @@ export async function POST(
   if (errorInsert) {
     // 23505 = clave única repetida: ya lo teníamos. Es el camino normal.
     if (errorInsert.code === "23505") {
+      rastro.cerrar("repetido");
       return NextResponse.json({ ok: true, repetido: true }, { status: 200 });
     }
-    reportarAviso("webhook", "no se pudo guardar el evento", { error: errorInsert.message });
+    reportarAviso("webhook", "no se pudo guardar el evento", {
+      traza: rastro.traza,
+      error: errorInsert.message,
+    });
+    rastro.cerrar("no se pudo guardar", { error: errorInsert.message });
     // 500 a propósito: aquí SÍ queremos el reintento, porque el fallo es nuestro
     // y puede ser pasajero.
     return NextResponse.json({ error: "no se pudo guardar" }, { status: 500 });
@@ -122,7 +154,15 @@ export async function POST(
    * configurar un dominio a mano — que es justo la clase de variable que se
    * olvida en un entorno y manda a las alumnas de QA a producción.
    */
-  await aplicar(db, fila.id, nombre, evento, new URL(req.url).origin);
+  await aplicar(db, fila.id, nombre, evento, new URL(req.url).origin, rastro);
+
+  /*
+   * ⚠️ LA DURACIÓN SE GUARDA EN LA FILA, no solo en el log. El log de Vercel
+   * caduca; la fila no. Y es lo que permite responder "¿esto siempre tardó
+   * tanto o empezó esta semana?" sin tener los logs delante.
+   */
+  const ms = rastro.cerrar("procesado");
+  await db.from("webhook_eventos").update({ duracion_ms: ms }).eq("id", fila.id);
 
   return NextResponse.json({ ok: true }, { status: 200 });
 }
@@ -134,6 +174,7 @@ async function anotar(
   nota: string,
   crudo: string,
   cuerpo?: unknown,
+  traza?: string,
 ) {
   const db = supabaseAdmin();
   await db.from("webhook_eventos").insert({
@@ -145,6 +186,7 @@ async function anotar(
     cuerpo: cuerpo ?? { crudo: crudo.slice(0, 4000) },
     estado,
     nota,
+    traza,
   });
 }
 
@@ -169,6 +211,7 @@ async function darLaBienvenida(
   db: ReturnType<typeof supabaseAdmin>,
   userId: string,
   origen: string,
+  rastro: Rastro,
 ) {
   const { data: reservada } = await db
     .from("membresias")
@@ -178,7 +221,10 @@ async function darLaBienvenida(
     .select("user_id");
 
   // Ya se la mandamos antes: esto es una renovación, no una entrada.
-  if (!reservada || reservada.length === 0) return;
+  if (!reservada || reservada.length === 0) {
+    rastro.paso("sin bienvenida (ya se mandó)");
+    return;
+  }
 
   const devolverLaMarca = () =>
     db.from("membresias").update({ bienvenida_enviada_el: null }).eq("user_id", userId);
@@ -197,7 +243,10 @@ async function darLaBienvenida(
 
   if (!perfil?.email) {
     await devolverLaMarca();
-    reportarAviso("correo", "activada sin correo al que escribir", { userId });
+    reportarAviso("correo", "activada sin correo al que escribir", {
+      traza: rastro.traza,
+      userId,
+    });
     return;
   }
 
@@ -208,10 +257,15 @@ async function darLaBienvenida(
   if (!resultado.enviado) {
     await devolverLaMarca();
     reportarAviso("correo", "la bienvenida no salió", {
+      traza: rastro.traza,
       userId,
       motivo: resultado.motivo,
     });
+    rastro.paso("bienvenida NO salió", { motivo: resultado.motivo });
+    return;
   }
+
+  rastro.paso("bienvenida enviada");
 }
 
 /**
@@ -230,6 +284,7 @@ async function aplicar(
   evento: EventoNormalizado,
   /** El origen de la app, para componer el enlace del correo de bienvenida. */
   origen: string,
+  rastro: Rastro,
 ) {
   const cerrar = (estado: string, nota?: string) =>
     db
@@ -268,6 +323,10 @@ async function aplicar(
 
   if (porSuscripcion) {
     userId = porSuscripcion.user_id;
+    // Qué camino identificó a la alumna importa: si casi todo entra "por
+    // correo" significa que no estamos guardando bien la suscripción y
+    // dependemos de que escriba siempre el mismo correo en el checkout.
+    rastro.paso("identificada", { por: "suscripcion" });
   } else if (evento.correo) {
     const { data: perfil } = await db
       .from("profiles")
@@ -275,9 +334,11 @@ async function aplicar(
       .eq("email", evento.correo)
       .maybeSingle();
     userId = perfil?.id ?? null;
+    rastro.paso(userId ? "identificada" : "correo sin cuenta", { por: "correo" });
   }
 
   if (!userId) {
+    rastro.paso("huerfano", { motivo: evento.correo ? "correo desconocido" : "sin correo" });
     await cerrar(
       "huerfano",
       evento.correo
@@ -285,6 +346,7 @@ async function aplicar(
         : `la pasarela no mandó correo (suscripción ${evento.recursoId})`,
     );
     reportarAviso("webhook", "pago sin dueño conocido", {
+      traza: rastro.traza,
       proveedor,
       suscripcion: evento.recursoId,
       correo: evento.correo ?? "(no vino)",
@@ -313,8 +375,9 @@ async function aplicar(
       },
       { onConflict: "user_id" },
     );
+    rastro.paso("membresia activada", { vence_el: evento.venceEl ?? "sin cambio" });
     await cerrar("procesado");
-    await darLaBienvenida(db, userId, origen);
+    await darLaBienvenida(db, userId, origen, rastro);
     return;
   }
 
@@ -325,6 +388,9 @@ async function aplicar(
      * `plan_efectivo()` baja sola a 'gratis' cuando la fecha pase.
      */
     await db.from("membresias").update({ estado: "cancelada" }).eq("user_id", userId);
+    // Conserva el acceso hasta `vence_el`: se apunta para que nadie lo lea
+    // como "le cortamos hoy".
+    rastro.paso("cancelada (conserva acceso hasta vencer)");
     await cerrar("procesado");
     return;
   }
@@ -340,8 +406,10 @@ async function aplicar(
      * y el silencio la pierde.
      */
     await db.from("membresias").update({ estado: "vencida" }).eq("user_id", userId);
+    rastro.paso("cobro fallido o vencida");
     await cerrar("procesado", "cobro fallido o suscripción vencida");
     reportarAviso("webhook", "a una alumna le falló el cobro", {
+      traza: rastro.traza,
       proveedor,
       suscripcion: evento.recursoId,
       correo: evento.correo ?? "(no vino)",
