@@ -15,27 +15,19 @@ export const ANUNCIO = {
 
 /* ── Héroe ──────────────────────────────────────────────────────────── */
 
-/**
- * Las tres cifras bajo el héroe.
+/*
+ * ⚠️ AQUÍ VIVÍA `CIFRAS_HERO` Y SE BORRÓ EL 2026-10-17. Estaba MUERTA: ningún
+ * componente la importaba —el héroe pinta sus cifras en su propio JSX— y
+ * llevaba dos datos falsos esperando a que alguien la usara:
  *
- * ⚠️ `+1.200 creadoras` y `4,9/5` vienen del diseño y son los números que ya
- * usaba la landing anterior. Si alguna vez dejan de ser ciertos hay que
- * cambiarlos aquí: prometer una comunidad que no existe es la clase de detalle
- * que una alumna verifica y que destruye la confianza de golpe.
+ *   · "4,9 / 5 valoración", que Cristian retiró por no tener reseñas detrás.
+ *   · "US$ 9,74 al mes, plan anual", de cuando el plan costaba otra cosa. Hoy
+ *     el anual sale a US$20,83.
+ *
+ * Código muerto con números desfasados es una trampa: el día que alguien lo
+ * importe creyendo que es la fuente buena, la landing promete un precio que no
+ * existe. El precio se saca SIEMPRE de `lib/planes.ts`, que lo calcula.
  */
-export const CIFRAS_HERO = [
-  /*
-   * `animar` es el número que cuenta de 0 hasta su valor al entrar.
-   *
-   * ⚠️ SOLO LO LLEVA LA PRIMERA. Una valoración de 4,9 y un precio no son
-   * cantidades que crezcan: ver "US$ 9,74" subiendo desde cero se lee como que
-   * el precio está aumentando mientras miras, que es justo la sensación
-   * contraria a la que queremos en la primera pantalla.
-   */
-  { valor: "+1.200", pie: "creadoras dentro", animar: 1200, prefijo: "+" },
-  { valor: "4,9 / 5", pie: "valoración de alumnas" },
-  { valor: "US$ 9,74", pie: "al mes, plan anual" },
-] as const;
 
 /* ── Cómo funciona ──────────────────────────────────────────────────── */
 
@@ -83,7 +75,9 @@ export const MENTORA = {
   cifras: [
     { valor: "+5", pie: "años de oficio" },
     { valor: "+1.200", pie: "alumnas" },
-    { valor: "4,9", pie: "valoración" },
+    // La valoración salió el 2026-10-17 (sin reseñas que la respalden). Se
+    // quita también aquí aunque este bloque todavía no se pinte: si mañana
+    // alguien lo usa, no debe resucitar una cifra retirada.
   ],
 } as const;
 

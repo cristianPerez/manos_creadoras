@@ -178,20 +178,27 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
           </div>
 
           <p className="text-ink-muted mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm md:mt-6">
+            {/*
+              ⚠️ LA VALORACIÓN "4,9/5" SE QUITÓ EL 2026-10-17 POR DECISIÓN DE
+              CRISTIAN: no hay un sistema de reseñas detrás que la sostenga, así
+              que era una cifra sin respaldo. Las +1.200 alumnas SÍ son reales y
+              se quedan.
+
+              Una prueba social que no se puede demostrar es peor que ninguna:
+              basta que alguien pregunte "¿dónde están esas reseñas?" para
+              perder la confianza en todo lo demás de la página.
+            */}
             <span className="flex items-center gap-1.5">
               <Star size={14} className="text-gold" fill="currentColor" aria-hidden="true" />
               <strong className="text-espresso font-semibold">
-                <NumeroQueCuenta hasta={4.9} formato={(n) => n.toFixed(1).replace(".", ",")} />/5
-              </strong>
-              <span>
-                · +
+                +
                 <NumeroQueCuenta
                   hasta={1200}
                   formato={(n) => Math.round(n).toLocaleString("es-CO")}
                   duracion={1.3}
-                />{" "}
-                alumnas en Latinoamérica
-              </span>
+                />
+              </strong>
+              <span>alumnas en Latinoamérica</span>
             </span>
             <span>Sin tarjeta para empezar</span>
           </p>

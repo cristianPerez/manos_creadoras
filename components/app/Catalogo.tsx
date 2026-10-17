@@ -138,7 +138,9 @@ function Invitacion({ bolsos }: { bolsos: Bolso[] }) {
             Garantía de 7 días
           </span>
           <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
-            +1.200 alumnas · 4,9/5
+            {/* La valoración salió el 2026-10-17: no hay reseñas que la
+                respalden. Las alumnas sí son un dato real. */}
+            +1.200 alumnas
           </span>
         </div>
       </div>

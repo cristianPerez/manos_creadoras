@@ -72,8 +72,20 @@ export default async function MiPlan({
                 <h1 className="titulo-seccion mt-2 text-balance">
                   Desbloquea los {totalBolsos} bolsos
                 </h1>
-                <p className="text-ink-body mt-3">
-                  Tienes el bolso gratis y 2 preguntas al Ojo Experto. El plan abre todo lo demás.
+                {/*
+                  ⚠️ ANCLADO AL DOLOR Nº4 DE LA FICHA DE AVATAR: "ya gasté plata
+                  en cuentas y herrajes que terminé tirando porque el bolso no
+                  quedó bien".
+
+                  El revisor marcó que el texto anterior —"tienes el bolso
+                  gratis y 2 preguntas"— describía el inventario del plan, no lo
+                  que le duele a ella. Y comparar los US$25 con el material
+                  desperdiciado es lo que convierte el precio en una cuenta a
+                  favor: ya se gastó eso, y sin que le quedara el bolso.
+                */}
+                <p className="text-ink-body mt-3 text-balance">
+                  Un bolso que no queda bien cuesta más que esto en cuentas y herrajes. Aquí tienes
+                  el paso a paso de los {totalBolsos}, y el Ojo Experto revisando el tuyo.
                 </p>
               </header>
             </Entrada>

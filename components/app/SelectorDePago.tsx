@@ -200,6 +200,24 @@ export function SelectorDePago({
           <p className="mt-3 text-center text-xs text-white/70">
             {url ? NOTA_PAGO : "Te escribimos al correo con el enlace de pago y tu acceso."}
           </p>
+
+          {/*
+            ⚠️ LA ÚNICA PRUEBA SOCIAL QUE PODEMOS DEMOSTRAR, y va justo debajo
+            del botón: es donde aparece la duda de "¿y si no sirvo para esto?",
+            que es la objeción nº1 de la ficha de avatar.
+
+            Dice "sin experiencia previa" a propósito — el número solo, suelto,
+            impresiona pero no responde a esa duda concreta.
+
+            ⚠️ NO LLEVA VALORACIÓN. Había un "4,9/5" por la app y Cristian lo
+            retiró el 2026-10-17: no hay un sistema de reseñas que lo sostenga.
+            Una cifra que no se puede demostrar, si alguien la cuestiona, se
+            lleva por delante la credibilidad del resto de la página.
+          */}
+          <p className="mt-4 border-t border-white/10 pt-4 text-center text-sm text-white/75">
+            <strong className="font-semibold text-white">+1.200 alumnas</strong> en Latinoamérica
+            empezaron sin experiencia previa.
+          </p>
         </div>
 
         <div className="border-t border-white/12 pt-7 md:border-t-0 md:border-l md:pt-0 md:pl-10">
