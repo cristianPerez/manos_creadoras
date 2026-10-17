@@ -3,6 +3,7 @@
 import { X } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { descuentoDeLanzamiento, dolares, type Frecuencia } from "@/lib/planes";
+import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida";
 
 /**
  * La barra de oferta de lanzamiento, arriba del todo.
@@ -54,7 +55,8 @@ export function BarraDeOferta({
 }: {
   terminaEn: number | null;
 }) {
-  const [frecuencia, setFrecuencia] = useState<Frecuencia>("anual");
+  // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
+  const frecuencia = useFrecuenciaElegida();
   const [restante, setRestante] = useState<number | null>(null);
 
   /*
@@ -108,7 +110,7 @@ export function BarraDeOferta({
               key={f}
               type="button"
               aria-pressed={frecuencia === f}
-              onClick={() => setFrecuencia(f)}
+              onClick={() => elegirFrecuencia(f)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors [touch-action:manipulation] ${
                 frecuencia === f ? "bg-white/90 text-espresso" : "text-white/70"
               }`}

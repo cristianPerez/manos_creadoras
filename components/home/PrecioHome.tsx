@@ -3,9 +3,9 @@
 import { Check, ShieldCheck } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useState } from "react";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
 import { Entrada } from "@/components/home/Entrada";
+import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida";
 import {
   ahorroAnualDe,
   precioPorMesDe,
@@ -39,7 +39,8 @@ export function PrecioHome({
    */
   enOferta: boolean;
 }) {
-  const [frecuencia, setFrecuencia] = useState<Frecuencia>("anual");
+  // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
+  const frecuencia = useFrecuenciaElegida();
   const quieto = useReducedMotion();
 
   return (
@@ -65,7 +66,7 @@ export function PrecioHome({
                   key={f}
                   type="button"
                   aria-pressed={activo}
-                  onClick={() => setFrecuencia(f)}
+                  onClick={() => elegirFrecuencia(f)}
                   className={`relative flex h-11 items-center gap-2.5 rounded-full px-6 font-semibold [touch-action:manipulation] ${
                     activo ? "text-white" : "text-ink-body"
                   }`}
