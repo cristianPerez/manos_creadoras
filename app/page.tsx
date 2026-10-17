@@ -3,6 +3,7 @@ import { Medir } from "@/components/app/Medir";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { FooterLegal } from "@/components/app/sections/FooterLegal";
 import { Header } from "@/components/app/sections/Header";
+import { BarraDeOferta } from "@/components/home/BarraDeOferta";
 import { BarraInferiorHome } from "@/components/home/BarraInferiorHome";
 import { Capsulas } from "@/components/home/Capsulas";
 import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
@@ -32,6 +33,10 @@ export const metadata: Metadata = {
  * migración.
  */
 const SUBTITULOS: Record<string, string> = {
+  /* ⚠️ PRIMERO EN EL CARRUSEL por pedido de Cristian (2026-10-17): es el que
+     abre la galería en la referencia de sparkle-bag-studio. El orden de este
+     objeto ES el orden del banner — ver `ORDEN_CARRUSEL` abajo. */
+  "anillos-de-seda": "Asa de perlas y anillos",
   "gota-de-rocio": "Bandolera de perlas",
   "cristal-brillante": "Cristal facetado",
   "marfil-elegante": "Perla marfil",
@@ -104,6 +109,10 @@ export default async function Home() {
     <>
       <Medir evento={EVENTOS.paginaVentasVista} />
       <RegistrarPais />
+      {/* Antes del Header a propósito: el Header es `sticky top-0` y la barra
+          NO lo es. Así se ve al llegar y desaparece al bajar, en vez de robarle
+          sitio a la navegación durante todo el scroll. */}
+      <BarraDeOferta />
       <Header />
 
       {/*
