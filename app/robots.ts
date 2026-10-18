@@ -25,7 +25,18 @@ export default function robots(): MetadataRoute.Robots {
   const esProduccion = process.env.VERCEL_ENV === "production";
 
   if (!esProduccion) {
-    return { rules: [{ userAgent: "*", disallow: "/" }] };
+    /*
+     * ⚠️ TEMPORAL (2026-10-18): fuera de producción SE DEJA RASTREAR, y es a
+     * propósito. QA estuvo abierta con `Disallow: /` y sin `noindex`, así que
+     * Google pudo indexar URLs sin poder volver a entrar a ver que no debía.
+     * Para sacarlas del índice tiene que RASTREARLAS y leer el
+     * `X-Robots-Tag: noindex` que ahora manda `next.config.ts`. Con `Disallow`
+     * nunca lo vería.
+     *
+     * Cuando Search Console ya no muestre nada de qa.manoscreadoras.co,
+     * volver a: `return { rules: [{ userAgent: "*", disallow: "/" }] };`
+     */
+    return { rules: [{ userAgent: "*", allow: "/" }] };
   }
 
   return {

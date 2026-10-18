@@ -1,6 +1,35 @@
 import type { NextConfig } from "next";
 
+/**
+ * ¿Es el sitio de verdad? Solo producción se deja indexar (2026-10-18). Va al
+ * revés de lo intuitivo a propósito: QA, una vista previa o un entorno sin
+ * configurar quedan FUERA de Google. Si esto se equivoca, esconde algo que
+ * debía verse —se nota y se arregla en minutos—, no publica el sitio de
+ * pruebas, que tarda semanas en limpiarse.
+ */
+const esProduccion = process.env.VERCEL_ENV === "production";
+
 const nextConfig: NextConfig = {
+  /**
+   * Fuera de producción, `noindex` en TODA respuesta.
+   *
+   * ⚠️ QA ESTUVO ABIERTA SIN ESTO desde el 2026-09-15, solo con `Disallow: /`
+   * en robots.txt. Eso impide RASTREAR, pero no indexar: si alguien enlazó una
+   * página de QA, Google pudo listar la URL sin contenido. Este encabezado es
+   * el que la saca del índice (ver `app/robots.ts`, que por eso ahora deja
+   * rastrear QA por un tiempo).
+   */
+  async headers() {
+    return esProduccion
+      ? []
+      : [
+          {
+            source: "/:path*",
+            headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+          },
+        ];
+  },
+
   /**
    * Las direcciones viejas siguen funcionando.
    *
