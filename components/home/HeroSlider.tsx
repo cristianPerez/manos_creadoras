@@ -27,7 +27,16 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
   const actual = fotos[i];
 
   return (
-    <section className="px-5 pt-2 pb-8 md:pt-6 md:pb-10">
+    /*
+      ⚠️ `px-3` EN MÓVIL Y NO `px-5` (pedido de Cristian, 2026-10-19). Con 20px
+      a cada lado la foto se quedaba en 335px de ancho en un teléfono de 375, y
+      el bolso —que es lo único que para el scroll— salía pequeño. Bajando a
+      12px gana 16px de ancho útil sin pegarse al borde.
+
+      El resto de la página mantiene sus 20px: esto es SOLO el banner, donde la
+      foto manda. Si algún día se unifica, se unifica a propósito y en todas.
+    */
+    <section className="px-3 pt-2 pb-8 md:px-5 md:pt-6 md:pb-10">
       <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-14">
         {/* ⚠️ En móvil la FOTO va primero (order-1) y el texto debajo: lo que
             para y convence en un teléfono es la imagen del bolso, no el titular. */}
@@ -52,7 +61,32 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
               tocado.current = null;
             }}
           >
-            <div className="bg-espresso relative aspect-square overflow-hidden rounded-(--radius-foto) shadow-[0_24px_60px_-24px_rgba(42,31,25,0.45)] max-md:aspect-[4/2.75]">
+            {/*
+              ⚠️ EN MÓVIL LA FOTO ERA UNA FRANJA (4/2.75 ≈ 1,45:1) Y SE VEÍA
+              DIMINUTA. Pedido de Cristian el 2026-10-19: más alta, menos
+              redondeada y con menos margen.
+
+              Pasa a 1/1,05 —casi cuadrada, ligeramente vertical— porque es la
+              proporción en la que un bolso se reconoce: con la franja se veía
+              un recorte del centro y se perdían el asa y la base.
+
+              ⚠️ EL COSTE, DICHO: esto empuja el botón dorado más abajo, y el
+              comentario de la columna de texto ya avisaba de que no cabía todo
+              sobre la línea de flotación ni con la franja. Sigue sin caber, y
+              sigue valiendo lo mismo: la barra fija lleva "Bolso gratis" al
+              mismo destino y está visible SIEMPRE.
+
+              El radio baja de 28px (`--radius-foto`) a 20px (`--radius-lg`) en
+              móvil: a este tamaño, 28px se comían visiblemente las esquinas
+              del bolso.
+
+              ⚠️ NO USAR `rounded-2xl` AQUÍ. Parece lo obvio y hace lo
+              contrario: este proyecto remapea `--radius-2xl` a
+              `--radius-device` (32px, el marco de teléfono), así que la foto
+              salía MÁS redondeada que antes. Los radios se piden siempre con
+              los tokens del sistema, no con los nombres de Tailwind.
+            */}
+            <div className="bg-espresso relative aspect-square overflow-hidden rounded-(--radius-foto) shadow-[0_24px_60px_-24px_rgba(42,31,25,0.45)] max-md:aspect-[1/1.05] max-md:rounded-(--radius-lg)">
               {/* `key` por slug: al cambiar de bolso React monta una imagen
                   nueva, y con `animate-[aparecer]` el cambio se funde en vez de
                   saltar. */}
