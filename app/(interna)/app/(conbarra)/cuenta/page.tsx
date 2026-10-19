@@ -85,8 +85,21 @@ export default async function MiCuenta() {
                 </Link>
               )}
               {alumna.tieneAcceso && (
+                /*
+                 * ⚠️ ESTE ENLACE IBA A `/contacto` Y ERA UN CALLEJÓN SIN SALIDA.
+                 *
+                 * Lo encontró Cristian el 2026-10-19: a quien YA paga, el único
+                 * botón para "gestionar su plan" la mandaba a escribir un
+                 * correo — y `/app/plan`, que es la pantalla que gestiona el
+                 * plan de verdad, se quedaba sin ninguna puerta de entrada
+                 * desde la app (la barra de navegación no la lleva).
+                 *
+                 * Con el botón de cancelar viviendo allí, dejarlo así habría
+                 * sido construir la baja autónoma y esconderla detrás de un
+                 * "escríbenos": exactamente el patrón que se vino a quitar.
+                 */
                 <Link
-                  href="/contacto"
+                  href="/app/plan"
                   className="flex h-12 items-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white"
                 >
                   Gestionar mi plan

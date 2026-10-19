@@ -25,7 +25,15 @@ import { reportarAviso } from "@/lib/fallos";
  */
 
 export type Correo = {
-  para: string;
+  /**
+   * Uno o varios destinatarios.
+   *
+   * ⚠️ VARIOS SOLO PARA CORREOS INTERNOS. Poner a dos alumnas en el mismo
+   * `to` les enseña el correo de la otra. Los correos a clientas van de uno en
+   * uno; el array existe para los avisos a Cristian y Elizabeth, que ya se
+   * conocen.
+   */
+  para: string | string[];
   asunto: string;
   html: string;
   /** La versión en texto plano. NO es opcional: ver abajo. */

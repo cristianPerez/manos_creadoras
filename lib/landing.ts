@@ -107,14 +107,14 @@ export const PREGUNTAS = [
   },
   {
     /*
-     * ⚠️ RESPUESTA PENDIENTE DE CONFIRMAR. El encargo marcó esta pregunta como
-     * abierta, y con OnePay todavía sin integrar nadie puede prometer cómo se
-     * cancela. Se responde lo único que sí es verdad hoy (se cancela
-     * escribiendo, y el acceso dura hasta el final del período pagado) sin
-     * inventar un botón de "cancelar suscripción" que no existe.
+     * ✅ RESUELTA EL 2026-10-19: ya existe el botón. Esta respuesta decía
+     * "escríbenos" porque era lo único cierto mientras no lo había, y se
+     * cambia EN EL MISMO COMMIT que lo construye — si no, la app tendría un
+     * botón y el FAQ seguiría mandando a escribir un correo, que es peor que
+     * no tener ninguno de los dos: parece que el botón no cuenta.
      */
     q: "¿Puedo cancelar cuando quiera?",
-    a: "Sí. Escríbenos y cancelamos la renovación; conservas el acceso hasta que termine el período que ya pagaste.",
+    a: "Sí, tú misma y en dos toques, desde Mi plan dentro de la app. No hay que escribir ni dar explicaciones, y conservas el acceso hasta que termine el período que ya pagaste.",
   },
   {
     q: "¿Los materiales los compro yo?",

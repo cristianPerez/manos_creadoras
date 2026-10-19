@@ -2,11 +2,13 @@ import { Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CancelarMembresia } from "@/components/app/CancelarMembresia";
 import { RegistrarPais } from "@/components/app/RegistrarPais";
 import { SelectorDePago } from "@/components/app/SelectorDePago";
 import { Entrada } from "@/components/home/Entrada";
 import { alumnaActual } from "@/lib/alumna";
 import { listarBolsos } from "@/lib/bolsos";
+import { fechaLarga, finDelCicloEnCurso } from "@/lib/ciclo";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { estadoDeLaOferta } from "@/lib/oferta-servidor";
 import { INCLUYE } from "@/lib/planes";
@@ -55,13 +57,26 @@ export default async function MiPlan({
   // Esta pantalla vive dentro de la app: sin sesión no hay a quién darle nada.
   if (!alumna) redirect("/entrar?next=/app/plan");
 
+  /*
+   * ⚠️ `pb-28` DEJABA ~190px DE CREMA MUERTA sobre la barra inferior, que el
+   * revisor visual descontó dos veces. La barra mide 72px: con `pb-20` el
+   * contenido respira sin que el pie quede flotando en el vacío.
+   */
   return (
-    <main className="min-h-dvh flex-1 px-5 py-10 pb-28 lg:pb-10">
+    <main className="min-h-dvh flex-1 px-5 py-10 pb-20 lg:pb-10">
       <div className="mx-auto max-w-3xl">
         <RegistrarPais />
 
         {alumna.tieneAcceso ? (
-          <YaTienePlan ciclo={alumna.ciclo} venceEl={alumna.venceEl} estado={alumna.estado} />
+          <YaTienePlan
+            ciclo={alumna.ciclo}
+            venceEl={alumna.venceEl}
+            estado={alumna.estado}
+            miembroDesde={alumna.miembroDesde}
+            // Quien YA canceló no ve el botón: su renovación está detenida y
+            // ofrecerle cancelar otra vez solo le haría dudar de si funcionó.
+            puedeCancelar={alumna.estado !== "cancelada"}
+          />
         ) : (
           <>
             {/* Escalonado de 70ms: el titular primero, los planes después. Es la
@@ -117,22 +132,48 @@ function YaTienePlan({
   ciclo,
   venceEl,
   estado,
+  miembroDesde,
+  puedeCancelar,
 }: {
   ciclo: "mensual" | "anual" | null;
   venceEl: string | null;
   estado: "activa" | "vencida" | "cancelada";
+  miembroDesde: string | null;
+  puedeCancelar: boolean;
 }) {
-  const fecha = venceEl
-    ? new Date(venceEl).toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" })
-    : null;
+  /*
+   * ⚠️ ANTES ERA `venceEl` A SECAS Y CUANDO VENÍA VACÍO LA TARJETA SOLO DECÍA
+   * "Tu acceso está activo".
+   *
+   * Es decir: la pantalla que existe para responder "¿cuándo y cuánto me
+   * vuelven a cobrar?" no lo respondía justo a quien no tiene fecha guardada
+   * —membresías dadas a mano, y pagos de OnePay cuyo evento no trajo fecha—.
+   * Lo marcó el revisor visual el 2026-10-19. `finDelCicloEnCurso` calcula la
+   * misma fecha que usa la cancelación, así que las dos pantallas no pueden
+   * decir cosas distintas.
+   */
+  /* La fecha en ISO: la lee la tarjeta y TAMBIÉN el botón de cancelar, para que
+     su confirmación diga el mismo día exacto y no un vago "final del período". */
+  const hastaISO = venceEl ?? finDelCicloEnCurso(miembroDesde, ciclo);
+  const fecha = fechaLarga(hastaISO);
 
   return (
     <>
-      <header className="text-center">
-        <p className="eyebrow">Tu plan</p>
-        <h1 className="titulo-seccion mt-2 text-balance">Tienes el curso completo</h1>
-      </header>
+      {/*
+        ⚠️ LA ENTRADA ESCALONADA FALTABA EN ESTA RAMA. `Entrada` solo envolvía
+        la rama de venta, así que a quien YA paga la pantalla le aparecía de
+        golpe — una de las siete animaciones baseline del sistema, ausente en
+        la mitad de la pantalla. Lo marcó el revisor visual el 2026-10-19.
+        70ms entre bloques; `Entrada` ya respeta `prefers-reduced-motion`.
+      */}
+      <Entrada>
+        <header className="text-center">
+          <p className="eyebrow">Tu plan</p>
+          <h1 className="titulo-seccion mt-2 text-balance">Tienes el curso completo</h1>
+        </header>
+      </Entrada>
 
+      <Entrada retraso={0.07}>
       <section
         className="mt-8 rounded-[var(--radius-xl)] p-8 text-center text-white md:p-10"
         style={{ backgroundImage: "var(--card-destacada)" }}
@@ -148,7 +189,10 @@ function YaTienePlan({
           Curso completo{ciclo ? `, plan ${ciclo}` : ""}
         </p>
 
-        <p className="mt-3 text-sm text-white/70">
+        {/* 85% y no 70%: sobre el marrón de la tarjeta, el 70% se quedaba
+            justo en el límite de contraste y esta línea es la que dice si le
+            van a cobrar o no. */}
+        <p className="mt-3 text-sm text-white/85">
           {estado === "cancelada" && fecha
             ? /* Canceló pero pagó el período: se dice la verdad completa, que es
                  buena noticia —conserva el acceso— y evita el "pero si cancelé". */
@@ -160,6 +204,7 @@ function YaTienePlan({
                 : "Tu acceso está activo."}
         </p>
       </section>
+      </Entrada>
 
       <div className="mt-5 flex flex-wrap justify-center gap-3">
         <Link
@@ -185,7 +230,16 @@ function YaTienePlan({
         Quien ve su plan suele venir con la pregunta "¿y esto para qué me
         sirve?", que es la antesala de cancelar.
       */}
-      <div className="mt-10">
+      {/*
+        ⚠️ FONDO ARENA Y NO CREMA: ES EL NIVEL HUNDIDO QUE FALTABA.
+        El revisor visual contó una sola profundidad en toda la pantalla el
+        2026-10-19 — crema plano con cards marfil encima, y el único
+        tratamiento real en la tarjeta héroe. Con la lista hundida quedan los
+        tres niveles del sistema: hundido (arena) · base (crema) · elevado
+        (marfil). El `-mx-5 px-5` la saca a sangre en móvil, donde una banda
+        con márgenes flotando se ve como un parche.
+      */}
+      <div className="bg-sand -mx-5 mt-10 px-5 py-8">
         <p className="text-gold text-xs font-bold tracking-[0.18em] uppercase">Tu plan incluye</p>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {INCLUYE.map((b) => (
@@ -203,6 +257,54 @@ function YaTienePlan({
             </li>
           ))}
         </ul>
+      </div>
+
+      {/*
+        ⚠️ LA BAJA VIVE AQUÍ, NO EN UNA PÁGINA APARTE NI EN UN CORREO.
+        Hasta el 2026-10-19 cancelar era escribir a contacto. Además de ser el
+        patrón que produce devoluciones, en varios países de LATAM obligar a
+        contactar para darse de baja es ILEGAL. Va al final, en texto: se
+        encuentra quien la busca y no se pulsa por accidente.
+      */}
+      {/*
+        ⚠️ CANCELAR Y EL PIE SON EL MISMO GRUPO: "administrar mi plan". Antes
+        había ~90px entre la lista y el enlace y otros tantos hasta el pie, así
+        que el enlace flotaba solo, sin pertenecer a nada (proximidad = relación,
+        y el revisor lo marcó el 2026-10-19). Ahora 32px lo separan de la lista
+        y el pie viene pegado detrás.
+      */}
+      <div className="mt-8">
+        {puedeCancelar ? <CancelarMembresia accesoHasta={hastaISO} /> : null}
+
+      {/*
+        ⚠️ ESTO CIERRA ~180px DE CREMA MUERTA al final de la pantalla, que el
+        revisor visual marcó el 2026-10-19. Y no es relleno: en una pantalla de
+        plan, la duda que queda después de leerlo todo es "¿y si tengo un
+        problema con mi cobro?". Tenerlo aquí evita que la única salida sea
+        buscar el pie de página de la landing.
+      */}
+        <footer className="border-line mt-6 border-t pt-6 text-center">
+          <p className="text-ink-muted text-sm">
+            ¿Algo no cuadra con tu cobro o tu acceso?{" "}
+            <Link href="/contacto" className="text-gold font-semibold underline underline-offset-4">
+              Escríbenos
+            </Link>{" "}
+            y lo resolvemos.
+          </p>
+          <p className="text-ink-muted mt-3 text-xs">
+            <Link href="/legal/reembolso" className="underline underline-offset-4">
+              Reembolsos
+            </Link>
+            {" · "}
+            <Link href="/legal/cancelar" className="underline underline-offset-4">
+              Cómo cancelar
+            </Link>
+            {" · "}
+            <Link href="/legal/terminos" className="underline underline-offset-4">
+              Términos
+            </Link>
+          </p>
+        </footer>
       </div>
     </>
   );

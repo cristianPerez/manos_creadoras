@@ -112,9 +112,20 @@ async function crear(correo) {
   if (estado === "active") {
     const { error: eAcceso } = await admin.rpc("dar_membresia", {
       p_user_id: creado.user.id,
-      // El plan intermedio: es el que tendrá la mayoría, así que probar con él
-      // es probar lo que de verdad va a pasar.
-      p_plan: "creadora",
+      /*
+       * ⚠️ TERCER DESFASE DEL SCRIPT, y van tres por el mismo motivo: aquí
+       * decía `'creadora'`, un plan que la migración 0016 borró al pasar a un
+       * solo plan. El `check` de `membresias.plan` lo rechazaba, así que
+       * `npm run alumna:crear` llevaba roto desde el 13-oct: reventaba con
+       * "violates check constraint" y no se podía crear ni una alumna de
+       * prueba. Encontrado el 2026-10-19 al intentar verificar el botón de
+       * cancelar — es el cabo suelto que el ESTADO avisaba que quedaba por
+       * repasar del renombrado.
+       *
+       * `completo` es el único plan de pago que existe hoy, y es el que hay que
+       * probar: es el que tendrán todas.
+       */
+      p_plan: "completo",
       p_ciclo: plan === "mensual" ? "mensual" : "anual",
       p_vence_el: null,
       p_pasarela: "manual",

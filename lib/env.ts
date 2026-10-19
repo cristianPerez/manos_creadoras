@@ -42,6 +42,25 @@ const hotmartSchema = baseSchema.extend({
   HOTMART_HOTTOK: z.string().min(1),
 });
 
+/**
+ * Lo que hace falta para hablar con la API de OnePay (hoy: cancelar una
+ * suscripción cuando la alumna pulsa el botón de baja).
+ *
+ * ⚠️ EL ENTORNO LO DECIDE LA CLAVE, NO LA URL: `sk_test_…` y `sk_live_…` pegan
+ * contra el mismo `api.onepay.la/v1`. Una clave `sk_live` copiada a QA
+ * **cancela suscripciones de verdad**, igual que cobraría de verdad. Por eso se
+ * valida el prefijo: en cualquier entorno que no sea producción, una clave
+ * `sk_live_` revienta aquí en vez de tocar datos reales por accidente.
+ */
+const onepaySchema = baseSchema
+  .extend({
+    ONEPAY_API_KEY: z.string().min(1),
+  })
+  .refine(
+    (v) => process.env.VERCEL_ENV === "production" || !v.ONEPAY_API_KEY.startsWith("sk_live_"),
+    { message: "ONEPAY_API_KEY es una clave sk_live_ fuera de producción", path: ["ONEPAY_API_KEY"] },
+  );
+
 const pushSchema = baseSchema.extend({
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1),
   VAPID_PRIVATE_KEY: z.string().min(1),
@@ -54,6 +73,7 @@ const pushSchema = baseSchema.extend({
 export type BaseEnv = z.infer<typeof baseSchema>;
 export type AiEnv = z.infer<typeof aiSchema>;
 export type HotmartEnv = z.infer<typeof hotmartSchema>;
+export type OnepayEnv = z.infer<typeof onepaySchema>;
 export type PushEnv = z.infer<typeof pushSchema>;
 
 const cache = new Map<string, unknown>();
@@ -86,6 +106,11 @@ export function aiEnv(): AiEnv {
 /** Lo que necesita el webhook de Hotmart. No exige nada de la IA. */
 export function hotmartEnv(): HotmartEnv {
   return leer("hotmart", hotmartSchema);
+}
+
+/** Lo que necesita la API de OnePay. No exige nada de la IA ni del push. */
+export function onepayEnv(): OnepayEnv {
+  return leer("onepay", onepaySchema);
 }
 
 /** Lo que necesitan los avisos push. Si falta, solo se caen los avisos. */

@@ -2,8 +2,8 @@
  * Da, quita y consulta la membresía de una alumna, a mano.
  *
  *   npm run membresia:ver    -- ana@ejemplo.com
- *   npm run membresia:dar    -- ana@ejemplo.com creadora anual
- *   npm run membresia:dar    -- ana@ejemplo.com maestra mensual 30
+ *   npm run membresia:dar    -- ana@ejemplo.com completo anual
+ *   npm run membresia:dar    -- ana@ejemplo.com completo mensual 30
  *   npm run membresia:quitar -- ana@ejemplo.com
  *
  * ⚠️ ESTE ARCHIVO SUSTITUYE A `scripts/acceso.mjs`, y el cambio de nombre es a
@@ -31,13 +31,26 @@ const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const [accion, email, plan = "creadora", ciclo = "anual", dias] = process.argv.slice(2);
+/*
+ * ⚠️ AQUÍ DECÍA `creadora` Y ESE PLAN NO EXISTE DESDE LA MIGRACIÓN 0016.
+ *
+ * Encontrado el 2026-10-19: con el valor por defecto viejo,
+ * `npm run membresia:dar -- correo` (sin escribir el plan, que es como se usa)
+ * moría con "violates check constraint". Y la lista de PLANES ofrecía los tres
+ * nombres antiguos, así que el mensaje de ayuda mandaba a escribir justo lo que
+ * la base rechaza. Es el mismo cabo suelto del renombrado que rompió
+ * `alumna-prueba.mjs`; el ESTADO avisaba que quedaba repasarlo.
+ *
+ * `gratis` también se acepta: es el suelo que tiene toda cuenta, y poder
+ * bajar a alguien a mano sirve para probar el muro de pago.
+ */
+const [accion, email, plan = "completo", ciclo = "anual", dias] = process.argv.slice(2);
 
-const PLANES = ["aprendiz", "creadora", "maestra"];
+const PLANES = ["gratis", "completo"];
 const CICLOS = ["mensual", "anual"];
 
 if (!email || !email.includes("@")) {
-  console.error("Falta el correo.  Ejemplo:  npm run membresia:dar -- ana@ejemplo.com creadora anual");
+  console.error("Falta el correo.  Ejemplo:  npm run membresia:dar -- ana@ejemplo.com completo anual");
   process.exit(1);
 }
 
@@ -142,7 +155,7 @@ async function quitar(correo) {
    * servicio, y es la forma más rápida de ganarse una disputa de pago.
    *
    * Para cortar de verdad hoy mismo:
-   *   npm run membresia:dar -- correo aprendiz
+   *   npm run membresia:dar -- correo gratis
    */
   const { error } = await admin.rpc("cancelar_membresia", {
     p_user_id: perfil.id,

@@ -42,7 +42,7 @@ export const DOCUMENTOS: Record<
   cancelar: {
     titulo: "Cómo cancelar",
     resumen:
-      "Se cancela escribiéndonos. Conservas el acceso hasta el final del período que ya pagaste.",
+      "Se cancela desde Mi plan, dentro de la app. Conservas el acceso hasta el final del período que ya pagaste.",
     Contenido: ContenidoCancelar,
   },
 };

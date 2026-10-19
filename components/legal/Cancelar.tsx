@@ -20,13 +20,21 @@ export function ContenidoCancelar() {
           detiene y conservas el acceso hasta que termine el período que ya pagaste.
         </p>
 
+        {/*
+          ⚠️ ACTUALIZADO EL 2026-10-19, CUANDO SE CONSTRUYÓ EL BOTÓN. Antes las
+          dos secciones decían lo mismo —"escríbenos"— porque cancelar solo se
+          podía por correo. Ahora se cancela sola desde la app, y eso es lo que
+          va primero: dejar "escríbenos" como camino principal cuando ya hay un
+          botón es el patrón oscuro que este documento existe para no tener.
+        */}
         <section>
           <h2 className="text-espresso font-semibold">
-            Escríbenos y lo hacemos nosotros
+            Desde tu cuenta, en dos toques
           </h2>
           <ul className="mt-2 flex flex-col gap-2 pl-5" style={{ listStyleType: "disc" }}>
-            <li>Escríbenos desde la página de Contacto diciendo que quieres cancelar.</li>
-            <li>Te confirmamos por correo y detenemos la renovación.</li>
+            <li>Entra a la app y abre <strong>Mi plan</strong>.</li>
+            <li>Abajo, pulsa <strong>Cancelar mi membresía</strong> y confirma.</li>
+            <li>La renovación se detiene en el momento. No hay que escribir a nadie.</li>
             <li>Conservas el acceso hasta el final del período que ya pagaste.</li>
           </ul>
         </section>
@@ -36,7 +44,7 @@ export function ContenidoCancelar() {
             O escríbenos y lo hacemos por ti
           </h2>
           <p className="mt-2">
-            Si no encuentras la opción, mándanos un correo desde la página de{" "}
+            Si no encuentras la opción o algo no funciona, mándanos un correo desde la página de{" "}
             <Link href="/contacto" className="text-gold">Contacto</Link> y lo
             gestionamos. No te vamos a pedir que expliques por qué.
           </p>

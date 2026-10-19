@@ -28,6 +28,10 @@ export type Area =
   // Resend. Un correo que no sale es un fallo de verdad: el de bienvenida lleva
   // el acceso de alguien que acaba de pagar, y su silencio parece una estafa.
   | "correo"
+  // Hablar con la pasarela por API (hoy: dar de baja una suscripción en
+  // OnePay). NO es `webhook`: ahí la pasarela nos llama a nosotros, aquí
+  // llamamos nosotros y el fallo deja un cobro vivo que nadie detuvo.
+  | "pago"
   | "acceso"
   | "curso"
   | "video"

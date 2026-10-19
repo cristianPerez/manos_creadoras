@@ -61,3 +61,6 @@ supabase/.temp/
 # Design. Ya cumplieron su función y son 8 MB que el repo cargaría para siempre.
 # Las del diseño NUEVO (manos-creadoras-claude-code) sí entran: son el contrato.
 design-ref/estado-actual/
+
+# Grafo de conocimiento de graphify: se regenera con /graphify y pesa MB
+graphify-out/
