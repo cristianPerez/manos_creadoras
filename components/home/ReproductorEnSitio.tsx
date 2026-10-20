@@ -28,6 +28,7 @@ export function ReproductorEnSitio({
   titulo,
   className,
   onReproduciendo,
+  arrancarAlMontar,
 }: {
   /** La URL FIRMADA del embed. La firma el servidor: la clave nunca baja aquí. */
   url: string | null;
@@ -39,9 +40,36 @@ export function ReproductorEnSitio({
   className?: string;
   /** Avisa a quien lo monta de si hay video corriendo, para que tape o destape. */
   onReproduciendo?: (activo: boolean) => void;
+  /**
+   * Arranca sin esperar a que toquen el póster.
+   *
+   * ⚠️ SOLO VALE SI VIENE DE UN TOQUE SUYO (el botón "Ver este paso"). Quien lo
+   * use tiene que remontar el componente —cambiando su `key`— porque esto se
+   * lee UNA vez, al montar: un video no puede empezar a sonar porque sí en
+   * mitad de la página.
+   */
+  arrancarAlMontar?: boolean;
 }) {
-  const [reproduciendo, setReproduciendo] = useState(false);
+  const [reproduciendo, setReproduciendo] = useState(Boolean(arrancarAlMontar) && Boolean(url));
   const marco = useRef<HTMLIFrameElement>(null);
+
+  /*
+   * ⚠️ AL ARRANCAR SOLO HAY QUE AVISAR A MANO, y se descubrió probándolo.
+   *
+   * Cuando se pulsa el póster, el `onClick` ya avisa de que hay video. Con
+   * `arrancarAlMontar` ese clic no existe —el iframe aparece ya reproduciendo—
+   * y el aviso quedaba pendiente del evento `play` de Bunny, que puede tardar
+   * o perderse si manda `ready` antes de que escuchemos.
+   *
+   * Resultado visible: el video corría y la franja de "Materiales" seguía
+   * encima, tapando justo las manos de Elizabeth. Avisar aquí lo arregla sin
+   * depender de nadie; el `pause` posterior vuelve a destaparla.
+   */
+  useEffect(() => {
+    if (arrancarAlMontar && url) onReproduciendo?.(true);
+    // Solo al montar: `arrancarAlMontar` se lee una vez, como dice su contrato.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /*
    * ⚠️ ESCUCHA SI EL VIDEO SE PAUSA, no solo si se pulsó play.
@@ -58,7 +86,9 @@ export function ReproductorEnSitio({
   useEffect(() => {
     if (!reproduciendo) return;
 
-    const pedir = (metodo: string, valor?: string) =>
+    /* `valor` no es siempre texto: `setVolume` espera un número y `setMuted`
+       un booleano. Mandarlos como cadena los deja sin efecto silenciosamente. */
+    const pedir = (metodo: string, valor?: string | number | boolean) =>
       marco.current?.contentWindow?.postMessage(
         JSON.stringify({ context: "player.js", method: metodo, value: valor }),
         "*",
@@ -115,6 +145,19 @@ export function ReproductorEnSitio({
       <div className={`bg-espresso relative overflow-hidden ${className ?? ""}`}>
         <iframe
           ref={marco}
+/*
+           * ⚠️ NI `muted=true` NI `muted=false`: SE DEJA QUE BUNNY DECIDA, y
+           * es lo único que reproduce de verdad. Probado el 2026-10-19 con
+           * las tres variantes:
+           *   · `autoplay=true` a secas → reproduce. (Esta.)
+           *   · `autoplay=true&muted=false` → pantalla negra, no arranca.
+           *   · arrancar mudo y mandar `unmute` al recibir `ready` → el
+           *     navegador lo PAUSA y aparece el play gigante en medio.
+           *
+           * Pedir sonido explícitamente hace que el navegador prefiera no
+           * reproducir nada, que es el peor de los tres resultados. Sin el
+           * parámetro, el reproductor arranca con su volumen normal.
+           */
           src={`${url}${url.includes("?") ? "&" : "?"}autoplay=true`}
           title={titulo}
           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"

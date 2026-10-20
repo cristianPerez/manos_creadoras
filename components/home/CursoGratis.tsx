@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Entrada } from "@/components/home/Entrada";
 import Link from "next/link";
 import { ReproductorEnSitio } from "@/components/home/ReproductorEnSitio";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export type PasoGratis = {
   /** 0 = materiales. Es el orden del video dentro del bolso. */
@@ -40,6 +40,7 @@ export function CursoGratis({
 }) {
   const [abierto, setAbierto] = useState(0);
 
+
   /*
    * ⚠️ LA FRANJA DESAPARECE MIENTRAS SE VE EL VIDEO. Es lo que la hace útil y no
    * un estorbo: cuando el video está quieto dice qué paso es y cuánto queda —
@@ -49,6 +50,38 @@ export function CursoGratis({
    * Vuelve al pausar, al terminar y al cambiar de paso.
    */
   const [viendo, setViendo] = useState(false);
+
+  /*
+   * ⚠️ "VER ESTE PASO" ANTES SOLO CAMBIABA QUÉ VIDEO ESTABA CARGADO ARRIBA:
+   * dejaba el póster con su botón de play y había que buscarlo y tocarlo otra
+   * vez. En móvil era peor, porque el reproductor quedaba fuera de pantalla —
+   * se tocaba el botón y aparentemente no pasaba nada.
+   *
+   * Ahora el botón hace las tres cosas de una (pedido de Cristian,
+   * 2026-10-19): carga el paso, ARRANCA el video con sonido y SUBE hasta él.
+   *
+   * `arranque` es un contador, no un booleano, y esa es la pieza: va dentro de
+   * la `key` del reproductor, así que cada pulsación lo REMONTA. Con un
+   * booleano, volver a pulsar "Ver este paso" en el mismo paso no haría nada
+   * —la key no cambiaría— y es justo lo que alguien hace cuando quiere
+   * repetir el video.
+   */
+  const [arranque, setArranque] = useState(0);
+  const cajaVideo = useRef<HTMLDivElement>(null);
+
+  const verPaso = (i: number) => {
+    setAbierto(i);
+    setViendo(false);
+    setArranque((n) => n + 1);
+    /*
+     * `block: "center"` y no `"start"`: con `start` el video se pega al borde
+     * de arriba y la cabecera fija de la página le come la primera franja.
+     * `Entrada` ya respeta `prefers-reduced-motion`, pero el scroll es aparte:
+     * quien pide menos movimiento salta sin animación.
+     */
+    const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    cajaVideo.current?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "center" });
+  };
   const paso = pasos[abierto] ?? pasos[0];
 
   if (!paso) return null;
@@ -91,12 +124,18 @@ export function CursoGratis({
             video está cargado, y nadie se mueve de sitio.
           */}
           <div>
-            <div className="relative overflow-hidden rounded-(--radius-foto) max-md:h-95 md:h-130">
+            <div
+              ref={cajaVideo}
+              className="relative overflow-hidden rounded-(--radius-foto) max-md:h-95 md:h-130"
+            >
               <ReproductorEnSitio
                 /* `key` por paso: al cambiar de paso se monta un reproductor
                    nuevo en vez de reutilizar el anterior, que se quedaría con el
                    video viejo dentro. */
-                key={paso.orden}
+                key={`${paso.orden}-${arranque}`}
+                /* `arranque > 0`: al cargar la página el video NO empieza solo.
+                   Solo arranca cuando ella ha pulsado "Ver este paso". */
+                arrancarAlMontar={arranque > 0}
                 onReproduciendo={setViendo}
                 url={paso.urlVideo}
                 poster={paso.poster}
@@ -206,10 +245,7 @@ export function CursoGratis({
                                 solo marca cuál se reproduce arriba. */}
                             <button
                               type="button"
-                              onClick={() => {
-                                setAbierto(i);
-                                setViendo(false);
-                              }}
+                              onClick={() => verPaso(i)}
                               className="text-espresso flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold"
                               style={{ backgroundImage: "var(--boton-dorado)" }}
                             >
@@ -219,10 +255,7 @@ export function CursoGratis({
                             {i < pasos.length - 1 && (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  setAbierto(i + 1);
-                                  setViendo(false);
-                                }}
+                                onClick={() => verPaso(i + 1)}
                                 className="border-line text-espresso flex h-11 items-center rounded-full border px-5 text-sm font-semibold"
                               >
                                 Siguiente paso

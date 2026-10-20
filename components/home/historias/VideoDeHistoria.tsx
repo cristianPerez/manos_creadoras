@@ -48,7 +48,9 @@ export function VideoDeHistoria({
    * por defecto y la historia avanza igual.
    */
   useEffect(() => {
-    const pedir = (metodo: string, valor?: string) =>
+    /* `valor` no es siempre texto: `setVolume` espera un número y `setMuted`
+       un booleano. Mandarlos como cadena los deja sin efecto silenciosamente. */
+    const pedir = (metodo: string, valor?: string | number | boolean) =>
       marco.current?.contentWindow?.postMessage(
         JSON.stringify({ context: "player.js", method: metodo, value: valor }),
         "*",
@@ -97,11 +99,27 @@ export function VideoDeHistoria({
        *
        * De ahí el recorte de abajo: ver el comentario de `className`.
        *
-       * `muted=true` es lo que permite el autoplay —los navegadores bloquean el
-       * arranque con sonido— y una historia que no arranca sola no es una
-       * historia. Verificado: el video reproduce solo al abrir la cápsula.
+       * ⚠️ AQUÍ IBA `muted=true` Y SE QUITÓ EL 2026-10-19 (pedido de
+       * Cristian: las cápsulas deben sonar en cuanto empieza el video). Era
+       * un cinturón de seguridad contra el bloqueo de autoplay, pero las
+       * dejaba mudas SIEMPRE, incluso donde el navegador habría permitido el
+       * sonido.
+       *
+       * Sin el parámetro, el reproductor arranca con su volumen normal. La
+       * cápsula se abre de un TOQUE suyo, y esa activación es justo la que
+       * los navegadores exigen para dejar sonar.
+       *
+       * ⚠️ NO PONER `muted=false` EN SU LUGAR: se probó en el reproductor del
+       * curso gratis el mismo día y el video NO ARRANCA —pantalla negra—.
+       * Pedir sonido explícitamente hace que el navegador prefiera no
+       * reproducir. Lo mismo con mandar `unmute` tras `ready`: lo PAUSA.
+       *
+       * ⚠️ SI ALGUNA VEZ UNA CÁPSULA SE QUEDA CONGELADA en el primer
+       * fotograma, el culpable es esto: el navegador bloqueó el autoplay con
+       * sonido. La vuelta atrás es una línea —reponer `muted=true`— y la
+       * decisión sería mudas pero fluidas.
        */
-      src={`${url}${url.includes("?") ? "&" : "?"}autoplay=true&muted=true&preload=true&playsinline=true`}
+      src={`${url}${url.includes("?") ? "&" : "?"}autoplay=true&preload=true&playsinline=true`}
       title={titulo}
       allow="autoplay; encrypted-media; picture-in-picture"
       /*
