@@ -101,15 +101,12 @@ export function Capsulas({
                     }}
                   >
                     <span className="border-cream bg-espresso relative block size-full overflow-hidden rounded-full border-[2.5px]">
-                      {c.portadaUrl && (
-                        <Image
-                          src={c.portadaUrl}
-                          alt=""
-                          fill
-                          sizes="72px"
-                          className={`object-cover ${vista ? "opacity-70" : ""}`}
-                        />
-                      )}
+                      <ImagenDeCapsula
+                        miniatura={c.miniaturaUrl}
+                        respaldo={c.portadaUrl}
+                        sizes="72px"
+                        className={`object-cover ${vista ? "opacity-70" : ""}`}
+                      />
                     </span>
                   </span>
 
@@ -163,15 +160,12 @@ export function Capsulas({
                     }`}
                     style={{ aspectRatio: "3 / 4.4" }}
                   >
-                    {c.portadaUrl && (
-                      <Image
-                        src={c.portadaUrl}
-                        alt=""
-                        fill
-                        sizes="(min-width: 768px) 240px, 50vw"
-                        className="object-cover"
-                      />
-                    )}
+                    <ImagenDeCapsula
+                      miniatura={c.miniaturaUrl}
+                      respaldo={c.portadaUrl}
+                      sizes="(min-width: 768px) 240px, 50vw"
+                      className="object-cover"
+                    />
 
                     {/* Degradado arriba Y abajo: sin él, el número y el título
                         quedan sobre la foto y con una portada clara desaparecen. */}
@@ -237,5 +231,52 @@ export function Capsulas({
         />
       )}
     </div>
+  );
+}
+
+/**
+ * La imagen de una cápsula: su propio fotograma, con red debajo.
+ *
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ LA MINIATURA DE BUNNY FALLA EN DESARROLLO, Y HAY QUE PREVERLO
+ * ════════════════════════════════════════════════════════════════════════════
+ * Su CDN de IMÁGENES tiene SU PROPIA lista de dominios permitidos, distinta de
+ * la del reproductor: en local devuelve 403 y en QA 200. Sin respaldo, los
+ * cinco círculos se verían negros mientras se desarrolla — y el día que
+ * alguien toque esa lista, también en producción.
+ *
+ * Al fallar se cae a `portada_url`, que es nuestra y siempre está. Mismo
+ * patrón que `ReproductorEnSitio`, por el mismo motivo.
+ *
+ * `unoptimized` en la miniatura: viene de fuera de nuestro dominio y así no
+ * hay que declarar el hostname de Bunny en la configuración de Next.
+ */
+function ImagenDeCapsula({
+  miniatura,
+  respaldo,
+  sizes,
+  className,
+}: {
+  miniatura: string | null;
+  respaldo: string | null;
+  sizes: string;
+  className: string;
+}) {
+  const [fallo, setFallo] = useState(false);
+  const usarMiniatura = Boolean(miniatura) && !fallo;
+  const src = usarMiniatura ? miniatura : respaldo;
+
+  if (!src) return null;
+
+  return (
+    <Image
+      src={src}
+      alt=""
+      fill
+      sizes={sizes}
+      className={className}
+      unoptimized={usarMiniatura}
+      onError={() => setFallo(true)}
+    />
   );
 }

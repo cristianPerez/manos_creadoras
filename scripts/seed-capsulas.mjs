@@ -6,6 +6,15 @@
  * enseña la portada diciendo que el video llega pronto, en vez de abrir un
  * reproductor roto.
  *
+ * ⚠️ `portada_url` YA NO ES LO QUE SE VE: desde el 2026-10-19 el círculo
+ * enseña un fotograma DEL PROPIO VIDEO de la cápsula (`lib/capsulas.ts` la
+ * calcula con `urlDeMiniatura`). Esto se queda solo como RESPALDO para cuando
+ * Bunny no sirve la miniatura — su CDN de imágenes bloquea localhost.
+ *
+ * ⚠️ Y son `.webp`, no `.jpg`: las portadas de los bolsos se convirtieron
+ * todas en la migración 0033 y los `.jpg` se borraron. Con la ruta vieja, los
+ * cinco círculos se quedaban negros en cuanto fallaba la miniatura.
+ *
  * Las portadas se toman prestadas de bolsos que SÍ tienen foto. Es provisional
  * también: cuando se graben las cápsulas tendrán la suya.
  *
@@ -38,7 +47,7 @@ const { error } = await db.from("capsulas").upsert(
     etiqueta_corta: c.etiqueta_corta,
     subtitulo: c.subtitulo,
     video_id: null,
-    portada_url: `/images/bolso-${c.portada}.jpg`,
+    portada_url: `/images/bolso-${c.portada}.webp`,
   })),
   { onConflict: "orden" },
 );
