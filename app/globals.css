@@ -39,6 +39,17 @@
   --ink-body: #5E4D40;    /* párrafos */
   --ink-muted: #6B5A4C;   /* notas y textos secundarios */
 
+  /* ====== v4 DEL OJO EXPERTO (2026-10-20) ======
+     El rediseño v4 es PLANO: sin degradados, sin sombras, sin glow, sin blur.
+     Estos cinco son los tonos intermedios que ese lenguaje necesita y que los
+     12 de marca no cubrían. No se usan fuera del Ojo sin pensarlo: cada uno
+     tapa un hueco concreto, no son variantes "por si acaso". */
+  --sand-hover: #EADCC5;    /* arena un punto más oscura: hover de sugerencias */
+  --espresso-2: #3B2A20;    /* bloque elevado DENTRO del espresso (sidebar) */
+  --espresso-line: #4A3A2E; /* divisores sobre espresso, donde `--line` no se ve */
+  --line-strong: #D8C6A8;   /* borde del composer: `--line` se pierde sobre marfil */
+  --on-dark-muted: #D8C6A8; /* texto secundario sobre espresso */
+
   /*
     ⚠️ REGLA DE CONTRASTE QUE NO SE PUEDE ROMPER: el dorado sobre crema es
     SIEMPRE `--gold` (#8C6A2F). `--gold-light` sobre crema da 1,9:1 — ilegible,
@@ -247,6 +258,11 @@
   --color-espresso: var(--espresso);
   --color-ink-body: var(--ink-body);
   --color-ink-muted: var(--ink-muted);
+  --color-sand-hover: var(--sand-hover);
+  --color-espresso-2: var(--espresso-2);
+  --color-espresso-line: var(--espresso-line);
+  --color-line-strong: var(--line-strong);
+  --color-on-dark-muted: var(--on-dark-muted);
 
   --color-surface-base: var(--surface-base);
   --color-surface-primary: var(--surface-primary);
