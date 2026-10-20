@@ -5,11 +5,11 @@ y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
 mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
 > **Podado el 2026-10-19 de 1080 líneas a estas.** Había dejado de servir: decía
-> "12 migraciones" (hay 30), "el cobro es 100% Hotmart" (es OnePay desde el
+> "12 migraciones" (hay 31), "el cobro es 100% Hotmart" (es OnePay desde el
 > 16-oct), mandaba a `npm run acceso:dar` (no existe) y daba **cuatro precios
 > distintos**, ninguno igual al del código. Lo podado está en `git log`.
 >
-> Quedan ~250 líneas y la regla del SO son 200. No se recorta más a costa de
+> Quedan ~275 líneas y la regla del SO son 200. No se recorta más a costa de
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
@@ -23,16 +23,22 @@ revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 
 ---
 
-## 💵 EL PRECIO: DOS JUEGOS, Y CUÁL SE APLICA DEPENDE DE LA PERSONA
+## 💵 EL PRECIO: UNO SOLO (2026-10-19)
 
-Fuente única: `lib/planes.ts`. **Ningún precio escrito en otro sitio.**
-`PRECIO_NORMAL` = US$35/mes · US$350/año · `PRECIO_OFERTA` (lanzamiento) =
-**US$9,99 · US$80**.
+Fuente única: `lib/planes.ts` → `PRECIOS`. **Ningún precio escrito en otro sitio.**
 
-La oferta dura **24h desde la primera visita** (cookie `oferta`, `lib/oferta.ts`
-+ `lib/oferta-servidor.ts`). ⚠️ **El precio sube de verdad al expirar**: quien
-vuelve al día siguiente ve 35/350 y paga eso. `BarraDeOferta` lleva el reloj;
-`PrecioQueCuenta` anima el número al cambiar de frecuencia.
+**US$9,99 al mes · US$89,90 al año** (= US$7,49/mes · ahorra US$30, 25%).
+Son EXACTAMENTE los planes de OnePay: si un día no coinciden, manda OnePay —es
+quien cobra— y la constante miente. Se cambian los dos sitios a la vez.
+
+⚠️ **LA OFERTA DE LANZAMIENTO SE RETIRÓ ENTERA** (barra del reloj, los dos
+juegos de precios, la cookie del middleware, `lib/oferta*.ts`). No fue un
+cambio de precio: **la rebaja no existía**. OnePay tiene UN enlace por ciclo,
+así que cobraba lo mismo a todo el mundo mientras la página anunciaba "antes
+US$350" y el reloj no cambiaba nada al llegar a cero. Palabras de Cristian:
+«no queremos fingir una rebaja de precio».
+→ Para una oferta de verdad hace falta PRIMERO un segundo plan en OnePay y que
+el enlace cambie al expirar. Si no, es decoración.
 
 **En OnePay, empresa "Manos Creadoras"** (0028): mensual `01a14b95-f607…` y anual
 `01a14b96-796a…`, que se lee "Mensual · 12 ciclos" = **cobra cada 12 meses**. Sin
@@ -61,22 +67,26 @@ endpoint**; la 0025 añadió `duracion_ms` y el log marca `lento` a los 8s.
 
 ## 🔴 Bloqueos para vender
 
-- [ ] **BOTÓN "CANCELAR MI MEMBRESÍA"** — lo último grande, y el más delicado.
-      Hoy la alumna no puede darse de baja sola; en varios países de LATAM
-      obligar a escribir para cancelar es **ilegal**.
-      ⚠️ **OnePay no tiene API de cancelación documentada** (revisado el 16-oct).
-      Primero: preguntarle al dueño si existe sin documentar (Cristian tiene
-      contacto directo). Si no existe, el botón marca `cancelada` en nuestra base
-      y **avisa a Elizabeth** para que la cancele en el panel — ⚠️ si nadie lo
-      hace allí, **se le vuelve a cobrar** y la app estaría mintiendo.
-      Ya listo: `cancelar_membresia()` (0014), el webhook conservando el acceso y
-      `/app/plan` mostrando el estado. Falta el botón, su confirmación (es
-      irreversible) y el aviso. ⚠️ **El FAQ se cambia en el MISMO commit**.
+- [x] ~~**BOTÓN "CANCELAR MI MEMBRESÍA"**~~ ✅ **CONSTRUIDO el 2026-10-19**, en
+      `/app/plan`. Elimina la suscripción en OnePay por API
+      (`DELETE /v1/subscriptions/{id}`, `lib/onepay.ts`) y, si eso falla,
+      cancela igual en nuestra base y manda un aviso `ACCIÓN:` a Cristian y
+      Elizabeth para hacerlo a mano. NO corta el acceso: conserva hasta el
+      final del ciclo pagado. El FAQ y las páginas legales cambiaron en el
+      mismo commit.
+      🔴 **PERO LA LLAMADA A ONEPAY NUNCA SE HA EJECUTADO.** Las alumnas de
+      prueba se activan a mano y no tienen suscripción en la pasarela, así que
+      el código salta ese paso. Solo se prueba con una suscripción de verdad
+      en QA — ver pendientes de abajo.
+- [ ] 🔴 **`ONEPAY_API_KEY` EN VERCEL (Preview).** Sin ella el botón de
+      cancelar no detiene el cobro: cancela en nuestra base y manda el aviso
+      para hacerlo a mano. Es la misma `sk_test_…` del `.env.local`, y **nunca**
+      como `NEXT_PUBLIC_`.
 - [ ] **Identificación del responsable de los datos** (cédula o NIT de Elizabeth)
       y un domicilio → `lib/legal.ts` (`IDENTIFICACION`/`DOMICILIO`, hoy `null`).
       La Ley 1581 de 2012 lo exige. En `null` las páginas omiten la línea: quedan
       **incompletas, no falsas**.
-- [ ] **Montar producción.** `icbhtsdalysatlizjlys` está **vacío**: las 30
+- [ ] **Montar producción.** `icbhtsdalysatlizjlys` está **vacío**: las 31
       migraciones sin aplicar, un `db push` limpio sirve. Faltan la biblioteca de
       Bunny de producción y las variables en Vercel. Cuando aprueben la cuenta,
       crear un plan de US$1 y repetir la verificación completa. ⚠️ Los webhooks
@@ -89,18 +99,19 @@ endpoint**; la 0025 añadió `duracion_ms` y el log marca `lento` a los 8s.
       completar las cinco (`UPDATE capsulas … where orden = 5`).
 - [ ] **2-3 testimonios reales** (capturas de WhatsApp). 🔴 Fallo nº1 del revisor
       visual, y **no se inventan**: el 17-oct se quitó un "4,9/5" sin respaldo.
-- [ ] **7 portadas de bolso**: silueta-nacar, cherry, celeste-calido, esmeralda,
-      boho, zafiro-perlado (y una limpia de anillos-de-seda, ver abajo).
+- [ ] **6 portadas de bolso**: silueta-nacar, cherry, celeste-calido, esmeralda,
+      boho, zafiro-perlado. (Anillos de Seda ya la tiene — ver abajo.)
 - [ ] **Los 33 enlaces de AliExpress** (el botón dice "Enlace pronto").
 
 ---
 
 ## ⚠️ Riesgos aceptados por Cristian (no se re-discuten)
 
-- **La portada de Anillos de Seda lleva la marca DIOR a la vista** (logo en la
-  caja, dijes D-I-O-R en el asa). A ese bolso se le cambió el nombre justamente
-  por usar una marca ajena. Advertido con la foto delante el 17-oct; decidió
-  usarla. Si llega una foto limpia, sustituirla es **deseado** (migración 0026).
+- ~~La portada de Anillos de Seda con la marca DIOR~~ ✅ **RESUELTO el
+  2026-10-19** (migración 0031): Cristian entregó una foto limpia y sustituyó a
+  la de la 0026. Era el PRIMER bolso del carrusel, o sea la primera imagen que
+  ve quien llega por un anuncio. Esta vez **el seed también se actualizó**, que
+  era el desfase que dejó la 0026.
 - **Bunny no deja ocultar los controles del reproductor desde la URL** — solo por
   biblioteca, y esta sirve también las lecciones, donde la alumna sí necesita
   pausar. Una franja opaca de 72px tapa la barra en el visor de cápsulas.
@@ -124,6 +135,21 @@ pearl-royale).
 
 ## 🟡 Pendientes de código (no bloquean vender)
 
+- 🔴 **EL AUDIO DE LOS VIDEOS ESTÁ SIN COMPROBAR EN UN TELÉFONO REAL**
+  (2026-10-19). Se quitó el `muted=true` que las cápsulas tenían forzado, así
+  que el reproductor arranca con su volumen normal en vez de mudo siempre.
+  Verificado que SIGUEN arrancando solas, pero **desde el navegador no se puede
+  oír**: hace falta abrir una cápsula y un "Ver este paso" en un celular.
+  ⚠️ Si alguna se queda **congelada en el primer fotograma**, el culpable es
+  esto —el navegador bloqueó el autoplay con sonido— y la vuelta atrás es una
+  línea: reponer `muted=true` en `VideoDeHistoria.tsx`. Queda anotado allí.
+  ⚠️ **NO intentar forzarlo**: se probaron las otras dos vías el mismo día y
+  son peores. `muted=false` en la URL → pantalla negra, no arranca.
+  Desmutear con `unmute` tras `ready` → el navegador PAUSA el video y aparece
+  el play gigante en medio.
+- **Queda una cookie `oferta` huérfana** en los navegadores de quien ya visitó:
+  el middleware dejó de escribirla y nadie la lee, pero dura un año. No hace
+  daño; si molesta, se borra desde el middleware una temporada.
 - **`lib/hotmart-verify.ts` es un huérfano** (nadie lo importa) y `lib/env.ts`
   conserva `HOTMART_HOTTOK` y `hotmartEnv()`. Borrar.
 - **El seed no tiene la portada de Anillos de Seda** (la puso la 0026): si
@@ -248,4 +274,6 @@ El detalle está en `git log` — los mensajes llevan el problema, la causa y c�
 se comprobó. Hitos: construcción de la app (jul-ago 2026) · embudo de entrada
 portado de El Charcu (sep) · rediseño a crema y los 16 bolsos (oct 9-14) · home
 v2 y plan único (oct 14) · salida de Hotmart y entrada de OnePay (oct 16-17) ·
-visor de cápsulas y oferta de lanzamiento (oct 17-18).
+visor de cápsulas y oferta de lanzamiento (oct 17-18) · baja autónoma de la
+alumna, galería del home en móvil y vuelta a UN solo precio, retirando la
+oferta de lanzamiento por no ser real (oct 19).
