@@ -51,7 +51,7 @@
           "orden": 4
         }
       ],
-      "portada_url": "/images/bolso-perla-tejida.jpg",
+      "portada_url": "/images/bolso-perla-tejida.webp",
       "gratis": false
     },
     {
@@ -105,7 +105,7 @@
           "orden": 2
         }
       ],
-      "portada_url": "/images/bolso-brillo-lunar.jpg",
+      "portada_url": "/images/bolso-brillo-lunar.webp",
       "gratis": false
     },
     {
@@ -279,7 +279,7 @@
           "orden": 5
         }
       ],
-      "portada_url": "/images/bolso-marfil-elegante.jpg",
+      "portada_url": "/images/bolso-marfil-elegante.webp",
       "gratis": false
     },
     {
@@ -339,7 +339,7 @@
           "orden": 4
         }
       ],
-      "portada_url": "/images/bolso-encantado-dorado.jpg",
+      "portada_url": "/images/bolso-encantado-dorado.webp",
       "gratis": false
     },
     {
@@ -422,7 +422,7 @@
           "orden": 5
         }
       ],
-      "portada_url": null,
+      "portada_url": "/images/bolso-silueta-nacar.webp",
       "gratis": false
     },
     {
@@ -521,7 +521,7 @@
           "orden": 7
         }
       ],
-      "portada_url": "/images/bolso-tornado-de-aurora.jpg",
+      "portada_url": "/images/bolso-tornado-de-aurora.webp",
       "gratis": false
     },
     {
@@ -599,7 +599,7 @@
           "parte": "2 de 2"
         }
       ],
-      "portada_url": "/images/bolso-gota-de-rocio.jpg",
+      "portada_url": "/images/bolso-gota-de-rocio.webp",
       "gratis": false
     },
     {
@@ -658,7 +658,7 @@
           "orden": 4
         }
       ],
-      "portada_url": null,
+      "portada_url": "/images/bolso-cherry.webp",
       "gratis": false
     },
     {
@@ -706,7 +706,7 @@
           "orden": 3
         }
       ],
-      "portada_url": "/images/bolso-cristal-brillante.jpg",
+      "portada_url": "/images/bolso-cristal-brillante.webp",
       "gratis": false
     },
     {
@@ -778,7 +778,7 @@
           "orden": 4
         }
       ],
-      "portada_url": "/images/bolso-coquett-clasico.jpg",
+      "portada_url": "/images/bolso-coquett-clasico.webp",
       "gratis": false
     },
     {
@@ -989,7 +989,7 @@
           "orden": 5
         }
       ],
-      "portada_url": null,
+      "portada_url": "/images/bolso-boho.webp",
       "gratis": false
     },
     {
@@ -1054,7 +1054,7 @@
           "orden": 5
         }
       ],
-      "portada_url": null,
+      "portada_url": "/images/bolso-zafiro-perlado.webp",
       "gratis": false
     },
     {
@@ -1129,7 +1129,7 @@
           "orden": 5
         }
       ],
-      "portada_url": "/images/bolso-silueta-nacar.jpg",
+      "portada_url": "/images/bolso-nacar-sonado.webp",
       "gratis": true
     }
   ],
@@ -1369,6 +1369,6 @@
   },
   "nota_fuente": "Generado por `node scripts/pdf-a-seed.mjs` desde las fichas en PDF de Elizabeth (2026-10-14). NO se transcribe a mano: un carácter cambiado deja un video que no carga y nadie se entera hasta que una alumna lo abre. Si el PDF cambia, se vuelve a correr el script. Las erratas corregidas y SU MOTIVO están en la constante ERRATAS del script.",
   "nota_gratis": "El bolso de cortesía es NÁCAR SOÑADO desde el 2026-10-14. Lo decide `gratis: true` y nada más: ni un slug en el código ni una constante.",
-  "nota_portadas": "⚠️ CORREGIDO: `bolso-silueta-nacar.jpg` estaba en Silueta Nácar (ex-Balenciaga) porque la landing la llamaba 'Nácar Soñado'. Nácar Soñado resultó ser el bolso 16, otro distinto — la foto es suya. Siete sin portada: Anillos de Seda (la disponible lleva el logo de Dior), Silueta Nácar, Cherry, Celeste Cálido, Esmeralda, Boho y Zafiro Perlado.",
+  "nota_portadas": "Las 14 portadas son WebP 720x720 (calidad 65), 640 KB en total. Cada archivo se llama como su bolso: `bolso-silueta-nacar.jpg` ERA la foto de Nacar Sonado y ese nombre mentiroso ya causo una confusion; se renombro en la migracion 0033. Siguen SIN foto dos bolsos: Esmeralda (no llego ninguna verde) y Celeste Calido (su unico candidato era un monedero, y los llaveros/monederos no son de los 16 bolsos del curso).",
   "total_videos": 87
 }
