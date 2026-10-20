@@ -1,6 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { COOKIE_OFERTA } from "@/lib/oferta";
 
 /**
  * Pantallas que exigen haber iniciado sesión.
@@ -73,32 +72,6 @@ export async function middleware(request: NextRequest) {
     cursos.pathname = "/cursos";
     cursos.search = "";
     return NextResponse.redirect(cursos);
-  }
-
-  /*
-   * ⚠️ AQUÍ ARRANCA EL RELOJ DE LA OFERTA, en la primerísima visita.
-   *
-   * Tiene que ser el middleware y no una página: un Server Component puede
-   * LEER cookies pero no escribirlas, así que si esperáramos a la página el
-   * reloj no empezaría nunca.
-   *
-   * Solo se escribe si no existe. Nunca se refresca — si se renovara en cada
-   * visita, las 24 horas no terminarían jamás y el contador sería mentira.
-   */
-  if (!request.cookies.has(COOKIE_OFERTA)) {
-    response.cookies.set(COOKIE_OFERTA, String(Date.now()), {
-      path: "/",
-      /*
-       * Dura MUCHO más que la oferta a propósito: lo que se recuerda no es
-       * "está en oferta", es "esta persona ya empezó su ventana". Si la cookie
-       * caducara a las 24h, al día siguiente volvería a tener otras 24 horas
-       * de descuento y la oferta no terminaría para nadie.
-       */
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-      // Legible desde el navegador: el contador en pantalla la necesita.
-      httpOnly: false,
-    });
   }
 
   return response;

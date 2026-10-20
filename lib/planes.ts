@@ -56,31 +56,34 @@ export type Frecuencia = "anual" | "mensual";
  * que alguien los usara creyéndolos buenos. Se borraron. Si un precio no sale
  * de este archivo, es un precio inventado.
  *
- * ── HAY DOS JUEGOS DE PRECIOS, Y CUÁL SE APLICA DEPENDE DE LA PERSONA ──────
+ * ── UN SOLO PRECIO (2026-10-19) ───────────────────────────────────────────
  *
- * Desde el 2026-10-17 la app vende en oferta de lanzamiento: durante sus
- * primeras 24 horas, cada visitante ve el precio rebajado; pasadas, ve el
- * normal. Quién está dentro de esas 24h lo decide `lib/oferta.ts` leyendo una
- * cookie, y el resultado se pasa a estas funciones.
+ * Entre el 17 y el 19 de octubre hubo una oferta de lanzamiento: dos juegos de
+ * precios y un reloj de 24h por visitante. SE RETIRÓ ENTERA, y conviene saber
+ * por qué para no reponerla sin pensarlo.
  *
- * ⚠️ EL PRECIO SUBE DE VERDAD AL EXPIRAR, y eso no es un detalle: es lo que
- * separa una oferta de un engaño. Un reloj que llega a cero sin que cambie
- * nada se descubre recargando la página, y a partir de ahí no se cree nada más
- * de lo que diga el sitio.
+ * ⚠️ LA REBAJA NO EXISTÍA. OnePay tiene UN enlace de pago por ciclo
+ * (`plan_checkout`), así que cobraba lo mismo a todo el mundo. La página
+ * anunciaba "antes US$350" y, pasadas las 24h, seguía anunciando US$350
+ * mientras el botón cobraba el precio de oferta. El "antes" era un número que
+ * nunca se cobró y el reloj no cambiaba nada al llegar a cero.
+ *
+ * Decisión de Cristian el 2026-10-19, con sus palabras: «no queremos fingir
+ * una rebaja de precio». Si algún día se quiere una oferta de verdad, hace
+ * falta primero un SEGUNDO plan en OnePay con el precio normal y que el
+ * enlace cambie al expirar — si no, es decoración.
  */
 
 export type Precios = { mensual: number; anual: number };
 
-/** Lo que cuesta normalmente. Fue el precio real hasta el 2026-10-16. */
-export const PRECIO_NORMAL: Precios = { mensual: 35, anual: 350 };
-
-/** Lo que cuesta durante las primeras 24 horas de cada visitante. */
-export const PRECIO_OFERTA: Precios = { mensual: 9.99, anual: 80 };
-
-/** El juego de precios que le toca a quien está mirando. */
-export function preciosDe(enOferta: boolean): Precios {
-  return enOferta ? PRECIO_OFERTA : PRECIO_NORMAL;
-}
+/**
+ * EL precio. Uno solo, el mismo para todo el mundo y a todas horas.
+ *
+ * ⚠️ SON EXACTAMENTE LOS PLANES DE ONEPAY. Si aquí dice una cifra y el panel
+ * de OnePay dice otra, manda OnePay —es quien cobra— y esta constante está
+ * mintiendo. Al cambiar un precio se cambian LOS DOS SITIOS, en el mismo rato.
+ */
+export const PRECIOS: Precios = { mensual: 9.99, anual: 89.9 };
 
 /**
  * Lo que cuesta cada mes según cómo se pague.
@@ -89,48 +92,14 @@ export function preciosDe(enOferta: boolean): Precios {
  * escribieran los dos, el día que cambie uno el otro se queda mintiendo — y la
  * cifra que miente es siempre la del descuento, que es la que decide la compra.
  */
-export function precioPorMesDe(enOferta: boolean): Record<Frecuencia, number> {
-  const p = preciosDe(enOferta);
-  return { mensual: p.mensual, anual: p.anual / 12 };
+export function precioPorMesDe(): Record<Frecuencia, number> {
+  return { mensual: PRECIOS.mensual, anual: PRECIOS.anual / 12 };
 }
 
 /** Lo que se ahorra pagando el año de golpe, en dólares y en porcentaje. */
-export function ahorroAnualDe(enOferta: boolean): { dolares: number; pct: number } {
-  const p = preciosDe(enOferta);
-  const dolares = Math.round(p.mensual * 12 - p.anual);
-  return { dolares, pct: Math.round((dolares / (p.mensual * 12)) * 100) };
-}
-
-/** Lo que se ahorra frente al precio NORMAL. Es el número de la oferta. */
-export function descuentoDeLanzamiento(frecuencia: Frecuencia): {
-  /** Lo que se cobra de una vez: US$350 → US$80 en el anual. */
-  antes: number;
-  ahora: number;
-  /**
-   * Lo mismo repartido AL MES: US$29,17 → US$6,67.
-   *
-   * ⚠️ ES LO QUE ENSEÑA LA BARRA, no el cobro anual. Toda la app habla "al
-   * mes" —el bloque de precio, la ficha del bolso, el "desde US$X"— y la barra
-   * decía US$80 mientras la sección de abajo decía US$6,67. Eran el mismo
-   * precio dicho de dos maneras, y en una barra de oferta eso se lee como que
-   * los números no cuadran. Al mes, además, la cifra asusta menos justo donde
-   * se decide seguir leyendo.
-   */
-  antesPorMes: number;
-  ahoraPorMes: number;
-  pct: number;
-} {
-  const antes = PRECIO_NORMAL[frecuencia];
-  const ahora = PRECIO_OFERTA[frecuencia];
-  const meses = frecuencia === "anual" ? 12 : 1;
-  return {
-    antes,
-    ahora,
-    antesPorMes: antes / meses,
-    ahoraPorMes: ahora / meses,
-    // El porcentaje es el mismo se mire al mes o al año: es una proporción.
-    pct: Math.round(((antes - ahora) / antes) * 100),
-  };
+export function ahorroAnualDe(): { dolares: number; pct: number } {
+  const dolares = Math.round(PRECIOS.mensual * 12 - PRECIOS.anual);
+  return { dolares, pct: Math.round((dolares / (PRECIOS.mensual * 12)) * 100) };
 }
 
 /** Lo que incluye. Es la misma lista para los dos ciclos: cambia el cobro, no el curso. */
@@ -185,30 +154,24 @@ export function dolares(v: number): string {
 }
 
 /** "US$6,67" — siempre por mes, que es como se comparan los dos ciclos. */
-export function precioPorMes(frecuencia: Frecuencia, enOferta: boolean): string {
-  return `US$${precioPorMesDe(enOferta)[frecuencia].toFixed(2).replace(".", ",")}`;
+export function precioPorMes(frecuencia: Frecuencia): string {
+  return `US$${precioPorMesDe()[frecuencia].toFixed(2).replace(".", ",")}`;
 }
 
 /** "US$80" — el cobro de verdad, sin decimales si son redondos. */
-export function precioDelCobro(frecuencia: Frecuencia, enOferta: boolean): string {
-  return dolares(preciosDe(enOferta)[frecuencia]);
+export function precioDelCobro(frecuencia: Frecuencia): string {
+  return dolares(PRECIOS[frecuencia]);
 }
 
 /** La línea bajo el precio: qué se cobra y cuándo. */
-export function notaDelCobro(frecuencia: Frecuencia, enOferta: boolean): string {
-  const ahorro = ahorroAnualDe(enOferta).dolares;
+export function notaDelCobro(frecuencia: Frecuencia): string {
+  const ahorro = ahorroAnualDe().dolares;
   return frecuencia === "anual"
-    ? `Se cobra ${precioDelCobro("anual", enOferta)} una vez al año · ahorras US$${ahorro}`
+    ? `Se cobra ${precioDelCobro("anual")} una vez al año · ahorras US$${ahorro}`
     : "Se cobra cada mes · cancelas cuando quieras";
 }
 
-/**
- * "desde US$6,67 al mes" — el gancho corto que usan varias pantallas.
- *
- * ⚠️ YA NO ES UNA CONSTANTE. Era `PRECIO_DESDE`, calculada una vez al cargar el
- * módulo; con dos juegos de precios eso congelaba uno de los dos para todo el
- * servidor. Ahora es función y cada pantalla pasa lo que le toca a quien mira.
- */
-export function precioDesde(enOferta: boolean): string {
-  return precioPorMes("anual", enOferta);
+/** "desde US$7,49 al mes" — el gancho corto que usan varias pantallas. */
+export function precioDesde(): string {
+  return precioPorMes("anual");
 }

@@ -26,7 +26,6 @@ export function SelectorDePago({
   enlaces,
   frecuenciaInicial,
   correo,
-  enOferta,
 }: {
   /*
    * ⚠️ LOS ENLACES LLEGAN YA RESUELTOS POR REGIÓN. Esta pantalla NO decide de
@@ -41,7 +40,6 @@ export function SelectorDePago({
    * se calcula aquí: depende de una cookie que solo el servidor lee, y además
    * decide el PRECIO — tenerlo en dos sitios es tener dos precios.
    */
-  enOferta: boolean;
 }) {
   const [frecuencia, setFrecuencia] = useState<Frecuencia>(frecuenciaInicial);
   const url = enlaces[frecuencia];
@@ -91,7 +89,7 @@ export function SelectorDePago({
                       activo ? "bg-gold-light text-espresso" : "bg-gold-light/50 text-ink-body"
                     }`}
                   >
-                    Ahorra {ahorroAnualDe(enOferta).pct}%
+                    Ahorra {ahorroAnualDe().pct}%
                   </span>
                 )}
               </motion.button>
@@ -124,7 +122,7 @@ export function SelectorDePago({
                 `key` fuerza que se remonte en cada cambio, que es lo que
                 dispara el conteo otra vez.
               */}
-              <PrecioQueCuenta hasta={precioPorMesDe(enOferta)[frecuencia]} quieto={Boolean(quieto)} />
+              <PrecioQueCuenta hasta={precioPorMesDe()[frecuencia]} quieto={Boolean(quieto)} />
             </span>
             <span className="text-lg text-white/60">/mes</span>
           </p>
@@ -142,7 +140,7 @@ export function SelectorDePago({
                 exit={quieto ? undefined : { opacity: 0, y: -4 }}
                 transition={{ duration: 0.2 }}
               >
-                {notaDelCobro(frecuencia, enOferta)}
+                {notaDelCobro(frecuencia)}
               </motion.p>
             </AnimatePresence>
           </div>

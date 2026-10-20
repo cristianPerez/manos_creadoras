@@ -234,7 +234,18 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
               </strong>
               <span>alumnas en Latinoamérica</span>
             </span>
-            <span>Sin tarjeta para empezar</span>
+            {/*
+              ⚠️ "SIN TARJETA PARA EMPEZAR" SE QUITÓ EL 2026-10-19 (decisión de
+              Cristian). Queda anotado para que nadie lo reponga creyendo que
+              se perdió: es el segundo recorte de esta línea, después del
+              "4,9/5" del 17-oct, y la línea se queda SOLO con las +1.200
+              alumnas.
+
+              El dato sigue siendo cierto y se sigue diciendo donde toca —el
+              botón promete el bolso gratis y el paywall no aparece hasta
+              intentar más—, así que no se pierde la promesa: se deja de
+              repetir en el héroe.
+            */}
           </p>
         </div>
       </div>

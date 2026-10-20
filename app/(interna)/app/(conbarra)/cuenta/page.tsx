@@ -6,7 +6,6 @@ import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
 import { FormularioAcceso } from "@/components/app/FormularioAcceso";
 import { alumnaActual, cupoActual } from "@/lib/alumna";
 import { precioPorMes } from "@/lib/planes";
-import { estadoDeLaOferta } from "@/lib/oferta-servidor";
 
 export const metadata: Metadata = { title: "Mi cuenta — Manos Creadoras" };
 
@@ -19,7 +18,6 @@ const LEGALES = [
 ];
 
 export default async function MiCuenta() {
-  const oferta = await estadoDeLaOferta();
   const alumna = await alumnaActual();
 
   /* Sin sesión, esta pestaña ES el formulario de entrar. No se rebota a /entrar:
@@ -38,7 +36,7 @@ export default async function MiCuenta() {
 
   const cupo = await cupoActual(alumna.id);
   /* Un solo plan: lo que varía es cómo lo paga, no cuál tiene. */
-  const precio = alumna.tieneAcceso && alumna.ciclo ? precioPorMes(alumna.ciclo, oferta.activa) : null;
+  const precio = alumna.tieneAcceso && alumna.ciclo ? precioPorMes(alumna.ciclo) : null;
 
   return (
     <>

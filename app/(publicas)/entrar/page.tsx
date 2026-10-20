@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FormularioAcceso } from "@/components/app/FormularioAcceso";
 import { precioDesde } from "@/lib/planes";
-import { estadoDeLaOferta } from "@/lib/oferta-servidor";
 
 export const metadata: Metadata = {
   title: "Entrar — Manos Creadoras",
@@ -18,7 +17,6 @@ export const metadata: Metadata = {
  * empujándolo hacia abajo sería trabajo extra para quien solo quiere entrar.
  */
 export default async function Entrar() {
-  const oferta = await estadoDeLaOferta();
 
   return (
     <main className="grid min-h-dvh lg:grid-cols-2">
@@ -48,7 +46,7 @@ export default async function Entrar() {
                 pantalla interna lo mandaría de vuelta aquí a iniciar sesión —
                 un círculo. En el home ve los planes sin tener que registrarse. */}
             <Link href="/#precio" className="text-gold font-semibold underline">
-              Míralos desde {precioDesde(oferta.activa)} al mes
+              Míralos desde {precioDesde()} al mes
             </Link>
           </p>
           <p className="text-ink-muted mt-2 text-center text-sm">

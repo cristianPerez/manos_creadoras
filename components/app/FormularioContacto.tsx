@@ -117,7 +117,7 @@ export function FormularioContacto() {
               >
                 {c.texto}
                 <span className={ciclo === c.id ? "text-white/60" : "text-ink-muted"}>
-                  {precioPorMes(c.id, false)}/mes
+                  {precioPorMes(c.id)}/mes
                 </span>
               </button>
             ))}

@@ -29,7 +29,6 @@ import {
  */
 export function PrecioHome({
   enlaces,
-  enOferta,
 }: {
   enlaces: Record<Frecuencia, string | null>;
   /*
@@ -37,7 +36,6 @@ export function PrecioHome({
    * se calcula aquí: depende de una cookie que solo el servidor lee, y además
    * decide el PRECIO — tenerlo en dos sitios es tener dos precios.
    */
-  enOferta: boolean;
 }) {
   // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
   const frecuencia = useFrecuenciaElegida();
@@ -90,7 +88,7 @@ export function PrecioHome({
                         activo ? "bg-gold-light text-espresso" : "bg-gold-light/55 text-ink-body"
                       }`}
                     >
-                      Ahorra {ahorroAnualDe(enOferta).pct}%
+                      Ahorra {ahorroAnualDe().pct}%
                     </span>
                   )}
                 </button>
@@ -123,13 +121,13 @@ export function PrecioHome({
                   El mismo fallo apareció antes en la pantalla de planes.
                 */}
                 <PrecioQueCuenta
-                  hasta={precioPorMesDe(enOferta)[frecuencia]}
+                  hasta={precioPorMesDe()[frecuencia]}
                   quieto={Boolean(quieto)}
                 />
               </span>
               <span className="text-lg text-white/60">/mes</span>
             </p>
-            <p className="mt-2 text-sm text-white/65">{notaDelCobro(frecuencia, enOferta)}</p>
+            <p className="mt-2 text-sm text-white/65">{notaDelCobro(frecuencia)}</p>
 
             {/*
               ⚠️ SI NO HAY ENLACE PARA ESE CICLO, NO SE FINGE QUE SE PUEDE PAGAR.

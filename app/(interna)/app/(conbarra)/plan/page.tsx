@@ -10,7 +10,6 @@ import { alumnaActual } from "@/lib/alumna";
 import { listarBolsos } from "@/lib/bolsos";
 import { fechaLarga, finDelCicloEnCurso } from "@/lib/ciclo";
 import { enlacesDeCobro } from "@/lib/checkout";
-import { estadoDeLaOferta } from "@/lib/oferta-servidor";
 import { INCLUYE } from "@/lib/planes";
 
 export const metadata: Metadata = {
@@ -45,11 +44,10 @@ export default async function MiPlan({
   searchParams: Promise<{ ciclo?: string }>;
 }) {
   const { ciclo } = await searchParams;
-  const [alumna, cobro, bolsos, oferta] = await Promise.all([
+  const [alumna, cobro, bolsos] = await Promise.all([
     alumnaActual(),
     enlacesDeCobro(),
     listarBolsos(),
-    estadoDeLaOferta(),
   ]);
   // Del catálogo, no a mano: el día que entre el bolso 17 esta frase no miente.
   const totalBolsos = bolsos.length;
@@ -112,7 +110,6 @@ export default async function MiPlan({
                 enlaces={cobro.url}
                 frecuenciaInicial={ciclo === "mensual" ? "mensual" : "anual"}
                 correo={alumna.email}
-                enOferta={oferta.activa}
               />
             </Entrada>
           </>
