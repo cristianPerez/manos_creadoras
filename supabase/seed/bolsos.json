@@ -859,7 +859,7 @@
           "orden": 4
         }
       ],
-      "portada_url": null,
+      "portada_url": "/images/bolso-celeste-calido.webp",
       "gratis": false
     },
     {
@@ -1674,7 +1674,7 @@
   },
   "nota_fuente": "Generado por `node scripts/pdf-a-seed.mjs` desde las fichas en PDF de Elizabeth (2026-10-14). NO se transcribe a mano: un carácter cambiado deja un video que no carga y nadie se entera hasta que una alumna lo abre. Si el PDF cambia, se vuelve a correr el script. Las erratas corregidas y SU MOTIVO están en la constante ERRATAS del script.",
   "nota_gratis": "El bolso de cortesía es NÁCAR SOÑADO desde el 2026-10-14. Lo decide `gratis: true` y nada más: ni un slug en el código ni una constante.",
-  "nota_portadas": "Las portadas son WebP 720x720 (calidad 65), ~40-60 KB cada una. Cada archivo se llama como su bolso. El 2026-10-21 entraron las de Perla Clásica, Corazón Dorado, Icono, Mini Perlina y los 3 llaveros (asignadas por forma y materiales del PDF; Icono y Perla Clásica son las menos seguras). Siguen SIN foto: Esmeralda y Celeste Cálido (no llegó ninguna verde ni celeste).",
+  "nota_portadas": "Las portadas son WebP 720x720 (calidad 65), ~40-60 KB cada una. Cada archivo se llama como su bolso. El 2026-10-21 entraron las de Perla Clásica, Corazón Dorado, Icono, Mini Perlina y los 3 llaveros (asignadas por forma y materiales del PDF; Icono y Perla Clásica son las menos seguras). Celeste Cálido recibió la suya el 2026-10-21 (perlas con cadena dorada). Sigue SIN foto: Esmeralda.",
   "total_videos": 106,
   "nota_fuente_2026_10_20": "Bolsos 17-20 (Perla Clásica, Corazón Dorado, Icono, Mini Perlina) salen de Manos_Creadoras_desde_Perla_Clasica_CORREGIDO.pdf. Los 16 videos se verificaron en Bunny (miniatura 200). Sin portada todavía. Llaveros 21-23 (Mora, Chispitas, Ónix): el 'ID proporcionado' del PDF es su identificador (como el de los bolsos), NO un video. Sus videos los mandó Elizabeth aparte el 2026-10-20 y se verificaron en Bunny. Un llavero tiene UN solo video completo: va como video de materiales y sin lecciones. Se reconocen por el slug `llavero-`."
 }

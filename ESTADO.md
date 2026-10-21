@@ -97,8 +97,8 @@ endpoint**; la 0025 añadió `duracion_ms` y el log marca `lento` a los 8s.
       izquierda; en uno pone "CapCut AI"), en una página que cobra. Reexportar.
 - [ ] **2-3 testimonios reales** (capturas de WhatsApp). 🔴 Fallo nº1 del revisor
       visual, y **no se inventan**: el 17-oct se quitó un "4,9/5" sin respaldo.
-- [ ] **Portadas que faltan: Esmeralda y Celeste Cálido** (no llegó ninguna foto
-      verde ni celeste). Las de los 4 bolsos nuevos y los 3 llaveros entraron el
+- [ ] **Portada que falta: Esmeralda** (no llegó ninguna foto verde; Celeste
+      Cálido recibió la suya el 2026-10-21). Las de los 4 bolsos nuevos y los 3 llaveros entraron el
       2026-10-21, asignadas por forma y materiales; **Icono y Perla Clásica son las
       menos seguras**, que Elizabeth las confirme. Formato: WebP 720×720, calidad 65.
 - [ ] **Los 33 enlaces de AliExpress** (el botón dice "Enlace pronto").
