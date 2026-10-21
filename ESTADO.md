@@ -1,6 +1,6 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-10-20.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-10-21.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
 mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
@@ -350,13 +350,57 @@ toca reintentar en el servidor.
 
 ---
 
+## 🚀 PRODUCCIÓN PUBLICADA — CON LA VENTA APAGADA (2026-10-21)
+
+**En vivo:** https://manos-creadoras.vercel.app (rama `main`, PR #2, `82338ce`).
+`manoscreadoras.co` y `www` (→ redirige al apex) ya están en el proyecto, **falta
+el DNS** en Namecheap: `A @ 216.198.79.1` y `CNAME www
+54c77d9c2092c13e.vercel-dns-017.com`.
+
+**Base de producción (`icbh…`):** 35 migraciones aplicadas con `db push` (la 0002
+tenía un fallo de tilde que impedía montarla desde cero — corregido); esquema
+idéntico a QA (24 tablas, 27 políticas, 52 índices, 0 sin RLS); catálogo cargado
+con `ENV_FILE=.env.prod node scripts/seed-bolsos.mjs` y `seed-capsulas.mjs`,
+igual fila a fila (219). Auth: Site URL `https://manoscreadoras.co`, redirects
+(apex, www, vercel.app), las 6 plantillas del repo y SMTP de Resend. La
+contraseña de la base es nueva y vive SOLO en `.env.prod` (que ahora sí es de
+producción: claves de Supabase prod + servicios compartidos con QA).
+
+**Vercel:** Production tiene SUS 19 variables (Supabase prod, `PUSH_ADMIN_SECRET`
+propio, sin OnePay ni Hotmart ni IA simulada); Preview conserva las de QA.
+
+**🔌 VENTA APAGADA:** `plan_checkout` vacío en producción y sin claves de OnePay.
+Los "Inscribirme" llevan a `/pagar` → Mi plan → Contacto ("te escribimos con el
+enlace de pago"); el webhook responde 401. **Para encenderla:** OnePay en modo
+real → `sk_live`, webhook nuevo a `https://manoscreadoras.co/api/webhooks/onepay`
+con su secreto y token en Vercel Production, las 4 filas de `plan_checkout` con
+los enlaces reales, y una compra de US$1 de punta a punta.
+
+**Verificado en vivo:** páginas 200, sin `noindex`, 19 imágenes sin rotas, "1 de
+20 bolsos", cápsulas nuevas, Ojo Experto con IA REAL respondiendo con contexto
+de Nácar Soñado, webhook sin firma → 401. Bunny ya permite `manoscreadoras.co`
+(en `vercel.app` los videos dan 403: es esperado, ese no es el dominio final).
+
+⚠️ **Pendientes:**
+- 💵 **Vercel Pro (US$20/mes) antes de encender la venta** — Hobby prohíbe uso
+  comercial. 💵 **Supabase Pro (US$25/mes) muy recomendado** — el gratis pausa la
+  base tras una semana sin uso y no tiene copias de seguridad.
+- **Gemini puede fallar por "alta demanda"** (pasó en la primera prueba en vivo:
+  503 de Google). La pregunta se devuelve, pero la alumna ve un error. Conviene un
+  reintento corto o un modelo de respaldo.
+- El correo de acceso (enlace mágico) en producción no se probó con un envío real.
+- Mixpanel comparte proyecto con QA (datos mezclados).
+- Identificación legal (Ley 1581) y permiso de las alumnas de los testimonios.
+
+---
+
 ## Ambientes
 
 | | QA | Producción |
 |---|---|---|
-| Supabase | `cazqmaluaehyikkstkoi` | `icbhtsdalysatlizjlys` (**vacío**) |
-| Bunny Stream | `772366` ("manos creadoras", 100 videos) | por crear |
-| Vercel | rama `develop`, público | por configurar |
+| Supabase | `cazqmaluaehyikkstkoi` | `icbhtsdalysatlizjlys` (35 migraciones + catálogo) |
+| Bunny Stream | `772366` ("manos creadoras") | la MISMA biblioteca (ya permite `manoscreadoras.co`) |
+| Vercel | rama `develop`, `qa.manoscreadoras.co` | rama `main`, `manos-creadoras.vercel.app` (dominio pendiente de DNS) |
 
 QA despliega solo con cada `push` a `develop`, y desde el 2026-10-18 manda
 `X-Robots-Tag: noindex` en **toda** respuesta fuera de producción
