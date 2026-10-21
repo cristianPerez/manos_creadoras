@@ -1,12 +1,12 @@
 "use client";
 
+import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { Check, ShieldCheck } from "lucide-react";
 import { AnimatePresence, animate, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  ahorroAnualDe,
   GARANTIA,
   INCLUYE,
   NOTA_PAGO,
@@ -44,59 +44,12 @@ export function SelectorDePago({
   const [frecuencia, setFrecuencia] = useState<Frecuencia>(frecuenciaInicial);
   const url = enlaces[frecuencia];
   const quieto = useReducedMotion();
-  // `layoutId` tiene que ser único por instancia: dos selectores en la misma
-  // página compartirían la píldora y se la robarían el uno al otro.
-  const idPildora = useId();
 
   return (
     <div className="mt-10">
-      <div className="flex justify-center">
-        <div className="bg-sand inline-flex items-center rounded-full p-1.5">
-          {(["anual", "mensual"] as const).map((f) => {
-            const activo = frecuencia === f;
-            return (
-              <motion.button
-                key={f}
-                type="button"
-                aria-pressed={activo}
-                onClick={() => setFrecuencia(f)}
-                whileTap={quieto ? undefined : { scale: 0.97 }}
-                className={`relative flex h-11 items-center gap-2.5 rounded-full px-6 font-semibold [touch-action:manipulation] ${
-                  activo ? "text-white" : "text-ink-body"
-                }`}
-              >
-                {/*
-                  ⚠️ LA PÍLDORA ES UN ELEMENTO QUE SE MUEVE, NO UN FONDO QUE SE
-                  ENCIENDE Y SE APAGA. Con `layoutId`, Motion la desliza de una
-                  opción a la otra: se ve de dónde viene el cambio. Antes los
-                  dos botones cambiaban de color a la vez y el ojo no seguía
-                  nada — parecía un parpadeo, no una elección.
-                */}
-                {activo && (
-                  <motion.span
-                    aria-hidden="true"
-                    layoutId={quieto ? undefined : `pildora-${idPildora}`}
-                    className="bg-espresso absolute inset-0 rounded-full"
-                    transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                  />
-                )}
-
-                {/* `relative` para quedar POR ENCIMA de la píldora absoluta. */}
-                <span className="relative">{f === "anual" ? "Anual" : "Mensual"}</span>
-                {f === "anual" && (
-                  <span
-                    className={`relative rounded-full px-2.5 py-1 text-xs font-bold transition-colors ${
-                      activo ? "bg-gold-light text-espresso" : "bg-gold-light/50 text-ink-body"
-                    }`}
-                  >
-                    Ahorra {ahorroAnualDe().pct}%
-                  </span>
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Interruptor y no píldora partida (2026-10-21, pedido de Cristian):
+          el mismo de toda la app — `components/app/InterruptorPlan.tsx`. */}
+      <InterruptorPlan valor={frecuencia} alCambiar={setFrecuencia} tamano="grande" />
 
       <section
         className="mt-8 grid gap-8 rounded-[var(--radius-xl)] p-8 text-white md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:p-10"

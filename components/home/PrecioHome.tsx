@@ -1,7 +1,8 @@
 "use client";
 
 import { Check, Lock, ShieldCheck } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
+import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
 import { EnlaceCompra, EnlaceWhatsApp } from "@/components/home/EnlaceCompra";
 import { Entrada } from "@/components/home/Entrada";
@@ -72,46 +73,10 @@ export function PrecioHome({
           <p className="text-ink-body mt-3 max-md:hidden">Paga cada mes o ahorra pagando el año.</p>
         </header>
 
-        <div className="mt-6 flex justify-center md:mt-8">
-          <div className="bg-sand inline-flex items-center rounded-full p-1.5">
-            {(["anual", "mensual"] as const).map((f) => {
-              const activo = frecuencia === f;
-              return (
-                <button
-                  key={f}
-                  type="button"
-                  aria-pressed={activo}
-                  onClick={() => elegir(f)}
-                  className={`relative flex h-12 items-center gap-2.5 rounded-full px-6 font-semibold [touch-action:manipulation] ${
-                    activo ? "text-white" : "text-ink-body"
-                  }`}
-                >
-                  {/*
-                    La píldora oscura es UN SOLO elemento que se desliza entre las
-                    dos opciones (`layoutId`), no dos fondos que se encienden y
-                    apagan. Es lo que hace que el cambio se lea como un gesto.
-                  */}
-                  {activo && (
-                    <motion.span
-                      layoutId="pildora-precio"
-                      className="bg-espresso absolute inset-0 rounded-full"
-                      transition={{ type: "spring", stiffness: 420, damping: 36 }}
-                    />
-                  )}
-                  <span className="relative">{f === "anual" ? "Anual" : "Mensual"}</span>
-                  {f === "anual" && (
-                    <span
-                      className={`relative rounded-full px-2.5 py-1 text-xs font-bold ${
-                        activo ? "bg-gold-pale text-espresso" : "bg-gold-pale/55 text-ink-body"
-                      }`}
-                    >
-                      Ahorra {ahorroAnualDe().pct}%
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        {/* Interruptor y no píldora partida (2026-10-21, pedido de Cristian):
+            el mismo de toda la app — `components/app/InterruptorPlan.tsx`. */}
+        <div className="mt-6 md:mt-8">
+          <InterruptorPlan valor={frecuencia} alCambiar={elegir} tamano="grande" />
         </div>
 
         {/*

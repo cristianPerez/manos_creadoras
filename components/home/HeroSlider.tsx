@@ -192,9 +192,9 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
           {/*
             ⚠️ EN MÓVIL TODO VA APRETADO, y el listón es medible (home v3): a
             390×844 tienen que verse el titular, el botón dorado y la línea de
-            precio sin bajar, y por encima de la barra fija de compra. Por eso
-            en móvil no van la etiqueta de arriba ni el segundo botón, y el
-            párrafo baja debajo del precio.
+            precio sin bajar. Por eso en móvil no va la etiqueta de arriba, el
+            botón "Ver los N bolsos" es más bajo y el párrafo baja debajo del
+            precio. La barra fija no tapa nada aquí: aparece al salir del banner.
           */}
           {/* En móvil no va: la v3 pone el titular justo bajo los puntos, y
               las historias de arriba ya dicen "cápsulas gratis" con imágenes. */}
@@ -228,11 +228,16 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
                 y al entrar Zafiro Perlado y Nácar Soñado el botón siguió
                 diciendo 14 mientras el cierre de la página ya decía 16. Dos
                 cifras distintas en la misma pantalla para lo mismo. */}
-            {/* En móvil no va (v3): ahí el segundo paso es la línea de precio,
-                y dos botones grandes seguidos empujaban el precio fuera. */}
+            {/*
+              ⚠️ VUELVE A MÓVIL (pedido de Cristian, 2026-10-21). La v3 lo había
+              quitado para que la línea de precio cupiera sobre la barra fija.
+              En móvil va más bajo (48px, sigue ≥44 táctil) y con el mismo radio
+              que el dorado: así el precio queda aún dentro de la primera
+              pantalla, y la barra fija no aparece hasta salir del banner.
+            */}
             <Link
               href="/app"
-              className="border-line text-espresso hidden h-14 items-center justify-center rounded-full border px-8 font-semibold sm:flex"
+              className="border-line text-espresso flex h-14 items-center justify-center rounded-full border px-8 font-semibold max-md:h-12 max-md:rounded-md"
             >
               Ver los {totalBolsos} bolsos
             </Link>

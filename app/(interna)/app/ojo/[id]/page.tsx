@@ -8,6 +8,7 @@ import {
 } from "@/components/app/OjoExperto";
 import { alumnaActual, cupoActual } from "@/lib/alumna";
 import { agruparEnPasos, listarBolsos } from "@/lib/bolsos";
+import { enlacesDeCobro } from "@/lib/checkout";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "El Ojo Experto — Manos Creadoras" };
@@ -105,6 +106,7 @@ export default async function PaginaConversacion({
       pasoInicial={null}
       mensajesIniciales={mensajes}
       conversacionInicial={conversacion.id}
+      enlaces={(await enlacesDeCobro()).url}
     />
   );
 }

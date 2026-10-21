@@ -215,7 +215,10 @@ export async function POST(req: Request) {
     El token se sigue validando EN SERVIDOR cuando viene: que el navegador diga
     quién es nunca ha bastado.
   */
-  const token = req.headers.get("authorization")?.replace("Bearer ", "");
+  /* Se lee con una expresión y no con `replace("Bearer ", "")`: si llega
+     "Bearer" sin token (el navegador recorta el espacio final), el replace no
+     encuentra nada y devolvía "Bearer" como si fuera un token → 401. */
+  const token = req.headers.get("authorization")?.match(/^Bearer\s+(\S+)$/i)?.[1];
   let userId: string | null = null;
 
   if (token) {
@@ -281,7 +284,15 @@ export async function POST(req: Request) {
     */
     if (esFoto) {
       return NextResponse.json(
-        { error: "Crea tu cuenta gratis para mandarle fotos al Ojo Experto.", necesitaCuenta: true },
+        /* ⚠️ `necesitaPlan` (2026-10-21): la salida ya no es crear cuenta sino
+           el plan — los "Crear mi cuenta gratis" de la app pasaron a pagar.
+           `necesitaCuenta` se queda porque el Ojo del home lo sigue leyendo. */
+        {
+          error: "Las fotos son del plan: el Ojo Experto revisa tu tejido y te dice qué mejorar.",
+          necesitaCuenta: true,
+          necesitaPlan: true,
+          motivo: "foto",
+        },
         { status: 403 },
       );
     }
@@ -312,8 +323,10 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json(
         {
-          error: `Usaste tus ${PREGUNTAS_DE_VISITANTE} preguntas gratis. Crea tu cuenta y seguimos.`,
+          error: `Usaste tus ${PREGUNTAS_DE_VISITANTE} preguntas gratis.`,
           necesitaCuenta: true,
+          necesitaPlan: true,
+          motivo: "agotado",
         },
         { status: 429 },
       );
@@ -324,6 +337,10 @@ export async function POST(req: Request) {
         error: agotadoFotos
           ? `Llegaste a tus ${cupo.fotos_limite} fotos de este mes. Se renuevan el día 1.`
           : `Llegaste a tus ${cupo.preguntas_limite} preguntas de este mes. Se renuevan el día 1.`,
+        /* A quien está en la cuenta gratis se le ofrece el plan; a quien ya
+           paga, no hay nada que ofrecer: solo esperar al día 1. */
+        necesitaPlan: cupo.plan === "gratis",
+        motivo: agotadoFotos ? "foto" : "agotado",
       },
       { status: 429 },
     );

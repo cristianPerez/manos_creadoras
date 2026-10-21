@@ -17,7 +17,10 @@ export function BotonCerrarSesion() {
     setError(null);
     try {
       await supabaseBrowser().auth.signOut();
-      router.push("/login");
+      // ⚠️ A los bolsos y no al formulario de entrar (2026-10-21, pedido de
+      // Cristian): quien sale no ha pedido volver a entrar. El formulario vive
+      // solo en "Entrar".
+      router.push("/app");
       router.refresh();
     } catch {
       // Sin este catch, un corte de internet dejaba el botón en "Cerrando…" para

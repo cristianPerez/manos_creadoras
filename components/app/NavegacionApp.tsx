@@ -1,8 +1,9 @@
 "use client";
 
-import { Sparkles, Store, ShoppingBag, Tag, User } from "lucide-react";
+import { LogIn, Sparkles, Store, ShoppingBag, Tag, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useConSesion } from "@/components/app/SesionContexto";
 
 /**
  * La navegación de la app, en sus dos formas.
@@ -35,6 +36,18 @@ export const DESTINOS = [
  * Si no, al abrir una ficha se encenderían "Mis bolsos" y nada más, perdiendo
  * la pista de dónde estás.
  */
+/**
+ * La última pestaña dice "Entrar" a quien no ha iniciado sesión y "Mi cuenta" a
+ * quien sí (2026-10-21, pedido de Cristian). Es el ÚNICO sitio de la app donde
+ * aparece el formulario de entrar: el resto de pestañas se ven sin cuenta.
+ */
+function useDestinos() {
+  const conSesion = useConSesion();
+  return DESTINOS.map((d) =>
+    d.href === "/app/cuenta" && !conSesion ? { ...d, texto: "Entrar", Icono: LogIn } : d,
+  );
+}
+
 function estaActivo(href: string, ruta: string): boolean {
   return href === "/app" ? ruta === "/app" || ruta.startsWith("/app/bolsos") : ruta.startsWith(href);
 }
@@ -45,9 +58,10 @@ function estaActivo(href: string, ruta: string): boolean {
  */
 export function EnlacesApp() {
   const ruta = usePathname();
+  const destinos = useDestinos();
   return (
     <nav className="flex flex-col gap-1">
-      {DESTINOS.map(({ href, texto, Icono }) => {
+      {destinos.map(({ href, texto, Icono }) => {
         const activo = estaActivo(href, ruta);
         return (
           <Link
@@ -102,6 +116,7 @@ export function BarraLateral() {
  */
 export function BarraInferior() {
   const ruta = usePathname();
+  const destinos = useDestinos();
 
   return (
     <nav
@@ -110,7 +125,7 @@ export function BarraInferior() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="mx-auto flex max-w-md">
-        {DESTINOS.filter((d) => d.enMovil).map(({ href, texto, Icono }) => {
+        {destinos.filter((d) => d.enMovil).map(({ href, texto, Icono }) => {
           const activo = estaActivo(href, ruta);
           return (
             <Link

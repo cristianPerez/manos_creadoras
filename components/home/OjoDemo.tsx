@@ -2,9 +2,10 @@
 
 import { ArrowRight, ArrowUp, Sparkles } from "lucide-react";
 import { Entrada } from "@/components/home/Entrada";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { TextoDelOjo } from "@/components/app/TextoDelOjo";
+import type { Frecuencia } from "@/lib/planes";
 
 const SUGERENCIAS = [
   { q: "¿Qué hilo uso para empezar?", pie: "Para mi primer bolso" },
@@ -44,7 +45,14 @@ type Mensaje = { id: string; rol: "alumna" | "ojo"; texto: string };
  * tope viviera aquí, vaciar el almacenamiento regalaría consultas infinitas — y
  * cada una cuesta dinero de verdad.
  */
-export function OjoDemo({ bolsoGratis }: { bolsoGratis: string | null }) {
+export function OjoDemo({
+  bolsoGratis,
+  enlaces,
+}: {
+  bolsoGratis: string | null;
+  /** Para el botón de pagar que sale al agotar las preguntas gratis. */
+  enlaces: Record<Frecuencia, string | null>;
+}) {
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [texto, setTexto] = useState("");
   const [usadas, setUsadas] = useState(0);
@@ -331,15 +339,18 @@ export function OjoDemo({ bolsoGratis }: { bolsoGratis: string | null }) {
                     <p className="font-display text-espresso text-2xl" style={{ fontWeight: 500 }}>
                       Usaste tus {LIMITE} preguntas gratis
                     </p>
+                    {/* ⚠️ Decía "40 preguntas y 8 fotos al mes": los topes de los
+                        planes viejos (hoy son 600 y 60, y viven en la base). Sin
+                        cifras aquí para que no vuelvan a quedar desfasadas. */}
                     <p className="text-espresso/80 mt-2">
-                      Con tu plan tienes 40 preguntas y 8 fotos al mes.
+                      Con el plan, el Ojo Experto te responde todo el mes y revisa las fotos
+                      de tu tejido.
                     </p>
-                    <Link
-                      href="/entrar"
-                      className="bg-espresso text-gold-pale mt-5 flex h-12 items-center justify-center rounded-(--radius-sm) px-6 font-semibold md:inline-flex"
-                    >
-                      Crear cuenta gratis
-                    </Link>
+                    {/* Antes "Crear cuenta gratis" → /entrar. Desde el 2026-10-21
+                        lleva a pagar, anual por defecto (pedido de Cristian). */}
+                    <div className="mt-5 md:max-w-sm">
+                      <PagoConPlan enlaces={enlaces} origen="ojo_agotado" />
+                    </div>
                   </div>
                 )}
 

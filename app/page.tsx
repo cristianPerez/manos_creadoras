@@ -173,7 +173,7 @@ export default async function Home() {
 
           <BandaUnoDe16 bolsos={totalBolsos} videos={totalVideos} />
 
-          <OjoDemo bolsoGratis={gratis?.slug ?? null} />
+          <OjoDemo bolsoGratis={gratis?.slug ?? null} enlaces={cobro.url} />
 
           <Elizabeth bolsos={totalBolsos} videos={totalVideos} />
 
