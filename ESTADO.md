@@ -162,6 +162,10 @@ también en Mi plan y en el selector de pago.
   3). Arreglado de paso: el Ojo de visitante respondía "sesión inválida" porque
   mandaba `Authorization: Bearer` vacío. ⚠️ El plan es UNO solo: no existe
   "Creadora" desde el 13-oct.
+- **Ojo interno en UN pantallazo (2026-10-21).** `.alto-ojo` (100dvh − barra en
+  móvil, 100dvh en desktop): la barra de escribir queda anclada y solo el chat
+  hace scroll. En móvil el vacío se compactó (sugerencias en filas, sin ícono ni
+  nota al pie). Medido: 0 scroll de página a 390×844 y 1440×900.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a

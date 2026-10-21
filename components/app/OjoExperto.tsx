@@ -245,7 +245,7 @@ export function OjoExperto({
   }
 
   return (
-    <div className="flex min-h-dvh w-full">
+    <div className="alto-ojo flex w-full overflow-hidden">
       <PanelHistorial
         historial={historial}
         visitante={visitante}
@@ -259,7 +259,7 @@ export function OjoExperto({
         }}
       />
 
-      <main className="flex min-w-0 flex-1 flex-col">
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* ⚠️ v4: 72px y con el tile. La cabecera vieja era solo texto, así
             que la pantalla arrancaba sin ningún ancla visual — parecía una
             página de documentación, no un asistente. */}
@@ -282,7 +282,7 @@ export function OjoExperto({
             </span>
             <span className="min-w-0">
               <h1
-                className="font-display text-espresso truncate text-2xl leading-tight"
+                className="font-display text-espresso truncate text-xl leading-tight md:text-2xl"
                 style={{ fontWeight: 500 }}
               >
                 El Ojo Experto
@@ -298,9 +298,11 @@ export function OjoExperto({
               </span>
             )}
             {visitante && (
-              <span className="text-ink-muted text-xs">
-                {Math.max(0, PREGUNTAS_DE_VISITANTE - usadasVisitante)} de {PREGUNTAS_DE_VISITANTE}{" "}
-                preguntas gratis
+              <span className="text-ink-muted shrink-0 text-xs whitespace-nowrap">
+                {Math.max(0, PREGUNTAS_DE_VISITANTE - usadasVisitante)}
+                {/* En móvil corto: el largo le quitaba el sitio al título. */}
+                <span className="md:hidden"> gratis</span>
+                <span className="max-md:hidden"> de {PREGUNTAS_DE_VISITANTE} preguntas gratis</span>
               </span>
             )}
             <button
@@ -317,7 +319,7 @@ export function OjoExperto({
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-5 py-8">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-3 md:py-8">
           <div className="mx-auto max-w-(--columna-chat)">
             {mensajes.length === 0 ? (
               <Vacio alPulsar={enviar} />
@@ -337,7 +339,7 @@ export function OjoExperto({
           </div>
         </div>
 
-        <div className="border-line shrink-0 border-t px-5 py-4">
+        <div className="border-line shrink-0 border-t px-5 py-3 md:py-4">
           <div className="mx-auto max-w-(--columna-chat)">
             {error && (
               <p role="alert" className="text-gold mb-3 text-sm font-semibold">
@@ -408,7 +410,9 @@ export function OjoExperto({
             {/* ⚠️ Ver el mismo cambio en `OjoDemo`: fuera el "puede
                 equivocarse" —el descargo legal vive en los Términos— y nada de
                 decir que está "entrenado con" Elizabeth, porque no lo está. */}
-            <p className="text-ink-muted mt-3 text-center text-xs">
+            {/* En móvil no va: cada renglón cuenta para que el Ojo quepa en una
+                pantalla sin scroll, y la cabecera ya dice qué es. */}
+            <p className="text-ink-muted mt-3 text-center text-xs max-md:hidden">
               Responde con las fichas y el método de Elizabeth.
             </p>
           </div>
@@ -435,18 +439,25 @@ export function OjoExperto({
  * no adivina sola. En cacao y a doble alto, es lo primero que mira.
  */
 function Vacio({ alPulsar }: { alPulsar: (t: string) => void }) {
+  /*
+   * ⚠️ EN MÓVIL TODO VA COMPACTO (2026-10-21, pedido de Cristian: "es mucho
+   * scroll"). El Ojo ocupa una pantalla exacta con la barra de escribir anclada,
+   * así que este bloque tiene que caber en el hueco del medio de un teléfono:
+   * sin el ícono grande, titular a 28px, y las sugerencias como renglones de
+   * una línea en vez de tarjetas altas. En escritorio, la composición de la v4.
+   */
   return (
-    <div className="py-6 md:py-10">
+    <div className="py-1 md:py-10">
       <span
         aria-hidden="true"
-        className="bg-espresso text-gold-pale flex size-13 items-center justify-center rounded-(--radius-sm)"
+        className="bg-espresso text-gold-pale hidden size-13 items-center justify-center rounded-(--radius-sm) md:flex"
       >
         <Sparkles size={26} />
       </span>
 
       <h2
-        className="font-display text-espresso mt-6 text-balance"
-        style={{ fontWeight: 500, fontSize: "clamp(36px, 5vw, 60px)", lineHeight: 1.05 }}
+        className="font-display text-espresso text-balance md:mt-6"
+        style={{ fontWeight: 500, fontSize: "clamp(28px, 5vw, 60px)", lineHeight: 1.05 }}
       >
         ¿Qué se te complica{" "}
         <em className="text-gold italic" style={{ fontWeight: 400 }}>
@@ -454,7 +465,7 @@ function Vacio({ alPulsar }: { alPulsar: (t: string) => void }) {
         </em>
         ?
       </h2>
-      <p className="text-ink-body mt-3 text-balance">
+      <p className="text-ink-body mt-2 text-sm text-balance md:mt-3 md:text-base">
         Mándame una foto de tu tejido y te digo cómo vas, o pregúntame lo que sea de tus bolsos:
         materiales, proveedores, fotos y cómo venderlos.
       </p>
@@ -464,20 +475,27 @@ function Vacio({ alPulsar }: { alPulsar: (t: string) => void }) {
         las preguntas largas en dos columnas se parten en seis líneas de letra
         diminuta; la destacada necesita el ancho entero porque lleva descripción.
       */}
-      <div className="mt-8 grid gap-3 md:grid-cols-[1.3fr_1fr_1fr]">
+      <div className="mt-3 grid gap-2 md:mt-8 md:grid-cols-[1.3fr_1fr_1fr] md:gap-3">
         <button
           type="button"
           onClick={() => alPulsar(CON_FOTO.q)}
-          className="bg-cacao focus-visible:outline-gold-pale flex flex-col justify-end rounded-xl p-5 text-left transition-colors duration-150 focus-visible:outline-2 md:row-span-2 md:min-h-[320px]"
+          className="bg-cacao focus-visible:outline-gold-pale flex items-center gap-3 rounded-xl p-3 text-left transition-colors duration-150 focus-visible:outline-2 md:row-span-2 md:min-h-[320px] md:flex-col md:items-stretch md:justify-end md:p-5"
         >
-          <span className="bg-gold-pale text-espresso mb-auto flex w-max items-center gap-2 rounded-(--radius-sm) px-3 py-1.5 text-sm font-semibold">
+          <span className="bg-gold-pale text-espresso flex w-max shrink-0 items-center gap-2 rounded-(--radius-sm) px-3 py-1.5 text-sm font-semibold md:mb-auto">
             <Camera size={15} aria-hidden="true" />
-            Con foto
+            <span className="max-md:sr-only">Con foto</span>
           </span>
-          <span className="font-display text-cream mt-6 block text-2xl" style={{ fontWeight: 500 }}>
-            {CON_FOTO.q}
+          <span className="min-w-0">
+            <span
+              className="font-display text-cream block text-lg md:mt-6 md:text-2xl"
+              style={{ fontWeight: 500 }}
+            >
+              {CON_FOTO.q}
+            </span>
+            <span className="text-cream/75 mt-1.5 hidden text-sm text-pretty md:block">
+              {CON_FOTO.pie}
+            </span>
           </span>
-          <span className="text-cream/75 mt-1.5 block text-sm text-pretty">{CON_FOTO.pie}</span>
         </button>
 
         {/* ⚠️ MANDA LA PREGUNTA, NO EL ÁREA. La versión anterior ponía
@@ -489,13 +507,15 @@ function Vacio({ alPulsar }: { alPulsar: (t: string) => void }) {
             key={titulo}
             type="button"
             onClick={() => alPulsar(texto)}
-            className="bg-sand hover:bg-sand-hover focus-visible:outline-gold flex flex-col rounded-xl p-5 text-left transition-colors duration-150 focus-visible:outline-2"
+            className="bg-sand hover:bg-sand-hover focus-visible:outline-gold flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors duration-150 focus-visible:outline-2 md:flex-col md:items-stretch md:p-5"
           >
-            <span className="text-cacao text-sm" style={{ fontWeight: 800 }}>
+            <span className="text-cacao shrink-0 text-sm" style={{ fontWeight: 800 }}>
               {String(i + 1).padStart(2, "0")}
             </span>
-            <span className="text-espresso mt-3 block font-semibold text-balance">{texto}</span>
-            <span className="text-ink-muted mt-1.5 block text-sm">{titulo}</span>
+            <span className="text-espresso block text-sm font-semibold text-balance md:mt-3 md:text-base">
+              {texto}
+            </span>
+            <span className="text-ink-muted mt-1.5 hidden text-sm md:block">{titulo}</span>
           </button>
         ))}
       </div>
@@ -690,7 +710,9 @@ function Composer({
           }
         }}
         rows={1}
-        placeholder="Pregúntale al Ojo Experto o sube una foto…"
+        /* Corto a propósito (2026-10-21): el largo se partía en dos renglones a
+           375px y quedaba cortado. La cámara de al lado ya dice lo de la foto. */
+        placeholder="Escribe tu duda…"
         aria-label="Tu pregunta"
         className="text-espresso placeholder:text-ink-muted max-h-40 min-h-11 flex-1 resize-none bg-transparent py-2.5 outline-none"
         style={{ height: "auto" }}
@@ -842,7 +864,7 @@ function PanelHistorial({
           <EnlacesApp />
         </div>
 
-        <nav className="border-espresso-line mt-5 flex-1 overflow-y-auto border-t pt-5">
+        <nav className="border-espresso-line mt-5 min-h-0 flex-1 overflow-y-auto border-t pt-5">
           {historial.length === 0 ? (
             <p className="text-on-dark-muted px-2 text-sm">
               {visitante

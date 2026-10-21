@@ -400,6 +400,24 @@ body {
   }
 }
 
+/*
+ * El Ojo Experto ocupa EXACTAMENTE una pantalla (2026-10-21, pedido de Cristian):
+ * cabecera arriba, barra de mensajes anclada abajo y solo el medio con scroll.
+ * Antes era `min-h-dvh` —"al menos una pantalla"—, así que cuando las tarjetas
+ * de sugerencias no cabían crecía la página y la barra de escribir se iba abajo.
+ *
+ * En móvil se resta la barra de navegación fija de la app: el layout de `/app`
+ * deja `pb-24` (6rem) para ella, y altura + hueco = una pantalla justa.
+ */
+.alto-ojo {
+  height: calc(100dvh - 6rem);
+}
+@media (min-width: 1024px) {
+  .alto-ojo {
+    height: 100dvh;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
