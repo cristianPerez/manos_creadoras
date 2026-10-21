@@ -384,7 +384,7 @@ toca reintentar en el servidor.
 
 ## 🚀 PRODUCCIÓN PUBLICADA — CON LA VENTA APAGADA (2026-10-21)
 
-**En vivo:** https://manos-creadoras.vercel.app (rama `main`, PR #2, `82338ce`).
+**En vivo:** https://manos-creadoras.vercel.app (rama `main`; PR #2 `82338ce` y PR #3 `9d9623e` del 2026-10-21: `/app` sin muros, botones de pago con interruptor).
 `manoscreadoras.co` y `www` (→ redirige al apex) ya están en el proyecto, **falta
 el DNS** en Namecheap: `A @ 216.198.79.1` y `CNAME www
 54c77d9c2092c13e.vercel-dns-017.com`.
