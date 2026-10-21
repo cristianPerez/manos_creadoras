@@ -15,12 +15,22 @@ export function CountUp({
   prefix = "",
   suffix = "",
   locale = "es",
+  agruparSiempre = false,
 }: {
   to: number;
   duration?: number;
   prefix?: string;
   suffix?: string;
   locale?: string;
+  /**
+   * Fuerza el punto de los miles en números de cuatro cifras.
+   *
+   * ⚠️ Por defecto va APAGADO porque el español, bien escrito, NO separa cuatro
+   * cifras: "1200", no "1.200" (así lo hace `toLocaleString` y así debe quedar
+   * en los medidores). Se enciende solo donde la marca ya escribe "+1.200" —el
+   * héroe del home— para no desviarse del diseño en su cifra más visible.
+   */
+  agruparSiempre?: boolean;
 }) {
   const [value, setValue] = useState(0);
   const valorRef = useRef(0);
@@ -50,7 +60,7 @@ export function CountUp({
   return (
     <span className="tabular">
       {prefix}
-      {value.toLocaleString(locale)}
+      {value.toLocaleString(locale, agruparSiempre ? { useGrouping: "always" } : undefined)}
       {suffix}
     </span>
   );

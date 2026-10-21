@@ -1,17 +1,116 @@
 import Link from "next/link";
+import { EnlaceCompra } from "@/components/home/EnlaceCompra";
+import { NAVEGACION } from "@/lib/landing";
+import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
 
+/**
+ * La cabecera del home.
+ *
+ * ⚠️ EN MÓVIL SE QUEDA EN LO MÍNIMO: logo y "Entrar". Abajo vive la barra fija
+ * de compra (home v3), que lleva el precio y el "Inscribirme"; repetirlos aquí
+ * sería poner dos botones iguales en la misma pantalla.
+ *
+ * Ya no es un componente de cliente: sin menú desplegable no hay estado que
+ * guardar, así que se renderiza en el servidor y baja menos JavaScript.
+ */
 export function Header() {
   return (
-    <header className="sticky top-0 z-(--z-sticky) flex items-center justify-between px-4 py-4 bg-surface-base/90 backdrop-blur-sm border-b border-border-default">
-      <Link href="/" className="font-display text-lg font-semibold tracking-tight p-2.5 -m-2.5">
-        Manos Creadoras
-      </Link>
-      <Link
-        href="#oferta"
-        className="text-sm text-text-secondary hover:text-text-primary transition-colors p-2.5 -m-2.5"
-      >
-        Ver programa
-      </Link>
+    /* Opaca y con línea abajo (v3): translúcida sobre el bloque espresso del Ojo
+       dejaba una franja gris turbia encima del titular. */
+    <header className="bg-cream border-line sticky top-0 z-(--z-sticky) border-b">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 md:py-4">
+        <Link href="/" className="flex items-center gap-3">
+          <Logo />
+          {/* `whitespace-nowrap`: a 375px, junto al botón y al menú, el nombre
+              se partía en dos líneas y duplicaba la altura de la cabecera. */}
+          <span
+            className="font-display text-espresso text-base whitespace-nowrap md:text-xl"
+            style={{ fontWeight: 500 }}
+          >
+            Manos Creadoras
+          </span>
+        </Link>
+
+        {/* Los enlaces, en escritorio */}
+        <nav className="hidden items-center gap-7 md:flex">
+          {NAVEGACION.map((e) => (
+            <a
+              key={e.destino}
+              href={e.destino}
+              className="text-ink-body hover:text-espresso text-sm transition-colors"
+            >
+              {e.texto}
+            </a>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          {/*
+            ⚠️ "ENTRAR" FALTABA, Y ERA EL PEOR HUECO DE LA LANDING: una alumna
+            que ya paga entraba a manoscreadoras.co y no tenía por dónde pasar.
+
+            En escritorio va discreto y antes del botón oscuro —quien ya es
+            alumna no viene a comprar otra vez—. En móvil es el único botón de
+            la cabecera, con borde: lo oscuro se reserva para comprar.
+          */}
+          <Link
+            href="/entrar"
+            className="text-ink-body hover:text-espresso hidden h-11 items-center px-3 text-sm font-semibold transition-colors md:flex"
+          >
+            Entrar
+          </Link>
+
+          {/*
+            ⚠️ EN MÓVIL YA NO HAY "PLANES" AQUÍ (home v3). Se añadió el 17-oct
+            porque el primer acceso al precio estaba a media página; ahora lo
+            resuelve la barra fija de compra, que está siempre a la vista. Dos
+            botones al precio en la misma pantalla compiten entre sí.
+          */}
+          <Link
+            href="/entrar"
+            className="border-line-strong text-espresso flex h-11 items-center rounded-boton border px-5 text-sm font-semibold transition-transform active:scale-[0.98] md:hidden"
+          >
+            Entrar
+          </Link>
+
+          {/*
+            ⚠️ EL CTA DEL HEADER DEJÓ DE SER "EMPIEZA GRATIS" (home v3). El gratis
+            ya tiene su botón dorado en el banner, que es lo primero que se ve;
+            arriba, fijo durante todo el scroll, va el que compra.
+          */}
+          <EnlaceCompra
+            href="#precio"
+            origen="header"
+            plan={FRECUENCIA_POR_DEFECTO}
+            className="bg-espresso text-gold-pale hidden h-11 items-center rounded-full px-7 text-sm font-bold transition-transform active:scale-[0.98] md:flex"
+          >
+            Inscribirme
+          </EnlaceCompra>
+        </div>
+      </div>
+
     </header>
+  );
+}
+
+/**
+ * La "M" dentro del círculo espresso, tal cual la guía de marca.
+ *
+ * Va en SVG y no como imagen: es texto en una fuente que ya cargamos, pesa
+ * nada y se ve nítido en cualquier pantalla.
+ */
+function Logo() {
+  return (
+    <span
+      aria-hidden="true"
+      className="bg-espresso flex size-10 shrink-0 items-center justify-center rounded-full"
+    >
+      <span
+        className="font-display text-gold-light text-xl italic"
+        style={{ fontWeight: 500, lineHeight: 1 }}
+      >
+        M
+      </span>
+    </span>
   );
 }

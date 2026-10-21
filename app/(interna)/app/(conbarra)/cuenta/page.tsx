@@ -1,0 +1,208 @@
+import { ExternalLink } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { ActivarAvisos } from "@/components/app/ActivarAvisos";
+import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
+import { FormularioAcceso } from "@/components/app/FormularioAcceso";
+import { alumnaActual, cupoActual } from "@/lib/alumna";
+import { precioPorMes } from "@/lib/planes";
+
+export const metadata: Metadata = { title: "Mi cuenta — Manos Creadoras" };
+
+const LEGALES = [
+  { href: "/contacto", texto: "Contacto" },
+  { href: "/legal/cancelar", texto: "Cómo cancelar" },
+  { href: "/legal/reembolso", texto: "Reembolsos" },
+  { href: "/legal/terminos", texto: "Términos" },
+  { href: "/legal/privacidad", texto: "Privacidad" },
+];
+
+export default async function MiCuenta() {
+  const alumna = await alumnaActual();
+
+  /* Sin sesión, esta pestaña ES el formulario de entrar. No se rebota a /entrar:
+     sacarla de la app justo al tocar una pestaña se siente como un error. */
+  if (!alumna) {
+    return (
+      <>
+          <main className="min-w-0 flex-1 px-5 py-10">
+          <div className="mx-auto max-w-md">
+            <FormularioAcceso lugar="cuenta" />
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  const cupo = await cupoActual(alumna.id);
+  /* Un solo plan: lo que varía es cómo lo paga, no cuál tiene. */
+  const precio = alumna.tieneAcceso && alumna.ciclo ? precioPorMes(alumna.ciclo) : null;
+
+  return (
+    <>
+      <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
+        <div className="mx-auto max-w-2xl">
+          <p className="eyebrow">Tu cuenta</p>
+          <h1 className="titulo-seccion mt-2">Mi cuenta</h1>
+
+          {/* La tarjeta del plan, en oscuro: es lo primero que se busca aquí. */}
+          <section
+            className="mt-8 rounded-[var(--radius-xl)] p-7 text-white"
+            style={{ backgroundImage: "var(--card-destacada)" }}
+          >
+            <p className="text-gold-light text-xs font-bold tracking-[0.18em] uppercase">
+              {alumna.tieneAcceso ? "Membresía activa" : "Sin plan"}
+            </p>
+            <h2 className="font-display mt-2 text-2xl" style={{ fontWeight: 500 }}>
+              {alumna.tieneAcceso ? "Curso completo" : "Cuenta gratuita"}
+              {alumna.tieneAcceso && alumna.ciclo ? ` · ${alumna.ciclo}` : ""}
+            </h2>
+            {/* ⚠️ El precio sale de `lib/planes.ts`. Aquí vivían los precios
+                VIEJOS (USD 199/año) mientras la landing ya vendía otra cosa. */}
+            {precio && <p className="mt-1 text-white/70">{precio} al mes</p>}
+            {alumna.venceEl && (
+              <p className="mt-1 text-sm text-white/60">
+                {alumna.estado === "cancelada" ? "Tienes acceso hasta el" : "Se renueva el"}{" "}
+                {new Date(alumna.venceEl).toLocaleDateString("es-CO", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {/* Con un solo plan ya no hay a qué "subir": o lo tienes o lo compras. */}
+              {!alumna.tieneAcceso && (
+                <Link
+                  href="/app/plan"
+                  className="text-espresso flex h-12 items-center rounded-full px-6 text-sm font-semibold"
+                  style={{ backgroundImage: "var(--boton-dorado)" }}
+                >
+                  Ver el plan
+                </Link>
+              )}
+              {alumna.tieneAcceso && (
+                /*
+                 * ⚠️ ESTE ENLACE IBA A `/contacto` Y ERA UN CALLEJÓN SIN SALIDA.
+                 *
+                 * Lo encontró Cristian el 2026-10-19: a quien YA paga, el único
+                 * botón para "gestionar su plan" la mandaba a escribir un
+                 * correo — y `/app/plan`, que es la pantalla que gestiona el
+                 * plan de verdad, se quedaba sin ninguna puerta de entrada
+                 * desde la app (la barra de navegación no la lleva).
+                 *
+                 * Con el botón de cancelar viviendo allí, dejarlo así habría
+                 * sido construir la baja autónoma y esconderla detrás de un
+                 * "escríbenos": exactamente el patrón que se vino a quitar.
+                 */
+                <Link
+                  href="/app/plan"
+                  className="flex h-12 items-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white"
+                >
+                  Gestionar mi plan
+                </Link>
+              )}
+            </div>
+          </section>
+
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <Tarjeta titulo="Tus datos">
+              <p className="text-ink-body text-sm">{alumna.email}</p>
+              {alumna.miembroDesde && (
+                <p className="text-ink-muted mt-1 text-sm">
+                  Miembro desde el{" "}
+                  {new Date(alumna.miembroDesde).toLocaleDateString("es-CO", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
+            </Tarjeta>
+
+            {cupo && (
+              <Tarjeta titulo="Ojo Experto este mes">
+                <Barra
+                  etiqueta="Preguntas"
+                  usado={cupo.preguntasUsadas}
+                  total={cupo.preguntasLimite}
+                />
+                <div className="mt-3">
+                  <Barra etiqueta="Fotos" usado={cupo.fotosUsadas} total={cupo.fotosLimite} />
+                </div>
+              </Tarjeta>
+            )}
+
+            <Tarjeta titulo="Avisos de modelos nuevos">
+              <ActivarAvisos />
+            </Tarjeta>
+
+            <Tarjeta titulo="Ayuda y legal">
+              <ul className="flex flex-col">
+                {LEGALES.map((l) => (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      className="text-ink-body hover:text-espresso flex h-11 items-center text-sm"
+                    >
+                      {l.texto}
+                    </Link>
+                  </li>
+                ))}
+                {/* El Directorio no cabe en la barra de abajo de móvil: su
+                    puerta está aquí y en la ficha de cada bolso. */}
+                <li className="lg:hidden">
+                  <Link
+                    href="/app/directorio"
+                    className="text-ink-body hover:text-espresso flex h-11 items-center gap-2 text-sm"
+                  >
+                    Directorio de proveedores
+                    <ExternalLink size={13} aria-hidden="true" />
+                  </Link>
+                </li>
+              </ul>
+            </Tarjeta>
+          </div>
+
+          <div className="mt-8">
+            <BotonCerrarSesion />
+          </div>
+        </div>
+      </main>
+    </>
+  );
+}
+
+function Tarjeta({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <section className="bg-ivory border-line rounded-[var(--radius-lg)] border p-5">
+      <h2 className="text-espresso font-semibold">{titulo}</h2>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
+function Barra({ etiqueta, usado, total }: { etiqueta: string; usado: number; total: number }) {
+  const pct = total > 0 ? Math.min(100, Math.round((usado / total) * 100)) : 0;
+  return (
+    <div>
+      <div className="text-ink-muted flex justify-between text-sm">
+        <span>{etiqueta}</span>
+        <span>
+          <strong className="text-espresso font-semibold">{usado}</strong> de {total}
+        </span>
+      </div>
+      <div
+        className="bg-line mt-1.5 h-1.5 overflow-hidden rounded-full"
+        role="progressbar"
+        aria-valuenow={usado}
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-label={etiqueta}
+      >
+        <span className="bg-gold block h-full rounded-full" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}

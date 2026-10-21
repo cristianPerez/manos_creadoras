@@ -58,6 +58,12 @@ async function crear(correo) {
   });
   if (e1) throw new Error(`No se pudo crear la cuenta: ${e1.message}`);
 
+  /*
+   * ⚠️ `profiles.status` y `profiles.plan` YA NO DECIDEN NADA. Desde la
+   * migración 0014 eso vive en `membresias`, y quien manda es `tiene_acceso_de`.
+   * Se siguen rellenando porque las columnas existen y alguna pantalla vieja
+   * aún las lee, pero el acceso se da abajo, con `dar_membresia`.
+   */
   const perfil = {
     id: creado.user.id,
     email: correo,
@@ -71,8 +77,62 @@ async function crear(correo) {
     perfil.access_until = new Date(Date.now() + 20 * 24 * 3600 * 1000).toISOString();
   }
 
-  const { error: e2 } = await admin.from("profiles").insert(perfil);
-  if (e2) throw new Error(`No se pudo crear el perfil: ${e2.message}`);
+  /*
+   * `upsert` y no `insert`.
+   *
+   * ⚠️ ESTE SCRIPT LLEVABA ROTO DESDE LA MIGRACIÓN 0012 (2026-09-15). Esa
+   * migración añadió el disparador `al_crear_usuario`, que crea el perfil solo
+   * —con `status = null`, o sea cuenta gratis— en cuanto nace el usuario de
+   * auth. Así que cuando llegamos aquí el perfil YA existe y el `insert`
+   * reventaba con "duplicate key value violates unique constraint".
+   *
+   * Es justo el fallo que más molesta: el script existe para poder entrar sin
+   * depender del correo, y estaba fallando precisamente cuando hacía falta.
+   *
+   * El disparador tiene la última palabra sobre que el perfil exista; lo nuestro
+   * es ASCENDERLO al plan de prueba. Eso es un upsert, no un insert.
+   */
+  const { error: e2 } = await admin.from("profiles").upsert(perfil);
+  if (e2) throw new Error(`No se pudo preparar el perfil: ${e2.message}`);
+
+  /*
+   * EL ACCESO SE CONCEDE EN `accesos`, NO EN `profiles.status`.
+   *
+   * ⚠️ SEGUNDO DESFASE DEL SCRIPT, este desde la migración 0008. El perfil de
+   * arriba dice `status: 'active'`, pero desde esa migración quien decide si se
+   * ven las lecciones es `tiene_acceso()`, que mira la tabla `accesos` y ni se
+   * asoma a `profiles`. Resultado: la alumna de prueba entraba y se topaba con
+   * "Tu membresía no está activa" — el script decía haberla creado con plan
+   * anual activo y la pantalla decía que no. Las dos cosas eran ciertas; miraban
+   * sitios distintos.
+   *
+   * Se usa la MISMA función que usan el webhook y `npm run acceso:dar`, que es
+   * justo lo que este script promete imitar.
+   */
+  if (estado === "active") {
+    const { error: eAcceso } = await admin.rpc("dar_membresia", {
+      p_user_id: creado.user.id,
+      /*
+       * ⚠️ TERCER DESFASE DEL SCRIPT, y van tres por el mismo motivo: aquí
+       * decía `'creadora'`, un plan que la migración 0016 borró al pasar a un
+       * solo plan. El `check` de `membresias.plan` lo rechazaba, así que
+       * `npm run alumna:crear` llevaba roto desde el 13-oct: reventaba con
+       * "violates check constraint" y no se podía crear ni una alumna de
+       * prueba. Encontrado el 2026-10-19 al intentar verificar el botón de
+       * cancelar — es el cabo suelto que el ESTADO avisaba que quedaba por
+       * repasar del renombrado.
+       *
+       * `completo` es el único plan de pago que existe hoy, y es el que hay que
+       * probar: es el que tendrán todas.
+       */
+      p_plan: "completo",
+      p_ciclo: plan === "mensual" ? "mensual" : "anual",
+      p_vence_el: null,
+      p_pasarela: "manual",
+      p_pasarela_id: null,
+    });
+    if (eAcceso) throw new Error(`No se pudo dar la membresía: ${eAcceso.message}`);
+  }
 
   const { data: link, error: e3 } = await admin.auth.admin.generateLink({
     type: "magiclink",

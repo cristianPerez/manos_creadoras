@@ -1,268 +1,424 @@
 # ESTADO — Manos Creadoras App
-Última actualización: 2026-08-08 · El detalle de cada sesión vive en el historial de git; aquí queda solo lo que sigue siendo cierto y accionable.
 
-⏸️ **CHECKPOINT (2026-08-08)** — **La app ya es instalable y manda notificaciones push**, que era la pieza que justificaba construir esto y llevaba desde la Sesión 6 sin hacerse sin que nadie lo notara. La app interna funciona con datos reales de Supabase y los videos ya no dependen de Hotmart. **Todo lo construido es el ambiente de QA.** Nada bloquea por el lado del código: lo que falta son cuentas y contenido.
+**Última actualización: 2026-10-20.** Aquí solo entra lo que sigue siendo cierto
+y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
+mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
----
-
-## 🔴 BLOQUEOS PARA LANZAR (nada de esto es código)
-
-- [x] ~~**Videos: elegir dónde alojarlos**~~ — ✅ **BUNNY FUNCIONANDO 2026-08-08.** Biblioteca QA `manos-creadoras-qa` (Library ID `723241`, Frankfurt + São Paulo). Token authentication activo y **verificado**: el video reproduce dentro de la app, todas las peticiones a Bunny responden 200 (ni un 403), el enlace va firmado y caduca en 6 h. Falta subir el curso real.
-- [ ] **Subir los videos del curso a Bunny** (hoy hay 1 de prueba conectado a `s2-l01`). No hacen falta los 58 para lanzar.
-- [ ] ⚠️ **Al publicar**: crear la biblioteca de PRODUCCIÓN y agregar el dominio de Vercel en *Allowed domains* (hoy solo está `localhost`).
-- [x] ~~**Resend + SMTP en Supabase**~~ — ✅ **RESUELTO 2026-08-08.** Dominio `contacto.manoscreadoras.co` verificado (Namecheap, us-east-1), SMTP configurado y plantilla con `token_hash` aplicada. **Probado de verdad**: correo enviado desde el login real → Resend lo reporta `delivered` en Gmail. Se inspeccionó el HTML entregado: Supabase NO envuelve la plantilla (una sola etiqueta `<html>`, el `<meta color-scheme>` sobrevive) y el enlace sale bien armado con su `http://`. Plantilla versionada en `supabase/templates/magic-link.html`.
-- [ ] ⚠️ **Al publicar: cambiar el Site URL** de `http://localhost:3000` a la URL de Vercel. Si se olvida, los correos de las alumnas traerán enlaces a localhost — que en su celular no existe. También subir Rate Limits → "emails per hour".
-- [ ] **Hotmart: crear el producto de SUSCRIPCIÓN.** `lib/config.ts` apunta al producto VIEJO de pago único ($25), así que los botones cobran lo equivocado. **Esto bloquea vender.**
-- [ ] **Supabase de PRODUCCIÓN**: crear proyecto nuevo y correr ahí las 7 migraciones. El actual (`cazqmaluaehyikkstkoi`) queda como QA. → ver "Ambientes".
-- [ ] **Hotmart — configurar el webhook**: panel → Herramientas → Webhook → apuntar a `https://TU-DOMINIO/api/webhooks/hotmart` y pegar el hottok en `HOTMART_HOTTOK`. ⚠️ Verificar ahí los nombres EXACTOS de los eventos de suscripción y contrastarlos con la tabla `EVENTO_A_ESTADO` del webhook — el catálogo varía por cuenta.
-- [ ] **Vercel**: crear la cuenta y conectar el repo para publicar.
-
-### ⚠️ Seguridad pendiente
-- [ ] **Confirmar que la clave secreta de Supabase fue ROTADA.** Incidente del 2026-08-02: quedó en `.env.example` (archivo público) y pasó por el chat. No se detectó en git, pero esa clave salta todo el RLS. Project Settings → API Keys → crear nueva + revocar la anterior.
-
-### Material de la dueña (bloquea la calidad, no el lanzamiento)
-- [ ] **Listado completo de lecciones** de las secciones 2, 3 y 4 (~49 faltan; hoy hay 9 cargadas).
-- [ ] **Nombres reales de los tutoriales**: en Hotmart se llaman "Tutorial 2", "Tutorial 3"… La alumna no puede recordar dónde está la técnica que busca. Bastaría una línea por lección.
-- [ ] **2-3 testimonios reales** (las capturas de WhatsApp) para la landing.
+> **Podado el 2026-10-19 de 1080 líneas a estas.** Había dejado de servir: decía
+> "12 migraciones" (hay 31), "el cobro es 100% Hotmart" (es OnePay desde el
+> 16-oct), mandaba a `npm run acceso:dar` (no existe) y daba **cuatro precios
+> distintos**, ninguno igual al del código. Lo podado está en `git log`.
+>
+> Quedan ~353 líneas y la regla del SO son 200. No se recorta más a costa de
+> borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
+> pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
 ---
 
-## Estado actual del producto
+## Qué es esta app
 
-**Funciona y está verificado contra los servicios reales:**
-- Landing pública (10 secciones canónicas) + 4 páginas legales, con el checkout de Hotmart conectado.
-- Login por enlace mágico (Supabase Auth). `shouldCreateUser: false` es deliberado: las cuentas solo las crea el webhook al pagar. Anti-enumeración activa.
-- Webhook de Hotmart con las 4 defensas: autenticidad (hottok en tiempo constante), frescura (ventana de 5 min), idempotencia (PK sobre `event_id`) y máquina de estados (un `PURCHASE_APPROVED` tardío no resucita a quien reembolsó).
-- App interna: `/cursos`, `/cursos/[leccion]`, `/ojo-experto`, `/cuenta` — **leyendo y escribiendo datos reales de Supabase**.
-- El Ojo Experto responde de verdad (Gemini), con memoria por alumna, filtro de tema, uso justo (40 preguntas + 8 fotos/mes) y circuit-breaker de gasto diario. Probado con fotos reales de bolsos; intentos de inyección de prompt bloqueados.
-- Supabase: 9 tablas, RLS en todas, 7 migraciones en `supabase/migrations/`.
-
-- **App instalable (PWA) con avisos push**, verificada end-to-end contra FCM de Google.
-
-**Calidad visual:** 3 rondas del subagente `revisor-visual` → subió de 28-30/40 a **31-35/40** usabilidad y 13-14/20 craft. **No llega al listón (36/40 · 16/20).**
-
-⚠️ **CORRECCIÓN (2026-08-08) de algo mal anotado antes:** se decía que faltaban "3-5 fotos de bolsos" de la dueña y que por eso no se podía aplicar el dispositivo ownable. **Es falso: hay 9 fotos en `public/images/` y solo 4 se usan** (Hero + carrusel de la landing). Las otras 5 (glacier-blue, onix-cristal, pearl-bow, pearl-coin, pearl-royale) están sin usar. **Subir la nota del revisor NO depende de la dueña: depende de aplicar esas fotos a la app interna**, que es trabajo pendiente del lado del código.
+Escuela de bolsos tejidos de Elizabeth Valencia. 16 bolsos en video, un
+directorio de materiales y el **Ojo Experto** (mentor de IA que responde dudas y
+revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 
 ---
 
-## Ambientes (QA vs producción)
+## 💵 EL PRECIO: UNO SOLO (2026-10-19)
 
-⚠️ Todo lo construido hasta hoy es **QA**. Las claves y servicios que aparecen en este documento son los de QA.
+Fuente única: `lib/planes.ts` → `PRECIOS`. **Ningún precio escrito en otro sitio.**
 
-| Servicio | ¿Claves separadas? | Cómo |
+**US$9,99 al mes · US$89,90 al año** (= US$7,49/mes · ahorra US$30, 25%).
+Son EXACTAMENTE los planes de OnePay: si un día no coinciden, manda OnePay —es
+quien cobra— y la constante miente. Se cambian los dos sitios a la vez.
+
+⚠️ **LA OFERTA DE LANZAMIENTO SE RETIRÓ ENTERA** (barra del reloj, los dos
+juegos de precios, la cookie del middleware, `lib/oferta*.ts`). No fue un
+cambio de precio: **la rebaja no existía**. OnePay tiene UN enlace por ciclo,
+así que cobraba lo mismo a todo el mundo mientras la página anunciaba "antes
+US$350" y el reloj no cambiaba nada al llegar a cero. Palabras de Cristian:
+«no queremos fingir una rebaja de precio».
+→ Para una oferta de verdad hace falta PRIMERO un segundo plan en OnePay y que
+el enlace cambie al expirar. Si no, es decoración.
+
+**En OnePay, empresa "Manos Creadoras"** (0028): mensual `01a14b95-f607…` y anual
+`01a14b96-796a…`, que se lee "Mensual · 12 ciclos" = **cobra cada 12 meses**. Sin
+período de prueba. Los enlaces viven en `plan_checkout`, no en el código.
+
+---
+
+## 💳 El circuito de pago, verificado de punta a punta (2026-10-17)
+
+Webhook `ab3b6206` → `https://qa.manoscreadoras.co/api/webhooks/onepay`, 9
+eventos, claves en `.env.local` y en Vercel **Preview**. Probado contra QA: sin
+firma → 401 · pago → membresía activa + correo de bienvenida (visto en Resend) ·
+repetido → `repetido` · cancelación → `cancelada` **conservando el acceso hasta
+`vence_el`**.
+
+Sin tocar SQL (manual en `docs/WEBHOOKS.md`): `npm run webhook:probar` dispara un
+evento FIRMADO como lo haría OnePay (pagada · cancelada · impagada · vencida ·
+basura · `--repetir` · `--url`) y `npm run webhook:ver [--malos] [--traza X]`
+cuenta qué pasó. ⚠️ **OnePay corta a los 10s y si se repite DESACTIVA el
+endpoint**; la 0025 añadió `duracion_ms` y el log marca `lento` a los 8s.
+
+⚠️ **Producción NO se ha revisado.** Es muy probable que `RESEND_API_KEY` y
+`RESEND_FROM` de Production sigan apuntando a **El Charcu**, como pasó en Preview.
+
+---
+
+## 🔴 Bloqueos para vender
+
+- [x] ~~**BOTÓN "CANCELAR MI MEMBRESÍA"**~~ ✅ **CONSTRUIDO el 2026-10-19**, en
+      `/app/plan`. Elimina la suscripción en OnePay por API
+      (`DELETE /v1/subscriptions/{id}`, `lib/onepay.ts`) y, si eso falla,
+      cancela igual en nuestra base y manda un aviso `ACCIÓN:` a Cristian y
+      Elizabeth para hacerlo a mano. NO corta el acceso: conserva hasta el
+      final del ciclo pagado. El FAQ y las páginas legales cambiaron en el
+      mismo commit.
+      🔴 **PERO LA LLAMADA A ONEPAY NUNCA SE HA EJECUTADO.** Las alumnas de
+      prueba se activan a mano y no tienen suscripción en la pasarela, así que
+      el código salta ese paso. Solo se prueba con una suscripción de verdad
+      en QA — ver pendientes de abajo.
+- [ ] 🔴 **`ONEPAY_API_KEY` EN VERCEL (Preview).** Sin ella el botón de
+      cancelar no detiene el cobro: cancela en nuestra base y manda el aviso
+      para hacerlo a mano. Es la misma `sk_test_…` del `.env.local`, y **nunca**
+      como `NEXT_PUBLIC_`.
+- [ ] **Identificación del responsable de los datos** (cédula o NIT de Elizabeth)
+      y un domicilio → `lib/legal.ts` (`IDENTIFICACION`/`DOMICILIO`, hoy `null`).
+      La Ley 1581 de 2012 lo exige. En `null` las páginas omiten la línea: quedan
+      **incompletas, no falsas**.
+- [ ] **Montar producción.** `icbhtsdalysatlizjlys` está **vacío**: las 31
+      migraciones sin aplicar, un `db push` limpio sirve. Faltan la biblioteca de
+      Bunny de producción y las variables en Vercel. Cuando aprueben la cuenta,
+      crear un plan de US$1 y repetir la verificación completa. ⚠️ Los webhooks
+      **no se comparten** entre empresas ni entre modos: hace falta uno propio.
+
+### Contenido que solo puede dar la dueña
+- [ ] 🔴 **Los videos llevan MARCA DE AGUA DE CAPCUT** (logo arriba a la
+      izquierda; en uno pone "CapCut AI"), en una página que cobra. Reexportar.
+- [ ] **2-3 testimonios reales** (capturas de WhatsApp). 🔴 Fallo nº1 del revisor
+      visual, y **no se inventan**: el 17-oct se quitó un "4,9/5" sin respaldo.
+- [ ] **Portada que falta: Esmeralda** (no llegó ninguna foto verde; Celeste
+      Cálido recibió la suya el 2026-10-21). Las de los 4 bolsos nuevos y los 3 llaveros entraron el
+      2026-10-21, asignadas por forma y materiales; **Icono y Perla Clásica son las
+      menos seguras**, que Elizabeth las confirme. Formato: WebP 720×720, calidad 65.
+- [ ] **Los 33 enlaces de AliExpress** (el botón dice "Enlace pronto").
+
+---
+
+## ⚠️ Riesgos aceptados por Cristian (no se re-discuten)
+
+- ~~La portada de Anillos de Seda con la marca DIOR~~ ✅ **RESUELTO el
+  2026-10-19** (migración 0031): Cristian entregó una foto limpia y sustituyó a
+  la de la 0026. Era el PRIMER bolso del carrusel, o sea la primera imagen que
+  ve quien llega por un anuncio. Esta vez **el seed también se actualizó**, que
+  era el desfase que dejó la 0026.
+- **Bunny no deja ocultar los controles del reproductor desde la URL** — solo por
+  biblioteca, y esta sirve también las lecciones, donde la alumna sí necesita
+  pausar. Una franja opaca de 72px tapa la barra en el visor de cápsulas.
+- **El home no lleva dolor ni testimonios**: el diseño los quita a propósito.
+
+---
+
+## 🛒 HOME V3 — "MÁS VENTAS" (2026-10-20, sin commitear)
+
+Brief y referencia: `design-ref/pantallas/` (21 imágenes). Renders reales en
+`design-ref/estado-actual/home-v3/`. Orden: banner (con línea de precio) →
+cápsulas → curso gratis → banda "1 de 16" → Ojo → Elizabeth → precio → FAQ →
+cierre, y en móvil la **barra fija de compra** (sale al dejar el banner, se
+esconde en `#precio`). Botón de compra a un toque en todo el recorrido.
+
+**Decisiones de Cristian (no se re-preguntan):** WhatsApp `+57 315 494 0311`
+(`lib/landing.ts`) · el anual dice **"Un pago de US$89,90 al año"**, nunca "pago único" (se
+renueva solo) · el Ojo conserva "Ojo Experto · Ilimitado con tu plan" y su copy.
+
+**Hecho y verificado:** tsc ✓ build ✓ · a 390×844 titular + botón + línea de
+precio caben sobre la barra (acaba en 771 de 772) · barra: oculta arriba y en
+precio, no tapa el copyright · los botones de precio y cierre abren el enlace
+OnePay correcto de `plan_checkout` · FAQ con teclado + JSON-LD · Mixpanel
+recibe `cta_inscribirme_click`, `plan_toggle`, `faq_open` (`whatsapp_click`
+no se probó en vivo). Borrados `LlamadaAPlanes` y `BarraInferiorHome`; de
+`lib/landing.ts` salieron 5 bloques muertos con datos falsos. `INCLUYE` cambió
+también en Mi plan y en el selector de pago.
+
+- 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
+  el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
+  correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a
+  OnePay, puede ser la mayoría de compradoras nuevas. La FAQ lo dice; el arreglo
+  de verdad es **crear la cuenta al llegar el pago**.
+- 🟡 **`FICHA-ARTE.md` desfasada otra vez** (revisor, 2026-10-20): dice body Jost y CTAs pill; la app y la referencia usan Manrope y botones de 10-12px. Lo decide Cristian.
+- ✅ Testimonios: 5 fotos reales de la comunidad de Telegram bajo Elizabeth,
+  con sus frases literales (`lib/landing.ts`). 🟡 **Pedirles permiso** a
+  Jenifer (Jenatelier) y Andrea antes de producción: son personas reales.
+
+---
+
+## 👜 CATÁLOGO: 20 BOLSOS, 3 LLAVEROS Y LAS CÁPSULAS CON SUS 5 VIDEOS (2026-10-20)
+
+Fuente: `Manos_Creadoras_desde_Perla_Clasica_CORREGIDO.pdf`. Cargado en **QA**:
+Perla Clásica, Corazón Dorado, Icono y Mini Perlina (orden 17-20, 12 lecciones,
+16 videos; total 103). Los 21 videos del PDF se comprobaron en Bunny ANTES de
+cargar. Cápsulas: Hilo adecuado · Nueva fila · Nuevo hilo · Tejido firme · Aro
+lateral, cada una con su video (ya no se repite ninguna).
+
+- **Llaveros (21-23: Mora, Chispitas, Ónix).** El "ID proporcionado" del PDF
+  es su identificador, NO su video (Bunny da 404). Los videos los mandó
+  Elizabeth aparte y están verificados. Un llavero = UN video completo: va como
+  video de materiales y sin lecciones. Se reconocen por el slug `llavero-`
+  (`esLlavero()`): el home y Mi plan cuentan solo bolsos ("20"), el catálogo
+  dice "20 bolsos y 3 llaveros".
+- Para añadir bolsos: `node scripts/seed-bolsos.mjs --solo slug1,slug2`. ⚠️ Sin
+  `--solo` recarga los 20 y regenera sus lecciones.
+- `scripts/seed-capsulas.mjs` estaba desfasado (ponía `video_id: null`); ya
+  lleva los datos reales.
+- ⚠️ **Producción** recibirá estos datos al montarla corriendo los dos seeds; la
+  migración 0030 deja la versión vieja de las cápsulas y el seed la pisa.
+
+---
+
+## ⚠️ Pantallas que el revisor visual NO aprueba (listón: 36/40 y 16/20)
+
+| Pantalla | Nota | Qué falta |
 |---|---|---|
-| **Bunny Stream** | ✅ Sí | Dos bibliotecas de video — las claves son por biblioteca, no por cuenta |
-| **Supabase** | ✅ Sí | Un proyecto por ambiente; las migraciones están en archivo y se replican |
-| **Gemini** | ✅ Sí | Varias API keys en Google AI Studio; conviene una por ambiente para separar el gasto |
-| **Resend** | ✅ Sí | API keys independientes; el dominio verificado puede compartirse |
-| **Vercel** | ✅ Nativo | Variables por entorno (Production / Preview / Development) — ahí se enchufa todo lo anterior |
-| **Hotmart** | ❓ Por confirmar | Verificar si tiene ambiente de pruebas para el webhook |
+| Home v3 (2026-10-20) | 30/40 · 14/20 · 12/20 copy · **FIEL** | Copy sin dolor del avatar (ni "YouTube" ni "acabado de boutique"), falta FAQ "¿puedo vender lo que haga?", CTAs sin beneficio. Ya corregidos tras la nota: grano en bloques oscuros, botón bronce del héroe, header opaco, barra oculta sobre el Ojo, radios del Ojo. **Sin re-puntuar.** |
+| Mi plan | 27/40 · 14/20 · 12/20 | Prueba social real (arriba). Menor: el CTA sin estado de carga |
+| Las dos del visitante | 31/40 · 14/20 | Nota del 15-sep, **no cuenta dos arreglos posteriores** |
+
+Lo que más subiría la nota sin depender de nadie: **las 5 fotos de bolsos sin
+usar** de `public/images/` (glacier-blue, onix-cristal, pearl-bow, pearl-coin,
+pearl-royale).
 
 ---
 
-## Video (2026-08-04) — resuelto en código, falta la cuenta
+## 🎨 EL OJO EXPERTO, REDISEÑO v4 — PLANO (2026-10-20)
 
-### El hallazgo
-El soporte de Hotmart confirmó por escrito: **el Hotmart Player funciona SOLO dentro de Hotmart Club, no existe código de inserción para sitios externos.** La arquitectura asumida desde la Sesión 3 (`lecciones.hotmart_id` + iframe a `cf-embed.play.hotmart.com`) nunca habría funcionado.
+Contrato visual: `design-ref/ojo-v4-claude-code/` (11 pantallas + su prompt).
+**Es cosmético**: no se tocó el endpoint, los cupos, el streaming ni el
+historial.
 
-Dato útil: **ellos mismos recomiendan alojar el video en otro servicio y embeber ESE video dentro de Hotmart Club** — un solo archivo sirve para la app y para el Club, sin subir nada dos veces.
+**La regla de v4 es que no hay relieve.** Ni degradados, ni sombras, ni glow,
+ni blur, ni círculos — solo color sólido y líneas de 1px. El avatar del ojo se
+sustituye por un **tile cuadrado con `Sparkles`**. Auditado: 0 infracciones en
+los tres archivos.
 
-### Lo que ya está hecho
-- Migración `0006`: fuera `hotmart_id` (estaba 100% vacía); entran `video_proveedor` (`bunny`|`vimeo`|`youtube`), `video_id` y `recurso_url`, con constraint que impide guardar un video a medias.
-- `recurso_url` tapó un agujero que nadie había visto: las lecciones `pdf` (patrones) y `enlace` (comunidad) **no tenían dónde guardar su destino**.
-- `lib/video.ts`: arma la URL del reproductor según el proveedor, solo en servidor. Para Bunny **firma el enlace y lo hace caducar a las 6 h**.
-- `ContenidoLeccion`: reproduce video, o muestra un botón real para PDF/enlace, o el marcador honesto si no hay nada.
-- Hotmart queda SOLO para el cobro (checkout + webhook).
+⚠️ **EL CAMBIO CON MÁS EFECTO NO FUE DE COLOR: fue quitar la altura fija.**
+`OjoDemo` metía el chat en una caja de 520px con scroll propio (`h-130` +
+`overflow-y-auto`). En un teléfono eran dos scrolls peleando y la respuesta del
+Ojo —lo único que hay que leer— asomaba por una rendija. Ahora la sección crece
+con su contenido.
 
-Verificado en navegador a 375px: YouTube y Vimeo reproducen, el PDF muestra su botón. La firma de Bunny coincide con su fórmula documentada.
+**Cinco tokens nuevos** en `globals.css` (`--sand-hover`, `--espresso-2`,
+`--espresso-line`, `--line-strong`, `--on-dark-muted`): tonos intermedios que
+el lenguaje plano necesita y que los 12 de marca no cubrían.
 
-### Precios de Bunny (verificados en su documentación)
-Almacenamiento $0,01/GB · Entrega **Norteamérica (incl. México) $0,010/GB** · **Sudamérica $0,045/GB** · Codificación estándar **gratis**.
+**Tres decisiones tomadas al aplicarlo:**
+1. La tarjeta destacada es la de FOTO ("¿Está pareja mi tensión?"), no una de
+   las cuatro preguntas: el layout pide 1 destacada + 4, y la de foto es la
+   única función que la alumna no adivina sola.
+2. En las sugerencias manda la PREGUNTA, no el área. Con el área en grande se
+   leía como un índice de categorías.
+3. Los eyebrows siguen la IMAGEN ("Elige una duda"), no el texto del prompt
+   ("Prueba con una de estas"): las dos fuentes decían cosas distintas.
 
-- El titular de "$0,005/GB" es solo Europa/Norteamérica en volumen alto: **Sudamérica cuesta 9× más**.
-- ⚠️ **NO activar la codificación premium** ($0,025-$0,150/min): con 24 h de video serían $36-$216 de golpe. La estándar es gratis y se ve perfecta.
-- No hay cargo mínimo mensual (el de $99 es solo del DRM Enterprise, que no se necesita).
-
-**Con 500 alumnas y 160 GB:** almacenamiento $1,60/mes fijo; el tráfico manda (≈0,9 GB por hora vista). Mes realista (4 h/alumna) ≈ **$56/mes** = 0,6% del ingreso. Mes de lanzamiento (todas ven todo) ≈ $490 = 4,9%. El primer mes siempre es el más caro.
-
-### Por qué se descartó Vimeo
-- **Vimeo normal** (Starter $12 / Standard $25 / Advanced $75, precio anual): los tres tienen **el MISMO tope de 2 TB/mes** de tráfico. Se agota con **~92 alumnas** viendo el curso completo, o ~555 mirando 4 h. Con +1.200 alumnas esperando, el techo llega justo cuando el negocio arranca. Su Starter solo promete "contraseña y enlaces ocultos" — no se pudo confirmar restricción por dominio.
-- **Vimeo OTT** ($1 por suscriptor/mes + 10% de ventas): no es alojamiento, es una plataforma de membresías que **reemplazaría a esta app** — y no puede alojar El Ojo Experto, lo único que justifica cobrar $19,99/mes. A 500 alumnas: $500/mes, lo mismo que el PEOR mes de Bunny pero todos los meses.
-
-### Seguridad de Bunny (verificada)
-| Capa | Qué bloquea | Estado |
-|---|---|---|
-| **Hotlink Protection** (*Allowed Referrers*) | Reproducción desde otro sitio → 403 | Se activa en el panel |
-| **Embed View Token** | Que el enlace del iframe sirva para siempre → caduca a las 6 h | ✅ ya en `lib/video.ts` |
-| **CDN Token** | Que alguien saque la URL del archivo (HLS, MP4) y la comparta | Pendiente |
-
-- Los dos tokens **no protegen lo mismo**: uno firma el iframe, el otro los archivos por debajo. Conviene activar ambos; el de CDN no es urgente.
-- ⚠️ *Block Direct URL File Access*: **dejarlo apagado al principio** — su propia documentación avisa que también bloquea clientes de correo y algunos navegadores.
-
-### QA y producción con claves separadas ✅
-En Bunny **las claves son por biblioteca, no por cuenta** (*"per-library Stream API key"*). Se crean **dos bibliotecas**: cada una trae su Library ID, su API key de subida, su Token Authentication Key y su propia lista de Allowed Referrers.
-
-| | QA | Producción |
-|---|---|---|
-| Contenido | 1-2 videos de prueba | los 58 reales |
-| Almacenamiento | ~$0,02/mes | ~$1,60/mes |
-| Allowed Referrers | `localhost` + dominio de pruebas | solo el dominio real |
-
-**No hay que tocar código**: `lib/video.ts` ya lee `NEXT_PUBLIC_BUNNY_LIBRARY_ID` y `BUNNY_TOKEN_KEY`; cambiar de ambiente es cambiar valores en Vercel.
-
-⚠️ La **Account API Key** es global y da acceso TOTAL — no se usa en la app y nunca se versiona.
-
-### Guía de arranque
-1. [Quickstart](https://bunny.net/docs/stream/quickstart) — crear biblioteca y subir el primer video (activar ≥2 regiones)
-2. [El panel por dentro](https://bunny.net/docs/stream/dashboard)
-3. [Subir desde una URL](https://bunny.net/docs/stream/url-fetch) — ⭐ si los videos ya están en Drive/Dropbox/Hotmart, Bunny los jala solo y **la dueña se ahorra subir 160 GB desde su casa**
-4. [Subidas reanudables TUS](https://bunny.net/docs/stream/tus-resumable-uploads) — retoma si se corta el internet
-5. [Seguridad](https://bunny.net/docs/stream/security) · [Token de embed](https://bunny.net/docs/stream/token-authentication) · [Hotlink Protection](https://bunny.net/docs/cdn/security/hotlink-protection)
-6. Ya implementado: [Embeber](https://bunny.net/docs/stream/embedding) · [Reproductor](https://bunny.net/docs/stream/player) · [Precios](https://bunny.net/docs/stream/pricing)
-
-**Orden de trabajo:** crear cuenta y **cargar saldo** (ver "Cómo se paga") → crear biblioteca QA con 1-2 videos → activar Token Authentication y agregar `localhost` a Allowed Referrers → pasarme Library ID + Token Key (⚠️ la clave **no se pega en el chat**, va a variables de entorno) → verifico end-to-end → repetir para producción.
-
-### Cómo se paga Bunny (verificado el 2026-08-04)
-**Es PREPAGO**, no factura a fin de mes: se carga saldo y el consumo lo va descontando.
-
-- **Montos de recarga:** $10, $25, $50, $100, $250, $500, $1000, $2000 o un monto personalizado.
-- **Formas de pago:** Visa, Mastercard, American Express, Discover, JCB, Diners, **PayPal**, Apple Pay y Bitcoin. Las tarjetas las guarda Braintree, no Bunny.
-- **Mínimo de $1/mes** mientras haya zonas activas: si el consumo del mes queda por debajo, redondean a $1.
-- **El saldo no vence** (los créditos de prueba sí vencen al terminar el trial).
-- **Auto-Recharge es OPCIONAL.** Se dispara cuando el saldo baja de $5 y cobra el monto configurado.
-
-⚠️ **CORRECCIÓN de lo que se anotó antes: Bunny NO tiene una función de "tope de gasto mensual".** No existe en su documentación. Lo que protege de una factura sorpresa es el modelo prepago en sí: **con Auto-Recharge apagado, el saldo cargado ES el techo.**
-
-⚠️ **Pero eso corta en los dos sentidos:** si el saldo llega a cero, los videos podrían dejar de servirse **a alumnas que están pagando**. Su documentación no aclara qué pasa exactamente al agotarse. Recomendación: mantener un colchón holgado y revisar el saldo al menos una vez al mes; si se activa Auto-Recharge, dejarlo en un monto chico ($25-50) para que nunca haya un cobro grande inesperado.
+⬜ **PENDIENTE, y es decisión de Cristian:** el chip de contexto
+("Gota de Rocío · Paso 4") sigue abajo junto al composer, no arriba en la
+cabecera como pide el diseño. No es cosmético: ese chip ES el selector con el
+que se elige bolso y paso, así que subirlo cambia dónde se interactúa.
 
 ---
 
-## App instalable y avisos push (2026-08-08) — HECHO y verificado
+## 🤖 EL OJO EXPERTO, AHORA ASISTENTE CREATIVA (2026-10-20)
 
-Era **la razón de ser del proyecto**: el reporte de validación de la Sesión 1 concluyó que el negocio ya estaba probado (1.200 alumnas, 4.9/5) y que la oportunidad nueva era el **FORMATO** — app instalable con push, no una landing más. Estaba en la lista de la Sesión 6 y quedó fuera sin que nadie lo notara hasta el 2026-08-08.
+Dejó de ser un ayudante de tejido. El prompt cubre **cinco áreas**: materiales
+y tejido, fotografía, diseño creativo, contenido para redes, y marca y ventas.
+Tejer ya se aprende con los videos; lo que justifica pagar es el resto.
 
-### Qué existe
-- `app/manifest.ts` + iconos 192/512/maskable/apple en `public/icons/`. Abre en `/cursos` porque quien instala ya compró.
-- **Los iconos se generaron con sharp**: `logo.svg` es una firma horizontal con texto, ilegible a 48px. El nuevo es un aro de cuentas doradas sobre el casi-negro de la ficha — es literalmente el producto y no depende de ninguna fuente instalada.
-- `public/sw.js` — **NO cachea nada a propósito.** Es una app de curso pagado: una caché mal invalidada serviría lecciones viejas o dejaría contenido en el dispositivo de quien ya canceló. El costo de no cachear es que necesita internet; el de cachear mal es peor.
-- Migración `0007`: `push_subscriptions` con RLS. La llave es el **endpoint**, no el usuario: una alumna puede tener celular y tablet.
-- `POST/DELETE /api/push/suscribir` — valida el token en servidor y exige membresía activa.
-- `POST /api/push/enviar` — protegido por secreto comparado en tiempo constante; borra solo las suscripciones que devuelven 404/410 para que la tabla no se llene de basura.
-- `components/app/ActivarAvisos.tsx` — el permiso se pide **dentro de Mi cuenta y solo si ella toca el botón**. Pedirlo al entrar es el anti-patrón que hace que la gente bloquee los avisos para siempre.
+⚠️ **El filtro de tema NO se quitó, se reescribió.** Sin él, el Ojo contesta
+recetas y tareas escolares con el presupuesto de IA. La regla pasó de "solo
+tejido" a "solo el negocio de bolsos tejidos de esta alumna".
 
-### Cómo envía un aviso la dueña
-```
-npm run push:enviar -- "Modelo nuevo" "Ya está el bolso Pearl Royale en tu app"
-```
-Para producción: `APP_URL=https://tu-app.vercel.app npm run push:enviar -- ...`. Es un comando, no hace falta panel; el backoffice puede venir después.
+⚠️ **El prompt distingue lo que HACE de lo que INDICA**: escribe prompts y
+guiones, no genera imágenes. Prometer de más aquí se paga en soporte.
 
-### ⚠️ Límite de iPhone (de Apple, no del código)
-En iOS los avisos **solo funcionan si la alumna instala la app en su pantalla de inicio**. Ya se detecta y se le muestran las instrucciones (Compartir → Agregar a inicio) en vez de un botón que fallaría sin explicación. En Android funciona directo.
+**Dos bugs de fondo que salieron y están arreglados:**
+1. **Cada pregunta abría una conversación NUEVA.** El chat era por dentro una
+   ristra de consultas sueltas y el historial crecía una entrada por pregunta.
+   Ahora el endpoint acepta `conversacionId` —solo si el hilo es de esa
+   alumna— y escribe en él.
+2. **El panel enlazaba a `/app/ojo/<id>`, una ruta que no existía**: todas las
+   conversaciones del historial daban 404. Creada.
 
-### ⚠️ Al montar Vercel hay que copiar 4 variables
-`NEXT_PUBLIC_VAPID_PUBLIC_KEY` · `VAPID_PRIVATE_KEY` · `VAPID_SUBJECT` · `PUSH_ADMIN_SECRET` (están en `.env.local`, que sigue fuera de git).
+**Verificado contra la IA real** (con `AI_SIMULAR_IA=0`): las cuatro preguntas
+sugeridas responden concreto y ninguna se marca fuera de tema — incluida la de
+videos para redes, que el prompt viejo habría rechazado.
 
-**Si algún día se cambian las llaves VAPID, TODAS las alumnas suscritas dejan de recibir avisos** y hay que volver a pedirles permiso. Ideal: una pareja distinta por ambiente, ya que las suscripciones viven en bases distintas.
+✅ **Decisión de Cristian: 30 imágenes al mes en Premium** cuando exista la
+generación de imágenes. El texto sigue ilimitado; se topan las imágenes por
+caras. El tope va en `plan_cupos`, no en código, y **se anuncia antes de
+comprar**.
 
-### Verificado end-to-end (navegador real con permiso concedido)
-Suscripción guardada contra FCM de Google → envío por el script → **el service worker recibió y mostró la notificación** con su título, cuerpo, icono y destino → desactivar la borra del navegador y de la base. Los endpoints pasan los 5 chequeos de autorización (401 sin secreto, 401 con secreto malo, 400 con cuerpo inválido, 401 sin sesión, 200 con secreto correcto). Captura: `.playwright-mcp/s9-avisos.png`.
+👉 **El plan completo y lo que falta está en `docs/PLAN-OJO-EXPERTO.md`**:
+quedan F4 ("Dale vida a tu bolso"), F5 (banco de evaluación) y F6 (diseño
+premium con streaming). Eso es producto nuevo, no arreglos.
+
+⚠️ Durante las pruebas Google devolvió varios **503 "high demand"**. Es caída
+suya, pero la pantalla lo enseña como "No pudimos conectar". Si se repite,
+toca reintentar en el servidor.
 
 ---
 
-## Correo / magic link — pendiente de configurar
+## 🟡 Pendientes de código (no bloquean vender)
 
-### 🔴 Falta SMTP propio (bloquea el lanzamiento)
-El remitente por defecto de Supabase manda ~2 correos/hora y **solo a direcciones del equipo** → ninguna alumna recibiría su acceso.
-- Resend: **Project Settings → Authentication → SMTP Settings** · host `smtp.resend.com` · puerto `465` · usuario `resend` · password = la API key `re_...`.
-- Para probar sin dominio sirve `onboarding@resend.dev`, pero **solo entrega al correo dueño de la cuenta de Resend**. Para alumnas reales hay que verificar el dominio (SPF/DKIM).
-- Después subir **Rate Limits → "emails per hour"**.
-
-### ⚠️ Cambiar la plantilla a `token_hash`
-La plantilla por defecto usa PKCE (`?code=`), que exige abrir el enlace **en el mismo navegador que lo pidió**. La alumna lo pide en Chrome, abre el correo en Gmail, el enlace se abre en el navegador interno de Gmail → "enlace vencido". Con audiencia móvil pasa constantemente.
-- **Authentication → Email Templates → Magic Link**: `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink`
-- El callback ya soporta las dos formas — **no se toca código**.
-
-### URL Configuration
-Site URL `https://TU-APP.vercel.app` · Redirect URLs: `https://TU-APP.vercel.app/auth/callback` y `http://localhost:3000/auth/callback`
-
-### Cómo funciona el envío (para no perder tiempo depurando)
-- El enlace **NO se envía si el correo no existe en `auth.users`**. Por anti-enumeración la pantalla dice igual "revisa tu correo" — es deliberado, no un bug.
-- La fila en `profiles` no influye en el envío, solo en poder entrar.
-
-### Atajo para entrar sin correo
-```
-APP_URL=https://TU-APP.vercel.app npm run alumna:crear -- tu@correo.com anual active
-```
+- 🟡 **EL AUDIO DE LOS VIDEOS: SIN OÍR EN UN TELÉFONO REAL** (2026-10-20).
+  Los **tres** sitios con video —cápsulas, curso gratis y lecciones de `/app`—
+  comparten el mismo reproductor y la misma lógica: intentan sonar y, si no
+  les dejan, se remontan mudos. El peor caso es un video mudo, nunca parado.
+  Falta **oírlo en un celular**; desde el navegador no se puede.
+  ⚠️ **NO reabrir el tema sin leer los comentarios de `ReproductorEnSitio` y
+  `VideoDeHistoria`**: están probadas y descartadas las tres vías obvias
+  (`muted=false` → no arranca · `unmute` tras `ready` → lo pausa · reloj desde
+  el montaje → silencia videos que sí podían sonar, que es el bug que reportó
+  Cristian). Hoy decide `ready` + 2 s, con un tope absoluto de 6 s por si
+  `ready` no llega nunca.
+- **Queda una cookie `oferta` huérfana** en los navegadores de quien ya visitó:
+  el middleware dejó de escribirla y nadie la lee, pero dura un año. No hace
+  daño; si molesta, se borra desde el middleware una temporada.
+- **`lib/hotmart-verify.ts` es un huérfano** (nadie lo importa) y `lib/env.ts`
+  conserva `HOTMART_HOTTOK` y `hotmartEnv()`. Borrar.
+- 🟡 **Falta confirmar `x-vercel-ip-country` en QA.** En local no existe: la
+  detección de país se verificó inyectando la cabecera a mano, y de ella depende
+  qué enlace de pago ve cada quien.
+- 🟡 **El token del enlace mágico llega como `pkce_…`**, que ata el enlace al
+  navegador donde se pidió. Probar pidiéndolo en uno y abriéndolo en otro; si
+  falla, se quita PKCE en `lib/supabase/client.ts`, **no se toca la plantilla**.
+- **Los precios por token de `lib/costo-ia.ts` no están verificados** contra la
+  lista de Google (los tokens sí). Contrastar un mes de `ai_spend` con la factura.
+- **Eventos de Mixpanel sin verificar en vivo**: los del Ojo Experto,
+  `correo_enviado`, `checkout_abierto`, `cuenta_creada`/`cuenta_iniciada`.
+- **Correo distinto al de la compra**: falta el aviso en la landing y
+  `npm run alumna:mover`. ⚠️ **Solo comando, nunca un botón.**
+- 🟡 **EL CUPO DEL OJO SE DEVUELVE CUANDO NO RESPONDE** (2026-10-20, sin
+  commitear). `devolverCupo` existía en `app/api/ojo-experto/route.ts` y nadie
+  la llamaba: la pregunta se perdía si era fuera de tema, si el presupuesto del
+  día estaba agotado o si Gemini fallaba. Ahora se llama en los tres, resta con
+  compare-and-swap (antes escribía un número fijo y podía pisar otra pregunta),
+  devuelve también la del visitante, y el mes sale en hora de Colombia como
+  `periodo_actual()` (antes UTC: fallaba el último día del mes desde las 7 pm).
+  El gasto de una respuesta fuera de tema ahora SÍ se apunta en `ai_spend`.
+  ✅ Probado en QA: visitante con Gemini caído → 3 preguntas, `preguntas` sigue
+  en 0. ⬜ Falta probar el camino de la alumna con cuenta y el de presupuesto
+  agotado.
+- 🟡 **`FICHA-ARTE.md` dice Jost y la app usa Manrope** (lo detectó el grafo de
+  graphify, 2026-10-20). `app/layout.tsx` anota que Manrope reemplazó a Jost el
+  2026-10-09, pero la ficha (líneas 18, 24, 34 y 42) nunca se actualizó. Corregir
+  la ficha, no el código, salvo que Cristian decida otra cosa.
+- Menores: `direcciones-abc.html` sigue en la raíz (ya ignorado por git) · título
+  de pestaña de `/login` sin personalizar · 1 aviso de lint en `BarraProgreso`.
 
 ---
 
 ## Decisiones cerradas (no se re-preguntan)
 
 **Producto**
-- **Modelo: SUSCRIPCIÓN** $19.99/mes o $199/año (=$16.58/mes, "2 meses gratis"). El plan anual es el recomendado. Reemplazó al pago único de $25 el 2026-08-02; el texto viejo de "acceso de por vida" fue eliminado de toda la app (era información falsa y riesgo de disputas).
-- El cobro es 100% en Hotmart. **No hay paywall propio**: login automático post-compra vía webhook.
-- Consecuencias legales ya implementadas: `/cancelar`, cláusula de renovación automática y de cambio de precio, política de reembolso que distingue primer pago vs renovaciones.
-- **Uso justo del Ojo Experto**: 40 preguntas + 8 fotos/mes. Con la suscripción el costo de IA pasó de ~28% de un pago único a <1% del ingreso recurrente.
-- **Las lecciones NO se bloquean secuencialmente** (decidido 2026-08-03): en Hotmart la alumna ya tiene todo abierto; bloquear sería un retroceso que notaría el primer día. El avance lo marca ella. ⚠️ Reversible si la dueña prefiere lo contrario.
-- **La sección 1 no cuenta para el % de avance** (es bienvenida y recursos): migración `0005`, columna `secciones.cuenta_progreso` — por dato, no hardcodeado.
+- **Un solo plan** (0016): `gratis` (3 consultas / 1 foto al mes) y `completo`
+  (600/60). Se acabaron Aprendiz/Creadora/Maestra.
+- **El bolso gratis es Nácar Soñado**, y lo decide `gratis: true` en el seed — ni
+  un slug escrito en el código.
+- **Cancelar NO corta el acceso**: lo deja hasta `vence_el`. El mes es suyo.
+- **Las lecciones no se bloquean secuencialmente.**
+- **El muro sale al INTENTAR preguntar, no al abrir la pantalla**, y la pregunta
+  escrita no se pierde. **El Ojo Experto responde sin cuenta** (0017) con dos
+  frenos: 2 preguntas por huella contadas en la base y un presupuesto de IA
+  aparte. La huella es un hash de IP + sal: **nunca la IP en claro**.
 
 **Técnicas**
-- **Next.js App Router** (SEO + rutas privadas + API routes).
-- **IA: Gemini** (`AI_MODEL`, hoy `gemini-3.6-flash`) vía patrón BFF — la clave nunca toca el navegador. ~$0,014 por alumna activa al mes. ⚠️ Riesgo asumido: es el modelo con menos finura visual de los evaluados; si aparecen consejos flojos sobre fotos, la palanca es subir de modelo (es cambiar `AI_MODEL` + la clave).
-- **Auth**: Supabase Auth con enlace mágico, sin contraseña. La cuenta la crea el webhook al pagar, usando el email de la compra como llave.
-- **Variables de entorno validadas POR USO** (`aiEnv` / `hotmartEnv`), no todas de golpe: así una clave de Hotmart vacía no tumba al Ojo Experto.
-- **Dirección de arte: CERRADA** — ver `FICHA-ARTE.md` (opción B "Editorial de Revista"). Fondo #090706 · dorado #ebcd8c→#d48e00 · Cormorant Garamond + Jost. Dispositivo ownable: foto a sangre + grano + display superpuesta.
-- **Avatar: ver `FICHA-AVATAR.md`** — "Marcela", 28-45, LATAM. Dolor #1: "mis bolsos no se ven profesionales". Consciencia 3-4, sofisticación 3.
+- **Next.js App Router** · **Gemini** (`AI_MODEL`, hoy `gemini-3.6-flash`) vía
+  BFF · **Supabase Auth** con enlace mágico, sin contraseñas.
+- **La puerta vive en la BASE, no en la pantalla.** `middleware.ts` tiene la
+  lista de rutas privadas **vacía a propósito**: quién ve qué lo decide el RLS.
+- **Las migraciones se aplican con `supabase db push`** y se comprueban con
+  `supabase migration list`. Si el CLI no se puede usar, **se para y se avisa**:
+  un esquema correcto con un historial mentiroso no falla hoy, falla al
+  desplegar. **A producción no entra ninguna sin aprobación de Cristian, cada
+  vez.** ⚠️ El conector MCP de Supabase no ve ningún proyecto; el CLI sí.
+- **El Ojo Experto es ruta de Next, no edge function**: conserva el control de
+  gasto y el presupuesto por público.
+- **Modo simulado de IA**: `AI_SIMULAR_IA=1` **y** no estar en producción — la
+  segunda condición no se puede apagar.
+- **Mixpanel**: grabación de sesión APAGADA a propósito. Se le manda el ID de
+  Supabase, nunca el correo, y con `ip: false`.
+- **Arte** → `FICHA-ARTE.md`. **Avatar** → `FICHA-AVATAR.md`. Ambas cerradas.
 
 ---
 
-## Estructura real del curso
-- **4 secciones, ~58-64 lecciones** (el total exacto sigue sin confirmar). Modelo `secciones` → `lecciones`, con `user_progress` por lección.
-- No todo es video: la sección 1 es bienvenida/comunidad/aviso/patrones (`texto`, `enlace`, `pdf`) y la 4 trae 6 PDFs. Por eso `tipo` y `duracion_seg` son nullable.
-- Los títulos vienen **bilingües** desde Hotmart → `titulo` / `titulo_en`. Buen punto de partida para un plan en inglés.
-- **Cargado hoy: 9 lecciones** (sección 1 completa + las 5 primeras de la 2 con duración real). Faltan ~49.
-- Las 5 lecciones cargadas de la sección 2 ya suman 2h32m → el curso completo probablemente supera las 10 horas. **Dato vendible para la landing.**
+## Ambientes
+
+| | QA | Producción |
+|---|---|---|
+| Supabase | `cazqmaluaehyikkstkoi` | `icbhtsdalysatlizjlys` (**vacío**) |
+| Bunny Stream | `772366` ("manos creadoras", 100 videos) | por crear |
+| Vercel | rama `develop`, público | por configurar |
+
+QA despliega solo con cada `push` a `develop`, y desde el 2026-10-18 manda
+`X-Robots-Tag: noindex` en **toda** respuesta fuera de producción
+(`next.config.ts`): `Disallow` en robots.txt no basta para sacar de Google lo que
+ya está indexado.
+
+⚠️ **Supabase gratuito se PAUSA solo a las 3 semanas sin uso.** La página de
+ventas sigue, pero el login, los videos y el Ojo Experto dan error. *Restore
+project* lo arregla y **no se pierde nada** (comprobado).
+
+⚠️ **Una variable `NEXT_PUBLIC_*` NO puede ser "Sensitive" en Vercel**: Next la
+sustituye AL COMPILAR y quedaría vacía sin ningún error que lo delate.
+
+**Al publicar, tres cosas fallan en silencio:** el *Site URL* de Supabase en
+`localhost` (correos con enlaces que no existen) · el dominio fuera de los
+*Allowed Referrers* de Bunny (videos en negro, 403) · cambiar las llaves VAPID
+(todas las suscritas dejan de recibir avisos).
 
 ---
 
-## Herramienta de desarrollo: alumna de prueba
-- `npm run alumna:crear -- correo@ejemplo.com [mensual|anual] [active|cancelled]` — crea la cuenta + su perfil (igual que el webhook) e **imprime el enlace de acceso directo**, sin depender del correo.
-- `npm run alumna:borrar -- correo@ejemplo.com` — la elimina con todos sus datos.
-- ⚠️ Solo desarrollo: lee `.env.local` y usa la clave secreta. Nunca en producción.
+## Avisos que cuestan dinero
 
----
-
-## Problemas conocidos ⚠️
-- ⚠️ **Los videos son VERTICALES y el contenedor está en 16:9** → salen dos franjas blancas a los lados, que sobre el fondo casi-negro se leen como un error. Pendiente de confirmar con la dueña si TODO el curso es vertical: si lo es, el contenedor pasa a vertical; si está mezclado, se deja flexible y se pinta el fondo del reproductor con el casi-negro de la marca (Bunny → Player). Visible en `.playwright-mcp/s10-bunny.png`.
-- La landing **no tiene testimonios con nombre**. Decisión deliberada: la dueña pidió inventarlos "mientras agregamos unos reales" y se rechazó (riesgo real de moderación de Hotmart y publicidad engañosa). Solo queda el agregado real (+1.200 alumnas · 4.9/5).
-- `direcciones-abc.html` sigue en la raíz — borrarlo antes del deploy (no va a producción).
-- Título de pestaña de `/login` no personalizado (es "use client" y no puede exportar `metadata`). Solucionable con un `layout.tsx` del grupo `(auth)`. No bloqueante.
-- 1 aviso de lint preexistente: `BarraProgreso` llama setState dentro de un efecto. No rompe nada.
-- **Pendiente del lado del código**: aplicar a la app interna las 5 fotos de bolsos que están sin usar. Es lo que más sube la nota del revisor y no depende de nadie más.
+- **Bunny es PREPAGO.** Si llega a cero, los videos dejan de servirse **a alumnas
+  que pagan**: revisar el saldo una vez al mes. ⚠️ **No activar la codificación
+  premium** (con 24h de video serían $36-216 de golpe). **Sudamérica cuesta 9×
+  más** que Norteamérica en entrega: con 500 alumnas, un mes normal ≈ $56; el de
+  lanzamiento ≈ $490.
+- **Los presupuestos de IA son globales por público, no por persona**: una sola
+  alumna puede agotar el de `miembro`. Con varias decenas activas, decidir si el
+  tope pasa a ser por cuenta.
 
 ---
 
 ## Notas operativas (leer antes de tocar la terminal)
-⚠️ **El Node por defecto de la máquina es v10.23.0** (de 2018). Una terminal nueva arranca ahí y `tsc`/`next` REVIENTAN con `SyntaxError: Unexpected token ?` — no es el código, es Node viejo. **Correr `nvm use` al abrir la terminal del proyecto** (hay `.nvmrc`).
-- **El proyecto corre en Node 22.23.2**: `@supabase/supabase-js` ya no soporta Node ≤20 (falla con "native WebSocket not found").
-- ⚠️ Al cambiar de versión de Node hay que **reinstalar `node_modules` de cero** (`rm -rf node_modules package-lock.json && npm install`): se pierde el binario nativo `@next/swc-darwin-x64` y el build muere con "Turbopack is not supported on this platform".
-- Opcional: `nvm alias default 22.23.2`.
-- Servidor de desarrollo: `npm run dev` (puerto 3000 o el que Next asigne libre).
+
+⚠️ **El Node por defecto de la máquina es v10.23.0** (de 2018). Una terminal
+nueva arranca ahí y `tsc`/`next` revientan con `SyntaxError: Unexpected token ?`
+— no es el código. **Correr `nvm use`** (hay `.nvmrc`). El proyecto va en Node
+22.23.2; al cambiar de versión, reinstalar `node_modules` de cero.
+
+⚠️ **Esta terminal tiene `LC_CTYPE="C"`, no UTF-8**: al copiar una plantilla de
+correo con `pbcopy` los acentos y las ñ se destrozan, **y el panel de Supabase lo
+guarda sin avisar**. Usar `npm run correo:copiar <plantilla>` y MIRAR EL PREVIEW
+antes de guardar.
+
+⚠️ **Credenciales de El Charcu cruzándose en este repo: ya pasó TRES veces**
+(plantilla de correo de Supabase, organización de OnePay, claves de Resend en
+Vercel). Ante cualquier cosa rara con un servicio externo, **sospechar de esto
+primero**.
+
+**Comandos:** `npm run dev` · `alumna:crear|borrar` · `membresia:dar|quitar|ver`
+· `seed:bolsos` · `seed:capsulas` · `webhook:probar|ver` · `push:enviar` ·
+`correo:copiar` · `typecheck`.
 
 ---
 
-## Historial de sesiones
-Detalle completo en el historial de git. Resumen:
+## Historial
 
-| Sesión | Qué se hizo |
-|---|---|
-| 1 (07-31) | Validación, Constitución del Producto, FICHA-AVATAR, arquitectura técnica |
-| 2 (07-31) | Identidad visual: protocolo A/B/C, la dueña eligió la opción B, FICHA-ARTE aprobada |
-| 3 | Página de ventas (10 secciones) + 4 legales + checkout real de Hotmart |
-| 4 (08-01) | Bienvenida post-compra + login magic link |
-| 5 (08-01) | App interna (3 secciones + bottom nav) con datos semilla. ⚠️ Se descubrió que Cormorant **nunca había cargado** desde la Sesión 3 por una variable CSS auto-referenciada — todas las pantallas anteriores renderizaban con la sans del sistema |
-| 6 (08-02) | Servicios externos reales: Supabase (8 tablas + RLS), webhook de Hotmart, Gemini. Migración del modelo a suscripción. ⚠️ Se detectó y cerró un agujero: `tiene_acceso(uid)` era llamable sin sesión desde `/rest/v1/rpc/` — cualquiera podía averiguar qué alumnas tenían membresía activa |
-| 7 (08-03) | Pantallas conectadas a Supabase (se borró `lib/demo-data.ts`). 4 bugs reales corregidos, entre ellos el **bucle infinito de redirecciones** cuando hay sesión sin fila en `profiles` |
-| 8 (08-04) | Video independiente de Hotmart (`lib/video.ts` + migración `0006`) |
-| 9 (08-08) | Fotos a WebP (9,6 MB → 1,2 MB) y basura de Next borrada. **PWA instalable + avisos push** (`manifest`, service worker, migración `0007`, endpoints y UI de permiso), verificados contra FCM |
-| 10 (08-08) | **Correo y video funcionando**: Bunny Stream conectado y verificado (token firmado, 200 en todas las peticiones). **Correo**: dominio verificado en Resend, SMTP en Supabase y plantilla de marca (`supabase/templates/magic-link.html`). Verificado con envío real: `delivered` en Gmail |
+El detalle está en `git log` — los mensajes llevan el problema, la causa y cómo
+se comprobó. Hitos: construcción de la app (jul-ago 2026) · embudo de entrada
+portado de El Charcu (sep) · rediseño a crema y los 16 bolsos (oct 9-14) · home
+v2 y plan único (oct 14) · salida de Hotmart y entrada de OnePay (oct 16-17) ·
+visor de cápsulas y oferta de lanzamiento (oct 17-18) · baja autónoma de la
+alumna, galería del home en móvil y vuelta a UN solo precio, retirando la
+oferta de lanzamiento por no ser real (oct 19).

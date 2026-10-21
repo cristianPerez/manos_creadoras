@@ -1,22 +1,62 @@
 import Link from "next/link";
 
+/**
+ * El pie.
+ *
+ * ⚠️ SE CAE LA MENCIÓN A HOTMART. El texto legal decía "no forma parte ni está
+ * respaldado por Meta™ o Hotmart™" — un descargo que tenía sentido cuando el
+ * cobro pasaba por ahí. Nombrar a una pasarela que ya no se usa confunde a
+ * quien compara, así que queda solo Meta™, que es donde está la publicidad.
+ * Cuando OnePay esté integrado se decide si hace falta nombrarlo.
+ */
 export function FooterLegal() {
   return (
-    <footer className="px-4 pt-10 pb-24 md:pb-10 max-w-3xl mx-auto md:px-8 border-t border-border-default">
-      <div className="flex flex-wrap justify-center text-text-tertiary" style={{ fontSize: "var(--text-xs)" }}>
-        <Link href="/terminos" className="hover:text-text-secondary transition-colors p-2.5">Términos</Link>
-        <Link href="/privacidad" className="hover:text-text-secondary transition-colors p-2.5">Privacidad</Link>
-        <Link href="/reembolso" className="hover:text-text-secondary transition-colors p-2.5">Política de reembolso</Link>
-        <Link href="/contacto" className="hover:text-text-secondary transition-colors p-2.5">Contacto</Link>
+    /* `reserva-barra-compra`: en móvil deja libre el alto de la barra fija de
+       compra (home v3). Sin él, el copyright quedaba tapado debajo. */
+    <footer className="border-line reserva-barra-compra border-t px-5 py-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+          <Link href="/" className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="bg-espresso flex size-9 shrink-0 items-center justify-center rounded-full"
+            >
+              <span
+                className="font-display text-gold-light text-lg italic"
+                style={{ fontWeight: 500, lineHeight: 1 }}
+              >
+                M
+              </span>
+            </span>
+            <span className="font-display text-espresso text-lg" style={{ fontWeight: 500 }}>
+              Manos Creadoras
+            </span>
+          </Link>
+
+          <nav className="flex flex-wrap justify-center">
+            {[
+              { href: "/contacto", texto: "Contacto" },
+              { href: "/legal/terminos", texto: "Términos" },
+              { href: "/legal/privacidad", texto: "Privacidad" },
+              { href: "/legal/reembolso", texto: "Reembolsos" },
+            ].map((e) => (
+              <Link
+                key={e.href}
+                href={e.href}
+                className="text-ink-muted hover:text-espresso flex h-11 items-center px-3 text-sm transition-colors"
+              >
+                {e.texto}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <p className="text-ink-muted border-line mt-8 border-t pt-6 text-center text-xs">
+          © 2026 Manos Creadoras (Elizabeth Valencia). Hecho a mano, también el sitio. Este sitio no
+          forma parte ni está respaldado por Meta™. Los resultados varían según el esfuerzo y la
+          dedicación de cada alumna.
+        </p>
       </div>
-      <p className="text-center text-text-tertiary mt-4" style={{ fontSize: "var(--text-xs)" }}>
-        Bolsos de Lujo en Cuentas · por Manos Creadoras (Elizabeth Valencia)
-      </p>
-      <p className="text-center text-text-tertiary mt-1" style={{ fontSize: "var(--text-xs)" }}>
-        © 2026 Manos Creadoras. Todos los derechos reservados. Este sitio no forma parte ni
-        está respaldado por Meta™ o Hotmart™. Los resultados varían según el esfuerzo y la
-        dedicación de cada alumna.
-      </p>
     </footer>
   );
 }

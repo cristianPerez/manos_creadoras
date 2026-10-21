@@ -1,0 +1,1680 @@
+{
+  "bolsos": [
+    {
+      "orden": 1,
+      "nombre": "Perla Tejida",
+      "slug": "perla-tejida",
+      "nombre_original": "Bolso Bottega",
+      "bolso_id": "43df1231-6956-45d8-a074-d14e5427afb1",
+      "video_materiales_id": "17222a07-6882-4f5b-87ec-f628c14a6517",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Perlas de 10 mm y 30 mm",
+          "directorio_ids": [
+            "perlas-10",
+            "perlas-30"
+          ]
+        },
+        {
+          "texto": "Hilo de pescar de 0,7 mm",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Tijeras",
+          "directorio_ids": [
+            "tijeras"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "d8d15a10-d479-4869-ba4b-4b2a74a7f31f",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "679e34a0-578f-4b5a-b8f9-a1866b8f2ae2",
+          "orden": 2
+        },
+        {
+          "titulo": "Cierre del bolso",
+          "video_id": "4898e725-a587-4111-8513-8400c2a25d36",
+          "orden": 3
+        },
+        {
+          "titulo": "Elaboración del asa",
+          "video_id": "e64156ad-02f9-4e08-9dd6-2003868118c8",
+          "orden": 4
+        }
+      ],
+      "portada_url": "/images/bolso-perla-tejida.webp",
+      "gratis": false
+    },
+    {
+      "orden": 2,
+      "nombre": "Brillo Lunar",
+      "slug": "brillo-lunar",
+      "nombre_original": null,
+      "bolso_id": "c2016fe2-6f00-4fd1-9f02-c5fc77dfe28c",
+      "video_materiales_id": "33bfc3cb-9953-4283-8b7d-8f1cac5828c8",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 12,
+        "ancho": 10.5
+      },
+      "materiales": [
+        {
+          "texto": "Cuentas de 8 mm: 500 g",
+          "directorio_ids": [
+            "cuentas-8"
+          ]
+        },
+        {
+          "texto": "Nylon de 0,6 mm: 40 m",
+          "directorio_ids": [
+            "nylon-06"
+          ]
+        },
+        {
+          "texto": "Cierre tipo boquilla con 52 agujeros a cada lado",
+          "directorio_ids": [
+            "boquilla-52"
+          ]
+        },
+        {
+          "texto": "Tijeras o alicates/cortadores",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "a3ff2617-87f3-46c4-bd69-a5da1fdc5e7c",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "648ac223-8984-4288-a2c3-c14d69b25474",
+          "orden": 2
+        }
+      ],
+      "portada_url": "/images/bolso-brillo-lunar.webp",
+      "gratis": false
+    },
+    {
+      "orden": 3,
+      "nombre": "Anillos de Seda",
+      "slug": "anillos-de-seda",
+      "nombre_original": "Bolso Dior",
+      "bolso_id": "df9ed181-4d50-4ae1-8d1b-24e8fa330e37",
+      "video_materiales_id": "13fe18b9-c7c6-4e3a-be7f-0163f604500b",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Cuentas de 10 mm: aproximadamente 1.500 unidades",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Cuentas de cristal de 8 mm: aproximadamente 250 unidades",
+          "directorio_ids": [
+            "cristal-8"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca de 0,7 mm, no elástico",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Aros con tornillos de 17 mm: 4 unidades",
+          "directorio_ids": [
+            "aros-tornillo-17"
+          ]
+        },
+        {
+          "texto": "Aros para sujetar el asa: 4 unidades",
+          "directorio_ids": [
+            "aros-asa"
+          ]
+        },
+        {
+          "texto": "Remaches o protectores inferiores para bolso (patas): 4 unidades",
+          "directorio_ids": [
+            "patas"
+          ]
+        },
+        {
+          "texto": "Pañoleta para decorar el bolso: 1 unidad",
+          "directorio_ids": [
+            "panoleta"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "89f4d897-9012-42e4-931f-71522e1fad38",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "9775f320-55fc-4716-a6e9-0dc627a8605f",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del anillo",
+          "video_id": "b59fad52-304a-4739-ad94-fcbb7223b9a5",
+          "orden": 3
+        },
+        {
+          "titulo": "Ensamble de anillos",
+          "video_id": "ba27e461-c721-41ce-8cbd-d8de626c12be",
+          "orden": 4
+        },
+        {
+          "titulo": "Acabados finales",
+          "video_id": "fb50b05c-044a-41b4-b3a7-79c1bf0603a2",
+          "orden": 5
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "f6e0f610-aa7f-45f6-bad8-8d93f963b72d",
+          "orden": 6
+        }
+      ],
+      "portada_url": "/images/bolso-anillos-de-seda.webp",
+      "gratis": false
+    },
+    {
+      "orden": 4,
+      "nombre": "Marfil Elegante",
+      "slug": "marfil-elegante",
+      "nombre_original": null,
+      "bolso_id": "2dc5d011-62bf-4f0f-9e47-7750f44b0396",
+      "video_materiales_id": "a15373d0-47a9-4a76-bbf7-2176b9c7ab1f",
+      "medidas_cm": {
+        "largo": 25,
+        "alto": 14,
+        "ancho": 6
+      },
+      "materiales": [
+        {
+          "texto": "Cuentas Shambala de 14 mm: 500 g",
+          "directorio_ids": [
+            "shambala-14"
+          ]
+        },
+        {
+          "texto": "Cuentas redondas de 8 mm: 200 g",
+          "directorio_ids": [
+            "cuentas-8"
+          ]
+        },
+        {
+          "texto": "Hilo de nylon de 0,6 mm: 40 m",
+          "directorio_ids": [
+            "nylon-06"
+          ]
+        },
+        {
+          "texto": "Cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "2 anillas mosquetón (opcionales)",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "Cadena (opcional)",
+          "directorio_ids": [
+            "cadena"
+          ]
+        },
+        {
+          "texto": "Tijeras o cortadores",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "ce50d04b-beb3-46eb-862e-280a7bf2b792",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "d17ebf9b-bfc9-4111-b0b0-3983518c11b6",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido de la solapa",
+          "video_id": "585527ef-f116-4e7d-b053-8423ec196f5a",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido del broche",
+          "video_id": "79118f1b-2e85-4237-9c72-1539ddee3658",
+          "orden": 4
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "ec578d07-a015-4e80-a47d-e2a3063f1c8d",
+          "orden": 5
+        }
+      ],
+      "portada_url": "/images/bolso-marfil-elegante.webp",
+      "gratis": false
+    },
+    {
+      "orden": 5,
+      "nombre": "Encantado Dorado",
+      "slug": "encantado-dorado",
+      "nombre_original": null,
+      "bolso_id": "476df89c-353a-434e-b75f-e03039cef7df",
+      "video_materiales_id": "39a681e6-3e8b-4de5-9689-748ee314420c",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Perlas de 10 mm: 800 piezas",
+          "directorio_ids": [
+            "perlas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca/nylon de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
+          "texto": "Marco de 18 cm (7,09 pulgadas)",
+          "directorio_ids": [
+            "marco-18"
+          ]
+        },
+        {
+          "texto": "Tijeras o cortadores",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "ae366616-aa98-406c-8e53-42565dd9d4d3",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "cc947ce3-9a8f-45f8-8ed1-cd500b0a679b",
+          "orden": 2
+        },
+        {
+          "titulo": "Materiales del asa",
+          "video_id": "140acf6c-b42a-4c93-a478-16b5ae697eee",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "88d63eaa-03fa-44e3-b123-bc6ff8d4b1d9",
+          "orden": 4
+        }
+      ],
+      "portada_url": "/images/bolso-encantado-dorado.webp",
+      "gratis": false
+    },
+    {
+      "orden": 6,
+      "nombre": "Silueta Nácar",
+      "slug": "silueta-nacar",
+      "nombre_original": "Bolso Balenciaga",
+      "bolso_id": "c2c6bf06-26fc-4f52-8d6d-4eda82f98362",
+      "video_materiales_id": "64e9c357-ea3d-41f0-805a-fe37d8e515b5",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 13,
+        "alto_con_asa": 19,
+        "ancho": 5
+      },
+      "materiales": [
+        {
+          "texto": "Consumo de cuentas: 1.800 unidades",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Cuentas de 10 mm: 500 g",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Hilo/nylon de pesca de 0,7 mm: 40 m",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "2 argollas tipo mosquetón y cadena (opcional)",
+          "directorio_ids": [
+            "mosqueton",
+            "cadena"
+          ]
+        },
+        {
+          "texto": "Tijeras o cortadores/alicates de corte",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "65ac0009-1980-49b3-9700-73799651c290",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de los laterales",
+          "video_id": "4daed529-3a3e-41b1-ae8e-6d135f8c9308",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido de la solapa",
+          "video_id": "24e80332-5457-4f22-b370-cd9358f9d884",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido del broche",
+          "video_id": "3a72c249-0d8a-4eb1-a84c-02a477201188",
+          "orden": 4
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "d037bbb7-2533-44d9-9abb-07592b918eb9",
+          "orden": 5
+        }
+      ],
+      "portada_url": "/images/bolso-silueta-nacar.webp",
+      "gratis": false
+    },
+    {
+      "orden": 7,
+      "nombre": "Tornado de Aurora",
+      "slug": "tornado-de-aurora",
+      "nombre_original": null,
+      "bolso_id": "9964dd02-44e7-4bcc-8b13-aafb94153507",
+      "video_materiales_id": "7869edba-fc67-4a65-bc9c-e9a837b360da",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Para el bolso: 2 mosquetones",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
+          "texto": "Cuentas acrílicas que cambian de color, de 10 mm: 1.200 piezas",
+          "directorio_ids": [
+            "tornasol-10"
+          ]
+        },
+        {
+          "texto": "Para el herraje: cuentas de 3 mm (50 unidades)",
+          "directorio_ids": [
+            "cuentas-3"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca/nylon de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
+          "texto": "Herraje para bolso",
+          "directorio_ids": [
+            "herraje"
+          ]
+        },
+        {
+          "texto": "Pegamento para bisutería",
+          "directorio_ids": [
+            "pegamento"
+          ]
+        },
+        {
+          "texto": "Para el forro: aguja, hilo de nylon y tela de terciopelo blanco",
+          "directorio_ids": [
+            "terciopelo",
+            "aguja"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "12519133-d960-4c57-9839-c43c37d7fa60",
+          "orden": 1
+        },
+        {
+          "titulo": "Materiales del forro",
+          "video_id": "fff95773-6e5e-421d-91a8-f31c251f13c4",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del forro",
+          "video_id": "2e8ce6c2-a2c6-43e5-8b51-0b0b62a87996",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido de los laterales",
+          "video_id": "c57b82c3-3857-4eaa-b90c-a06d777ee1c8",
+          "orden": 4
+        },
+        {
+          "titulo": "Tejido de la solapa",
+          "video_id": "a8c91495-a5c1-4388-9d2e-6ec30554d1b8",
+          "orden": 5
+        },
+        {
+          "titulo": "Materiales del cierre",
+          "video_id": "294af5cf-1b52-4c57-95e1-2678c1a10868",
+          "orden": 6
+        },
+        {
+          "titulo": "Ensamble del cierre",
+          "video_id": "e22d8ae9-0d26-4f85-a72c-79102c566d65",
+          "orden": 7
+        }
+      ],
+      "portada_url": "/images/bolso-tornado-de-aurora.webp",
+      "gratis": false
+    },
+    {
+      "orden": 8,
+      "nombre": "Gota de Rocío",
+      "slug": "gota-de-rocio",
+      "nombre_original": null,
+      "bolso_id": "e8bac115-3fbf-49c8-b0a9-1fdc73e67378",
+      "video_materiales_id": "bd76ca7b-9a4a-4b4c-b908-81d354923b82",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 12,
+        "ancho": 5
+      },
+      "materiales": [
+        {
+          "texto": "Cuentas de 10 mm: 500 g",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de nylon/línea de pesca de 0,7 mm: 40 m",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Cierre magnético: 1 unidad",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "Anillas tipo mosquetón: 2 unidades y cadena (opcional)",
+          "directorio_ids": [
+            "mosqueton",
+            "cadena"
+          ]
+        },
+        {
+          "texto": "Tijeras o cortadores/alicates de corte",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "a8763a8d-ff08-4b14-b054-1b302ffd832d",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de la solapa",
+          "video_id": "77ed1d02-461d-4f55-8aee-76e99af5ba37",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del botón magnético",
+          "video_id": "a2af8353-7fe7-4b78-a43b-beb8dc0f8bac",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "14a9d0d0-e8f4-4e06-b3ef-3cfaab1c3b0d",
+          "orden": 4,
+          "parte": "1 de 2"
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "7c65c9f3-a896-41f2-9ee5-2e4a11aa5325",
+          "orden": 5,
+          "parte": "2 de 2"
+        }
+      ],
+      "portada_url": "/images/bolso-gota-de-rocio.webp",
+      "gratis": false
+    },
+    {
+      "orden": 9,
+      "nombre": "Cherry",
+      "slug": "cherry",
+      "nombre_original": null,
+      "bolso_id": "1b21b1fa-8168-410e-8857-17cf2df64426",
+      "video_materiales_id": "f9634d78-a2f2-4a74-a3cc-8c8de4a9dd53",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Cuentas acrílicas de 10 mm",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca de 0,7 mm, no elástico",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "2 mosquetones",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "1 cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "ea4bdf47-06e5-4c06-963a-b8927bd7a362",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "4bde6310-8015-4697-8cc9-734906be560c",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "c8b2098f-5cb0-43b5-987f-f1a2d0b05144",
+          "orden": 3
+        },
+        {
+          "titulo": "Acabados finales",
+          "video_id": "45a37c10-41f5-4232-a34f-75569d9ec245",
+          "orden": 4
+        }
+      ],
+      "portada_url": "/images/bolso-cherry.webp",
+      "gratis": false
+    },
+    {
+      "orden": 10,
+      "nombre": "Cristal Brillante",
+      "slug": "cristal-brillante",
+      "nombre_original": null,
+      "bolso_id": "c7019c85-f653-4ba6-8ed9-3eff7071c86c",
+      "video_materiales_id": "19763686-6992-4bed-b91c-279dc2e31530",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Marco color plata de 15 cm",
+          "directorio_ids": [
+            "marco-15-plata"
+          ]
+        },
+        {
+          "texto": "Cuentas acrílicas color champaña de 8 mm: 1.000 piezas",
+          "directorio_ids": [
+            "champana-8"
+          ]
+        },
+        {
+          "texto": "Hilo de 0,40 mm",
+          "directorio_ids": [
+            "nylon-040"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "af746aae-523d-45bf-8a0b-e5911d3a16b5",
+          "orden": 1
+        },
+        {
+          "titulo": "Cuerpo del bolso",
+          "video_id": "25b460a4-736a-48bc-afcc-59d9a70c6a79",
+          "orden": 2
+        },
+        {
+          "titulo": "Cierre del bolso",
+          "video_id": "96b3c116-ddc1-4196-bf96-63e81a2b5406",
+          "orden": 3
+        }
+      ],
+      "portada_url": "/images/bolso-cristal-brillante.webp",
+      "gratis": false
+    },
+    {
+      "orden": 11,
+      "nombre": "Coquett Clásico",
+      "slug": "coquett-clasico",
+      "nombre_original": null,
+      "bolso_id": "5d683977-8261-444c-bc2b-49b77449d014",
+      "video_materiales_id": "335faba4-4af8-443f-909f-3ed6a3bd3d3a",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 11.5,
+        "alto_con_asa": 21,
+        "ancho": 6
+      },
+      "materiales": [
+        {
+          "texto": "Cuentas Shamballa de 14 mm: 500 g",
+          "directorio_ids": [
+            "shambala-14"
+          ]
+        },
+        {
+          "texto": "Hilo de nailon de 0,6 mm: 40 m",
+          "directorio_ids": [
+            "nylon-06"
+          ]
+        },
+        {
+          "texto": "Cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "2 anillas mosquetón y una cadena (opcional)",
+          "directorio_ids": [
+            "mosqueton",
+            "cadena"
+          ]
+        },
+        {
+          "texto": "Tijeras o alicates de corte",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "0b2bfb1c-2fd0-453f-8d72-433d62caec7a",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido del botón magnético",
+          "video_id": "e92a28ff-bd25-4b76-b68e-ec048d1a87c6",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "b29f18f2-7885-404d-99bf-95881ed86834",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido de laterales y asa",
+          "video_id": "d46963a1-f7fd-4d82-b013-e75bd101bec3",
+          "orden": 4
+        }
+      ],
+      "portada_url": "/images/bolso-coquett-clasico.webp",
+      "gratis": false
+    },
+    {
+      "orden": 12,
+      "nombre": "Celeste Cálido",
+      "slug": "celeste-calido",
+      "nombre_original": null,
+      "bolso_id": "33a5db0a-561d-46bd-b69a-58a1d4ed85a3",
+      "video_materiales_id": "2d422c99-ac7c-42d1-95c0-13d8cb32b95d",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Malla plástica de forma redonda: 33 × 17 cm, celdas de 2 mm",
+          "directorio_ids": [
+            "malla-plastica"
+          ]
+        },
+        {
+          "texto": "Cuentas tipo perla de 8 mm: 1.000 piezas",
+          "directorio_ids": [
+            "perlas-8"
+          ]
+        },
+        {
+          "texto": "Gancho 175",
+          "directorio_ids": [
+            "gancho-175"
+          ]
+        },
+        {
+          "texto": "Hilo de algodón",
+          "directorio_ids": [
+            "algodon"
+          ]
+        },
+        {
+          "texto": "Agua",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "Cadena",
+          "directorio_ids": [
+            "cadena"
+          ]
+        },
+        {
+          "texto": "2 mosquetones",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "00a0fc04-7773-48f4-b790-27d31cb40c3a",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido del forro",
+          "video_id": "2c025be9-3480-46d9-b7c4-9abb528f1802",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido de aros",
+          "video_id": "b27279a0-3d6f-46b8-b6dd-1e69dc57e425",
+          "orden": 3
+        },
+        {
+          "titulo": "Cierre del bolso",
+          "video_id": "90bed6cb-8eff-416a-9d8c-01b6b6f870e1",
+          "orden": 4
+        }
+      ],
+      "portada_url": "/images/bolso-celeste-calido.webp",
+      "gratis": false
+    },
+    {
+      "orden": 13,
+      "nombre": "Esmeralda",
+      "slug": "esmeralda",
+      "nombre_original": null,
+      "bolso_id": "b36bb10d-df11-47f2-9837-e027fa160b67",
+      "video_materiales_id": "c08de635-ac19-4e13-a468-e82263b40617",
+      "medidas_cm": {
+        "largo": 14.5,
+        "alto": 8,
+        "alto_con_asa": 17,
+        "ancho": 10.5
+      },
+      "materiales": [
+        {
+          "texto": "Cuentas de 10 mm: 500 g",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca/nylon de 0,7 mm: 40 m",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Tijeras o cortadores",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Cierre del bolso",
+          "video_id": "8d621e3b-1f3e-40af-b050-f8b6e0a1a40b",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "e48e61dd-2671-42f2-b544-ccc485501d14",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "7c324b46-f17c-4dbd-be6e-06da1f753f7b",
+          "orden": 3
+        }
+      ],
+      "portada_url": null,
+      "gratis": false
+    },
+    {
+      "orden": 14,
+      "nombre": "Boho",
+      "slug": "boho",
+      "nombre_original": null,
+      "bolso_id": "dd2c976c-5d3a-493f-82f3-4ef8355d9747",
+      "video_materiales_id": "0a18431e-cda3-456b-b93f-9c0dbc2f8c4f",
+      "medidas_cm": {
+        "largo": 22.5,
+        "alto": 13,
+        "alto_con_asa": 24,
+        "ancho": 5
+      },
+      "materiales": [
+        {
+          "texto": "Cuentas de 10 mm: 500 g",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de nailon de 0,7 mm: 40 m",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "2 ganchos mosquetón (opcional)",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "Tijeras o alicates de corte",
+          "directorio_ids": [
+            "tijeras",
+            "alicates"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Cierre de laterales",
+          "video_id": "0603ad91-614c-4529-920b-320cdad5db80",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de la solapa",
+          "video_id": "1912541a-204f-4170-9f78-b4612292106e",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "5f817444-8d4e-4287-95f8-bb41004d6a7f",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido del botón magnético",
+          "video_id": "9d27cc39-3586-42b0-9c39-ededaa03889a",
+          "orden": 4
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "f179fed7-f635-42a4-ba2f-99ee75449892",
+          "orden": 5
+        }
+      ],
+      "portada_url": "/images/bolso-boho.webp",
+      "gratis": false
+    },
+    {
+      "orden": 15,
+      "nombre": "Zafiro Perlado",
+      "slug": "zafiro-perlado",
+      "nombre_original": null,
+      "bolso_id": "ec65d10a-b309-40e4-bf56-5c5467036c79",
+      "video_materiales_id": "c842997b-6287-4284-9070-b06c07ed43f1",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Marco para bolso: 26,5 cm × 16 cm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Hilo de pesca de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
+          "texto": "Perlas acrílicas de 10 mm",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Cadena para el bolso",
+          "directorio_ids": [
+            "cadena"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo del bolso",
+          "video_id": "eed54d8d-aa30-4cdc-9cbd-8c41e5b1bc4e",
+          "orden": 1,
+          "parte": "1 de 3"
+        },
+        {
+          "titulo": "Tejido del cuerpo del bolso",
+          "video_id": "4a04a0d5-51b4-42ee-8b1a-9a2ff611aa9f",
+          "orden": 2,
+          "parte": "2 de 3"
+        },
+        {
+          "titulo": "Tejido del cuerpo del bolso",
+          "video_id": "fc108835-7b42-4afd-ba6f-c274d3ddbcc4",
+          "orden": 3,
+          "parte": "3 de 3"
+        },
+        {
+          "titulo": "Cierre del bolso",
+          "video_id": "816008f3-b1cf-4bc0-97b8-16a8269e0df3",
+          "orden": 4
+        },
+        {
+          "titulo": "Tejido de la base",
+          "video_id": "b9fae52a-1aa7-4213-b82e-c43266492049",
+          "orden": 5
+        }
+      ],
+      "portada_url": "/images/bolso-zafiro-perlado.webp",
+      "gratis": false
+    },
+    {
+      "orden": 16,
+      "nombre": "Nácar Soñado",
+      "slug": "nacar-sonado",
+      "nombre_original": null,
+      "bolso_id": "4124e1c6-26b3-40bc-b758-3f6cf5dec309",
+      "video_materiales_id": "8edc4736-729f-422c-8f6f-ba0713041a9d",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 12,
+        "alto_con_asa": 26,
+        "ancho": 5
+      },
+      "materiales": [
+        {
+          "texto": "Perlas de 10 mm: 500 gramos",
+          "directorio_ids": [
+            "perlas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de nailon de 0,7 mm: 40 metros",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Cierre magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "Ganchos tipo mosquetón: 2 unidades (opcionales)",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "Tijeras o pinzas",
+          "directorio_ids": [
+            "tijeras"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Cuerpo del bolso",
+          "video_id": "b97edf8e-d103-4c0c-9be2-58fc911a193f",
+          "orden": 1
+        },
+        {
+          "titulo": "Forro del bolso",
+          "video_id": "99c80ab0-5cd6-49a6-9cdc-88df8fe214d3",
+          "orden": 2
+        },
+        {
+          "titulo": "Laterales",
+          "video_id": "2e3dafaa-edb8-4bad-8af4-371c54f5bfe2",
+          "orden": 3
+        },
+        {
+          "titulo": "Asa del bolso",
+          "video_id": "9bee9f19-edbc-4d1e-bb6e-96e94e582e5a",
+          "orden": 4
+        },
+        {
+          "titulo": "Botón magnético y cadena",
+          "video_id": "12c93ca7-d293-439a-944c-ffd98407b257",
+          "orden": 5
+        }
+      ],
+      "portada_url": "/images/bolso-nacar-sonado.webp",
+      "gratis": true
+    },
+    {
+      "orden": 17,
+      "nombre": "Perla Clásica",
+      "slug": "perla-clasica",
+      "bolso_id": "2a56cc52-1bf2-4503-a3dd-167814d8d0a4",
+      "video_materiales_id": "54b716cf-3d67-484d-b3fb-af9544204a2c",
+      "medidas_cm": {
+        "largo": 19,
+        "alto": 15,
+        "ancho": 5
+      },
+      "materiales": [
+        {
+          "texto": "Hilo de nailon de 0,7 mm: 40 m",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "Cierre magnético: 1 unidad",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        },
+        {
+          "texto": "2 ganchos tipo mosquetón",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "Tijeras o pinzas",
+          "directorio_ids": [
+            "tijeras"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "6aa99585-999a-4286-ba0e-e777fa32baae",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de la tapa",
+          "video_id": "9168d874-a254-44f3-bbc1-539d65911c00",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido de laterales y asa",
+          "video_id": "c5fa89ed-7f4e-4fe7-8a93-57f908314143",
+          "orden": 3
+        }
+      ],
+      "portada_url": "/images/bolso-perla-clasica.webp",
+      "gratis": false
+    },
+    {
+      "orden": 18,
+      "nombre": "Corazón Dorado",
+      "slug": "corazon-dorado",
+      "bolso_id": "6d11d1a4-c579-44b1-94ea-a371fe7d8dc6",
+      "video_materiales_id": "24dda588-0b8b-4f46-8d91-cbffc5a875c0",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Perlas de 10 mm",
+          "directorio_ids": [
+            "perlas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca o nailon de 0,7 mm",
+          "directorio_ids": [
+            "nylon-07"
+          ]
+        },
+        {
+          "texto": "2 mosquetones",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "2 broches tipo langosta",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Cadena",
+          "directorio_ids": [
+            "cadena"
+          ]
+        },
+        {
+          "texto": "Tijeras o cortadores",
+          "directorio_ids": [
+            "tijeras"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "5cdc170a-9ec5-4074-a62a-b04333833e1b",
+          "orden": 1
+        },
+        {
+          "titulo": "Cierre del bolso",
+          "video_id": "3fae5272-b0f2-403a-9188-ca9bbf391b16",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "b1c4bf9f-4a8f-44e8-97e4-1e65a6dbb622",
+          "orden": 3
+        }
+      ],
+      "portada_url": "/images/bolso-corazon-dorado.webp",
+      "gratis": false
+    },
+    {
+      "orden": 19,
+      "nombre": "Icono",
+      "slug": "icono",
+      "bolso_id": "1e706e16-9611-40ee-90d7-26be067d743c",
+      "video_materiales_id": "673db35e-936e-4099-967e-bc33713b21fa",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Perlas metalizadas de 10 mm y 6 mm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Nailon de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
+          "texto": "Botón magnético",
+          "directorio_ids": [
+            "cierre-magnetico"
+          ]
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "19356285-564c-4585-99cf-11c61ec1a168",
+          "orden": 1
+        },
+        {
+          "titulo": "Cierre del estuche",
+          "video_id": "ae7a2d9c-4ebf-4c21-8c83-e51ae46f9828",
+          "orden": 2
+        }
+      ],
+      "portada_url": "/images/bolso-icono.webp",
+      "gratis": false
+    },
+    {
+      "orden": 20,
+      "nombre": "Mini Perlina",
+      "slug": "mini-perlina",
+      "bolso_id": "cf8dd506-ecf9-4803-a6cd-5b4870510694",
+      "video_materiales_id": "c891ef2f-757b-48d9-b6ae-a94a167e2ab1",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Cuentas de 6 mm y 8 mm",
+          "directorio_ids": [
+            "cuentas-8"
+          ]
+        },
+        {
+          "texto": "Marco de metal para monedero de 5 cm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Hilo de pesca de 0,6 mm",
+          "directorio_ids": [
+            "nylon-06"
+          ]
+        },
+        {
+          "texto": "2 mosquetones",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        },
+        {
+          "texto": "1 anillo",
+          "directorio_ids": []
+        }
+      ],
+      "lecciones": [
+        {
+          "titulo": "Tejido del cuerpo",
+          "video_id": "6a0d1394-822c-4559-93f7-b50b66a387c9",
+          "orden": 1
+        },
+        {
+          "titulo": "Tejido de los laterales",
+          "video_id": "eedba616-33e9-4ae0-8cfa-49bee6bfed4d",
+          "orden": 2
+        },
+        {
+          "titulo": "Tejido del fondo",
+          "video_id": "9c212b49-0d23-4be5-8f3c-28e93fea62ea",
+          "orden": 3
+        },
+        {
+          "titulo": "Tejido del asa",
+          "video_id": "6d17778c-01e9-4bf0-bd0a-2caa00501855",
+          "orden": 4
+        }
+      ],
+      "portada_url": "/images/bolso-mini-perlina.webp",
+      "gratis": false
+    },
+    {
+      "orden": 21,
+      "nombre": "Llavero Mora",
+      "slug": "llavero-mora",
+      "bolso_id": "3d572f47-c430-43a8-8562-756943ca761e",
+      "video_materiales_id": "d39a1b77-14a0-4f27-b38d-29dfb24f32e7",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Cuentas de 6 mm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Hilo de pesca o nailon de 0,3 mm: 140 cm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Mosquetón",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        }
+      ],
+      "lecciones": [],
+      "portada_url": "/images/bolso-llavero-mora.webp",
+      "gratis": false
+    },
+    {
+      "orden": 22,
+      "nombre": "Llavero Chispitas",
+      "slug": "llavero-chispitas",
+      "bolso_id": "cb2a3b53-f647-433b-80e8-6a7a556c559e",
+      "video_materiales_id": "c41412f5-a25e-47a9-b7cf-bcb340f89125",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Cuentas de 6 mm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "Hilo de pesca o nailon de 0,45 mm",
+          "directorio_ids": [
+            "nylon-045"
+          ]
+        },
+        {
+          "texto": "Mosquetón",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        }
+      ],
+      "lecciones": [],
+      "portada_url": "/images/bolso-llavero-chispitas.webp",
+      "gratis": false
+    },
+    {
+      "orden": 23,
+      "nombre": "Llavero Ónix",
+      "slug": "llavero-onix",
+      "bolso_id": "87c6667d-0e2c-442e-85d2-22fecff5ed8d",
+      "video_materiales_id": "faea6199-5b4d-4661-b4a8-0450168df01a",
+      "medidas_cm": null,
+      "materiales": [
+        {
+          "texto": "Cuentas de 10 mm",
+          "directorio_ids": [
+            "cuentas-10"
+          ]
+        },
+        {
+          "texto": "Hilo de pesca o nailon de 0,55 mm",
+          "directorio_ids": []
+        },
+        {
+          "texto": "1 mosquetón",
+          "directorio_ids": [
+            "mosqueton"
+          ]
+        }
+      ],
+      "lecciones": [],
+      "portada_url": "/images/bolso-llavero-onix.webp",
+      "gratis": false
+    }
+  ],
+  "directorio": {
+    "fuente": "AliExpress",
+    "nota": "Rellenar url con el enlace de afiliado o de producto. Mientras url sea null, la app oculta el botón \"Comprar\".",
+    "categorias": [
+      {
+        "id": "cuentas",
+        "nombre": "Cuentas y perlas",
+        "items": [
+          {
+            "id": "cuentas-10",
+            "nombre": "Cuentas de 10 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "perlas-10",
+            "nombre": "Perlas de 10 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "perlas-30",
+            "nombre": "Perlas de 30 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "cuentas-8",
+            "nombre": "Cuentas de 8 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "cristal-8",
+            "nombre": "Cuentas de cristal de 8 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "perlas-8",
+            "nombre": "Cuentas tipo perla de 8 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "champana-8",
+            "nombre": "Cuentas acrílicas champaña de 8 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "shambala-14",
+            "nombre": "Cuentas Shambala de 14 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "tornasol-10",
+            "nombre": "Cuentas acrílicas que cambian de color, 10 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "cuentas-3",
+            "nombre": "Cuentas de 3 mm",
+            "url": null,
+            "precio_referencia": null
+          }
+        ]
+      },
+      {
+        "id": "hilos",
+        "nombre": "Hilos",
+        "items": [
+          {
+            "id": "nylon-07",
+            "nombre": "Hilo de nylon / pesca de 0,7 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "nylon-06",
+            "nombre": "Hilo de nylon de 0,6 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "nylon-045",
+            "nombre": "Hilo de nylon / pesca de 0,45 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "nylon-040",
+            "nombre": "Hilo de 0,40 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "algodon",
+            "nombre": "Hilo de algodón",
+            "url": null,
+            "precio_referencia": null
+          }
+        ]
+      },
+      {
+        "id": "herrajes",
+        "nombre": "Cierres y herrajes",
+        "items": [
+          {
+            "id": "cierre-magnetico",
+            "nombre": "Cierre magnético",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "boquilla-52",
+            "nombre": "Cierre tipo boquilla de 52 agujeros",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "marco-18",
+            "nombre": "Marco de 18 cm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "marco-15-plata",
+            "nombre": "Marco plateado de 15 cm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "herraje",
+            "nombre": "Herraje para bolso",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "aros-tornillo-17",
+            "nombre": "Aros con tornillo de 17 mm",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "aros-asa",
+            "nombre": "Aros para sujetar el asa",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "patas",
+            "nombre": "Remaches / patas para bolso",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "mosqueton",
+            "nombre": "Mosquetones",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "cadena",
+            "nombre": "Cadena para bolso",
+            "url": null,
+            "precio_referencia": null
+          }
+        ]
+      },
+      {
+        "id": "otros",
+        "nombre": "Otros materiales",
+        "items": [
+          {
+            "id": "malla-plastica",
+            "nombre": "Malla plástica redonda (celdas de 2 mm)",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "gancho-175",
+            "nombre": "Gancho 175",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "pegamento",
+            "nombre": "Pegamento para bisutería",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "terciopelo",
+            "nombre": "Tela de terciopelo",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "aguja",
+            "nombre": "Aguja",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "panoleta",
+            "nombre": "Pañoleta decorativa",
+            "url": null,
+            "precio_referencia": null
+          }
+        ]
+      },
+      {
+        "id": "herramientas",
+        "nombre": "Herramientas",
+        "items": [
+          {
+            "id": "tijeras",
+            "nombre": "Tijeras",
+            "url": null,
+            "precio_referencia": null
+          },
+          {
+            "id": "alicates",
+            "nombre": "Alicates / cortadores",
+            "url": null,
+            "precio_referencia": null
+          }
+        ]
+      }
+    ]
+  },
+  "nota_fuente": "Generado por `node scripts/pdf-a-seed.mjs` desde las fichas en PDF de Elizabeth (2026-10-14). NO se transcribe a mano: un carácter cambiado deja un video que no carga y nadie se entera hasta que una alumna lo abre. Si el PDF cambia, se vuelve a correr el script. Las erratas corregidas y SU MOTIVO están en la constante ERRATAS del script.",
+  "nota_gratis": "El bolso de cortesía es NÁCAR SOÑADO desde el 2026-10-14. Lo decide `gratis: true` y nada más: ni un slug en el código ni una constante.",
+  "nota_portadas": "Las portadas son WebP 720x720 (calidad 65), ~40-60 KB cada una. Cada archivo se llama como su bolso. El 2026-10-21 entraron las de Perla Clásica, Corazón Dorado, Icono, Mini Perlina y los 3 llaveros (asignadas por forma y materiales del PDF; Icono y Perla Clásica son las menos seguras). Celeste Cálido recibió la suya el 2026-10-21 (perlas con cadena dorada). Sigue SIN foto: Esmeralda.",
+  "total_videos": 106,
+  "nota_fuente_2026_10_20": "Bolsos 17-20 (Perla Clásica, Corazón Dorado, Icono, Mini Perlina) salen de Manos_Creadoras_desde_Perla_Clasica_CORREGIDO.pdf. Los 16 videos se verificaron en Bunny (miniatura 200). Sin portada todavía. Llaveros 21-23 (Mora, Chispitas, Ónix): el 'ID proporcionado' del PDF es su identificador (como el de los bolsos), NO un video. Sus videos los mandó Elizabeth aparte el 2026-10-20 y se verificaron en Bunny. Un llavero tiene UN solo video completo: va como video de materiales y sin lecciones. Se reconocen por el slug `llavero-`."
+}

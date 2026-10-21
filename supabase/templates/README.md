@@ -17,10 +17,29 @@ En el campo **Subject** (asunto) va el texto de la columna "Asunto".
 
 ## Cosas que conviene saber antes de tocar el panel
 
-- **El `Site URL` manda.** Todos estos correos arman el enlace con `{{ .SiteURL }}`.
-  Si en *Authentication → URL Configuration* sigue puesto `http://localhost:3000`, los
-  correos saldrán con enlaces a `localhost`, que **en el celular de la alumna no existe**.
-  Al publicar hay que cambiarlo a la dirección real.
+- **El `magic-link.html` ya NO depende del `Site URL`** (cambiado el 2026-10-11).
+  Arma el enlace con `{{ .RedirectTo }}`, que es la dirección que pidió la app al
+  mandar el correo, y solo cae a `{{ .SiteURL }}` si no viene ninguna.
+
+  **El problema que esto resuelve:** con `{{ .SiteURL }}` fijo, el enlace salía
+  SIEMPRE hacia donde apuntara ese ajuste. Pedías entrar desde `localhost:3000`
+  para desarrollar y el correo te llevaba a QA. No había manera de probar el
+  acceso normal en local.
+
+  **Por qué es seguro:** Supabase solo rellena `{{ .RedirectTo }}` si la
+  dirección está en la lista de *Redirect URLs* del panel. Una dirección que no
+  esté en la lista se descarta — nadie puede usar esto para mandar a una alumna
+  a una web ajena.
+
+  ⚠️ **Los demás correos de esta carpeta siguen usando `{{ .SiteURL }}`** y está
+  bien: casi nunca salen, y los que se disparan a mano desde el panel no llevan
+  destino que respetar.
+
+- ⚠️ **`emailRedirectTo` no puede llevar `?` en `lib/auth.ts`.** La plantilla pega
+  `?token_hash=…` justo detrás, así que si la app enviara un destino que ya
+  tuviera signo de interrogación saldrían dos y el enlace se rompería. Hoy manda
+  `${origin}/auth/callback` limpio. Si algún día hace falta pasarle algo, va como
+  `&` dentro de la plantilla, no colgado del destino.
 
 - **Los enlaces usan `token_hash`, no `?code=`.** Es a propósito: con `?code=` el enlace
   solo funciona si se abre en el mismo navegador donde se pidió, y la alumna casi siempre

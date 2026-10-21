@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Analitica } from "@/components/app/Analitica";
 import { MotionProvider } from "@/components/app/MotionProvider";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
 import { COLOR_FONDO_SISTEMA } from "@/lib/marca";
+import { supabaseServer } from "@/lib/supabase/server";
 import "./globals.css";
 
 // Los nombres llevan sufijo -src para NO chocar con los tokens --font-display/--font-body
@@ -15,10 +17,17 @@ const cormorant = Cormorant_Garamond({
   style: ["normal", "italic"],
 });
 
-const jost = Jost({
+/*
+  Manrope reemplaza a Jost (2026-10-09, paleta nueva).
+
+  Pesos: la guía de marca pide 400, 600 y 700. Se añade el 500 porque las 12
+  pantallas que ya existen lo usan en decenas de sitios; quitarlo las haría caer
+  al 400 y perderían jerarquía sin que nadie tocara nada.
+*/
+const manrope = Manrope({
   variable: "--font-body-src",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -44,19 +53,32 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  /*
+    Se lee la sesión AQUÍ, en el servidor, para atarle los eventos a su cuenta.
+
+    Se le pasa el ID, nunca el correo: el ID permite cruzar el panel con la base
+    cuando haga falta y no identifica a nadie fuera de aquí. Mandarle el correo
+    a un tercero sería regalar dato personal que no hace falta para medir.
+  */
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html
       lang="es"
-      className={`${cormorant.variable} ${jost.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-dvh flex flex-col bg-surface-base text-text-primary font-body">
         <MotionProvider>{children}</MotionProvider>
         <RegistrarSW />
+        <Analitica userId={user?.id ?? null} />
       </body>
     </html>
   );

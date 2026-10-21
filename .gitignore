@@ -52,3 +52,17 @@ direcciones-abc.html
 # Capturas de verificación
 .playwright-mcp/
 .codex/
+# Archivos temporales del CLI de Supabase
+supabase/.temp/
+.capturas/
+.respaldo/
+
+# Capturas del estado ANTERIOR al rediseño, tomadas para pasárselas a Claude
+# Design. Ya cumplieron su función y son 8 MB que el repo cargaría para siempre.
+# Las del diseño NUEVO (manos-creadoras-claude-code) sí entran: son el contrato.
+/design-ref
+
+# Grafo de conocimiento de graphify: se regenera con /graphify y pesa MB
+graphify-out/
+
+/public/images/Claude outputs/

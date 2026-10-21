@@ -1,69 +1,228 @@
 @import "tailwindcss";
 
-/* Tokens derivados de FICHA-ARTE.md — Opción B "Editorial de Revista" (cosa juzgada, no editar sin actualizar la ficha) */
+/* ============================================================================
+   PALETA DE MARCA — "Crema y tinta" (2026-10-09)
+   ============================================================================
+   Reemplaza la paleta oscura de la Opción B. La referencia nueva la dio
+   Cristian y, según el protocolo 16, la referencia del dueño MANDA sobre
+   cualquier decisión anterior.
+
+   ⚠️ POR QUÉ ESTE ARCHIVO FLIPEA LA APP ENTERA DE GOLPE. Las 12 pantallas no
+   usan ni un color suelto: todas piden `--surface-primary`, `--text-primary`,
+   `--border-default`… Así que remapear esos nombres a los valores claros
+   convierte la app entera sin tocar un solo componente. Es exactamente para
+   esto que existían los tokens.
+
+   ⚠️ LOS TOKENS VAN EN HEX, NO EN HSL como pedía el prompt. El HSL ahí era para
+   que los componentes de shadcn heredaran la paleta — y este proyecto no usa
+   shadcn: no hay `tailwind.config.ts` (Tailwind v4 declara el tema en este
+   mismo archivo con `@theme`). Meter HSL solo en estos doce y dejar el resto en
+   hex daría dos formatos conviviendo sin ganar nada.
+   ============================================================================ */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* ====== SUPERFICIES ====== */
-  --surface-base: #090706;
-  --surface-primary: #120f0c;
-  --surface-secondary: #171310;
-  --surface-tertiary: #060504;
-  --surface-elevated: #171310;
-  --surface-overlay: rgba(5, 4, 3, 0.75);
+  /* ====== LOS 12 TOKENS DE MARCA — la fuente única ====== */
+  --cream: #FBF6EE;       /* fondo principal */
+  --sand: #F3E8D7;        /* secciones alternas, fondo del toggle */
+  --ivory: #FFFDF9;       /* tarjetas */
+  --line: #E5D6BF;        /* bordes y divisores */
 
-  /* ====== TEXTOS ====== */
-  --text-primary: #f6f1e7;
-  --text-secondary: #c9beac;
-  --text-tertiary: #8a8378;
-  --text-inverse: #1a1206;
+  --gold-light: #D9B97A;  /* ⚠️ acentos y badges SOLO sobre fondo oscuro */
+  --gold-pale: #F0D9A8;   /* precio dentro de la tarjeta oscura */
+  --gold: #8C6A2F;        /* ⚠️ el ÚNICO dorado válido sobre crema */
+  --gold-deep: #83602A;   /* final del degradado del botón principal */
+  --gold-start: #9C7638;  /* inicio del degradado del botón principal */
 
-  /* ====== BORDES ====== */
-  --border-default: rgba(225, 175, 74, 0.22);
-  --border-strong: rgba(225, 175, 74, 0.4);
-  --border-focus: #e1af4a;
+  --cacao: #6E4B2C;       /* inicio del degradado de la tarjeta destacada */
+  --espresso: #2A1F19;    /* texto principal, secciones y botones oscuros */
+  --ink-body: #5E4D40;    /* párrafos */
+  --ink-muted: #6B5A4C;   /* notas y textos secundarios */
 
-  /* ====== MARCA — dorado (único acento, 60-30-10) ====== */
-  --brand-primary: #e1af4a;
-  --brand-gradient-start: #ebcd8c;
-  --brand-gradient-end: #d48e00;
-  --brand-primary-soft: rgba(225, 175, 74, 0.12);
-  --brand-primary-text: #1a1206;
+  /* ====== v4 DEL OJO EXPERTO (2026-10-20) ======
+     El rediseño v4 es PLANO: sin degradados, sin sombras, sin glow, sin blur.
+     Estos cinco son los tonos intermedios que ese lenguaje necesita y que los
+     12 de marca no cubrían. No se usan fuera del Ojo sin pensarlo: cada uno
+     tapa un hueco concreto, no son variantes "por si acaso". */
+  --sand-hover: #EADCC5;    /* arena un punto más oscura: hover de sugerencias */
+  --espresso-2: #3B2A20;    /* bloque elevado DENTRO del espresso (sidebar) */
+  --espresso-line: #4A3A2E; /* divisores sobre espresso, donde `--line` no se ve */
+  --line-strong: #D8C6A8;   /* borde del composer: `--line` se pierde sobre marfil */
+  --on-dark-muted: #D8C6A8; /* texto secundario sobre espresso */
 
-  /* ====== ALIAS CORTOS ====== */
+  /*
+    ⚠️ REGLA DE CONTRASTE QUE NO SE PUEDE ROMPER: el dorado sobre crema es
+    SIEMPRE `--gold` (#8C6A2F). `--gold-light` sobre crema da 1,9:1 — ilegible,
+    y es el error más fácil de cometer porque en pantalla "se ve bonito".
+    `--gold-light` y `--gold-pale` existen solo para ir encima de espresso.
+  */
+
+  /* ====== ALIAS: los nombres que ya usan las 12 pantallas ====== */
+  /* Cambiar aquí los valores es lo que convierte la app entera. */
+  --surface-base: var(--cream);
+  --surface-primary: var(--ivory);
+  --surface-secondary: var(--sand);
+  --surface-tertiary: var(--sand);
+  --surface-elevated: var(--ivory);
+  --surface-overlay: rgba(42, 31, 25, 0.55);
+
+  --text-primary: var(--espresso);
+  --text-secondary: var(--ink-body);
+  --text-tertiary: var(--ink-muted);
+  --text-inverse: #FFFFFF;      /* texto sobre el botón dorado y sobre espresso */
+
+  --border-default: var(--line);
+  --border-strong: #D8C3A2;
+  --border-focus: var(--gold);
+
+  --brand-primary: var(--gold);
+  --brand-gradient-start: var(--gold-start);
+  --brand-gradient-end: var(--gold-deep);
+  --brand-primary-soft: rgba(140, 106, 47, 0.1);
+  --brand-primary-text: #FFFFFF;
+
+  /* Degradado de la tarjeta destacada de planes */
+  --card-destacada: linear-gradient(160deg, var(--cacao), #3B2A20 72%);
+
+  /*
+   * El botón principal de la guía: degradado dorado con el texto en espresso.
+   *
+   * ⚠️ VA SOBRE ESPRESSO, NO SOBRE DORADO OSCURO. El degradado es claro, así
+   * que el texto encima tiene que ser el casi-negro; en blanco daría menos de
+   * 2:1 y sería ilegible justo en el elemento que más necesita leerse.
+   */
+  --boton-dorado: linear-gradient(135deg, var(--gold-light), var(--gold));
+  /*
+   * El botón principal del héroe (home v3, 2026-10-20). ⚠️ NO ES `--boton-dorado`:
+   * aquel empieza en `--gold-light`, que la ficha reserva para fondos oscuros, y
+   * sobre crema se veía pálido y perdía peso frente al titular. La referencia lo
+   * pinta en bronce con texto claro. Arranca en `--gold`: la crema encima da
+   * 4,63:1 en el extremo más claro.
+   */
+  --boton-bronce: linear-gradient(135deg, var(--gold), #6E4F1E);
+
   --bg: var(--surface-base);
   --surface: var(--surface-primary);
   --text: var(--text-primary);
   --accent: var(--brand-primary);
 
-  /* ====== SEMÁNTICOS ====== */
-  --status-success: #4ade80;
-  --status-success-soft: rgba(74, 222, 128, 0.12);
-  --status-error: #f87171;
-  --status-error-soft: rgba(248, 113, 113, 0.12);
-  --status-warning: #f5a524;
-  --status-warning-soft: rgba(245, 165, 36, 0.12);
-  --status-info: #7dd3fc;
-  --status-info-soft: rgba(125, 211, 252, 0.12);
+  /* ====== SEMÁNTICOS — recalibrados para fondo CLARO ====== */
+  /* Los de antes (#4ade80, #f87171) brillaban sobre negro y sobre crema dan
+     menos de 3:1. Estos son las mismas señales, oscurecidas para que se lean. */
+  --status-success: #2F7D4F;
+  --status-success-soft: rgba(47, 125, 79, 0.1);
+  --status-error: #B3261E;
+  --status-error-soft: rgba(179, 38, 30, 0.08);
+  --status-warning: #8A5A00;
+  --status-warning-soft: rgba(138, 90, 0, 0.1);
+  --status-info: #2A5D8A;
+  --status-info-soft: rgba(42, 93, 138, 0.1);
 
-  /* ====== SOMBRAS — glow dorado ambiental (dispositivo firma) ====== */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.55);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
-  --shadow-gold: 0 20px 60px -20px rgba(225, 175, 74, 0.4);
-  --shadow-overlay: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  /* ====== SOMBRAS — cálidas y suaves ====== */
+  /* Las de antes eran negro puro al 50-70%: sobre crema eso es un borrón gris.
+     Estas tiran al espresso y son mucho más tenues. */
+  --shadow-sm: 0 1px 2px rgba(42, 31, 25, 0.06);
+  --shadow-md: 0 4px 12px -2px rgba(42, 31, 25, 0.08);
+  --shadow-lg: 0 12px 32px -8px rgba(42, 31, 25, 0.12);
+  --shadow-gold: 0 18px 44px -18px rgba(140, 106, 47, 0.28);
+  --shadow-overlay: 0 25px 50px -12px rgba(42, 31, 25, 0.25);
 
   /* ====== RADIOS ====== */
   --radius-sm: 0.5rem;    /* 8px — chips, badges */
-  --radius-md: 0.75rem;   /* 12px — inputs, botones secundarios */
-  --radius-lg: 1rem;      /* 16px — botones grandes no-pill */
-  --radius-xl: 1.5rem;    /* 24px — cards (medido del sitio actual) */
-  --radius-device: 2rem;  /* 32px — SOLO el marco de teléfono del carrusel, nunca cards de contenido */
-  --radius-full: 9999px;  /* pill — CTA primario */
+  --radius-md: 0.75rem;   /* 12px — inputs */
+  /*
+   * Anchos de las barras laterales de la app.
+   *
+   * Son dos y NO son iguales a propósito: la del Ojo Experto lleva el historial
+   * de conversaciones, con títulos largos que a 260px se cortarían a media
+   * palabra. Están nombradas para que la diferencia se lea como una decisión y
+   * no como un descuido de quien maquetó.
+   */
+  /*
+   * El ancho de la columna de conversación del Ojo Experto.
+   *
+   * 760px no es un número redondo por capricho: es el ancho al que una línea de
+   * texto cabe en unos 75 caracteres, que es donde el ojo deja de perderse al
+   * saltar de renglón. Más ancho y las respuestas largas se vuelven incómodas.
+   */
+  --columna-chat: 760px;
+  /* La foto que manda la alumna: grande para que se vea el tejido, pequeña para
+     que no tape la conversación. */
+  --foto-mensaje: 220px;
+
+  /*
+   * El arena de los puntitos inactivos del carrusel. Es el mismo arena de la
+   * paleta pero un punto más oscuro: sobre crema, `--sand` no se distingue del
+   * fondo y los puntos desaparecían.
+   */
+  --punto-inactivo: #d8c6a8;
+
+  /*
+   * El anillo dorado de las historias en móvil. Cónico y con cuatro paradas
+   * para que el dorado gire como metal, no como un degradado plano — es lo que
+   * separa "anillo de Instagram" de "círculo con borde".
+   */
+  --anillo-historia: conic-gradient(
+    var(--gold-light), var(--gold), var(--gold-pale), var(--gold-deep), var(--gold-light)
+  );
+
+  /* El radio de las piezas grandes del home: foto del héroe, tarjeta del curso
+     y visor de cápsulas. Más generoso que `--radius-xl` porque son bloques de
+     media pantalla y ahí un radio pequeño se lee como esquina viva. */
+  --radius-foto: 28px;
+  /*
+   * El oscurecido de las tarjetas de cápsula (home v3, 2026-10-20).
+   * ⚠️ MÁS FUERTE QUE EL DE LA V2, que llegaba a .82 abajo y se quedaba en 0 en
+   * el centro: sobre las portadas claras (perla, marfil) el título blanco se
+   * perdía. Ahora el centro también se oscurece un poco (.3) y abajo llega a .92.
+   */
+  --capsula-degradado: linear-gradient(
+    180deg,
+    rgba(18, 12, 9, 0.45) 0%,
+    rgba(18, 12, 9, 0) 30%,
+    rgba(18, 12, 9, 0.3) 55%,
+    rgba(18, 12, 9, 0.92) 100%
+  );
+  /* Las tarjetas de cápsula: entre `--radius-lg` (20) y `--radius-xl` (30). */
+  --radius-capsula: 22px;
+
+  /*
+   * El visor de cápsulas en escritorio: 380 × 676, que es la proporción 9:16 de
+   * un teléfono. Se mantiene esa forma aunque estemos en un monitor porque el
+   * video se graba en vertical — encajarlo en un modal apaisado dejaría dos
+   * franjas negras a los lados.
+   */
+  --visor-ancho: 380px;
+  --visor-alto: 676px;
+
+  /*
+   * La franja de vidrio sobre el video del curso gratis. El desenfoque y la
+   * opacidad van juntos: menos desenfoque y el texto se pierde sobre la foto;
+   * más opacidad y deja de verse el bolso, que es lo que vende.
+   */
+  --vidrio-fondo: rgba(42, 31, 25, 0.42);
+  --vidrio-desenfoque: 14px;
+
+  --barra-lateral: 260px;
+  --barra-lateral-ojo: 280px;
+
+  --radius-lg: 1.25rem;   /* 20px — tope bajo del rango 20-30 de la guía */
+  --radius-xl: 1.875rem;  /* 30px — tope alto: tarjetas grandes */
+  --radius-device: 2rem;  /* 32px — SOLO el marco de teléfono del carrusel */
+  --radius-full: 9999px;  /* píldora — botones */
+
+  /*
+   * ── HOME V3 (2026-10-20): los radios del contrato de `design-ref/pantallas` ──
+   * La referencia los da en números exactos y la manda sobre la escala general
+   * (protocolo 16). Se nombran aquí para que no aparezcan como valores sueltos.
+   */
+  --radius-boton: 10px;   /* botones de compra y "Entrar" en móvil */
+  --radius-fila: 14px;    /* filas del temario del curso gratis */
+  --radius-bloque: 16px;  /* banda 1 de 16, cierre, foto de Elizabeth */
 
   /* ====== TIPOGRAFÍA — las *-src las inyecta next/font desde app/layout.tsx ====== */
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
-  --font-body: var(--font-body-src), "Jost", system-ui, sans-serif;
+  --font-body: var(--font-body-src), "Manrope", system-ui, sans-serif;
 
   --text-xs: 0.75rem;     /* 12px — labels/eyebrows (tope del rango 11-12 de la ficha) */
   --text-sm: 0.875rem;    /* 14px — cuerpo (rango 13.5-15 de la ficha; mínimo legible del SO) */
@@ -112,6 +271,29 @@
 }
 
 @theme inline {
+  /* Los 12 tokens de marca, disponibles como clases: bg-cream, text-gold,
+     border-line… Es lo que permite escribir las pantallas sin un solo hex. */
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  --color-ivory: var(--ivory);
+  --color-line: var(--line);
+  --color-gold-light: var(--gold-light);
+  --color-gold-pale: var(--gold-pale);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  /* El arena de los puntitos del carrusel: se declara aquí para que exista
+     `bg-punto-inactivo`. En Tailwind v4 una variable de `:root` NO genera clase. */
+  --color-punto-inactivo: var(--punto-inactivo);
+  --color-cacao: var(--cacao);
+  --color-espresso: var(--espresso);
+  --color-ink-body: var(--ink-body);
+  --color-ink-muted: var(--ink-muted);
+  --color-sand-hover: var(--sand-hover);
+  --color-espresso-2: var(--espresso-2);
+  --color-espresso-line: var(--espresso-line);
+  --color-line-strong: var(--line-strong);
+  --color-on-dark-muted: var(--on-dark-muted);
+
   --color-surface-base: var(--surface-base);
   --color-surface-primary: var(--surface-primary);
   --color-surface-secondary: var(--surface-secondary);
@@ -135,8 +317,8 @@
   --color-status-warning: var(--status-warning);
 
   /* Stack completo, sin indirección: si aquí se pusiera var(--font-display) se auto-referencia */
-  --font-sans: var(--font-body-src), "Jost", system-ui, sans-serif;
-  --font-body: var(--font-body-src), "Jost", system-ui, sans-serif;
+  --font-sans: var(--font-body-src), "Manrope", system-ui, sans-serif;
+  --font-body: var(--font-body-src), "Manrope", system-ui, sans-serif;
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
 
   --radius-sm: var(--radius-sm);
@@ -145,6 +327,9 @@
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-device);
   --radius-full: var(--radius-full);
+  --radius-boton: var(--radius-boton);
+  --radius-fila: var(--radius-fila);
+  --radius-bloque: var(--radius-bloque);
 
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
@@ -162,11 +347,66 @@
   }
 }
 
+/*
+ * ⚠️ EL SCROLL DE LAS ANCLAS, QUE AHORA ES EL CAMINO A LA COMPRA.
+ *
+ * Desde el 2026-10-16 los botones de "ver los planes" no navegan a otra página:
+ * bajan a la sección de precio de este mismo home. Eso obliga a dos cosas:
+ *
+ *   · `scroll-behavior: smooth` — un salto seco a mitad de página desorienta,
+ *     porque no se ve que lo que hay debajo es la MISMA página.
+ *   · `scroll-padding-top` — el header es `sticky`, así que sin esto el ancla
+ *     queda DEBAJO de él y el titular de la sección aparece cortado justo
+ *     cuando se acaba de pedir verlo.
+ *
+ * El bloque de `prefers-reduced-motion` de arriba ya devuelve `auto` a quien
+ * pide menos movimiento, así que esto no se le impone a nadie.
+ */
+html {
+  scroll-behavior: smooth;
+  /* La altura del header pegajoso (h-11 + padding) con un respiro. */
+  scroll-padding-top: 80px;
+}
+
 body {
-  background:
-    radial-gradient(ellipse 900px 500px at 50% 0%, color-mix(in srgb, var(--brand-primary) 12%, transparent), transparent),
-    linear-gradient(180deg, var(--surface-tertiary) 0%, var(--bg) 55%);
+  /* Crema plano. El degradado radial de antes era un halo dorado sobre negro:
+     sobre crema se convierte en una mancha sucia en la parte de arriba. */
+  background: var(--bg);
   color: var(--text);
+}
+
+/*
+ * ⚠️ EL FOCO SE VE, Y CON EL DORADO QUE TOCA SEGÚN EL FONDO (home v3, 2026-10-20).
+ *
+ * Hasta aquí no había ninguna regla de foco: quien navega con teclado dependía
+ * del anillo por defecto del navegador, que en Safari ni siquiera aparece en los
+ * enlaces. Va con `:focus-visible`, así que el clic con ratón no lo enciende.
+ *
+ * Sobre crema, `--gold` (#8C6A2F): `--gold-pale` ahí daría 1,3:1 y no se vería.
+ * Dentro de un bloque oscuro (`.sobre-oscuro`), al revés.
+ */
+/*
+ * El alto de la barra fija de compra del home en móvil (h-18 = 72px), más la
+ * zona segura del iPhone. Lo reserva el pie para que la barra no tape el
+ * copyright. Si la barra cambia de alto, se cambia aquí.
+ */
+:root {
+  --barra-compra: 72px;
+}
+
+@media (max-width: 767px) {
+  .reserva-barra-compra {
+    padding-bottom: calc(var(--barra-compra) + env(safe-area-inset-bottom) + 24px);
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.sobre-oscuro :focus-visible {
+  outline-color: var(--gold-pale);
 }
 
 .tabular {
@@ -174,13 +414,21 @@ body {
 }
 
 /*
- * Cormorant trae SOLO figuras de texto (el 0 se lee como una "o" chiquita y el 1 como
- * una "i") y la versión de Google no expone `lnum`: precioso en un párrafo, ilegible
- * en un dato. Por eso todo número que se LEE como dato se compone en la sans del kit,
- * con ancho fijo — el tamaño y el peso siguen dando la jerarquía.
+ * Números que se leen como DATO (medidores, contadores, "3 de 40").
+ *
+ * Cormorant trae solo figuras de texto —el 0 parece una "o" chiquita y el 1 una
+ * "i"— y la versión de Google no expone `lnum`: precioso en un párrafo,
+ * ilegible en un dato que hay que comparar de un vistazo. Por eso estos van en
+ * la sans del kit, con ancho fijo.
+ *
+ * ⚠️ NO SE APLICA A LOS PRECIOS. La guía de marca nueva (2026-10-09) pide
+ * Cormorant explícitamente para "titulares, cifras y precios", y en el diseño
+ * esas figuras de texto son justo el gesto editorial que hace que un precio
+ * parezca una boutique y no un carrito de compras. Un precio no se compara con
+ * otro de un vistazo: se lee una vez y se decide.
  */
 .cifra {
-  font-family: var(--font-body-src), "Jost", system-ui, sans-serif;
+  font-family: var(--font-body-src), "Manrope", system-ui, sans-serif;
   font-variant-numeric: lining-nums tabular-nums;
   letter-spacing: -0.01em;
 }
@@ -203,6 +451,31 @@ body {
 }
 
 /* Celebración — SOLO hitos reales (ej. compra confirmada), nunca decorativo */
+/*
+ * El fundido de la foto del carrusel al cambiar de bolso.
+ *
+ * Solo opacidad: mover o escalar una foto de 350px al pasar de una a otra
+ * marea, y aquí el gesto ya lo da el dedo o la flecha. El fundido solo evita
+ * el salto seco.
+ */
+@keyframes aparecer {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/*
+ * La rayita de las historias, llenándose de izquierda a derecha.
+ *
+ * ⚠️ VA EN CSS Y NO EN REACT A PROPÓSITO: animar esto con estado obligaría a
+ * repintar —y a remontar el iframe del video— decenas de veces por minuto. Con
+ * `scaleX` el navegador la anima en el compositor, sin tocar el hilo principal.
+ * Ver `components/home/historias/BarraDeAvance.tsx`.
+ */
+@keyframes avanceHistoria {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
 @keyframes celebrate {
   0% {
     transform: scale(0.8);
@@ -228,7 +501,136 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.05;
+  /* `overlay` sobre un fondo claro es casi invisible; `multiply` sí deja el
+     grano del papel, que es el dispositivo ownable. Y baja la opacidad: lo que
+     sobre negro era sutil, sobre crema ensucia. */
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/*
+ * El mismo grano, para bloques OSCUROS (home v3). `multiply` sobre espresso no
+ * deja nada; ahí el papel se ve con `overlay` y algo más de opacidad. Lo pidió
+ * el revisor visual: el grano es el dispositivo ownable de la ficha y el home
+ * no lo llevaba en ningún sitio.
+ */
+.grain-oscuro {
+  position: relative;
+  isolation: isolate;
+}
+.grain-oscuro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.09;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================================
+   UTILIDADES DE LA GUÍA DE MARCA
+   Tres piezas que se repiten en TODAS las secciones. Vivirían copiadas en diez
+   componentes, y el día que la guía cambie el tracking de los eyebrows habría
+   que acordarse de los diez.
+   ============================================================================ */
+
+/* Etiqueta pequeña sobre cada sección. Manrope 600, 12px, versales, dorado. */
+.eyebrow {
+  font-family: var(--font-body-src), "Manrope", system-ui, sans-serif;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/*
+  Título de sección y H1 del héroe.
+
+  ⚠️ El tracking negativo es de la guía ("−1,5% en tamaños grandes") y solo
+  aplica aquí: en 14px apretar las letras las pega, pero en 54px el espaciado
+  por defecto de Cormorant abre demasiado y el titular se desarma.
+*/
+.titulo-seccion {
+  font-family: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(36px, 4vw, 54px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--espresso);
+}
+
+.titulo-hero {
+  font-family: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(46px, 5.6vw, 82px);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  color: var(--espresso);
+}
+
+/* La palabra clave del titular: cursiva y dorada. Es el gesto de la marca. */
+.clave {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--gold);
+}
+
+/* ============================================================================
+   LA MANITA EN TODO LO QUE SE PULSA
+
+   ⚠️ POR QUÉ HACE FALTA ESTO. Tailwind v4 cambió su "preflight": los `<button>`
+   pasaron de `cursor: pointer` a `cursor: default`, siguiendo el comportamiento
+   nativo del navegador. El resultado en la práctica es que los enlaces tenían
+   manita y los botones no, en la misma pantalla y con la misma pinta — y un
+   botón que no cambia el cursor se siente apagado, como si no respondiera.
+
+   Va aquí, en una regla, y no como `cursor-pointer` repartido por los
+   componentes: así lo nuevo que se escriba mañana lo hereda sin que nadie
+   tenga que acordarse. Repartirlo sería garantizar que algún botón se quede
+   fuera.
+
+   Se incluyen los `role=` porque en esta app hay controles que NO son `<button>`
+   nativos: el conmutador de facturación es un `role="switch"` y el selector de
+   plan de móvil son `role="radio"`.
+   ============================================================================ */
+
+button,
+summary,
+select,
+/* Solo las etiquetas de casillas y opciones, NO cualquier `label`: la etiqueta
+   de un campo de texto debe conservar el cursor de texto, porque al pulsarla se
+   pone a escribir, no se "acciona" nada. */
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]),
+[role="button"],
+[role="switch"],
+[role="radio"],
+[role="tab"],
+[role="option"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"]::file-selector-button {
+  cursor: pointer;
+}
+
+/*
+ * Lo que no se puede pulsar NO lleva manita: prometería una acción que no va a
+ * ocurrir. Va después para ganarle a la regla de arriba.
+ *
+ * `not-allowed` y no `default`: el cursor es la única pista de que el control
+ * existe pero está bloqueado — sin ella parece que la app se colgó.
+ */
+button:disabled,
+select:disabled,
+input:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
 }
