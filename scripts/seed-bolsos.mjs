@@ -20,10 +20,14 @@
  */
 import { readFileSync } from "node:fs";
 
-for (const line of readFileSync(".env.local", "utf8").split("\n")) {
+// `ENV_FILE=.env.prod node …` carga contra PRODUCCIÓN (2026-10-21). Sin ella,
+// QA como siempre. Se imprime contra qué base va, para no equivocarse de destino.
+const ARCHIVO_ENV = process.env.ENV_FILE ?? ".env.local";
+for (const line of readFileSync(ARCHIVO_ENV, "utf8").split("\n")) {
   const m = line.match(/^([A-Z_]+)=(.*)$/);
   if (m) process.env[m[1]] = m[2].split("#")[0].trim();
 }
+console.log(`→ ${ARCHIVO_ENV}: ${(process.env.SUPABASE_URL ?? "").replace("https://", "").slice(0, 8)}…`);
 
 const { createClient } = await import("@supabase/supabase-js");
 

@@ -45,6 +45,13 @@ grant execute on function tiene_acceso() to authenticated, service_role;
 
 -- 3) La política de módulos usa la versión segura.
 drop policy if exists "catalogo: leer si tiene acceso" on modulos;
+-- ⚠️ AÑADIDO EL 2026-10-21, al montar producción desde cero. La 0001 crea la
+-- política CON tilde ("catálogo: …") y la línea de arriba borraba la de SIN
+-- tilde: la vieja se quedaba viva, dependiendo de `tiene_acceso(uuid)`, y el
+-- `drop function` del final fallaba. En QA no se notó porque esa base pasó por
+-- otros estados. Se borran los dos nombres; en QA esta migración ya consta como
+-- aplicada y no se vuelve a correr.
+drop policy if exists "catálogo: leer si tiene acceso" on modulos;
 create policy "catalogo: leer si tiene acceso" on modulos
   for select using (tiene_acceso());
 
