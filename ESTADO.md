@@ -382,9 +382,12 @@ de Nácar Soñado, webhook sin firma → 401. Bunny ya permite `manoscreadoras.c
 (en `vercel.app` los videos dan 403: es esperado, ese no es el dominio final).
 
 ⚠️ **Pendientes:**
-- 💵 **Vercel Pro (US$20/mes) antes de encender la venta** — Hobby prohíbe uso
-  comercial. 💵 **Supabase Pro (US$25/mes) muy recomendado** — el gratis pausa la
-  base tras una semana sin uso y no tiene copias de seguridad.
+- 💵 **Planes gratuitos POR AHORA — decisión de Cristian (2026-10-21).** Se
+  sigue en Vercel Hobby y Supabase Free. Lo que eso implica, para revisarlo al
+  encender la venta: Vercel Hobby **prohíbe el uso comercial** (vender el curso
+  lo es → Pro, US$20/mes); Supabase Free **pausa la base tras 7 días sin
+  actividad** (con visitas reales no pasa; si pasa, *Restore project* y no se
+  pierde nada) y **no hace copias de seguridad** (Pro, US$25/mes).
 - **Gemini puede fallar por "alta demanda"** (pasó en la primera prueba en vivo:
   503 de Google). La pregunta se devuelve, pero la alumna ve un error. Conviene un
   reintento corto o un modelo de respaldo.
