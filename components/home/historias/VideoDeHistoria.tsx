@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * El video de una historia: a pantalla completa, sin controles y sin adornos.
@@ -37,6 +37,74 @@ export function VideoDeHistoria({
   const marco = useRef<HTMLIFrameElement>(null);
 
   /*
+   * ════════════════════════════════════════════════════════════════════════
+   * ⚠️ SE INTENTA CON SONIDO, Y SI EL NAVEGADOR NO DEJA, SE REINTENTA MUDO
+   * ════════════════════════════════════════════════════════════════════════
+   * Cristian pidió dos veces que las cápsulas suenen al arrancar. El problema
+   * es real y no se arregla insistiendo: el autoplay CON sonido lo permiten
+   * unos navegadores y otros no, y cuando no lo permiten NO lo silencian —
+   * se niegan a reproducir. Probado el 2026-10-19: `muted=false` dejaba la
+   * pantalla negra y mandar `unmute` tras `ready` PAUSABA el video.
+   *
+   * Así que no se elige entre "con sonido" y "que arranque": se intenta con
+   * sonido y hay una red debajo. Si a los 1,5 s el reproductor no ha dicho
+   * que está reproduciendo, se vuelve a montar MUDO, que siempre arranca.
+   *
+   * El peor caso deja de ser una cápsula congelada y pasa a ser una cápsula
+   * muda — lo mismo que había antes, pero solo donde no queda más remedio.
+   */
+  const [mudo, setMudo] = useState(false);
+  const arranco = useRef(false);
+  const relojPlanB = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /*
+   * ⚠️ LA CUENTA ATRÁS EMPIEZA EN `ready`, NO AL MONTAR.
+   *
+   * Aquí funcionaba por suerte: las cápsulas piden `preload=true` y cargan
+   * rápido, así que confirmaban que avanzaban antes de que venciera el reloj.
+   * El mismo código en el curso gratis —sin `preload`— silenciaba videos que
+   * el navegador SÍ habría dejado sonar (reportado por Cristian el
+   * 2026-10-20). Con una conexión lenta le habría pasado igual a una cápsula.
+   *
+   * Medir desde `ready` separa las dos cosas que antes se confundían: "tarda
+   * en cargar" y "no me dejan sonar". Solo la segunda merece el plan B.
+   *
+   * La arranca el manejador de `ready`, dentro del efecto de los mensajes: un
+   * ref no se puede escribir durante el render.
+   */
+  useEffect(() => {
+    arranco.current = false;
+    if (relojPlanB.current) clearTimeout(relojPlanB.current);
+    relojPlanB.current = null;
+    return () => {
+      if (relojPlanB.current) clearTimeout(relojPlanB.current);
+      relojPlanB.current = null;
+    };
+  }, [mudo, url]);
+
+  /*
+   * ⚠️ Y UN TOPE ABSOLUTO, ADEMÁS DEL DE `ready`.
+   *
+   * Medir desde `ready` arregla el falso positivo (silenciar a quien solo
+   * tardaba en cargar), pero abre otro agujero: si `ready` NO llega —Bunny no
+   * contesta, la red se corta, el reproductor cambia de protocolo— la cuenta
+   * atrás no empieza nunca y el video se queda con sonido Y PARADO. Que es
+   * exactamente lo que se vino a evitar. Comprobado el 2026-10-20: sin este
+   * tope, el curso gratis quedaba con el play en medio de la pantalla.
+   *
+   * 6 s desde que se monta: de sobra para cargar en una conexión normal (las
+   * cápsulas confirman en 1-2) y lo bastante corto para que nadie se quede
+   * mirando un video parado.
+   */
+  useEffect(() => {
+    if (mudo) return;
+    const tope = setTimeout(() => {
+      if (!arranco.current) setMudo(true);
+    }, 6000);
+    return () => clearTimeout(tope);
+  }, [mudo, url]);
+
+  /*
    * ⚠️ SE HABLA CON EL REPRODUCTOR POR `player.js`, Y LA SUSCRIPCIÓN VA AL
    * RECIBIR `ready` — NO en un temporizador.
    *
@@ -69,9 +137,21 @@ export function VideoDeHistoria({
 
       if (d?.event === "ready") {
         pedir("addEventListener", "ended");
+        /* `play` y `timeupdate` son la prueba de que SÍ está sonando: sin
+           ellos el temporizador de arriba no sabría si hace falta el plan B. */
+        pedir("addEventListener", "play");
+        pedir("addEventListener", "timeupdate");
         pedir("getDuration");
+        /* Ya cargó: desde aquí sí tiene sentido medir si reproduce. */
+        if (!mudo && !relojPlanB.current) {
+          relojPlanB.current = setTimeout(() => {
+            if (!arranco.current) setMudo(true);
+          }, 2000);
+        }
         return;
       }
+
+      if (d?.event === "play" || d?.event === "timeupdate") arranco.current = true;
 
       if (d?.event === "ended") alTerminar();
 
@@ -81,7 +161,7 @@ export function VideoDeHistoria({
 
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
-  }, [alSaberDuracion, alTerminar]);
+  }, [alSaberDuracion, alTerminar, mudo]);
 
   return (
     <>
@@ -119,7 +199,8 @@ export function VideoDeHistoria({
        * sonido. La vuelta atrás es una línea —reponer `muted=true`— y la
        * decisión sería mudas pero fluidas.
        */
-      src={`${url}${url.includes("?") ? "&" : "?"}autoplay=true&preload=true&playsinline=true`}
+      key={mudo ? "mudo" : "con-sonido"}
+      src={`${url}${url.includes("?") ? "&" : "?"}autoplay=true&preload=true&playsinline=true${mudo ? "&muted=true" : ""}`}
       title={titulo}
       allow="autoplay; encrypted-media; picture-in-picture"
       /*

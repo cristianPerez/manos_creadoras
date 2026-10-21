@@ -1,9 +1,27 @@
 import { Lock, VideoOff } from "lucide-react";
+import { ReproductorEnSitio } from "@/components/home/ReproductorEnSitio";
 
 /**
- * El reproductor de Bunny.
+ * El reproductor de Bunny dentro de la app.
  *
- * ⚠️ TIENE DOS ESTADOS DE RESPALDO, Y LOS DOS IMPORTAN.
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ ANTES MONTABA EL IFRAME DE ENTRADA Y SE REPRODUCÍA CON EL PLAY DE BUNNY
+ * ════════════════════════════════════════════════════════════════════════════
+ * Eso tenía dos problemas, y el segundo lo pidió arreglar Cristian el
+ * 2026-10-20: *"el audio… debe reproducirse y escucharse cuando el usuario le
+ * dé click"*. Con el play de Bunny el sonido depende de su reproductor, y el
+ * iframe —medio mega por video— se cargaba aunque ella nunca le diera.
+ *
+ * Ahora delega en `ReproductorEnSitio`, el mismo del curso gratis del home:
+ * enseña un póster NUESTRO con el botón dorado y, al tocarlo, monta el iframe
+ * ya reproduciendo y CON SONIDO (con su plan B mudo si el navegador no deja).
+ *
+ * ⚠️ SE REUTILIZA, NO SE COPIA. La lógica del sonido es sutil —tres variantes
+ * probadas, dos descartadas— y tenerla en dos sitios garantiza que un día
+ * arreglen uno y el otro se quede atrás. Este archivo solo aporta lo que el
+ * del home no tiene: los dos estados de respaldo de abajo.
+ *
+ * ⚠️ LOS DOS ESTADOS DE RESPALDO IMPORTAN.
  *
  * `bloqueado` → no hay plan. No se pinta un reproductor que luego falla: se
  * dice que hace falta el plan, que es información útil.
@@ -18,21 +36,26 @@ export function Reproductor({
   url,
   bloqueado,
   titulo,
+  poster = null,
+  respaldo = null,
 }: {
   url: string | null;
   bloqueado: boolean;
   titulo: string;
+  /** La miniatura del propio video (Bunny). */
+  poster?: string | null;
+  /** La portada del bolso, por si Bunny no sirve la miniatura. */
+  respaldo?: string | null;
 }) {
   if (url) {
     return (
       <div className="bg-espresso aspect-video overflow-hidden rounded-[var(--radius-lg)]">
-        <iframe
-          src={url}
-          title={titulo}
-          loading="lazy"
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
-          allowFullScreen
-          className="size-full border-0"
+        <ReproductorEnSitio
+          url={url}
+          poster={poster}
+          respaldo={respaldo}
+          titulo={titulo}
+          className="size-full"
         />
       </div>
     );

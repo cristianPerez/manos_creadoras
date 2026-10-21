@@ -7,7 +7,7 @@ import { PanelLeccion } from "@/components/app/PanelLeccion";
 import { Reproductor } from "@/components/app/Reproductor";
 import { alumnaActual } from "@/lib/alumna";
 import { obtenerBolso } from "@/lib/bolsos";
-import { urlDelReproductor } from "@/lib/video";
+import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 
 type Props = { params: Promise<{ slug: string; orden: string }> };
 
@@ -37,6 +37,11 @@ export default async function Leccion({ params }: Props) {
   const bloqueado = !bolso.gratis && !alumna?.tieneAcceso;
   const videoId = esMateriales ? bolso.videoMaterialesId : leccion!.videoId;
   const urlVideo = bloqueado ? null : urlDelReproductor({ proveedor: "bunny", id: videoId });
+
+  /* El póster que se ve antes de tocar: un fotograma del propio video. Si el
+     CDN de imágenes de Bunny no lo sirve —tiene su propia lista de dominios y
+     bloquea localhost—, el reproductor cae solo a la portada del bolso. */
+  const poster = bloqueado || !videoId ? null : urlDeMiniatura(videoId);
 
   const visto = esMateriales ? bolso.materialesVisto : leccion!.vista;
 
@@ -83,7 +88,13 @@ export default async function Leccion({ params }: Props) {
 
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
         <div className="min-w-0">
-          <Reproductor url={urlVideo} bloqueado={bloqueado} titulo={bolso.nombre} />
+          <Reproductor
+            url={urlVideo}
+            bloqueado={bloqueado}
+            titulo={bolso.nombre}
+            poster={poster}
+            respaldo={bolso.portadaUrl}
+          />
 
           <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">

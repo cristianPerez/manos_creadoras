@@ -51,6 +51,75 @@ export function ReproductorEnSitio({
   arrancarAlMontar?: boolean;
 }) {
   const [reproduciendo, setReproduciendo] = useState(Boolean(arrancarAlMontar) && Boolean(url));
+
+  /*
+   * ════════════════════════════════════════════════════════════════════════
+   * ⚠️ CON SONIDO, Y RED DEBAJO POR SI EL NAVEGADOR NO DEJA
+   * ════════════════════════════════════════════════════════════════════════
+   * Mismo problema y misma solución que en el visor de cápsulas: el autoplay
+   * CON sonido no lo permiten todos los navegadores, y cuando no lo permiten
+   * no silencian el video — se niegan a reproducirlo. Probado el 2026-10-19:
+   * `muted=false` dejaba la pantalla negra y mandar `unmute` tras `ready`
+   * PAUSABA el video y sacaba el play gigante en medio.
+   *
+   * Se intenta con sonido; si a los 1,5 s el reproductor no ha dicho que está
+   * reproduciendo, se vuelve a montar MUDO, que siempre arranca. El peor caso
+   * es un video mudo, nunca uno parado.
+   */
+  const [mudo, setMudo] = useState(false);
+  const arranco = useRef(false);
+  const relojPlanB = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /*
+   * ⚠️ EL PLAN B ESPERA A `ready`, NO A UN RELOJ CIEGO — Y ESE ERA EL BUG.
+   *
+   * La primera versión silenciaba a los 1,5 s de montar el iframe si no había
+   * señal de reproducción. Cristian lo reportó el 2026-10-20: las cápsulas
+   * sonaban y el curso gratis NO. La causa no era el sonido, era el reloj:
+   * el reproductor del curso tarda varios segundos en cargar (se midieron 8-10
+   * hasta ver imagen), así que el temporizador vencía ANTES de que Bunny
+   * tuviera ocasión de reproducir y lo mutaba sin que el navegador hubiera
+   * dicho que no. Las cápsulas se libraban por pedir `preload=true`.
+   *
+   * Ahora la cuenta atrás NO empieza al montar: empieza cuando el reproductor
+   * dice `ready` —"ya estoy listo"—. A partir de ahí, si en 2 s no ha mandado
+   * `play` ni `timeupdate`, es que el navegador le negó el sonido y entonces
+   * sí toca el plan B. Cargar lento deja de confundirse con "no me dejan".
+   *
+   * La cuenta atrás la arranca el manejador de `ready`, dentro del efecto de
+   * los mensajes: un ref no se puede escribir durante el render.
+   */
+  useEffect(() => {
+    arranco.current = false;
+    if (relojPlanB.current) clearTimeout(relojPlanB.current);
+    relojPlanB.current = null;
+    return () => {
+      if (relojPlanB.current) clearTimeout(relojPlanB.current);
+      relojPlanB.current = null;
+    };
+  }, [reproduciendo, mudo, url]);
+
+  /*
+   * ⚠️ Y UN TOPE ABSOLUTO, ADEMÁS DEL DE `ready`.
+   *
+   * Medir desde `ready` arregla el falso positivo (silenciar a quien solo
+   * tardaba en cargar), pero abre otro agujero: si `ready` NO llega —Bunny no
+   * contesta, la red se corta, el reproductor cambia de protocolo— la cuenta
+   * atrás no empieza nunca y el video se queda con sonido Y PARADO. Que es
+   * exactamente lo que se vino a evitar. Comprobado el 2026-10-20: sin este
+   * tope, el curso gratis quedaba con el play en medio de la pantalla.
+   *
+   * 6 s desde que se monta: de sobra para cargar en una conexión normal (las
+   * cápsulas confirman en 1-2) y lo bastante corto para que nadie se quede
+   * mirando un video parado.
+   */
+  useEffect(() => {
+    if (!reproduciendo || mudo) return;
+    const tope = setTimeout(() => {
+      if (!arranco.current) setMudo(true);
+    }, 6000);
+    return () => clearTimeout(tope);
+  }, [reproduciendo, mudo, url]);
   const marco = useRef<HTMLIFrameElement>(null);
 
   /*
@@ -116,16 +185,33 @@ export function ReproductorEnSitio({
         pedir("addEventListener", "play");
         pedir("addEventListener", "pause");
         pedir("addEventListener", "ended");
+        /* La prueba de que el video SÍ avanza. Sin esto, el temporizador que
+           decide si hace falta reintentar mudo no sabría si arrancó. */
+        pedir("addEventListener", "timeupdate");
+        /* Ya está cargado: a partir de AQUÍ tiene sentido medir si reproduce. */
+        if (!mudo && !relojPlanB.current) {
+          relojPlanB.current = setTimeout(() => {
+            if (!arranco.current) setMudo(true);
+          }, 2000);
+        }
         return;
       }
 
-      if (d?.event === "play") onReproduciendo?.(true);
+      /* ⚠️ `timeupdate` TAMBIÉN CUENTA COMO "está corriendo", no solo `play`.
+         Bunny no siempre manda `play` —con autoplay a veces solo manda
+         `timeupdate`— y entonces la franja de "Materiales" se quedaba encima
+         del video tapando las manos de Elizabeth, que es justo lo que se
+         arregló hace dos días por otro camino. */
+      if (d?.event === "play" || d?.event === "timeupdate") {
+        arranco.current = true;
+        onReproduciendo?.(true);
+      }
       if (d?.event === "pause" || d?.event === "ended") onReproduciendo?.(false);
     };
 
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
-  }, [reproduciendo, onReproduciendo]);
+  }, [reproduciendo, onReproduciendo, mudo]);
 
   /*
    * ⚠️ LA MINIATURA DE BUNNY PUEDE NO CARGAR, Y HAY QUE PREVERLO. Su CDN de
@@ -158,7 +244,12 @@ export function ReproductorEnSitio({
            * reproducir nada, que es el peor de los tres resultados. Sin el
            * parámetro, el reproductor arranca con su volumen normal.
            */
-          src={`${url}${url.includes("?") ? "&" : "?"}autoplay=true`}
+          key={mudo ? "mudo" : "con-sonido"}
+          /* `preload=true&playsinline=true` como en las cápsulas: el
+             reproductor se adelanta a cargar y confirma antes que avanza, en
+             vez de hacernos esperar. `playsinline` evita que iOS lo abra a
+             pantalla completa él solo. */
+          src={`${url}${url.includes("?") ? "&" : "?"}autoplay=true&preload=true&playsinline=true${mudo ? "&muted=true" : ""}`}
           title={titulo}
           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
