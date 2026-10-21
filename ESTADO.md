@@ -140,6 +140,18 @@ no se probó en vivo). Borrados `LlamadaAPlanes` y `BarraInferiorHome`; de
 `lib/landing.ts` salieron 5 bloques muertos con datos falsos. `INCLUYE` cambió
 también en Mi plan y en el selector de pago.
 
+- **"Crear mi cuenta gratis" ya no existe (2026-10-21, pedido de Cristian).** Los
+  3 botones (aviso del catálogo, ficha de bolso bloqueado, Ojo agotado) usan
+  `components/app/PagoConPlan.tsx`: selector anual/mensual (anual por defecto,
+  el mismo estado que el bloque de precio) + "Inscribirme con el plan …" al
+  enlace de `plan_checkout`. El selector es un INTERRUPTOR pequeño ("Mensual ⟷
+  Anual −25%", `role="switch"`), no dos botones: la primera versión parecía
+  otro botón gigante (corregido el mismo día). Mixpanel: `catalogo`,
+  `ficha_bolso`, `ojo_agotado`. El mismo interruptor (`components/app/
+  InterruptorPlan.tsx`) reemplazó la píldora partida del precio del home y de Mi
+  plan. ⏸️ **Sin commitear: Cristian lo revisa antes.**
+  Corregidos de paso "uno nuevo cada mes" y "40 preguntas y 8 fotos". Esto hace
+  MÁS urgente el pendiente de abajo.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a
@@ -268,6 +280,16 @@ toca reintentar en el servidor.
 
 ## 🟡 Pendientes de código (no bloquean vender)
 
+- 🔴 **CÁPSULAS SIN AUDIO — DIAGNÓSTICO DEL 2026-10-21.** En Chrome de escritorio
+  SÍ suenan (probado con toque real: el reproductor dice `getMuted=false`,
+  volumen 100, y no salta el plan B). En TELÉFONOS no: (1) Safari de iPhone no
+  deja que un iframe de OTRO dominio (`mediadelivery.net`) arranque con sonido
+  aunque haya toque → a los 2 s el plan B lo remonta mudo; (2) con datos lentos,
+  si `ready` tarda más de 6 s también se silencia. Arreglo de raíz propuesto:
+  `<video>` propio con el MP4 directo de Bunny (existen 360p-1080p y responden
+  desde el dominio; desde localhost dan 403) y `play()` dentro del toque. Las
+  cápsulas son gratis, así que el archivo directo no expone nada de pago.
+  ⏸️ Pendiente del OK de Cristian; solo se puede comprobar en un iPhone, en QA.
 - 🟡 **EL AUDIO DE LOS VIDEOS: SIN OÍR EN UN TELÉFONO REAL** (2026-10-20).
   Los **tres** sitios con video —cápsulas, curso gratis y lecciones de `/app`—
   comparten el mismo reproductor y la misma lógica: intentan sonar y, si no
