@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Catalogo } from "@/components/app/Catalogo";
 import { alumnaActual, nombreCorto } from "@/lib/alumna";
-import { continuarDonde, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
+import { continuarDonde, esLlavero, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
 import { precioDesde } from "@/lib/planes";
 
 export const metadata: Metadata = {
@@ -46,7 +46,13 @@ export default async function MisBolsos() {
           {/* El resumen se CALCULA de los datos: el día que entre el bolso 15,
               este número cambia solo. */}
           <p className="text-ink-muted text-sm">
-            <strong className="text-espresso font-semibold">{bolsos.length} bolsos</strong> ·{" "}
+            {/* Bolsos y llaveros por separado (2026-10-20): "23 bolsos" contaba
+                los 3 llaveros como si fueran bolsos. */}
+            <strong className="text-espresso font-semibold">
+              {bolsos.filter((b) => !esLlavero(b)).length} bolsos
+              {bolsos.some(esLlavero) && ` y ${bolsos.filter(esLlavero).length} llaveros`}
+            </strong>{" "}
+            ·{" "}
             {totalVideos} videos paso a paso
           </p>
         </header>

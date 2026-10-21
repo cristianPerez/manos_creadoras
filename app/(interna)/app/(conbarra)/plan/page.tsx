@@ -7,7 +7,7 @@ import { RegistrarPais } from "@/components/app/RegistrarPais";
 import { SelectorDePago } from "@/components/app/SelectorDePago";
 import { Entrada } from "@/components/home/Entrada";
 import { alumnaActual } from "@/lib/alumna";
-import { listarBolsos } from "@/lib/bolsos";
+import { esLlavero, listarBolsos } from "@/lib/bolsos";
 import { fechaLarga, finDelCicloEnCurso } from "@/lib/ciclo";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { INCLUYE } from "@/lib/planes";
@@ -50,7 +50,8 @@ export default async function MiPlan({
     listarBolsos(),
   ]);
   // Del catálogo, no a mano: el día que entre el bolso 17 esta frase no miente.
-  const totalBolsos = bolsos.length;
+  // Solo bolsos: los llaveros también están en el catálogo pero no lo son.
+  const totalBolsos = bolsos.filter((b) => !esLlavero(b)).length;
 
   // Esta pantalla vive dentro de la app: sin sesión no hay a quién darle nada.
   if (!alumna) redirect("/entrar?next=/app/plan");

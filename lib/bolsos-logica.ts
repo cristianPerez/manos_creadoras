@@ -80,6 +80,20 @@ export type BolsoConDetalle = Bolso & {
  * pasos, no uno partido. Agrupar por título a secas los fundiría y dejaría la
  * ficha mintiendo.
  */
+/**
+ * ¿Es un llavero y no un bolso? (2026-10-20)
+ *
+ * Los llaveros viven en la misma tabla `bolsos` —tienen ficha, materiales y
+ * video igual que un bolso— pero NO son "bolsos" para lo que promete la venta:
+ * "1 de 20 bolsos", "20 bolsos paso a paso". Sin esto, el home habría dicho 23.
+ *
+ * Se reconocen por el slug (`llavero-…`) y no por una columna porque no hay
+ * ninguna que lo diga; si un día hay más tipos, toca una columna `tipo`.
+ */
+export function esLlavero(bolso: { slug: string }): boolean {
+  return bolso.slug.startsWith("llavero-");
+}
+
 export function agruparEnPasos(lecciones: Leccion[]): Paso[] {
   const pasos: Paso[] = [];
 

@@ -34,6 +34,29 @@ const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KE
 const datos = JSON.parse(readFileSync("supabase/seed/bolsos.json", "utf8"));
 const borrar = process.argv.includes("--borrar");
 
+/*
+ * ⚠️ `--solo slug1,slug2` CARGA ÚNICAMENTE ESOS BOLSOS (añadido el 2026-10-20).
+ *
+ * Sin él, el script borra y vuelve a insertar las lecciones y materiales de
+ * TODOS los bolsos — y desde que se escribió, varias migraciones (0031-0034)
+ * cambiaron portadas directamente en la base. Recargar los 16 para añadir 4
+ * habría deshecho esos cambios y regenerado lecciones con ids nuevos. Para
+ * añadir bolsos nuevos, siempre con `--solo`.
+ */
+const iSolo = process.argv.indexOf("--solo");
+const solo = iSolo > -1 ? new Set((process.argv[iSolo + 1] ?? "").split(",").filter(Boolean)) : null;
+if (solo && borrar) {
+  console.error("❌ --solo y --borrar juntos no tienen sentido: --borrar vacía todo.");
+  process.exit(1);
+}
+if (solo) {
+  const desconocidos = [...solo].filter((s) => !datos.bolsos.some((b) => b.slug === s));
+  if (desconocidos.length > 0) {
+    console.error(`❌ No están en el JSON: ${desconocidos.join(", ")}`);
+    process.exit(1);
+  }
+}
+
 function fallar(paso, error) {
   console.error(`\n❌ ${paso}: ${error.message}`);
   process.exit(1);
@@ -78,7 +101,7 @@ async function cargarBolsos() {
   let materiales = 0;
   let enlaces = 0;
 
-  for (const b of datos.bolsos) {
+  for (const b of datos.bolsos.filter((x) => !solo || solo.has(x.slug))) {
     /*
      * `upsert` por `slug`: el identificador interno se conserva si el bolso ya
      * existía. Eso es lo que permite volver a correr el seed sin que una alumna
@@ -159,7 +182,8 @@ async function cargarBolsos() {
     process.stdout.write(`   ${String(b.orden).padStart(2)}. ${b.nombre.padEnd(20)} ${b.lecciones.length} lecciones\n`);
   }
 
-  return { bolsos: datos.bolsos.length, lecciones, materiales, enlaces };
+  const cargados = solo ? solo.size : datos.bolsos.length;
+  return { bolsos: cargados, lecciones, materiales, enlaces };
 }
 
 /* ── Arranque ───────────────────────────────────────────────────────────── */
@@ -189,7 +213,8 @@ console.log(`
    ${res.materiales} materiales · ${res.enlaces} enlaces al directorio
 `);
 
-if (videos !== datos.total_videos) {
+// Con --solo no se cargó todo, así que el total del JSON no aplica.
+if (!solo && videos !== datos.total_videos) {
   console.warn(`⚠️  El JSON declara ${datos.total_videos} videos y se cargaron ${videos}.`);
   process.exit(1);
 }

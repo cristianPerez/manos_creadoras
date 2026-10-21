@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { ListaMateriales, TarjetaDirectorio } from "@/components/app/ListaMateriales";
 import { PasoAPaso } from "@/components/app/PasoAPaso";
 import { alumnaActual } from "@/lib/alumna";
-import { medidasEnTexto, medidasOrdenadas, obtenerBolso, siguienteVideo } from "@/lib/bolsos";
+import { esLlavero, medidasEnTexto, medidasOrdenadas, obtenerBolso, siguienteVideo } from "@/lib/bolsos";
 import { precioDesde } from "@/lib/planes";
 
 export async function generateMetadata({
@@ -89,7 +89,11 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
 
             <div className="mt-4 flex flex-wrap gap-2">
               <Chip>
-                {bolso.pasos.length} pasos · {bolso.videos} videos
+                {/* Un llavero no tiene pasos (es un solo video): "0 pasos" sobra.
+                    Y "1 videos" se lee como un error. */}
+                {bolso.pasos.length > 0 &&
+                  `${bolso.pasos.length} ${bolso.pasos.length === 1 ? "paso" : "pasos"} · `}
+                {bolso.videos} {bolso.videos === 1 ? "video" : "videos"}
               </Chip>
               {medidas && <Chip>{medidas}</Chip>}
               {bolso.gratis && <Chip destacado>Gratis</Chip>}
@@ -114,10 +118,14 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
                 hace que valga la pena pagar: ya sabes exactamente qué recibes.
               */
               <div className="bg-sand mt-6 rounded-[var(--radius-lg)] p-5">
-                <p className="text-espresso font-semibold">Este bolso viene con el plan</p>
+                <p className="text-espresso font-semibold">
+                  Este {esLlavero(bolso) ? "llavero" : "bolso"} viene con el plan
+                </p>
                 <p className="text-ink-body mt-1 text-sm">
-                  Puedes ver sus pasos y sus materiales. Para los videos necesitas Creadora o
-                  Maestra, desde {precioDesde()} al mes.
+                  {/* ⚠️ Decía "necesitas Creadora o Maestra": planes que no existen
+                      desde el 2026-10-13 (hay uno solo). Corregido el 2026-10-20. */}
+                  Puedes ver sus pasos y sus materiales. Para los videos necesitas el plan,
+                  desde {precioDesde()} al mes.
                 </p>
                 {/*
                   ⚠️ EL DESTINO DEPENDE DE QUIÉN MIRA, y la diferencia importa.
