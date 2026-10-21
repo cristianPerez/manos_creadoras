@@ -5,7 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListaMateriales, TarjetaDirectorio } from "@/components/app/ListaMateriales";
 import { PasoAPaso } from "@/components/app/PasoAPaso";
+import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { alumnaActual } from "@/lib/alumna";
+import { enlacesDeCobro } from "@/lib/checkout";
 import { esLlavero, medidasEnTexto, medidasOrdenadas, obtenerBolso, siguienteVideo } from "@/lib/bolsos";
 import { precioDesde } from "@/lib/planes";
 
@@ -21,7 +23,11 @@ export async function generateMetadata({
 
 export default async function Ficha({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [bolso, alumna] = await Promise.all([obtenerBolso(slug), alumnaActual()]);
+  const [bolso, alumna, cobro] = await Promise.all([
+    obtenerBolso(slug),
+    alumnaActual(),
+    enlacesDeCobro(),
+  ]);
 
   if (!bolso) notFound();
 
@@ -128,18 +134,14 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
                   desde {precioDesde()} al mes.
                 </p>
                 {/*
-                  ⚠️ EL DESTINO DEPENDE DE QUIÉN MIRA, y la diferencia importa.
-                  Sin cuenta, lo siguiente es crearla; con cuenta y sin plan, lo
-                  siguiente es pagar. Mandar a las dos al mismo sitio obliga a
-                  una de ellas a dar un paso que ya dio.
+                  ⚠️ ANTES EL DESTINO DEPENDÍA DE QUIÉN MIRABA: sin cuenta, "Crear
+                  mi cuenta gratis"; con cuenta, "Ver los planes". Desde el
+                  2026-10-21 los dos van a PAGAR, con anual por defecto y el
+                  selector para cambiar a mensual (pedido de Cristian).
                 */}
-                <Link
-                  href={alumna ? "/app/plan" : "/entrar"}
-                  className="text-espresso mt-4 flex h-12 items-center justify-center rounded-full font-semibold"
-                  style={{ backgroundImage: "var(--boton-dorado)" }}
-                >
-                  {alumna ? "Ver los planes" : "Crear mi cuenta gratis"}
-                </Link>
+                <div className="mt-4">
+                  <PagoConPlan enlaces={cobro.url} origen="ficha_bolso" />
+                </div>
               </div>
             ) : (
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">

@@ -12,7 +12,11 @@ export type OrigenCompra =
   | "banda_1de16"
   | "precio"
   | "cierre"
-  | "barra_movil";
+  | "barra_movil"
+  // Dentro de la app (2026-10-21): los que antes decían "Crear mi cuenta gratis".
+  | "catalogo"
+  | "ficha_bolso"
+  | "ojo_agotado";
 
 /**
  * Un enlace de compra que deja dicho desde dónde se tocó.

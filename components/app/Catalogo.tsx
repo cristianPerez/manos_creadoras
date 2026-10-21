@@ -4,8 +4,10 @@ import { Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { TarjetaBolso } from "@/components/app/TarjetaBolso";
-import { estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
+import { esLlavero, estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
+import type { Frecuencia } from "@/lib/planes";
 
 type Filtro = "todos" | "en-curso" | "terminados";
 
@@ -22,12 +24,15 @@ export function Catalogo({
   tieneAcceso,
   invitada = false,
   desde,
+  enlaces,
 }: {
   bolsos: Bolso[];
   continuar: Bolso | null;
   tieneAcceso: boolean;
   /** Quien mira no ha entrado: se le enseña la oferta junto al catálogo. */
   invitada?: boolean;
+  /** Los enlaces de pago de su país (`lib/checkout.ts`); `null` si ese ciclo no tiene. */
+  enlaces: Record<Frecuencia, string | null>;
   /*
    * "US$6,67" ya formateado. Llega hecho desde el servidor porque el precio
    * depende de si esta persona sigue dentro de sus 24h de oferta, y eso solo
@@ -52,7 +57,7 @@ export function Catalogo({
   return (
     <>
       {continuar && <ContinuaDondeQuedaste bolso={continuar} />}
-      {invitada && <Invitacion bolsos={bolsos} desde={desde} />}
+      {invitada && <Invitacion bolsos={bolsos} desde={desde} enlaces={enlaces} />}
 
       <div
         role="group"
@@ -122,8 +127,17 @@ export function Catalogo({
  * los bolsos, y lo que la convence de pagar es tenerlos delante. Un muro antes
  * de enseñar nada solo consigue que se vaya.
  */
-function Invitacion({ bolsos, desde }: { bolsos: Bolso[]; desde: string }) {
+function Invitacion({
+  bolsos,
+  enlaces,
+}: {
+  bolsos: Bolso[];
+  desde: string;
+  enlaces: Record<Frecuencia, string | null>;
+}) {
   const gratis = bolsos.find((b) => b.gratis);
+  const llaveros = bolsos.filter(esLlavero).length;
+  const deBolso = bolsos.length - llaveros;
 
   return (
     <section
@@ -136,8 +150,12 @@ function Invitacion({ bolsos, desde }: { bolsos: Bolso[]; desde: string }) {
         </h2>
         <p className="mt-2 max-w-lg text-sm text-white/75">
           {gratis ? `${gratis.nombre} es tuyo ahora mismo. ` : ""}
-          Con un plan se abren los {bolsos.length}, uno nuevo cada mes, el directorio de
-          proveedores y el Ojo Experto.
+          {/* ⚠️ Decía "se abren los 23, uno nuevo cada mes": contaba los llaveros
+              como bolsos y prometía un bolso nuevo al mes, que no existe
+              (corregido el 2026-10-21, igual que en el resto del sitio). */}
+          Con el plan se abren los {deBolso} bolsos
+          {llaveros > 0 ? ` y ${llaveros} llaveros` : ""}, el directorio de proveedores y el
+          Ojo Experto.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
@@ -151,16 +169,10 @@ function Invitacion({ bolsos, desde }: { bolsos: Bolso[]; desde: string }) {
         </div>
       </div>
 
-      <div className="shrink-0">
-        {/* Quien mira esto no tiene cuenta: lo siguiente es crearla, no pagar. */}
-        <Link
-          href="/entrar"
-          className="text-espresso flex h-14 items-center justify-center rounded-full px-7 font-semibold"
-          style={{ backgroundImage: "var(--boton-dorado)" }}
-        >
-          Crear mi cuenta gratis
-        </Link>
-        <p className="mt-2 text-center text-xs text-white/60">Desde {desde} al mes</p>
+      {/* ⚠️ Antes: "Crear mi cuenta gratis" → /entrar. Desde el 2026-10-21 lleva
+          a PAGAR, con anual por defecto (pedido de Cristian). */}
+      <div className="w-full shrink-0 md:w-72">
+        <PagoConPlan enlaces={enlaces} origen="catalogo" tono="oscuro" />
       </div>
     </section>
   );
