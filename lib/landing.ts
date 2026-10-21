@@ -2,142 +2,167 @@
  * El contenido del home, separado de cómo se ve.
  *
  * Está aquí y no repartido por los componentes porque Elizabeth va a querer
- * cambiar textos —el bolso del mes, una pregunta frecuente, un número— sin que
+ * cambiar textos —una pregunta frecuente, un testimonio, el WhatsApp— sin que
  * nadie toque una sola línea de maquetación. Un archivo, una lista por sección.
+ *
+ * Los PRECIOS no viven aquí: salen de `lib/planes.ts`, que los calcula. Si un
+ * precio aparece escrito en este archivo, es un precio inventado.
+ *
+ * ⚠️ HOME V3 (2026-10-20). Se borraron cinco bloques que nadie importaba —
+ * `ANUNCIO`, `PASOS`, `MENTORA`, `CIERRE` y las siete `PREGUNTAS` del home v1—
+ * y que seguían prometiendo cosas que ya no son verdad: "3 meses gratis", un
+ * "US$9,74 al mes", "un curso nuevo cada mes" y una "comunidad". Código muerto
+ * con datos falsos es una trampa: basta con que alguien lo importe creyéndolo
+ * bueno.
  */
 
-/* ── La barra de arriba ─────────────────────────────────────────────── */
+/* ── Contacto ───────────────────────────────────────────────────────── */
 
-export const ANUNCIO = {
-  texto: "Nuevo curso cada mes · Con el plan anual pagas",
-  destacado: "3 meses gratis",
-} as const;
-
-/* ── Héroe ──────────────────────────────────────────────────────────── */
-
-/*
- * ⚠️ AQUÍ VIVÍA `CIFRAS_HERO` Y SE BORRÓ EL 2026-10-17. Estaba MUERTA: ningún
- * componente la importaba —el héroe pinta sus cifras en su propio JSX— y
- * llevaba dos datos falsos esperando a que alguien la usara:
+/**
+ * El WhatsApp de dudas antes de comprar. Número de Cristian, 2026-10-20.
  *
- *   · "4,9 / 5 valoración", que Cristian retiró por no tener reseñas detrás.
- *   · "US$ 9,74 al mes, plan anual", de cuando el plan costaba otra cosa. Hoy
- *     el anual sale a US$20,83.
- *
- * Código muerto con números desfasados es una trampa: el día que alguien lo
- * importe creyendo que es la fuente buena, la landing promete un precio que no
- * existe. El precio se saca SIEMPRE de `lib/planes.ts`, que lo calcula.
+ * Solo dígitos, con el código de país y sin "+": es el formato que pide
+ * `wa.me`. Si cambia, se cambia aquí y nada más.
  */
+export const WHATSAPP_NUMERO = "573154940311";
 
-/* ── Cómo funciona ──────────────────────────────────────────────────── */
+/** El mensaje con el que se abre la conversación, para que no empiece en blanco. */
+const WHATSAPP_SALUDO = "Hola, tengo una duda sobre el curso de Manos Creadoras.";
 
-export const PASOS = [
-  {
-    n: "01",
-    titulo: "Te unes y entras a todo",
-    texto:
-      "Acceso inmediato a los 16 bolsos en video, su ficha de materiales y el directorio de proveedores.",
-  },
-  {
-    n: "02",
-    titulo: "Cada mes, un curso nuevo",
-    texto: "Un bolso nuevo con su video completo, patrón con medidas exactas y lista de materiales.",
-  },
-  {
-    n: "03",
-    titulo: "Creas, muestras y vendes",
-    texto:
-      "Mentoría mensual, retos en comunidad y guías de precios y fotografía para vender tus piezas.",
-  },
-] as const;
+export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(WHATSAPP_SALUDO)}`;
 
-/* ── La colección ───────────────────────────────────────────────────── */
+/* ── La profesora ───────────────────────────────────────────────────── */
 
-/*
- * ⚠️ AQUÍ VIVÍA UNA LISTA DE OCHO BOLSOS ESCRITA A MANO, y se borró.
- *
- * Era una segunda fuente de verdad: el home decía que "Cristal Brillante" era
- * una foto y la app decía que era otra. Cinco de los ocho habían divergido ya.
- *
- * La sección `Coleccion` lee ahora el catálogo de la base, igual que `/app`.
- * El bolso del héroe también sale de ahí.
- */
-
-
-/* ── La mentora ─────────────────────────────────────────────────────── */
-
-export const MENTORA = {
+export const PROFESORA = {
   nombre: "Elizabeth Valencia",
-  parrafos: [
-    "Especialista en bolsos artesanales de lujo. Desde hace más de 5 años acompaña a mujeres de diferentes países a aprender técnicas claras para crear bolsos en cuentas con acabados elegantes y estilo boutique.",
-    "Su método va paso a paso, para que desarrolles piezas sofisticadas y conviertas tu creatividad en una colección con identidad propia.",
-  ],
-  cifras: [
-    { valor: "+5", pie: "años de oficio" },
-    { valor: "+1.200", pie: "alumnas" },
-    // La valoración salió el 2026-10-17 (sin reseñas que la respalden). Se
-    // quita también aquí aunque este bloque todavía no se pinte: si mañana
-    // alguien lo usa, no debe resucitar una cifra retirada.
-  ],
+  foto: "/images/mentora-elizabeth.webp",
+  alt: "Elizabeth Valencia, profesora de Manos Creadoras",
+  texto:
+    "Te enseño a tejer bolsos de perlas paso a paso, con las mismas fichas y el mismo método que uso en cada bolso. Y si algo no te sale, el Ojo Experto te responde con mis fichas.",
 } as const;
+
+/* ── Testimonios ─────────────────────────────────────────────────────── */
+
+export type Testimonio = {
+  /** La foto del bolso que tejió ella, no su cara. */
+  foto: string;
+  /** Lo que escribió, TAL CUAL. Nulo si la foto llegó sin mensaje suyo. */
+  frase: string | null;
+  /** Como firma en la comunidad. Sin apellido completo: ver abajo. */
+  nombre: string;
+  /** Una etiqueta corta de contexto ("En proceso"), opcional. */
+  detalle?: string;
+};
+
+/**
+ * Lo que tejen sus alumnas — fotos REALES de la comunidad de Telegram
+ * "Manos creadoras" (91 miembros), entregadas por Cristian el 2026-10-20.
+ *
+ * ⚠️ LAS FRASES SON LITERALES, NO SE PULEN. Copiadas de las capturas, con su
+ * gramática. Un testimonio retocado ya no es un testimonio, y es justo lo que
+ * hace que el "4,9/5" sin respaldo saliera de esta página el 17-oct.
+ *
+ * ⚠️ Las fotos se recortaron de las capturas para quedarse SOLO con el bolso:
+ * sin burbujas de chat, horas ni mensajes de otras personas.
+ *
+ * ⚠️ PERMISO PENDIENTE: son personas reales con su nombre en la comunidad.
+ * Antes de publicar en producción, pedirles el OK (basta un "sí" en el grupo).
+ * Por eso solo va el nombre de pila o el de su marca, nunca el apellido.
+ *
+ * Se descartó una sexta captura (bolso negro "no me queda cuadradito"): es un
+ * fotograma borroso de video y el mensaje es una queja; en una página de venta
+ * se lee como "no sale bien".
+ */
+export const TESTIMONIOS: Testimonio[] = [
+  {
+    foto: "/images/alumnas/alumna-jenatelier-bolso-flor.webp",
+    frase:
+      "Hoy traigo mi corazón en la mano y este diseño que me ha sacado lágrimas, pero de alegría.",
+    nombre: "Jenifer · Jenatelier",
+  },
+  {
+    foto: "/images/alumnas/alumna-jenifer-bolso-perlas.webp",
+    frase: "—¿En cuánto tiempo lo hiciste? —1 día.",
+    nombre: "Jenifer · Jenatelier",
+  },
+  {
+    foto: "/images/alumnas/alumna-andrea-bolso-negro.webp",
+    frase: "Y ahorita estoy haciendo unos más juvenil",
+    nombre: "Andrea",
+  },
+  {
+    foto: "/images/alumnas/alumna-bolso-cristal-en-proceso.webp",
+    frase: "Aún no le he puesto forro también, me encantaría que quedara perfecto…",
+    nombre: "Alumna de la comunidad",
+    detalle: "En proceso",
+  },
+  {
+    foto: "/images/alumnas/alumna-bolso-cristal-blanco.webp",
+    frase: null,
+    nombre: "Alumna de la comunidad",
+  },
+];
 
 /* ── Preguntas frecuentes ───────────────────────────────────────────── */
 
 /**
- * Las siete preguntas del diseño, con sus respuestas.
+ * Las cinco preguntas del home v3.
  *
- * ⚠️ El diseño solo trae escrita la respuesta de la primera; las otras seis
- * venían en blanco. Se redactaron a partir de lo que el propio sitio ya promete
- * (los planes, la garantía, cómo se entrega el acceso) para que ninguna quede
- * vacía — un acordeón que se abre y no dice nada es peor que no tener la
- * pregunta. Dos llevan aviso porque dependen de decisiones aún abiertas.
+ * ⚠️ VALIDADAS CONTRA LA APP, NO COPIADAS DEL DISEÑO. Dos respuestas del diseño
+ * no eran verdad y se corrigieron:
+ *
+ *   · "el anual dura un año desde tu pago": el plan anual de OnePay SE RENUEVA
+ *     solo cada 12 meses. Prometer que dura un año y volver a cobrar es el
+ *     reclamo más fácil de prever.
+ *   · "te llega un correo con tu enlace de acceso": solo si paga con el correo
+ *     de una cuenta que ya existe. El webhook busca a la alumna por ese correo;
+ *     si no la encuentra, el pago queda huérfano y se activa a mano. Mientras
+ *     eso no cambie, la respuesta lo dice.
+ *
+ * También alimentan el JSON-LD `FAQPage` del home: lo que lee Google es lo
+ * mismo que lee ella.
  */
-export const PREGUNTAS = [
+export const PREGUNTAS_FRECUENTES = [
   {
-    q: "Nunca he hecho un bolso. ¿Es para mí?",
-    a: "Sí. La membresía empieza desde cero: técnica base, materiales y primeros puntos, antes de pasar a modelos más elaborados.",
+    q: "¿Necesito experiencia?",
+    a: "No. El curso empieza desde cero: las cápsulas te enseñan las técnicas base y cada bolso va paso a paso.",
   },
   {
-    q: "¿Qué recibo cada mes?",
-    a: "Un curso completo con un modelo nuevo: el video paso a paso, el patrón con medidas exactas y la lista de materiales. Todo queda en tu biblioteca para siempre, aunque el mes termine.",
+    q: "¿Cuánto cuestan los materiales?",
+    a: "Depende del bolso. Cada ficha trae la lista exacta de materiales y el directorio te lleva a los proveedores. Puedes ver la ficha de cada bolso gratis antes de pagar.",
   },
   {
-    q: "¿Qué incluye cada plan?",
-    a: "Hay un solo plan, con todo incluido: los 16 bolsos en video, uno nuevo cada mes, la ficha de materiales de cada uno, el directorio de proveedores, el Ojo Experto y la comunidad. Solo eliges si lo pagas cada mes o de una vez al año.",
+    q: "¿Por cuánto tiempo tengo acceso?",
+    a: "Mientras tu plan esté activo. El mensual se renueva cada mes y el anual cada año. Si cancelas, conservas el acceso hasta el final del período que ya pagaste.",
   },
   {
-    /*
-     * ✅ RESUELTA EL 2026-10-19: ya existe el botón. Esta respuesta decía
-     * "escríbenos" porque era lo único cierto mientras no lo había, y se
-     * cambia EN EL MISMO COMMIT que lo construye — si no, la app tendría un
-     * botón y el FAQ seguiría mandando a escribir un correo, que es peor que
-     * no tener ninguno de los dos: parece que el botón no cuenta.
-     */
-    q: "¿Puedo cancelar cuando quiera?",
-    a: "Sí, tú misma y en dos toques, desde Mi plan dentro de la app. No hay que escribir ni dar explicaciones, y conservas el acceso hasta que termine el período que ya pagaste.",
+    q: "¿Cómo pido el reembolso?",
+    a: "Dentro de los primeros 7 días desde tu primer pago, escríbenos desde Contacto o por WhatsApp y te devolvemos el pago.",
   },
   {
-    q: "¿Los materiales los compro yo?",
-    a: "Sí, y por eso cada curso trae la lista exacta de lo que necesitas. Además tienes el directorio de proveedores con cuentas, mallas y herrajes a precio de mayorista, ordenado por país.",
-  },
-  {
-    q: "¿Puedo vender lo que fabrique?",
-    a: "Sí, las piezas que tejes son tuyas y puedes venderlas. Lo que no se puede es revender ni compartir los videos: eso es el curso, no la pieza.",
-  },
-  {
-    q: "¿Cómo recibo el acceso después de pagar?",
-    a: "Te llega un correo con tu acceso en cuanto se confirma el pago. Si no lo ves en unos minutos, revisa el correo no deseado o escríbenos y lo activamos a mano.",
+    q: "¿Cómo entro después de pagar?",
+    a: "Paga con el mismo correo de tu cuenta gratis: en cuanto se confirma el pago te llega un correo con tu acceso, sin contraseña. Si aún no tienes cuenta o no te llega en unos minutos, escríbenos por WhatsApp y te activamos al momento.",
   },
 ] as const;
 
-/* ── Cierre ─────────────────────────────────────────────────────────── */
-
-export const CIERRE = {
-  titulo: "Tu primer bolso empieza",
-  clave: "este mes",
-  texto: "Empieza con un curso gratis, o desde US$9,74 al mes en el plan anual.",
-  cta: "Unirme ahora",
-} as const;
+/**
+ * El JSON-LD `FAQPage`: lo mismo que lee ella, dicho para Google.
+ *
+ * Sale de la misma lista que el acordeón, así que no pueden decir cosas
+ * distintas. El `<` se escapa para que una respuesta nunca pueda cerrar la
+ * etiqueta `<script>` donde se incrusta.
+ */
+export function faqJsonLd(): string {
+  return JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: PREGUNTAS_FRECUENTES.map((p) => ({
+      "@type": "Question",
+      name: p.q,
+      acceptedAnswer: { "@type": "Answer", text: p.a },
+    })),
+  }).replace(/</g, "\\u003c");
+}
 
 /* ── Navegación ─────────────────────────────────────────────────────── */
 
@@ -157,6 +182,7 @@ export const NAVEGACION = [
   { texto: "Cápsulas gratis", destino: "#capsulas" },
   { texto: "Curso gratis", destino: "#gratis" },
   { texto: "Ojo Experto", destino: "#ojo" },
+  { texto: "Elizabeth", destino: "#elizabeth" },
   // "Planes" y no "Precio": lo que se mira antes de comprar es qué se lleva uno,
   // y es la palabra que la gente busca en un menú.
   { texto: "Planes", destino: "#precio" },

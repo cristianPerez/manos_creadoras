@@ -200,14 +200,20 @@ export function CursoGratis({
               <p className="text-ink-muted text-sm">Toca un paso</p>
             </div>
 
-            <ul className="mt-4 flex flex-col gap-2.5">
+            {/*
+              ⚠️ TEMARIO COMPACTO (home v3, 2026-10-20): filas de 54px (52 en
+              móvil), radio 14 (12), número en cuadrito de 30px (28) y 8px entre
+              filas (6). Con las filas de 72px de la v2, los seis pasos
+              ocupaban más alto que el video de al lado.
+            */}
+            <ul className="mt-4 flex flex-col gap-2 max-md:gap-1.5">
               {pasos.map((p, i) => {
                 const activo = i === abierto;
                 const anterior = i < abierto;
                 return (
                   <li key={p.orden}>
                     <div
-                      className={`overflow-hidden rounded-[var(--radius-lg)] transition-colors ${
+                      className={`rounded-fila overflow-hidden transition-colors max-md:rounded-md ${
                         activo ? "bg-ivory border-gold border-2 shadow-md" : "bg-ivory border-line border"
                       }`}
                     >
@@ -219,11 +225,11 @@ export function CursoGratis({
                         }}
                         aria-expanded={activo}
                         aria-controls={`paso-${p.orden}`}
-                        className="flex w-full items-center gap-3.5 p-4 text-left [touch-action:manipulation]"
+                        className="flex min-h-[54px] w-full items-center gap-3 px-4 py-2 text-left [touch-action:manipulation] max-md:min-h-[52px]"
                       >
                         <span
                           aria-hidden="true"
-                          className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                          className={`flex size-[30px] shrink-0 items-center justify-center rounded-sm text-sm font-bold max-md:size-7 ${
                             anterior || activo ? "bg-gold text-white" : "bg-sand text-ink-body"
                           }`}
                         >

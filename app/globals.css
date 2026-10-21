@@ -92,6 +92,14 @@
    * 2:1 y sería ilegible justo en el elemento que más necesita leerse.
    */
   --boton-dorado: linear-gradient(135deg, var(--gold-light), var(--gold));
+  /*
+   * El botón principal del héroe (home v3, 2026-10-20). ⚠️ NO ES `--boton-dorado`:
+   * aquel empieza en `--gold-light`, que la ficha reserva para fondos oscuros, y
+   * sobre crema se veía pálido y perdía peso frente al titular. La referencia lo
+   * pinta en bronce con texto claro. Arranca en `--gold`: la crema encima da
+   * 4,63:1 en el extremo más claro.
+   */
+  --boton-bronce: linear-gradient(135deg, var(--gold), #6E4F1E);
 
   --bg: var(--surface-base);
   --surface: var(--surface-primary);
@@ -162,6 +170,19 @@
      y visor de cápsulas. Más generoso que `--radius-xl` porque son bloques de
      media pantalla y ahí un radio pequeño se lee como esquina viva. */
   --radius-foto: 28px;
+  /*
+   * El oscurecido de las tarjetas de cápsula (home v3, 2026-10-20).
+   * ⚠️ MÁS FUERTE QUE EL DE LA V2, que llegaba a .82 abajo y se quedaba en 0 en
+   * el centro: sobre las portadas claras (perla, marfil) el título blanco se
+   * perdía. Ahora el centro también se oscurece un poco (.3) y abajo llega a .92.
+   */
+  --capsula-degradado: linear-gradient(
+    180deg,
+    rgba(18, 12, 9, 0.45) 0%,
+    rgba(18, 12, 9, 0) 30%,
+    rgba(18, 12, 9, 0.3) 55%,
+    rgba(18, 12, 9, 0.92) 100%
+  );
   /* Las tarjetas de cápsula: entre `--radius-lg` (20) y `--radius-xl` (30). */
   --radius-capsula: 22px;
 
@@ -189,6 +210,15 @@
   --radius-xl: 1.875rem;  /* 30px — tope alto: tarjetas grandes */
   --radius-device: 2rem;  /* 32px — SOLO el marco de teléfono del carrusel */
   --radius-full: 9999px;  /* píldora — botones */
+
+  /*
+   * ── HOME V3 (2026-10-20): los radios del contrato de `design-ref/pantallas` ──
+   * La referencia los da en números exactos y la manda sobre la escala general
+   * (protocolo 16). Se nombran aquí para que no aparezcan como valores sueltos.
+   */
+  --radius-boton: 10px;   /* botones de compra y "Entrar" en móvil */
+  --radius-fila: 14px;    /* filas del temario del curso gratis */
+  --radius-bloque: 16px;  /* banda 1 de 16, cierre, foto de Elizabeth */
 
   /* ====== TIPOGRAFÍA — las *-src las inyecta next/font desde app/layout.tsx ====== */
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
@@ -297,6 +327,9 @@
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-device);
   --radius-full: var(--radius-full);
+  --radius-boton: var(--radius-boton);
+  --radius-fila: var(--radius-fila);
+  --radius-bloque: var(--radius-bloque);
 
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
@@ -340,6 +373,40 @@ body {
      sobre crema se convierte en una mancha sucia en la parte de arriba. */
   background: var(--bg);
   color: var(--text);
+}
+
+/*
+ * ⚠️ EL FOCO SE VE, Y CON EL DORADO QUE TOCA SEGÚN EL FONDO (home v3, 2026-10-20).
+ *
+ * Hasta aquí no había ninguna regla de foco: quien navega con teclado dependía
+ * del anillo por defecto del navegador, que en Safari ni siquiera aparece en los
+ * enlaces. Va con `:focus-visible`, así que el clic con ratón no lo enciende.
+ *
+ * Sobre crema, `--gold` (#8C6A2F): `--gold-pale` ahí daría 1,3:1 y no se vería.
+ * Dentro de un bloque oscuro (`.sobre-oscuro`), al revés.
+ */
+/*
+ * El alto de la barra fija de compra del home en móvil (h-18 = 72px), más la
+ * zona segura del iPhone. Lo reserva el pie para que la barra no tape el
+ * copyright. Si la barra cambia de alto, se cambia aquí.
+ */
+:root {
+  --barra-compra: 72px;
+}
+
+@media (max-width: 767px) {
+  .reserva-barra-compra {
+    padding-bottom: calc(var(--barra-compra) + env(safe-area-inset-bottom) + 24px);
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.sobre-oscuro :focus-visible {
+  outline-color: var(--gold-pale);
 }
 
 .tabular {
@@ -439,6 +506,28 @@ body {
      sobre negro era sutil, sobre crema ensucia. */
   opacity: 0.035;
   mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/*
+ * El mismo grano, para bloques OSCUROS (home v3). `multiply` sobre espresso no
+ * deja nada; ahí el papel se ve con `overlay` y algo más de opacidad. Lo pidió
+ * el revisor visual: el grano es el dispositivo ownable de la ficha y el home
+ * no lo llevaba en ningún sitio.
+ */
+.grain-oscuro {
+  position: relative;
+  isolation: isolate;
+}
+.grain-oscuro::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 

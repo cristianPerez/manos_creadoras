@@ -95,6 +95,23 @@ export const EVENTOS = {
    * ingresos. Si sube, el prompt del sistema se rompió.
    */
   promesaBloqueada: "promesa_bloqueada",
+
+  // ── Home v3: los caminos a la compra (2026-10-20) ─────────────────────
+  /**
+   * Tocó un "Inscribirme". Lleva `origen` (header · banner_precio ·
+   * banda_1de16 · precio · cierre · barra_movil) y `plan`.
+   *
+   * ⚠️ NO SUSTITUYE A `checkout_abierto`, que sigue siendo el que dice "abrió el
+   * pago". Este dice DESDE DÓNDE se decidió: con seis botones de compra en una
+   * página, saber cuál convierte es justo lo que permite quitar los que no.
+   */
+  ctaInscribirmeClick: "cta_inscribirme_click",
+  /** Cambió entre anual y mensual. Lleva el `plan` que quedó elegido. */
+  planToggle: "plan_toggle",
+  /** Abrió WhatsApp. Lleva `origen`: las dudas antes de pagar son objeciones. */
+  whatsappClick: "whatsapp_click",
+  /** Abrió una pregunta frecuente. Lleva cuál: la más abierta es la objeción nº1. */
+  faqOpen: "faq_open",
 } as const;
 
 export type Evento = (typeof EVENTOS)[keyof typeof EVENTOS];

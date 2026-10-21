@@ -11,7 +11,9 @@ import Link from "next/link";
  */
 export function FooterLegal() {
   return (
-    <footer className="border-line border-t px-5 py-10">
+    /* `reserva-barra-compra`: en móvil deja libre el alto de la barra fija de
+       compra (home v3). Sin él, el copyright quedaba tapado debajo. */
+    <footer className="border-line reserva-barra-compra border-t px-5 py-10">
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           <Link href="/" className="flex items-center gap-3">
@@ -33,10 +35,10 @@ export function FooterLegal() {
 
           <nav className="flex flex-wrap justify-center">
             {[
+              { href: "/contacto", texto: "Contacto" },
               { href: "/legal/terminos", texto: "Términos" },
               { href: "/legal/privacidad", texto: "Privacidad" },
               { href: "/legal/reembolso", texto: "Reembolsos" },
-              { href: "/contacto", texto: "Contacto" },
             ].map((e) => (
               <Link
                 key={e.href}

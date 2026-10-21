@@ -168,14 +168,12 @@ export function Capsulas({
                     />
 
                     {/* Degradado arriba Y abajo: sin él, el número y el título
-                        quedan sobre la foto y con una portada clara desaparecen. */}
+                        quedan sobre la foto y con una portada clara desaparecen.
+                        Más fuerte desde la v3: ver `--capsula-degradado`. */}
                     <span
                       aria-hidden="true"
                       className="absolute inset-0"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(to bottom, rgba(42,31,25,.55) 0%, rgba(42,31,25,0) 32%, rgba(42,31,25,0) 45%, rgba(42,31,25,.82) 100%)",
-                      }}
+                      style={{ backgroundImage: "var(--capsula-degradado)" }}
                     />
 
                     {/* El número con fondo: sobre una portada clara, el dorado
@@ -204,8 +202,8 @@ export function Capsulas({
 
                     <span className="absolute inset-x-0 bottom-0 p-4">
                       <span
-                        className="font-display text-cream block text-xl text-balance"
-                        style={{ fontWeight: 500, lineHeight: 1.12 }}
+                        className="font-display text-cream block text-balance"
+                        style={{ fontWeight: 500, fontSize: 22, lineHeight: 1.12 }}
                       >
                         {c.titulo}
                       </span>

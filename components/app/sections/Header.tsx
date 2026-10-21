@@ -1,21 +1,24 @@
 import Link from "next/link";
+import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { NAVEGACION } from "@/lib/landing";
+import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
 
 /**
  * La cabecera del home.
  *
- * ⚠️ EN MÓVIL SE QUEDA EN LO MÍNIMO: logo y "Entrar". Antes había un menú
- * hamburguesa, pero el home v2 trae una barra fija abajo (Inicio · Bolso gratis
- * · Ojo Experto · Entrar) que está siempre a la vista. Dos formas de navegar lo
- * mismo acaban siempre igual: una de las dos se queda sin actualizar.
+ * ⚠️ EN MÓVIL SE QUEDA EN LO MÍNIMO: logo y "Entrar". Abajo vive la barra fija
+ * de compra (home v3), que lleva el precio y el "Inscribirme"; repetirlos aquí
+ * sería poner dos botones iguales en la misma pantalla.
  *
  * Ya no es un componente de cliente: sin menú desplegable no hay estado que
  * guardar, así que se renderiza en el servidor y baja menos JavaScript.
  */
 export function Header() {
   return (
-    <header className="bg-cream/90 sticky top-0 z-(--z-sticky) backdrop-blur-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+    /* Opaca y con línea abajo (v3): translúcida sobre el bloque espresso del Ojo
+       dejaba una franja gris turbia encima del titular. */
+    <header className="bg-cream border-line sticky top-0 z-(--z-sticky) border-b">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3 md:py-4">
         <Link href="/" className="flex items-center gap-3">
           <Logo />
           {/* `whitespace-nowrap`: a 375px, junto al botón y al menú, el nombre
@@ -47,8 +50,8 @@ export function Header() {
             que ya paga entraba a manoscreadoras.co y no tenía por dónde pasar.
 
             En escritorio va discreto y antes del botón oscuro —quien ya es
-            alumna no viene a comprar otra vez—. En móvil es el ÚNICO botón, y
-            por eso ahí sí va destacado.
+            alumna no viene a comprar otra vez—. En móvil es el único botón de
+            la cabecera, con borde: lo oscuro se reserva para comprar.
           */}
           <Link
             href="/entrar"
@@ -58,42 +61,31 @@ export function Header() {
           </Link>
 
           {/*
-            ⚠️ "PLANES" EN MÓVIL, AÑADIDO EL 2026-10-17 POR UN HUECO MEDIDO.
-            A 375px la página mide 5.115px y el primer acceso a los planes
-            estaba a 2.449px — media página de scroll. Arriba no había NINGUNO:
-            el menú de escritorio que lo lleva es `hidden md:flex`, así que en
-            móvil el único era el iconito de la barra de abajo.
-
-            Va como texto y no como botón a propósito: el botón oscuro sigue
-            siendo "Entrar", y el CTA principal de la página sigue siendo el
-            bolso gratis. Esto solo resuelve "¿cuánto cuesta?" sin tener que
-            bajar media página — no adelanta el precio por delante del valor.
+            ⚠️ EN MÓVIL YA NO HAY "PLANES" AQUÍ (home v3). Se añadió el 17-oct
+            porque el primer acceso al precio estaba a media página; ahora lo
+            resuelve la barra fija de compra, que está siempre a la vista. Dos
+            botones al precio en la misma pantalla compiten entre sí.
           */}
-          {/* `#precio` sin la barra, igual que los enlaces del menú de
-              escritorio: esta cabecera solo vive en el home, así que es un
-              ancla dentro de la misma página, no una navegación. Con `/#precio`
-              el linter de Next lo trata como ruta y pide `<Link>`, que para un
-              ancla estorba —intercepta el clic y rompe el scroll suave—. */}
-          <a
-            href="#precio"
-            className="text-ink-body hover:text-espresso flex h-11 items-center px-2 text-sm font-semibold transition-colors md:hidden"
-          >
-            Planes
-          </a>
-
           <Link
             href="/entrar"
-            className="bg-espresso flex h-11 items-center rounded-full px-5 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:hidden"
+            className="border-line-strong text-espresso flex h-11 items-center rounded-boton border px-5 text-sm font-semibold transition-transform active:scale-[0.98] md:hidden"
           >
             Entrar
           </Link>
 
-          <a
-            href="#gratis"
-            className="bg-espresso hidden h-11 items-center rounded-full px-7 text-sm font-semibold text-white transition-transform active:scale-[0.98] md:flex"
+          {/*
+            ⚠️ EL CTA DEL HEADER DEJÓ DE SER "EMPIEZA GRATIS" (home v3). El gratis
+            ya tiene su botón dorado en el banner, que es lo primero que se ve;
+            arriba, fijo durante todo el scroll, va el que compra.
+          */}
+          <EnlaceCompra
+            href="#precio"
+            origen="header"
+            plan={FRECUENCIA_POR_DEFECTO}
+            className="bg-espresso text-gold-pale hidden h-11 items-center rounded-full px-7 text-sm font-bold transition-transform active:scale-[0.98] md:flex"
           >
-            Empieza gratis
-          </a>
+            Inscribirme
+          </EnlaceCompra>
         </div>
       </div>
 

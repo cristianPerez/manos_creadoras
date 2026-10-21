@@ -3,15 +3,21 @@ import { Medir } from "@/components/app/Medir";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { FooterLegal } from "@/components/app/sections/FooterLegal";
 import { Header } from "@/components/app/sections/Header";
-import { BarraInferiorHome } from "@/components/home/BarraInferiorHome";
+import { BandaUnoDe16 } from "@/components/home/BandaUnoDe16";
+import { BarraCompraMovil } from "@/components/home/BarraCompraMovil";
 import { Capsulas } from "@/components/home/Capsulas";
 import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
+import { Elizabeth } from "@/components/home/Elizabeth";
+import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { HeroSlider, type FotoHero } from "@/components/home/HeroSlider";
-import { LlamadaAPlanes } from "@/components/home/LlamadaAPlanes";
 import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
+import { PreguntasFrecuentes } from "@/components/home/PreguntasFrecuentes";
+import { faqJsonLd } from "@/lib/landing";
+import { precioDelCobro, precioDesde } from "@/lib/planes";
 import { listarCapsulas } from "@/lib/capsulas";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
+import { esLlavero } from "@/lib/bolsos-logica";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { RegistrarPais } from "@/components/app/RegistrarPais";
@@ -56,6 +62,13 @@ export default async function Home() {
     listarCapsulas(),
     enlacesDeCobro(),
   ]);
+
+  /* Las dos cifras del curso, calculadas UNA vez y pasadas a todas las
+     secciones que las dicen (banda, Elizabeth, precio, cierre). Antes cada
+     una sumaba por su cuenta, y así es como una dice 14 y otra 16. */
+  // Solo bolsos: los llaveros están en el catálogo pero no son "bolsos".
+  const totalBolsos = bolsos.filter((b) => !esLlavero(b)).length;
+  const totalVideos = bolsos.reduce((s, b) => s + b.videos, 0);
 
   const porSlug = new Map(bolsos.map((b) => [b.slug, b]));
   const fotos: FotoHero[] = ORDEN_CARRUSEL.flatMap((slug) => {
@@ -117,9 +130,9 @@ export default async function Home() {
     <>
       <Medir evento={EVENTOS.paginaVentasVista} />
       <RegistrarPais />
-      {/* Antes del Header a propósito: el Header es `sticky top-0` y la barra
-          NO lo es. Así se ve al llegar y desaparece al bajar, en vez de robarle
-          sitio a la navegación durante todo el scroll. */}
+      {/* Lo que Google lee de las preguntas frecuentes: la misma lista que el
+          acordeón, así que no pueden decir cosas distintas. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqJsonLd() }} />
       <Header />
 
       {/*
@@ -133,91 +146,79 @@ export default async function Home() {
         Se hace con `order` y no duplicando componentes: un solo bloque de
         cápsulas, un solo estado de "vistas", un solo visor.
 
-        `pb-20` en móvil: la barra fija mide 64px y sin este respiro taparía el pie.
+        ── HOME V3 (2026-10-20): el orden de venta ──────────────────────────
+        banner (con precio) → cápsulas → curso gratis → banda "1 de 16" → Ojo →
+        Elizabeth → precio → preguntas → cierre. Un botón de compra visible o a
+        un toque en todo el recorrido: header, banner, banda, precio, cierre y,
+        en móvil, la barra fija.
       */}
-      <main className="flex flex-col pb-20 md:pb-0">
-        {/*
-          ⚠️ LAS CÁPSULAS VAN ANTES DEL BANNER, y no es un capricho de orden.
-          El diseño móvil las pone justo bajo el header, y además arregla un
-          fallo real: con el banner primero, el botón dorado "Empezar mi bolso
-          gratis" caía en y=781 de una pantalla de 844 — justo DEBAJO de la
-          barra fija, que se quedaba con el clic. El botón más importante del
-          home no se podía pulsar.
-
-          En escritorio el orden visual no cambia: la sección de cápsulas de
-          escritorio se dibuja después del banner igualmente.
-        */}
+      <main className="flex flex-col">
         <div className="order-1 md:order-2">
           <Capsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas} />
         </div>
-        <div className="order-2 md:order-1">
-          <HeroSlider fotos={fotos} totalBolsos={bolsos.length} />
+        {/* `id="banner"`: la barra fija de compra lo observa para no aparecer
+            mientras el banner —que ya trae su botón— está a la vista. */}
+        <div id="banner" className="order-2 md:order-1">
+          <HeroSlider fotos={fotos} totalBolsos={totalBolsos} />
         </div>
         <div className="order-3">
-        {gratis && (
-          <CursoGratis
-            slug={gratis.slug}
-            nombre={gratis.nombre}
-            pasos={pasos}
-            portadaUrl={gratis.portadaUrl}
-          />
-        )}
-        {/*
-          ⚠️ EL CTA VA AQUÍ, JUSTO DESPUÉS DEL BOLSO GRATIS. Es el punto de más
-          deseo de todo el home: acaba de ver un bolso entero, gratis y completo,
-          y la pregunta que se hace sola es "¿y los demás?". Ponerlo antes sería
-          pedir dinero por algo que todavía no ha visto.
-        */}
-        <LlamadaAPlanes
-          tono="dorado"
-          /* El cierre de escritorio (abajo del todo) ya usa "¿Te gustó? Hay N
-             bolsos esperándote": este dice lo mismo con otras palabras a
-             propósito, para que quien baje entero no lea dos veces la frase. */
-          titulo={`Acabas de hacer uno. Te faltan ${bolsos.length - 1}.`}
-          texto={`${bolsos.reduce((s, b) => s + b.videos, 0)} videos paso a paso, la ficha de materiales de cada bolso y el Ojo Experto sin límite.`}
-        />
+          {gratis && (
+            <CursoGratis
+              slug={gratis.slug}
+              nombre={gratis.nombre}
+              pasos={pasos}
+              portadaUrl={gratis.portadaUrl}
+            />
+          )}
 
-        <OjoDemo bolsoGratis={gratis?.slug ?? null} />
+          <BandaUnoDe16 bolsos={totalBolsos} videos={totalVideos} />
 
-        {/* El segundo momento: ya probó el Ojo Experto y se topó con el límite
-            de 2 preguntas. Aquí el plan deja de ser un precio y es la salida. */}
-        <LlamadaAPlanes titulo="¿Sin preguntas? Con el plan no se acaban." />
+          <OjoDemo bolsoGratis={gratis?.slug ?? null} />
 
-        <PrecioHome enlaces={cobro.url} />
-        </div>
+          <Elizabeth bolsos={totalBolsos} videos={totalVideos} />
 
-        {/* El cierre, solo en escritorio: en móvil el precio ya queda pegado a la
-            barra de abajo y una tarjeta más entre medias solo alarga el scroll. */}
-        <section className="order-4 max-md:hidden px-5 pb-16">
-          <div
-            className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-6 rounded-[var(--radius-xl)] p-9 text-white"
-            style={{ backgroundImage: "var(--card-destacada)" }}
-          >
-            <div>
-              <h2 className="font-display text-2xl text-balance" style={{ fontWeight: 500 }}>
-                ¿Te gustó? Hay{" "}
-                <em className="text-gold-light italic" style={{ fontWeight: 400 }}>
-                  {bolsos.length} bolsos
-                </em>{" "}
-                esperándote.
-              </h2>
-              <p className="mt-2 max-w-xl text-sm text-white/70">
-                {bolsos.reduce((s, b) => s + b.videos, 0)} videos paso a paso, la ficha de
-                materiales de cada bolso y el Ojo Experto sin límite de 2 preguntas.
-              </p>
+          <PrecioHome enlaces={cobro.url} bolsos={totalBolsos} videos={totalVideos} />
+
+          <PreguntasFrecuentes />
+
+          {/*
+            El cierre. ⚠️ ABRE EL PAGO ANUAL DIRECTAMENTE: quien llega hasta
+            aquí ya leyó el precio, las preguntas y la garantía. Mandarla otra
+            vez a `#precio` sería hacerle subir a pulsar lo mismo.
+          */}
+          <section className="px-5 pb-12 md:pb-16">
+            <div className="bg-espresso sobre-oscuro grain-oscuro rounded-bloque mx-auto flex max-w-6xl flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:px-12 md:py-10">
+              <div>
+                <h2
+                  className="font-display text-cream text-balance"
+                  style={{ fontWeight: 500, fontSize: "clamp(28px, 3vw, 38px)", lineHeight: 1.1 }}
+                >
+                  ¿Te gustó? Hay{" "}
+                  <em className="text-gold-pale italic" style={{ fontWeight: 400 }}>
+                    {totalBolsos} bolsos
+                  </em>{" "}
+                  esperándote.
+                </h2>
+                <p className="text-on-dark-muted mt-2">
+                  Plan anual: un pago de {precioDelCobro("anual")} al año · garantía de 7 días.
+                </p>
+              </div>
+              <EnlaceCompra
+                href={cobro.url.anual ?? "/pagar?ciclo=anual"}
+                origen="cierre"
+                plan="anual"
+                abrePago={Boolean(cobro.url.anual)}
+                className="bg-gold-pale text-espresso rounded-boton flex h-14 shrink-0 items-center justify-center px-8 font-extrabold transition-transform active:scale-[0.98]"
+              >
+                Inscribirme por {precioDesde()}/mes
+              </EnlaceCompra>
             </div>
-            <a
-              href="#precio"
-              className="flex h-13 shrink-0 items-center rounded-full border border-white/25 px-7 font-semibold text-white"
-            >
-              Ver los planes
-            </a>
-          </div>
-        </section>
+          </section>
+        </div>
       </main>
 
       <FooterLegal />
-      <BarraInferiorHome />
+      <BarraCompraMovil />
     </>
   );
 }

@@ -4,7 +4,9 @@ import { ChevronLeft, ChevronRight, Play, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { NumeroQueCuenta } from "@/components/home/NumeroQueCuenta";
+import { FRECUENCIA_POR_DEFECTO, GARANTIA, precioDesde } from "@/lib/planes";
 
 export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: string };
 
@@ -15,6 +17,10 @@ export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: s
  * lee el titular le roba el ojo justo en la frase que tiene que convencerle. Se
  * mueve cuando ella quiere: flecha, puntito, dedo o teclado.
  */
+/** El párrafo del banner. Uno solo para los dos anchos, que solo cambian de sitio. */
+const PARRAFO =
+  "Aprende desde cero con Elizabeth Valencia: mira las cápsulas, teje tu primer bolso gratis y pregúntale al Ojo Experto cuando algo no te salga.";
+
 export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBolsos: number }) {
   const [i, setI] = useState(0);
   const tocado = useRef<number | null>(null);
@@ -37,7 +43,7 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
       foto manda. Si algún día se unifica, se unifica a propósito y en todas.
     */
     <section className="px-3 pt-2 pb-8 md:px-5 md:pt-6 md:pb-10">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2 md:gap-14">
+      <div className="mx-auto grid max-w-6xl items-center gap-2 md:grid-cols-2 md:gap-14">
         {/* ⚠️ En móvil la FOTO va primero (order-1) y el texto debajo: lo que
             para y convence en un teléfono es la imagen del bolso, no el titular. */}
         <div className="order-1 md:order-2">
@@ -86,7 +92,14 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
               salía MÁS redondeada que antes. Los radios se piden siempre con
               los tokens del sistema, no con los nombres de Tailwind.
             */}
-            <div className="bg-espresso relative aspect-square overflow-hidden rounded-(--radius-foto) shadow-[0_24px_60px_-24px_rgba(42,31,25,0.45)] max-md:aspect-[1/1.05] max-md:rounded-(--radius-lg)">
+            {/*
+              ⚠️ HOME V3 (2026-10-20): EN MÓVIL LA FOTO PASA A 4:3, radio 16.
+              El criterio de la v3 es medible —a 390×844 tienen que verse el
+              titular, el botón dorado y la línea de precio sin bajar— y con la
+              foto casi cuadrada de antes no cabían. 4:3 sigue enseñando el
+              bolso entero (asa incluida) y libera ~90px.
+            */}
+            <div className="bg-espresso relative aspect-square overflow-hidden rounded-(--radius-foto) shadow-[0_24px_60px_-24px_rgba(42,31,25,0.45)] max-md:aspect-[4/3] max-md:rounded-bloque">
               {/* `key` por slug: al cambiar de bolso React monta una imagen
                   nueva, y con `animate-[aparecer]` el cambio se funde en vez de
                   saltar. */}
@@ -100,11 +113,37 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
                 className="animate-[aparecer_.45s_var(--ease-out)] object-cover"
               />
 
-              <span className="bg-cream/92 absolute top-4 left-4 rounded-xl px-4 py-3 backdrop-blur-sm">
-                <span className="font-display text-espresso block text-lg" style={{ fontWeight: 500 }}>
+              {/*
+                ⚠️ EL CHIP ERA MÁS REDONDO QUE LA FOTO QUE LO CONTIENE, y por
+                eso se veía descolgado: `rounded-xl` son 30px en este proyecto
+                y la foto tiene 20px en móvil. Un elemento metido dentro de
+                otro nunca puede tener MÁS radio que su contenedor: la curva
+                del hijo pelea con la del padre en vez de acompañarla.
+
+                12px (`--radius-md`) es claramente menor que los 20 de la foto
+                y sigue leyéndose redondeado. Lo pidió Cristian el 2026-10-20.
+              */}
+              <span className="bg-cream/92 absolute top-4 left-4 rounded-(--radius-md) px-4 py-2.5 backdrop-blur-sm">
+                {/*
+                  ⚠️ LA JERARQUÍA SE ARREGLA SUBIENDO EL TÍTULO, NO HUNDIENDO
+                  EL SUBTÍTULO. Cristian pidió el 2026-10-20 que el subtítulo
+                  pesara menos: a 12px con 0.14em de tracking ocupaba casi
+                  tanto ancho como el nombre del bolso y los dos competían.
+
+                  El primer intento fue bajarlo a 10-11px y el linter de
+                  diseño lo rechazó con razón: la guía fija las etiquetas en
+                  12-13px y por debajo dejan de leerse en un teléfono. Así que
+                  el salto se abre por arriba (18 → 20px) y al subtítulo se le
+                  quita el tracking ancho, que era lo que de verdad lo hacía
+                  ocupar toda la línea.
+                */}
+                <span
+                  className="font-display text-espresso block text-xl leading-tight"
+                  style={{ fontWeight: 500 }}
+                >
                   {actual.nombre}
                 </span>
-                <span className="text-gold block text-xs font-bold tracking-[0.14em] uppercase">
+                <span className="text-gold mt-1 block text-xs font-bold tracking-[0.08em] uppercase">
                   {actual.subtitulo}
                 </span>
               </span>
@@ -119,7 +158,7 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
             grande y convierten el banner en una parrilla; los puntitos solo
             dicen "hay más" y dónde estás.
           */}
-          <div className="mt-2 flex items-center justify-center gap-1 md:mt-5">
+          <div className="flex items-center justify-center gap-1 md:mt-5">
             {fotos.map((f, n) => (
               <button
                 key={f.slug}
@@ -151,50 +190,36 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
 
         <div className="order-2 md:order-1">
           {/*
-            ⚠️ EN MÓVIL TODO VA MÁS APRETADO, y por una razón medida: con los
-            márgenes de escritorio el botón dorado caía en y=781 de una pantalla
-            de 844 — exactamente bajo la barra fija, que se quedaba con el toque.
-            Comprobado con `elementFromPoint`: quien recibía el clic era "Ojo
-            Experto", no el botón.
-
-            Aun así NO CABE TODO sobre la línea de flotación, y no es un fallo
-            de ajuste: header (76) + cápsulas (136) + foto + titular + botón no
-            entran en 844px, y menos en los 667 de un teléfono pequeño. El
-            diseño de referencia tampoco lo resuelve.
-
-            La salida no es seguir recortando la foto hasta dejar el bolso
-            irreconocible: es que la BARRA FIJA lleva "Bolso gratis" y apunta al
-            mismo sitio. En móvil, el botón siempre visible es ese — y lo está
-            en todo momento, que es más de lo que consigue un héroe apretado.
+            ⚠️ EN MÓVIL TODO VA APRETADO, y el listón es medible (home v3): a
+            390×844 tienen que verse el titular, el botón dorado y la línea de
+            precio sin bajar, y por encima de la barra fija de compra. Por eso
+            en móvil no van la etiqueta de arriba ni el segundo botón, y el
+            párrafo baja debajo del precio.
           */}
-          <span className="bg-sand text-ink-body inline-block rounded-full px-4 py-2 text-xs font-semibold">
+          {/* En móvil no va: la v3 pone el titular justo bajo los puntos, y
+              las historias de arriba ya dicen "cápsulas gratis" con imágenes. */}
+          <span className="bg-sand text-ink-body hidden rounded-full px-4 py-2 text-xs font-semibold md:inline-block">
             5 cápsulas + 1 bolso completo gratis
           </span>
 
           <h1
-            className="font-display text-espresso mt-4 text-balance md:mt-5"
-            style={{ fontWeight: 500, fontSize: "clamp(33px, 5vw, 62px)", lineHeight: 1.04, letterSpacing: "-0.015em" }}
+            className="font-display text-espresso text-balance md:mt-5"
+            style={{ fontWeight: 500, fontSize: "clamp(36px, 5vw, 62px)", lineHeight: 1.04, letterSpacing: "-0.015em" }}
           >
             Crea bolsos de <em className="text-gold italic" style={{ fontWeight: 400 }}>perlas</em> de lujo y
             conviértelos en tu negocio.
           </h1>
 
-          {/*
-            ⚠️ EL PÁRRAFO NO SE ENSEÑA EN MÓVIL. La referencia móvil tampoco lo
-            trae, y hay un motivo práctico: sus cuatro líneas empujaban el botón
-            dorado fuera de la pantalla. En un teléfono, lo que convence es la
-            foto y el titular; el párrafo explica algo que ya se entendió.
-          */}
-          <p className="text-ink-body mt-5 hidden max-w-lg md:block">
-            Aprende desde cero con Elizabeth Valencia. Mira las cápsulas, teje tu primer bolso gratis
-            y pregúntale al Ojo Experto cuando algo no te salga.
-          </p>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row md:mt-7">
+          {/* En escritorio el párrafo va ANTES de los botones, como siempre; en
+              móvil va después de la línea de precio (ver abajo). */}
+          <p className="text-ink-body mt-5 hidden max-w-lg md:block">{PARRAFO}</p>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row md:mt-7">
             <a
               href="#gratis"
-              className="text-espresso flex h-14 items-center justify-center gap-2 rounded-full px-8 font-semibold transition-transform active:scale-[0.98]"
-              style={{ backgroundImage: "var(--boton-dorado)" }}
+              className="text-cream flex h-14 items-center justify-center gap-2 rounded-full px-8 font-semibold transition-transform active:scale-[0.98] max-md:rounded-md"
+              style={{ backgroundImage: "var(--boton-bronce)" }}
             >
               <Play size={16} fill="currentColor" aria-hidden="true" />
               Empezar mi bolso gratis
@@ -203,13 +228,38 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
                 y al entrar Zafiro Perlado y Nácar Soñado el botón siguió
                 diciendo 14 mientras el cierre de la página ya decía 16. Dos
                 cifras distintas en la misma pantalla para lo mismo. */}
+            {/* En móvil no va (v3): ahí el segundo paso es la línea de precio,
+                y dos botones grandes seguidos empujaban el precio fuera. */}
             <Link
               href="/app"
-              className="border-line text-espresso flex h-14 items-center justify-center rounded-full border px-8 font-semibold"
+              className="border-line text-espresso hidden h-14 items-center justify-center rounded-full border px-8 font-semibold sm:flex"
             >
               Ver los {totalBolsos} bolsos
             </Link>
           </div>
+
+          {/*
+            ⚠️ LA LÍNEA DE PRECIO (home v3, 2026-10-20). Hasta la v2 el banner no
+            decía cuánto cuesta el curso, y quien ya venía decidida tenía que
+            bajar media página para saberlo. No compite con el botón dorado: es
+            texto, no botón, y el gratis sigue siendo lo primero.
+          */}
+          <p className="text-center md:mt-4 md:text-left">
+            <EnlaceCompra
+              href="#precio"
+              origen="banner_precio"
+              plan={FRECUENCIA_POR_DEFECTO}
+              className="text-ink-body hover:text-espresso border-line-strong inline-flex min-h-11 items-center border-b text-base transition-colors"
+            >
+              <span>
+                o el curso completo desde{" "}
+                <strong className="text-espresso font-bold">{precioDesde()}/mes</strong>
+                <span className="max-md:hidden"> · {GARANTIA.titulo.toLowerCase()}</span> →
+              </span>
+            </EnlaceCompra>
+          </p>
+
+          <p className="text-ink-body mt-4 md:hidden">{PARRAFO}</p>
 
           <p className="text-ink-muted mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm md:mt-6">
             {/*
@@ -234,6 +284,9 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
               </strong>
               <span>alumnas en Latinoamérica</span>
             </span>
+            {/* ⚠️ VUELVE EN LA V3 (2026-10-20): el diseño nuevo de Cristian lo
+                repone. Sigue siendo cierto —el bolso gratis no pide tarjeta—. */}
+            <span>Sin tarjeta para empezar</span>
             {/*
               ⚠️ "SIN TARJETA PARA EMPEZAR" SE QUITÓ EL 2026-10-19 (decisión de
               Cristian). Queda anotado para que nadie lo reponga creyendo que

@@ -102,15 +102,29 @@ export function ahorroAnualDe(): { dolares: number; pct: number } {
   return { dolares, pct: Math.round((dolares / (PRECIOS.mensual * 12)) * 100) };
 }
 
-/** Lo que incluye. Es la misma lista para los dos ciclos: cambia el cobro, no el curso. */
+/**
+ * Lo que incluye. Es la misma lista para los dos ciclos: cambia el cobro, no el curso.
+ *
+ * ⚠️ HOME V3 (2026-10-20): la lista pasó a nombrar cosas que existen en la app
+ * —ficha de materiales, directorio— en vez de "mini bolsos y llaveros", que no
+ * hay. La comparten el home, Mi plan y el selector de pago: cambia en los tres.
+ *
+ * La primera línea no lleva cifras porque esta constante no sabe cuántos bolsos
+ * hay; quien sí lo sabe (el home, que lee el catálogo) usa `incluyeCon`.
+ */
 export const INCLUYE = [
-  "Técnicas desde cero",
-  "Bolsos, mini bolsos y llaveros",
-  "Guía de materiales y proveedores",
-  "Estrategias de venta",
-  "Certificado al terminar",
+  "Todos los bolsos paso a paso, en video",
+  "Ficha de materiales de cada bolso",
+  "Directorio de proveedores",
+  "Estrategias para vender tus bolsos",
   "El Ojo Experto para tus dudas",
+  "Certificado al terminar",
 ] as const;
+
+/** `INCLUYE` con las cifras reales del catálogo en la primera línea. */
+export function incluyeCon({ bolsos, videos }: { bolsos: number; videos: number }): string[] {
+  return [`${bolsos} bolsos paso a paso, en ${videos} videos`, ...INCLUYE.slice(1)];
+}
 
 /**
  * El enlace de pago de OnePay, por ciclo.
@@ -166,9 +180,15 @@ export function precioDelCobro(frecuencia: Frecuencia): string {
 /** La línea bajo el precio: qué se cobra y cuándo. */
 export function notaDelCobro(frecuencia: Frecuencia): string {
   const ahorro = ahorroAnualDe().dolares;
+  /*
+   * ⚠️ "UN PAGO AL AÑO", NUNCA "PAGO ÚNICO". El diseño del home v3 decía "pago
+   * único de US$89,90", pero el plan anual de OnePay se renueva solo cada 12
+   * meses. "Único" promete que no se vuelve a cobrar, y cuando se cobra es un
+   * reclamo — o un reembolso. Decisión de Cristian, 2026-10-20.
+   */
   return frecuencia === "anual"
-    ? `Se cobra ${precioDelCobro("anual")} una vez al año · ahorras US$${ahorro}`
-    : "Se cobra cada mes · cancelas cuando quieras";
+    ? `Un pago de ${precioDelCobro("anual")} al año · ahorras US$${ahorro}`
+    : `Se cobra ${precioDelCobro("mensual")} cada mes · cancelas cuando quieras`;
 }
 
 /** "desde US$7,49 al mes" — el gancho corto que usan varias pantallas. */
