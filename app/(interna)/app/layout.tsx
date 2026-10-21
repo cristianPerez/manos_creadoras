@@ -25,11 +25,11 @@ export default async function LayoutApp({ children }: { children: ReactNode }) {
     <ProveedorSesion conSesion={Boolean(alumna)}>
     <div className="flex min-h-dvh flex-col">
       {/*
-        `pb-24` en móvil: la barra de abajo va fija, así que no empuja nada.
+        El hueco en móvil (`.hueco-barra-inferior`): la barra de abajo va fija y no empuja nada.
         Sin este hueco, la última tarjeta de cada pantalla queda debajo de ella
         y nadie puede pulsarla.
       */}
-      <div className="flex flex-1 pb-24 lg:pb-0">{children}</div>
+      <div className="hueco-barra-inferior flex flex-1">{children}</div>
       <BarraInferior />
     </div>
     </ProveedorSesion>

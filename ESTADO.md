@@ -166,6 +166,28 @@ también en Mi plan y en el selector de pago.
   móvil, 100dvh en desktop): la barra de escribir queda anclada y solo el chat
   hace scroll. En móvil el vacío se compactó (sugerencias en filas, sin ícono ni
   nota al pie). Medido: 0 scroll de página a 390×844 y 1440×900.
+- **Ojo v5 minimalista (2026-10-21, `design-ref/ojo-v5-claude-code`).** Solo
+  estilos, misma lógica. Escritorio: cabecera con logo + píldoras (Mis bolsos,
+  Directorio, Ojo, Mi plan) + "Entrar/Inscribirme" o avatar; barra lateral
+  MARFIL con Nueva consulta, buscador (filtra en el cliente las 30 cargadas),
+  historial y medidor de preguntas (lleva a Mi plan). Inicio centrado: ícono,
+  titular, composer en píldora y 4 tarjetas (la de foto abre el selector).
+  Conversación: veredicto en Cormorant si el 1er párrafo es corto (≤140), caja
+  marfil para párrafos `**Etiqueta:** …`. Móvil: barra con ☰ · título · "+",
+  cajón "Mis consultas" (cierra con X, fondo o Escape), barra de abajo de 4
+  pestañas en todo `/app` (Mis bolsos, Ojo, Directorio, Cuenta; 64px, token
+  `--alto-barra-inferior`). Se quitó el selector de bolso/paso: el estado sigue
+  y se manda igual. Arreglado de paso: claves repetidas en los mensajes (la ruta
+  devuelve el id del HILO como id de cada respuesta). Revisor: 27/40 · 10/20 ·
+  FIEL — "no lista" por movimiento y controles; se aplicó lo que era estilo.
+  Pendientes del v5 (necesitan lógica, no se inventaron):
+  - Etiqueta "Vi en tu foto: …" (la ruta no devuelve qué entendió).
+  - Renombrar consulta (no hay acción; por eso no se pintó el lápiz).
+  - Respuestas rápidas bajo cada respuesta (no existen).
+  - Detener una respuesta en curso y borrar consultas (pedidos del revisor).
+  - Sin comprobar con Gemini real que el modelo escriba `**Prueba:**`: con IA
+    simulada no sale la caja. Si no lo escribe, habría que pedirlo en el prompt.
+  - Ya no se ve el contador de FOTOS del mes (la referencia solo muestra preguntas).
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a

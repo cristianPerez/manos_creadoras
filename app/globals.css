@@ -11,9 +11,9 @@
    usan ni un color suelto: todas piden `--surface-primary`, `--text-primary`,
    `--border-default`… Así que remapear esos nombres a los valores claros
    convierte la app entera sin tocar un solo componente. Es exactamente para
-   esto que existían los tokens.
+   esto que existían los .
 
-   ⚠️ LOS TOKENS VAN EN HEX, NO EN HSL como pedía el prompt. El HSL ahí era para
+   ⚠️ LOS  VAN EN HEX, NO EN HSL como pedía el prompt. El HSL ahí era para
    que los componentes de shadcn heredaran la paleta — y este proyecto no usa
    shadcn: no hay `tailwind.config.ts` (Tailwind v4 declara el tema en este
    mismo archivo con `@theme`). Meter HSL solo en estos doce y dejar el resto en
@@ -22,7 +22,7 @@
 :root {
   color-scheme: light;
 
-  /* ====== LOS 12 TOKENS DE MARCA — la fuente única ====== */
+  /* ====== LOS 12  DE MARCA — la fuente única ====== */
   --cream: #FBF6EE;       /* fondo principal */
   --sand: #F3E8D7;        /* secciones alternas, fondo del toggle */
   --ivory: #FFFDF9;       /* tarjetas */
@@ -147,8 +147,10 @@
    */
   --columna-chat: 760px;
   /* La foto que manda la alumna: grande para que se vea el tejido, pequeña para
-     que no tape la conversación. */
-  --foto-mensaje: 220px;
+     que no tape la conversación. Ojo v5: 168px en móvil y 220px en escritorio
+     (se sube en el `@media` de `.alto-ojo`). A 390px, 220 se comía más de la
+     mitad del ancho y empujaba la respuesta fuera de la pantalla. */
+  --foto-mensaje: 168px;
 
   /*
    * El arena de los puntitos inactivos del carrusel. Es el mismo arena de la
@@ -205,6 +207,8 @@
 
   --barra-lateral: 260px;
   --barra-lateral-ojo: 280px;
+  /* La barra de navegación de abajo en móvil (Ojo v5). */
+  --alto-barra-inferior: 64px;
 
   --radius-lg: 1.25rem;   /* 20px — tope bajo del rango 20-30 de la guía */
   --radius-xl: 1.875rem;  /* 30px — tope alto: tarjetas grandes */
@@ -219,6 +223,9 @@
   --radius-boton: 10px;   /* botones de compra y "Entrar" en móvil */
   --radius-fila: 14px;    /* filas del temario del curso gratis */
   --radius-bloque: 16px;  /* banda 1 de 16, cierre, foto de Elizabeth */
+  /* Ojo v5 (2026-10-21), de `design-ref/ojo-v5-claude-code`: */
+  --radius-cajon: 24px;   /* el cajón "Mis consultas" en móvil (borde derecho) */
+  --radius-cola: 6px;     /* la esquina de la burbuja de la alumna que apunta a ella */
 
   /* ====== TIPOGRAFÍA — las *-src las inyecta next/font desde app/layout.tsx ====== */
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
@@ -271,7 +278,7 @@
 }
 
 @theme inline {
-  /* Los 12 tokens de marca, disponibles como clases: bg-cream, text-gold,
+  /* Los 12  de marca, disponibles como clases: bg-cream, text-gold,
      border-line… Es lo que permite escribir las pantallas sin un solo hex. */
   --color-cream: var(--cream);
   --color-sand: var(--sand);
@@ -330,6 +337,8 @@
   --radius-boton: var(--radius-boton);
   --radius-fila: var(--radius-fila);
   --radius-bloque: var(--radius-bloque);
+  --radius-cajon: var(--radius-cajon);
+  --radius-cola: var(--radius-cola);
 
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
@@ -410,11 +419,66 @@ body {
  * deja `pb-24` (6rem) para ella, y altura + hueco = una pantalla justa.
  */
 .alto-ojo {
-  height: calc(100dvh - 6rem);
+  height: calc(100dvh - var(--alto-barra-inferior) - env(safe-area-inset-bottom));
 }
 @media (min-width: 1024px) {
   .alto-ojo {
     height: 100dvh;
+  }
+  :root {
+    --foto-mensaje: 220px;
+  }
+}
+
+/*
+ * Ojo v5 (2026-10-21): los tamaños de la referencia `design-ref/ojo-v5-claude-code`.
+ * Van como clases y no como `text-[..px]` sueltos porque cambian a la vez en el
+ * mismo corte (1024px) y son tres piezas que se leen juntas: si el titular sube,
+ * el veredicto y el cuerpo tienen que subir con él.
+ */
+.ojo-titular {
+  font-size: 38px;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+.ojo-veredicto {
+  font-size: 25px;
+  line-height: 1.2;
+}
+.ojo-cuerpo {
+  font-size: 15px;
+  line-height: 1.6;
+}
+/* Las notas bajo el composer y el pie de las tarjetas: entre `--text-xs` (12)
+   y `--text-sm` (14), como en la referencia. */
+.ojo-nota {
+  font-size: 13px;
+  line-height: 1.4;
+}
+@media (min-width: 1024px) {
+  .ojo-titular {
+    font-size: 56px;
+  }
+  .ojo-veredicto {
+    font-size: 28px;
+  }
+  .ojo-cuerpo {
+    font-size: 16px;
+  }
+}
+
+/*
+ * El hueco que deja el layout de `/app` para la barra de abajo en móvil. Era
+ * `pb-24` (96px) con una barra que ya no medía eso; desde el Ojo v5 la barra
+ * mide 64px exactos, y el hueco sale del mismo token que la barra, así una no
+ * puede cambiar sin la otra. Más el área segura del iPhone.
+ */
+.hueco-barra-inferior {
+  padding-bottom: calc(var(--alto-barra-inferior) + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .hueco-barra-inferior {
+    padding-bottom: 0;
   }
 }
 
@@ -425,6 +489,12 @@ body {
 
 .sobre-oscuro :focus-visible {
   outline-color: var(--gold-pale);
+}
+
+/* El campo de un composer en píldora (Ojo v5): el foco lo marca el borde de la
+   píldora (`focus-within`), no un segundo recuadro dentro de ella. */
+.foco-en-contenedor:focus-visible {
+  outline: none;
 }
 
 .tabular {

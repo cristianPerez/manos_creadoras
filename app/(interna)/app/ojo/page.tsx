@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { OjoExperto, type BolsoBreve, type Conversacion } from "@/components/app/OjoExperto";
-import { alumnaActual, cupoActual } from "@/lib/alumna";
+import { alumnaActual, cupoActual, iniciales } from "@/lib/alumna";
 import { agruparEnPasos, listarBolsos } from "@/lib/bolsos";
 import { supabaseServer } from "@/lib/supabase/server";
 import { enlacesDeCobro } from "@/lib/checkout";
@@ -73,6 +73,7 @@ export default async function PaginaOjo({
   // Solo lo que el selector necesita: nombre y títulos de los pasos.
   return (
     <OjoExperto
+      iniciales={iniciales(alumna)}
       historial={historial}
       cupo={cupo}
       bolsos={breves}

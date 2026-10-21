@@ -6,7 +6,7 @@ import {
   type Conversacion,
   type Mensaje,
 } from "@/components/app/OjoExperto";
-import { alumnaActual, cupoActual } from "@/lib/alumna";
+import { alumnaActual, cupoActual, iniciales } from "@/lib/alumna";
 import { agruparEnPasos, listarBolsos } from "@/lib/bolsos";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -99,6 +99,7 @@ export default async function PaginaConversacion({
 
   return (
     <OjoExperto
+      iniciales={iniciales(alumna)}
       historial={historial}
       cupo={cupo}
       bolsos={breves}

@@ -16,7 +16,9 @@ export type OrigenCompra =
   // Dentro de la app (2026-10-21): los que antes decían "Crear mi cuenta gratis".
   | "catalogo"
   | "ficha_bolso"
-  | "ojo_agotado";
+  | "ojo_agotado"
+  // Cabecera de escritorio del Ojo v5, para quien entra sin cuenta.
+  | "ojo_cabecera";
 
 /**
  * Un enlace de compra que deja dicho desde dónde se tocó.

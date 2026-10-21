@@ -8,27 +8,20 @@ import { useConSesion } from "@/components/app/SesionContexto";
 /**
  * La navegación de la app, en sus dos formas.
  *
- * ⚠️ NO SON LOS MISMOS DESTINOS. La barra lateral de escritorio lleva CUATRO
- * (Mis bolsos, Directorio, Ojo Experto, Mi cuenta) y la de móvil solo TRES: el
- * Directorio se cae. No es un olvido del diseño — a cuatro destinos, cada uno
- * se queda en 93px y el texto empieza a partirse. El Directorio se abre desde
- * la ficha del bolso y desde Mi cuenta, que es donde de verdad se necesita:
- * cuando estás mirando qué materiales comprar.
+ * ⚠️ NO SON LOS MISMOS DESTINOS NI EN EL MISMO ORDEN. En escritorio van los
+ * cinco (Mis bolsos, Directorio, Ojo Experto, Mi plan y la cuenta). En móvil,
+ * desde el Ojo v5 (2026-10-21), cuatro: Mis bolsos, Ojo Experto, Directorio y
+ * Cuenta — el Ojo al lado de los bolsos porque es lo que más se abre, y "Mi
+ * plan" fuera: se llega desde Cuenta y desde el medidor de preguntas del Ojo.
+ * A 390px, cuatro pestañas de 97px caben con etiquetas de 12px sin partirse.
  */
 
 export const DESTINOS = [
-  { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag, enMovil: true },
-  { href: "/app/directorio", texto: "Directorio", Icono: Store, enMovil: false },
-  { href: "/app/ojo", texto: "Ojo Experto", Icono: Sparkles, enMovil: true },
-  /*
-   * ⚠️ `enMovil: false` NO ES UN OLVIDO, por el mismo motivo que el Directorio.
-   * La barra de abajo ya va con tres y a cuatro el texto empieza a partirse.
-   *
-   * En móvil se llega igual: "Mi cuenta" lleva aquí, y la ficha de un bolso
-   * bloqueado también — que es justo cuando interesa, no cuando se mira el menú.
-   */
-  { href: "/app/plan", texto: "Mi plan", Icono: Tag, enMovil: false },
-  { href: "/app/cuenta", texto: "Mi cuenta", Icono: User, enMovil: true },
+  { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag, ordenMovil: 1 },
+  { href: "/app/directorio", texto: "Directorio", Icono: Store, ordenMovil: 3 },
+  { href: "/app/ojo", texto: "Ojo Experto", Icono: Sparkles, ordenMovil: 2 },
+  { href: "/app/plan", texto: "Mi plan", Icono: Tag, ordenMovil: null },
+  { href: "/app/cuenta", texto: "Mi cuenta", Icono: User, ordenMovil: 4 },
 ] as const;
 
 /**
@@ -81,6 +74,34 @@ export function EnlacesApp() {
   );
 }
 
+/**
+ * Los destinos en fila, en píldoras, para la cabecera de escritorio del Ojo
+ * Experto (v5). Sin la cuenta: esa va a la derecha, como "Entrar" o el avatar.
+ */
+export function EnlacesSuperiores() {
+  const ruta = usePathname();
+  return (
+    <nav aria-label="Navegación principal" className="flex items-center gap-1">
+      {DESTINOS.filter((d) => d.href !== "/app/cuenta").map(({ href, texto, Icono }) => {
+        const activo = estaActivo(href, ruta);
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={activo ? "page" : undefined}
+            className={`flex h-11 items-center gap-2 rounded-full px-4 text-sm transition-colors duration-150 ${
+              activo ? "bg-sand text-espresso font-semibold" : "text-ink-muted hover:text-espresso"
+            }`}
+          >
+            <Icono size={16} aria-hidden="true" />
+            {texto}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 /** La barra lateral de 260 px. Solo en escritorio. */
 export function BarraLateral() {
   return (
@@ -116,30 +137,37 @@ export function BarraLateral() {
  */
 export function BarraInferior() {
   const ruta = usePathname();
-  const destinos = useDestinos();
+  const conSesion = useConSesion();
+  const destinos = useDestinos()
+    .filter((d) => d.ordenMovil !== null)
+    .sort((a, b) => (a.ordenMovil ?? 0) - (b.ordenMovil ?? 0))
+    /* "Mi cuenta" no cabe con las otras tres a 12px: en móvil, "Cuenta". */
+    .map((d) => (d.href === "/app/cuenta" && conSesion ? { ...d, texto: "Cuenta" } : d));
 
   return (
     <nav
       aria-label="Navegación principal"
-      className="border-line bg-cream/95 fixed inset-x-0 bottom-0 z-(--z-sticky) border-t backdrop-blur-sm lg:hidden"
+      /* Ojo v5: marfil y plano. El crema translúcido con desenfoque era el
+         único vidrio de la app y bajo él el contenido se veía sucio. */
+      className="border-line bg-ivory fixed inset-x-0 bottom-0 z-(--z-sticky) border-t lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="mx-auto flex max-w-md">
-        {destinos.filter((d) => d.enMovil).map(({ href, texto, Icono }) => {
+      <div className="mx-auto flex h-(--alto-barra-inferior) max-w-md">
+        {destinos.map(({ href, texto, Icono }) => {
           const activo = estaActivo(href, ruta);
           return (
             <Link
               key={href}
               href={href}
               aria-current={activo ? "page" : undefined}
-              className={`relative flex flex-1 flex-col items-center gap-1 pt-3 pb-2 text-xs font-semibold transition-colors ${
-                activo ? "text-gold" : "text-ink-muted"
+              className={`relative flex flex-1 flex-col items-center justify-center gap-1 text-xs transition-colors ${
+                activo ? "text-gold font-semibold" : "text-ink-muted"
               }`}
             >
-              {/* La línea de 2px sobre el destino activo. Va dentro del enlace
-                  y pegada al borde superior para que no dependa del alto. */}
-              {activo && <span aria-hidden="true" className="bg-gold absolute inset-x-5 top-0 h-0.5" />}
-              <Icono size={20} aria-hidden="true" />
+              {/* La línea de 2px sobre el destino activo, a todo el ancho de la
+                  pestaña como en la referencia. */}
+              {activo && <span aria-hidden="true" className="bg-gold absolute inset-x-0 top-0 h-0.5" />}
+              <Icono size={22} strokeWidth={1.75} aria-hidden="true" />
               {texto}
             </Link>
           );
