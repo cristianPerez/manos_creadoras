@@ -152,6 +152,16 @@ también en Mi plan y en el selector de pago.
   plan. ⏸️ **Sin commitear: Cristian lo revisa antes.**
   Corregidos de paso "uno nuevo cada mes" y "40 preguntas y 8 fotos". Esto hace
   MÁS urgente el pendiente de abajo.
+- **`/app` SIN MUROS DE ENTRAR (2026-10-21, pedido de Cristian).** Sin sesión se
+  ven todas las pestañas: Mis bolsos, Directorio, **Ojo Experto** (2 preguntas
+  gratis de visitante; al agotarlas o al mandar foto, caja de plan con
+  `PagoConPlan`) y **Mi plan** (ya no redirige a `/entrar`). La última pestaña dice
+  **"Entrar"** sin sesión y "Mi cuenta" con ella (`SesionContexto`, lo decide el
+  layout) y es el ÚNICO sitio con el formulario. Cerrar sesión vuelve a `/app`.
+  La ruta del Ojo marca `necesitaPlan` (también a la cuenta gratis que agota sus
+  3). Arreglado de paso: el Ojo de visitante respondía "sesión inválida" porque
+  mandaba `Authorization: Bearer` vacío. ⚠️ El plan es UNO solo: no existe
+  "Creadora" desde el 13-oct.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a

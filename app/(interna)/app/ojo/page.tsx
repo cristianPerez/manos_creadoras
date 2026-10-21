@@ -3,8 +3,7 @@ import { OjoExperto, type BolsoBreve, type Conversacion } from "@/components/app
 import { alumnaActual, cupoActual } from "@/lib/alumna";
 import { agruparEnPasos, listarBolsos } from "@/lib/bolsos";
 import { supabaseServer } from "@/lib/supabase/server";
-import { FormularioAcceso } from "@/components/app/FormularioAcceso";
-import { BarraLateral } from "@/components/app/NavegacionApp";
+import { enlacesDeCobro } from "@/lib/checkout";
 
 export const metadata: Metadata = { title: "El Ojo Experto — Manos Creadoras" };
 
@@ -23,42 +22,41 @@ export default async function PaginaOjo({
   const alumna = await alumnaActual();
 
   /*
-    Sin cuenta no hay Ojo Experto, y aquí sí se pide entrar: cada consulta
-    cuesta dinero de verdad y se descuenta de un cupo que necesita saber de
-    quién es. No es un muro comercial, es que la función no existe sin cuenta.
+    ⚠️ SIN CUENTA EL OJO SE ABRE IGUAL (2026-10-21, pedido de Cristian). Antes
+    aquí había un formulario de entrar: "sin cuenta no hay Ojo". Pero la ruta
+    del Ojo ya atendía visitantes en el home —2 preguntas gratis por huella,
+    contadas en la base y con su propio bolsillo de presupuesto—, así que el
+    muro solo frenaba a quien venía a probarlo. Ahora prueba, y al agotar las 2
+    se le ofrece el plan. El formulario de entrar vive SOLO en "Entrar".
   */
+  const { bolso, paso } = await searchParams;
+  const bolsos = await listarBolsos();
+  const breves: BolsoBreve[] = bolsos.map((b) => ({
+    slug: b.slug,
+    nombre: b.nombre,
+    pasos: agruparEnPasos(b.lecciones).map((p) => p.titulo),
+  }));
+
   if (!alumna) {
-    /*
-     * ⚠️ CON BARRA LATERAL TAMBIÉN AQUÍ. Esta pantalla pide entrar, y sin menú
-     * se convertía en un callejón: quien no quiere crear cuenta todavía no
-     * tenía cómo volver a los bolsos. Pedir algo y además cerrar la salida es
-     * la forma más rápida de que alguien cierre la pestaña.
-     */
+    const cobro = await enlacesDeCobro();
     return (
-      <>
-      <BarraLateral />
-      <main className="flex min-w-0 flex-1 items-center justify-center px-5 py-12">
-        <div className="w-full max-w-md">
-          <p className="eyebrow text-center">El Ojo Experto</p>
-          <h1 className="titulo-seccion mt-2 text-center text-balance">
-            Entra y te reviso el tejido
-          </h1>
-          <p className="text-ink-body mt-3 mb-8 text-center">
-            Con tu correo basta. La cuenta gratis trae 3 consultas al mes.
-          </p>
-          <FormularioAcceso lugar="ojo" />
-        </div>
-      </main>
-      </>
+      <OjoExperto
+        visitante
+        enlaces={cobro.url}
+        historial={[]}
+        cupo={null}
+        bolsos={breves}
+        bolsoInicial={bolso ?? null}
+        pasoInicial={paso ? Number(paso) : null}
+      />
     );
   }
 
-  const { bolso, paso } = await searchParams;
   const supabase = await supabaseServer();
 
-  const [cupo, bolsos, { data: conversaciones }] = await Promise.all([
+  const [cupo, cobro, { data: conversaciones }] = await Promise.all([
     cupoActual(alumna.id),
-    listarBolsos(),
+    enlacesDeCobro(),
     supabase
       .from("ojo_conversaciones")
       .select("id, titulo, created_at")
@@ -73,12 +71,6 @@ export default async function PaginaOjo({
   }));
 
   // Solo lo que el selector necesita: nombre y títulos de los pasos.
-  const breves: BolsoBreve[] = bolsos.map((b) => ({
-    slug: b.slug,
-    nombre: b.nombre,
-    pasos: agruparEnPasos(b.lecciones).map((p) => p.titulo),
-  }));
-
   return (
     <OjoExperto
       historial={historial}
@@ -86,6 +78,7 @@ export default async function PaginaOjo({
       bolsos={breves}
       bolsoInicial={bolso ?? null}
       pasoInicial={paso ? Number(paso) : null}
+      enlaces={cobro.url}
     />
   );
 }

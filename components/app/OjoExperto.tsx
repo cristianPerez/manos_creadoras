@@ -18,10 +18,15 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { TextoDelOjo } from "@/components/app/TextoDelOjo";
 import { EnlacesApp } from "@/components/app/NavegacionApp";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Cupo } from "@/lib/alumna";
+import type { Frecuencia } from "@/lib/planes";
+
+/** Las preguntas que el servidor regala sin cuenta (`PREGUNTAS_DE_VISITANTE` en la ruta). */
+const PREGUNTAS_DE_VISITANTE = 2;
 
 export type Mensaje = {
   id: string;
@@ -103,6 +108,8 @@ export function OjoExperto({
   pasoInicial,
   mensajesIniciales = [],
   conversacionInicial = null,
+  visitante = false,
+  enlaces = null,
 }: {
   historial: Conversacion[];
   cupo: Cupo | null;
@@ -113,6 +120,13 @@ export function OjoExperto({
   mensajesIniciales?: Mensaje[];
   /** A qué conversación se sigue escribiendo. `null` = empezar una nueva. */
   conversacionInicial?: string | null;
+  /**
+   * Sin sesión (2026-10-21, pedido de Cristian): el Ojo se abre igual, con las 2
+   * preguntas gratis de visitante que ya daba el home. Sin historial ni medidor.
+   */
+  visitante?: boolean;
+  /** Para la caja de "pásate al plan" cuando se acaban las preguntas gratis. */
+  enlaces?: Record<Frecuencia, string | null> | null;
 }) {
   const [mensajes, setMensajes] = useState<Mensaje[]>(mensajesIniciales);
 
@@ -130,6 +144,14 @@ export function OjoExperto({
   const [bolso, setBolso] = useState<string | null>(bolsoInicial);
   const [paso, setPaso] = useState<number | null>(pasoInicial);
   const [usado, setUsado] = useState(cupo);
+  /* Cuántas de las preguntas gratis de visitante lleva. Lo dice el servidor
+     en cada respuesta (`uso.preguntas`): el contador vive en la base. */
+  const [usadasVisitante, setUsadasVisitante] = useState(0);
+  /* Cuando el servidor dice `necesitaPlan`: se acabaron las gratis, o mandó
+     una foto sin plan. En vez de un error suelto, se ofrece el plan. */
+  const [pidePlan, setPidePlan] = useState<{ motivo: "agotado" | "foto"; mensaje: string } | null>(
+    null,
+  );
   const [panelAbierto, setPanelAbierto] = useState(false);
 
   const finRef = useRef<HTMLDivElement>(null);
@@ -167,9 +189,13 @@ export function OjoExperto({
 
       const r = await fetch("/api/ojo-experto", {
         method: "POST",
+        /* ⚠️ SIN SESIÓN NO SE MANDA `Authorization` (2026-10-21). Antes iba
+           "Bearer " + vacío; el navegador recorta el espacio, llegaba "Bearer"
+           a secas, el servidor lo tomaba por un token roto y respondía "sesión
+           inválida" — el Ojo de visitante no podía preguntar nada. */
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token ?? ""}`,
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
         body: JSON.stringify({
           pregunta,
@@ -182,9 +208,20 @@ export function OjoExperto({
 
       const datos = await r.json();
       if (!r.ok) {
-        setError(datos.error ?? "No pudimos responder. Inténtalo de nuevo.");
         // Se quita la pregunta: dejarla colgada sin respuesta parece que se perdió.
         setMensajes((m) => m.filter((x) => x.id !== mia.id));
+        if (datos.necesitaPlan && enlaces) {
+          setPidePlan({ motivo: datos.motivo === "foto" ? "foto" : "agotado", mensaje: datos.error });
+          // Si ya las gastó en otra visita, el contador lo sabe ahora: 0 de 2.
+          if (visitante && datos.motivo === "agotado") setUsadasVisitante(PREGUNTAS_DE_VISITANTE);
+          // La foto no se puede mandar sin plan: se quita para poder seguir con texto.
+          if (datos.motivo === "foto") {
+            setFoto(null);
+            setTexto(pregunta);
+          }
+          return;
+        }
+        setError(datos.error ?? "No pudimos responder. Inténtalo de nuevo.");
         setTexto(pregunta);
         return;
       }
@@ -195,6 +232,8 @@ export function OjoExperto({
       ]);
       if (datos.conversacionId) setConversacion(datos.conversacionId);
       if (datos.uso && usado) setUsado({ ...usado, preguntasUsadas: datos.uso.preguntas, fotosUsadas: datos.uso.fotos });
+      if (visitante && datos.uso) setUsadasVisitante(datos.uso.preguntas);
+      setPidePlan(null);
       setFoto(null);
     } catch {
       setError("Se cortó la conexión. Vuelve a intentarlo.");
@@ -209,6 +248,7 @@ export function OjoExperto({
     <div className="flex min-h-dvh w-full">
       <PanelHistorial
         historial={historial}
+        visitante={visitante}
         cupo={usado}
         abierto={panelAbierto}
         cerrar={() => setPanelAbierto(false)}
@@ -257,6 +297,12 @@ export function OjoExperto({
                 {usado.preguntasUsadas} preguntas · {usado.fotosUsadas} fotos este mes
               </span>
             )}
+            {visitante && (
+              <span className="text-ink-muted text-xs">
+                {Math.max(0, PREGUNTAS_DE_VISITANTE - usadasVisitante)} de {PREGUNTAS_DE_VISITANTE}{" "}
+                preguntas gratis
+              </span>
+            )}
             <button
               type="button"
               onClick={() => {
@@ -299,6 +345,25 @@ export function OjoExperto({
               </p>
             )}
 
+            {pidePlan && enlaces && (
+              <div className="bg-sand mb-4 rounded-(--radius-lg) p-5">
+                <p className="font-display text-espresso text-xl" style={{ fontWeight: 500 }}>
+                  {pidePlan.mensaje}
+                </p>
+                <p className="text-ink-body mt-1 text-sm">
+                  Con el plan, el Ojo Experto te responde todo el mes y revisa las fotos de tu
+                  tejido.
+                </p>
+                <div className="mt-4">
+                  <PagoConPlan enlaces={enlaces} origen="ojo_agotado" />
+                </div>
+              </div>
+            )}
+
+            {/* Agotadas las gratis, el composer sobra: su trabajo lo hace la
+                caja de arriba. Si solo fue la foto, se sigue escribiendo. */}
+            {pidePlan?.motivo !== "agotado" && (
+            <>
             <SelectorContexto
               bolsos={bolsos}
               bolso={bolso}
@@ -337,6 +402,8 @@ export function OjoExperto({
               onFoto={setFoto}
               onEnviar={() => enviar(texto)}
             />
+            </>
+            )}
 
             {/* ⚠️ Ver el mismo cambio en `OjoDemo`: fuera el "puede
                 equivocarse" —el descargo legal vive en los Términos— y nada de
@@ -714,12 +781,14 @@ function SelectorContexto({
 
 function PanelHistorial({
   historial,
+  visitante = false,
   cupo,
   abierto,
   cerrar,
   nueva,
 }: {
   historial: Conversacion[];
+  visitante?: boolean;
   cupo: Cupo | null;
   abierto: boolean;
   cerrar: () => void;
@@ -776,7 +845,9 @@ function PanelHistorial({
         <nav className="border-espresso-line mt-5 flex-1 overflow-y-auto border-t pt-5">
           {historial.length === 0 ? (
             <p className="text-on-dark-muted px-2 text-sm">
-              Aquí van a quedar tus consultas, para que puedas volver a leerlas.
+              {visitante
+                ? "Con el plan, tus consultas se guardan aquí para que puedas volver a leerlas."
+                : "Aquí van a quedar tus consultas, para que puedas volver a leerlas."}
             </p>
           ) : (
             grupos.map(([titulo, items]) =>

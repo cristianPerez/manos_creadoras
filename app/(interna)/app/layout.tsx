@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { BarraInferior } from "@/components/app/NavegacionApp";
+import { ProveedorSesion } from "@/components/app/SesionContexto";
+import { alumnaActual } from "@/lib/alumna";
 
 /**
  * El marco de toda la app interna.
@@ -14,8 +16,13 @@ import { BarraInferior } from "@/components/app/NavegacionApp";
  * abajo en móvil. La lateral la pone cada pantalla que la quiere, con
  * `<ConBarraLateral>`.
  */
-export default function LayoutApp({ children }: { children: ReactNode }) {
+export default async function LayoutApp({ children }: { children: ReactNode }) {
+  /* `alumnaActual` está cacheada por petición: la página la vuelve a pedir y
+     no cuesta una consulta más. La barra necesita saberlo para decir "Entrar"
+     o "Mi cuenta" desde el primer fotograma (ver `SesionContexto`). */
+  const alumna = await alumnaActual();
   return (
+    <ProveedorSesion conSesion={Boolean(alumna)}>
     <div className="flex min-h-dvh flex-col">
       {/*
         `pb-24` en móvil: la barra de abajo va fija, así que no empuja nada.
@@ -25,5 +32,6 @@ export default function LayoutApp({ children }: { children: ReactNode }) {
       <div className="flex flex-1 pb-24 lg:pb-0">{children}</div>
       <BarraInferior />
     </div>
+    </ProveedorSesion>
   );
 }

@@ -1,7 +1,6 @@
 import { Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { CancelarMembresia } from "@/components/app/CancelarMembresia";
 import { RegistrarPais } from "@/components/app/RegistrarPais";
 import { SelectorDePago } from "@/components/app/SelectorDePago";
@@ -53,8 +52,12 @@ export default async function MiPlan({
   // Solo bolsos: los llaveros también están en el catálogo pero no lo son.
   const totalBolsos = bolsos.filter((b) => !esLlavero(b)).length;
 
-  // Esta pantalla vive dentro de la app: sin sesión no hay a quién darle nada.
-  if (!alumna) redirect("/entrar?next=/app/plan");
+  /*
+   * ⚠️ SIN SESIÓN YA NO SE MANDA A ENTRAR (2026-10-21, pedido de Cristian). Antes
+   * aquí había un `redirect("/entrar")`: quien tocaba "Mi plan" sin cuenta
+   * acababa en un formulario que no pidió. Ahora ve el plan y su botón de pagar;
+   * el formulario de entrar vive SOLO en la pestaña "Entrar".
+   */
 
   /*
    * ⚠️ `pb-28` DEJABA ~190px DE CREMA MUERTA sobre la barra inferior, que el
@@ -66,7 +69,7 @@ export default async function MiPlan({
       <div className="mx-auto max-w-3xl">
         <RegistrarPais />
 
-        {alumna.tieneAcceso ? (
+        {alumna?.tieneAcceso ? (
           <YaTienePlan
             ciclo={alumna.ciclo}
             venceEl={alumna.venceEl}
@@ -110,7 +113,7 @@ export default async function MiPlan({
               <SelectorDePago
                 enlaces={cobro.url}
                 frecuenciaInicial={ciclo === "mensual" ? "mensual" : "anual"}
-                correo={alumna.email}
+                correo={alumna?.email ?? null}
               />
             </Entrada>
           </>
