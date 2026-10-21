@@ -22,6 +22,15 @@ const bodySchema = z.object({
   */
   bolsoSlug: z.string().max(80).optional(),
   paso: z.number().int().min(0).max(99).optional(),
+  /*
+    ⚠️ LA CONVERSACIÓN EN CURSO. Sin esto, CADA PREGUNTA CREABA UNA
+    CONVERSACIÓN NUEVA: el historial crecía una entrada por pregunta y no
+    existía "seguir hablando de lo mismo" — el chat de la pantalla era, por
+    dentro, una ristra de consultas sueltas. Detectado el 2026-10-20.
+
+    Opcional: la primera pregunta de un hilo no la trae y se crea una.
+  */
+  conversacionId: z.string().uuid().optional(),
 });
 
 /**
@@ -29,19 +38,63 @@ const bodySchema = z.object({
  * `es_del_tema: false` es el FILTRO: si la pregunta no es de tejido, el modelo lo
  * marca y la app responde con un desvío amable en vez de contestar cualquier cosa.
  */
-const INSTRUCCIONES = `Eres "El Ojo Experto", la mentora de IA del programa Manos Creadoras, que enseña a tejer bolsos de lujo en cuentas y malla plástica.
+/**
+ * La voz de Elizabeth y los límites del tema.
+ *
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ ANTES ESTE PROMPT DECÍA "SOLO TEJIDO", Y ESO TUMBABA MEDIA PANTALLA
+ * ════════════════════════════════════════════════════════════════════════════
+ * La versión vieja permitía "técnica, materiales, acabados, herrajes, patrones
+ * y cómo fotografiar o poner precio" y marcaba TODO lo demás como fuera de
+ * tema. Con las cuatro preguntas sugeridas nuevas —materiales, fotos, diseño y
+ * REDES SOCIALES— eso significaba que la pantalla ofrecía cuatro puertas y el
+ * modelo cerraba las últimas dos con un desvío amable.
+ *
+ * Encargo de Cristian del 2026-10-20: el Ojo deja de ser un ayudante de tejido
+ * y pasa a ser la asistente del NEGOCIO de bolsos. Tejer ya se aprende con los
+ * videos; lo que justifica pagar es el resto.
+ *
+ * ⚠️ EL FILTRO NO SE QUITA, SE REESCRIBE. Sigue haciendo falta: sin él, el Ojo
+ * contesta recetas y tareas escolares con el presupuesto de IA de Cristian. La
+ * regla pasa de "solo tejido" a "solo el negocio de bolsos tejidos de esta
+ * alumna", con los mismos NUNCA.
+ *
+ * ⚠️ Y DISTINGUE LO QUE HACE DE LO QUE INDICA. Petición explícita de Cristian:
+ * el Ojo escribe prompts e instrucciones, no genera imágenes. Prometer de más
+ * aquí se paga en soporte: una alumna que entiende "te hago la foto" y recibe
+ * un texto se siente estafada.
+ */
+const INSTRUCCIONES = `Eres "El Ojo Experto", la asistente creativa del programa Manos Creadoras, que enseña a tejer bolsos de lujo en cuentas y malla plástica.
 
 CÓMO RESPONDES
 - Español latinoamericano, cálida y directa, como una maestra que está al lado de la alumna.
-- Máximo 3 frases. Primero qué ves bien, después el ajuste concreto.
+- Concreta y accionable. Nada de consejos genéricos que sirven para cualquier negocio:
+  si no puedes dar un paso que ella pueda dar HOY, pide el dato que te falta.
 - Usa el vocabulario del oficio: tensión, vueltas, cuentas, herrajes, remates, base, asa.
-- Si la foto no permite juzgar, dilo y pide un ángulo mejor. Nunca inventes lo que no ves.
+- Largo según lo que se pide: un ajuste de tejido se dice en 2-3 frases; un guion de reel,
+  una lista de materiales o unas ideas de diseño necesitan más. Nunca rellenes.
+- Si te dan una foto y no permite juzgar, dilo y pide un ángulo mejor. Nunca inventes lo que no ves.
 
-DE QUÉ HABLAS
-- Solo de tejido de bolsos en cuentas y malla plástica: técnica, materiales, acabados,
-  herrajes, patrones, y cómo fotografiar o poner precio a un bolso terminado.
-- Si te preguntan de CUALQUIER otro tema (recetas, salud, política, otras manualidades,
-  tareas escolares, código), marca es_del_tema = false y deja respuesta vacía.
+DE QUÉ HABLAS — las cinco áreas del programa
+1. MATERIALES Y TEJIDO: cuentas, hilos, herrajes, dónde comprarlos, y los errores que
+   salen tejiendo (tensión, base abombada, asas torcidas, remates).
+2. FOTOGRAFÍA: fondos, escenarios, luz natural, encuadres y prompts para que ella mejore
+   las fotos de sus bolsos con las herramientas que ya usa.
+3. DISEÑO CREATIVO: ideas de bolsos nuevos, combinaciones de color, estilos y acabados.
+4. CONTENIDO PARA REDES: ideas de reels, guiones cortos, ganchos y pies de foto.
+5. MARCA Y VENTAS: nombres para sus diseños, descripciones de producto y textos para publicar.
+
+LO QUE HACES vs LO QUE INDICAS — di siempre cuál de las dos
+- HACES: responder, explicar, revisar una foto que ella sube, escribir textos, guiones,
+  nombres, descripciones y PROMPTS listos para copiar.
+- NO HACES: generar imágenes ni videos, editar sus fotos, publicar en redes ni comprar
+  materiales. Para eso le das las instrucciones exactas y el prompt, y se lo dices claro:
+  "te dejo el prompt listo para pegarlo en…", nunca "te hago la imagen".
+
+FUERA DE TEMA
+- Si te preguntan algo que no toca su negocio de bolsos tejidos (recetas, salud, política,
+  tareas escolares, código, otras manualidades), marca es_del_tema = false y deja respuesta vacía.
+- Una pregunta de fotos, redes, diseño, precios de SUS bolsos o cómo venderlos SÍ es del tema.
 
 NUNCA
 - Prometas ingresos, ventas o resultados económicos.
@@ -59,11 +112,27 @@ const RESPONSE_SCHEMA = {
   required: ["es_del_tema", "respuesta"],
 } as const;
 
+/* ⚠️ EL DESVÍO TAMBIÉN SE ACTUALIZÓ. Decía "solo puedo ayudarte con tu tejido"
+   y enumeraba tensión/materiales/herrajes: eso contradecía las cuatro puertas
+   de la pantalla. Ahora nombra las cinco áreas, así que cuando rebota una
+   pregunta de verdad fuera de tema, de paso enseña todo lo que SÍ sabe. */
 const FUERA_DE_TEMA =
-  "Solo puedo ayudarte con tu tejido 🧶 — pregúntame por tensión, materiales, herrajes o acabados y te oriento al instante.";
+  "Eso se me escapa 🧶 — pregúntame de tus bolsos: materiales y tejido, fotos, ideas de diseño, contenido para redes o cómo nombrarlos y venderlos.";
 
+/**
+ * El mes del cupo, `YYYY-MM`, en hora de Colombia.
+ *
+ * ⚠️ TIENE QUE SER EL MISMO MES QUE `periodo_actual()` DE LA BASE, que es quien
+ * descuenta. Antes esto usaba UTC: el último día de cada mes, de 7 de la tarde a
+ * medianoche, la base descontaba en un mes y aquí se devolvía en el siguiente —
+ * en una fila que no existía, así que la devolución no hacía nada.
+ */
 function periodoActual() {
-  return new Date().toISOString().slice(0, 7); // YYYY-MM
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+  }).format(new Date());
 }
 
 /**
@@ -174,7 +243,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "consulta inválida" }, { status: 400 });
   }
-  const { pregunta, imagenBase64, bolsoSlug, paso } = parsed.data;
+  const { pregunta, imagenBase64, bolsoSlug, paso, conversacionId } = parsed.data;
   const esFoto = Boolean(imagenBase64);
 
   /*
@@ -190,6 +259,8 @@ export async function POST(req: Request) {
     de que dentro de un mes prometan cosas distintas.
   */
   let cupo: { permitido: boolean; preguntas_usadas: number; fotos_usadas: number; preguntas_limite: number; fotos_limite: number; plan: string };
+  /** Solo la tiene el visitante: es con lo que se le devuelve la pregunta. */
+  let huella: string | null = null;
 
   if (userId) {
     const { data } = await db.rpc("consumir_cupo", { p_user_id: userId, p_fotos: esFoto ? 1 : 0 });
@@ -215,8 +286,9 @@ export async function POST(req: Request) {
       );
     }
 
+    huella = await huellaDelVisitante(req);
     const { data } = await db.rpc("consumir_visitante", {
-      p_huella: await huellaDelVisitante(req),
+      p_huella: huella,
       p_limite: PREGUNTAS_DE_VISITANTE,
     });
     const fila = Array.isArray(data) ? data[0] : data;
@@ -258,20 +330,74 @@ export async function POST(req: Request) {
   }
 
   /*
-    Si algo falla DESPUÉS de aquí, hay que devolverle lo que ya se le descontó.
-    Cobrarle una pregunta por un fallo nuestro es la forma más rápida de que
-    deje de confiar en el medidor.
+    Si el Ojo no llega a contestar DESPUÉS de aquí —pregunta fuera de tema,
+    presupuesto del día agotado o Gemini caído— se le devuelve lo que ya se le
+    descontó. Cobrarle una pregunta por algo que no recibió es la forma más
+    rápida de que deje de confiar en el medidor, y con la cuenta gratis (3 al
+    mes) una pregunta perdida es un tercio de su prueba.
+
+    ⚠️ ESTA FUNCIÓN EXISTÍA Y NADIE LA LLAMABA (hasta el 2026-10-20): la pregunta
+    se perdía en los tres casos.
+
+    ⚠️ RESTA SOBRE LO QUE HAY, NO ESCRIBE UN NÚMERO. Antes ponía "lo que había al
+    descontar, menos uno": si entre medias entraba otra pregunta suya —el
+    teléfono y el portátil a la vez—, la pisaba y le regalaba una. Sin una
+    función SQL propia, se resta con compare-and-swap: solo escribe si la fila
+    sigue como se leyó; si otra petición la tocó, vuelve a leer.
+
+    Nunca lanza: va justo antes de responder un error, y un fallo aquí no puede
+    cambiar ese error por otro.
   */
   const devolverCupo = async () => {
-    if (!userId) return; // al visitante no se le lleva cuenta mensual
-    await db
-      .from("ojo_uso_mensual")
-      .update({
-        preguntas: Math.max(0, cupo.preguntas_usadas - 1),
-        fotos: Math.max(0, cupo.fotos_usadas - (esFoto ? 1 : 0)),
-      })
-      .eq("user_id", userId)
-      .eq("periodo", periodoActual());
+    const fotos = esFoto ? 1 : 0;
+    try {
+      for (let intento = 0; intento < 3; intento++) {
+        if (userId) {
+          const periodo = periodoActual();
+          const { data: fila } = await db
+            .from("ojo_uso_mensual")
+            .select("preguntas, fotos")
+            .eq("user_id", userId)
+            .eq("periodo", periodo)
+            .maybeSingle();
+          if (!fila) return;
+          const { data: cambiadas } = await db
+            .from("ojo_uso_mensual")
+            .update({
+              preguntas: Math.max(0, fila.preguntas - 1),
+              fotos: Math.max(0, fila.fotos - fotos),
+            })
+            .eq("user_id", userId)
+            .eq("periodo", periodo)
+            .eq("preguntas", fila.preguntas)
+            .eq("fotos", fila.fotos)
+            .select("user_id");
+          if (cambiadas?.length) return;
+        } else if (huella) {
+          const { data: fila } = await db
+            .from("ojo_visitantes")
+            .select("preguntas")
+            .eq("huella", huella)
+            .maybeSingle();
+          if (!fila) return;
+          const { data: cambiadas } = await db
+            .from("ojo_visitantes")
+            .update({ preguntas: Math.max(0, fila.preguntas - 1) })
+            .eq("huella", huella)
+            .eq("preguntas", fila.preguntas)
+            .select("huella");
+          if (cambiadas?.length) return;
+        } else {
+          return;
+        }
+      }
+      reportarAviso("ojo-experto", "no se pudo devolver el cupo tras 3 intentos", { publico });
+    } catch (e) {
+      reportarFallo("ojo-experto", "falló la devolución del cupo", {
+        publico,
+        detalle: e instanceof Error ? e.message : "desconocido",
+      });
+    }
   };
 
   /*
@@ -305,6 +431,7 @@ export async function POST(req: Request) {
   const { data: gastoHoy } = await db.rpc("gasto_ia_de_hoy", { p_publico: publico });
 
   if (Number(gastoHoy ?? 0) >= tope) {
+    await devolverCupo();
     return NextResponse.json(
       { error: "El Ojo Experto está descansando. Vuelve a intentar en un rato." },
       { status: 503 },
@@ -383,6 +510,7 @@ export async function POST(req: Request) {
       uso: { preguntas: cupo.preguntas_usadas, fotos: cupo.fotos_usadas },
       bolsoId,
       leccionId,
+      conversacionId: conversacionId ?? null,
     });
   }
 
@@ -408,16 +536,14 @@ export async function POST(req: Request) {
       },
     });
 
-    const { esDelTema, respuesta } = interpretar(result.text ?? "");
-
-    if (!esDelTema || !respuesta.trim()) {
-      // No gastamos cupo de la alumna por una pregunta que no contestamos.
-      return NextResponse.json({ respuesta: FUERA_DE_TEMA, fueraDeTema: true });
-    }
-
     /*
       El gasto se apunta con lo que Gemini dice que consumió, no con una
       estimación.
+
+      ⚠️ SE APUNTA ANTES DE MIRAR SI ERA DEL TEMA. Antes iba después, y una
+      pregunta fuera de tema costaba dinero sin quedar apuntada. Ahora que esa
+      pregunta se le devuelve, sin esto se podría repetir gratis sin que el freno
+      de gasto la contara nunca: Google cobra igual la respuesta que se descarta.
 
       ⚠️ Y con UNA sentencia atómica. Antes esto era leer `usd` arriba y
       reescribir `leído + costo` aquí: entre esas dos líneas cabe otra petición,
@@ -434,6 +560,14 @@ export async function POST(req: Request) {
       p_usd: costoEnUsd(consumo),
     });
 
+    const { esDelTema, respuesta } = interpretar(result.text ?? "");
+
+    if (!esDelTema || !respuesta.trim()) {
+      // No le gastamos cupo por una pregunta que no contestamos.
+      await devolverCupo();
+      return NextResponse.json({ respuesta: FUERA_DE_TEMA, fueraDeTema: true });
+    }
+
     return await guardarYResponder(db, {
       userId,
       pregunta,
@@ -442,6 +576,7 @@ export async function POST(req: Request) {
       uso: { preguntas: cupo.preguntas_usadas, fotos: cupo.fotos_usadas },
       bolsoId,
       leccionId,
+      conversacionId: conversacionId ?? null,
     });
   } catch (e) {
     /*
@@ -460,6 +595,7 @@ export async function POST(req: Request) {
       publico,
       detalle: e instanceof Error ? e.message : "desconocido",
     });
+    await devolverCupo();
     return NextResponse.json(
       { error: "No pudimos conectar con el Ojo Experto. Vuelve a intentar." },
       { status: 502 },
@@ -487,9 +623,11 @@ async function guardarYResponder(
     uso: { preguntas: number; fotos: number };
     bolsoId: string | null;
     leccionId: string | null;
+    /** El hilo en curso, si la pantalla venía de uno. Ver abajo. */
+    conversacionId: string | null;
   },
 ): Promise<NextResponse> {
-  const { userId, pregunta, respuesta, esFoto, uso, bolsoId, leccionId } = datos;
+  const { userId, pregunta, respuesta, esFoto, uso, bolsoId, leccionId, conversacionId } = datos;
 
   /*
     ── SEGUNDA BARRERA: se revisa la respuesta antes de que la vea nadie ──
@@ -528,20 +666,40 @@ async function guardarYResponder(
   */
   /* El visitante no tiene dónde guardar un historial: no hay cuenta a la que
      colgarlo. Su conversación vive solo en su pantalla. */
-  const { data: conversacion } = !userId
-    ? { data: null }
-    : await db
-    .from("ojo_conversaciones")
-    .insert({
-      user_id: userId!,
-      // El título es la propia pregunta recortada: es lo que la alumna
-      // reconocerá en la lista, mejor que "Consulta del 12 de octubre".
-      titulo: pregunta.slice(0, 60),
-      bolso_id: bolsoId,
-      leccion_id: leccionId,
-    })
-    .select("id, created_at")
-    .single();
+  /*
+    ⚠️ SE CONTINÚA LA CONVERSACIÓN SI VIENE UNA, Y SOLO SI ES SUYA.
+    El `.eq("user_id", userId)` no es decorativo: `conversacionId` lo manda el
+    navegador, así que sin él cualquiera podría escribir en el hilo de otra
+    alumna pasando un id ajeno. Si no coincide, no se "falla": se abre una
+    conversación nueva, que es lo que haría igualmente alguien sin hilo.
+  */
+  let conversacion: { id: string; created_at: string } | null = null;
+
+  if (userId && conversacionId) {
+    const { data } = await db
+      .from("ojo_conversaciones")
+      .select("id, created_at")
+      .eq("id", conversacionId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    conversacion = data ?? null;
+  }
+
+  if (userId && !conversacion) {
+    const { data } = await db
+      .from("ojo_conversaciones")
+      .insert({
+        user_id: userId,
+        // El título es la propia pregunta recortada: es lo que la alumna
+        // reconocerá en la lista, mejor que "Consulta del 12 de octubre".
+        titulo: pregunta.slice(0, 60),
+        bolso_id: bolsoId,
+        leccion_id: leccionId,
+      })
+      .select("id, created_at")
+      .single();
+    conversacion = data ?? null;
+  }
 
   if (conversacion) {
     await db.from("ojo_mensajes").insert([
@@ -557,6 +715,9 @@ async function guardarYResponder(
   // el número REAL de la base y no una cuenta paralela del navegador.
   return NextResponse.json({
     respuesta: textoFinal,
+    /* El hilo al que se acaba de escribir: la pantalla lo guarda y lo manda en
+       la siguiente pregunta, y así la conversación es UNA y no una por turno. */
+    conversacionId: guardada?.id ?? null,
     uso: nuevoUso,
     /*
       Se le dice al navegador que la barrera actuó, para que lo mida.

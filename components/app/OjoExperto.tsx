@@ -1,6 +1,20 @@
 "use client";
 
-import { ArrowUp, Camera, Copy, Menu, PenLine, Sparkles, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import {
+  ArrowUp,
+  Camera,
+  Clapperboard,
+  Copy,
+  Menu,
+  Palette,
+  PenLine,
+  Plus,
+  Spool,
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +23,7 @@ import { EnlacesApp } from "@/components/app/NavegacionApp";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Cupo } from "@/lib/alumna";
 
-type Mensaje = {
+export type Mensaje = {
   id: string;
   rol: "alumna" | "ojo";
   texto: string;
@@ -21,12 +35,58 @@ export type Conversacion = { id: string; titulo: string; cuando: string };
 
 export type BolsoBreve = { slug: string; nombre: string; pasos: string[] };
 
+/**
+ * Las cuatro puertas de entrada al Ojo Experto.
+ *
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ ANTES LAS CUATRO PREGUNTABAN LO MISMO: CÓMO TEJER
+ * ════════════════════════════════════════════════════════════════════════════
+ * "¿Está pareja mi tensión?", "la base se abomba", "cómo remato el borde",
+ * "se me tuerce el asa". Las cuatro del mismo tema, y las cuatro para alguien
+ * que ya está tejiendo con un problema delante.
+ *
+ * Eso enseñaba un ayudante de tejido. Las nuevas enseñan un ayudante de
+ * NEGOCIO —materiales, fotos, diseño y redes—, que es lo que de verdad
+ * justifica pagar: tejer ya se aprende con los videos. Pedido de Cristian el
+ * 2026-10-20.
+ *
+ * ⚠️ LOS ÍCONOS SON SVG, NO LOS EMOJIS DEL ENCARGO. Cristian los escribió con
+ * emoji (🧵 📸 🎨 🎬) y el sentido se respeta, pero el sistema los prohíbe
+ * como íconos: cada sistema operativo los dibuja distinto, no heredan el color
+ * de la marca y en Android se ven como pegatinas. Mismo significado, con
+ * Lucide y en un chip dorado.
+ *
+ * `texto` es lo que se manda de verdad; `titulo` es solo el gancho que se lee
+ * de un vistazo. En un teléfono, cuatro preguntas largas sin titular son un
+ * muro de letra pequeña.
+ */
+const CON_FOTO = {
+  q: "¿Está pareja mi tensión?",
+  pie: "Sube la foto de tu base y la reviso vuelta por vuelta.",
+};
+
 const SUGERENCIAS = [
-  "¿Está pareja mi tensión?",
-  "La base se me abomba en el centro",
-  "¿Cómo remato el borde de la tapa?",
-  "Se me tuerce el asa al unirla",
-];
+  {
+    Icono: Spool,
+    titulo: "Materiales",
+    texto: "¿Dónde consigo los materiales para hacer mis bolsos?",
+  },
+  {
+    Icono: Camera,
+    titulo: "Fotos",
+    texto: "¿Cómo puedo crear fotos profesionales de mis bolsos sin tener una buena cámara?",
+  },
+  {
+    Icono: Palette,
+    titulo: "Diseño",
+    texto: "¿Qué combinaciones de colores y diseños originales puedo crear para mi próximo bolso?",
+  },
+  {
+    Icono: Clapperboard,
+    titulo: "Redes",
+    texto: "¿Cómo puedo convertir las fotos de mis bolsos en videos llamativos para mis redes sociales?",
+  },
+] as const;
 
 /**
  * El Ojo Experto: la conversación.
@@ -41,14 +101,28 @@ export function OjoExperto({
   bolsos,
   bolsoInicial,
   pasoInicial,
+  mensajesIniciales = [],
+  conversacionInicial = null,
 }: {
   historial: Conversacion[];
   cupo: Cupo | null;
   bolsos: BolsoBreve[];
   bolsoInicial: string | null;
   pasoInicial: number | null;
+  /** El hilo ya escrito, cuando se entra por `/app/ojo/<id>`. */
+  mensajesIniciales?: Mensaje[];
+  /** A qué conversación se sigue escribiendo. `null` = empezar una nueva. */
+  conversacionInicial?: string | null;
 }) {
-  const [mensajes, setMensajes] = useState<Mensaje[]>([]);
+  const [mensajes, setMensajes] = useState<Mensaje[]>(mensajesIniciales);
+
+  /*
+    ⚠️ ANTES CADA PREGUNTA ABRÍA UNA CONVERSACIÓN NUEVA, y por eso el
+    historial del panel era una ristra de consultas sueltas en vez de hilos.
+    Ahora el id del hilo viaja con cada pregunta y vuelve en la respuesta, así
+    que la segunda pregunta cae donde la primera. "Nueva consulta" lo borra.
+  */
+  const [conversacion, setConversacion] = useState<string | null>(conversacionInicial);
   const [texto, setTexto] = useState("");
   const [foto, setFoto] = useState<{ base64: string; url: string } | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -102,6 +176,7 @@ export function OjoExperto({
           imagenBase64: foto?.base64,
           bolsoSlug: bolso ?? undefined,
           paso: paso ?? undefined,
+          conversacionId: conversacion ?? undefined,
         }),
       });
 
@@ -118,6 +193,7 @@ export function OjoExperto({
         ...m,
         { id: datos.consulta?.id ?? `ojo-${Date.now()}`, rol: "ojo", texto: datos.respuesta },
       ]);
+      if (datos.conversacionId) setConversacion(datos.conversacionId);
       if (datos.uso && usado) setUsado({ ...usado, preguntasUsadas: datos.uso.preguntas, fotosUsadas: datos.uso.fotos });
       setFoto(null);
     } catch {
@@ -138,12 +214,16 @@ export function OjoExperto({
         cerrar={() => setPanelAbierto(false)}
         nueva={() => {
           setMensajes([]);
+          setConversacion(null);
           setPanelAbierto(false);
         }}
       />
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="border-line flex h-16 shrink-0 items-center justify-between gap-3 border-b px-5">
+        {/* ⚠️ v4: 72px y con el tile. La cabecera vieja era solo texto, así
+            que la pantalla arrancaba sin ningún ancla visual — parecía una
+            página de documentación, no un asistente. */}
+        <header className="border-line flex h-18 shrink-0 items-center justify-between gap-3 border-b px-4 md:px-6">
           <button
             type="button"
             onClick={() => setPanelAbierto(true)}
@@ -153,11 +233,22 @@ export function OjoExperto({
             <Menu size={20} />
           </button>
 
-          <div className="flex min-w-0 items-baseline gap-3">
-            <h1 className="font-display text-espresso truncate text-xl" style={{ fontWeight: 500 }}>
-              El Ojo Experto
-            </h1>
-            <p className="text-ink-muted hidden text-sm sm:block">Tu mentora de bolsillo</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="bg-cacao text-gold-pale flex size-9 shrink-0 items-center justify-center rounded-(--radius-sm)"
+            >
+              <Sparkles size={18} />
+            </span>
+            <span className="min-w-0">
+              <h1
+                className="font-display text-espresso truncate text-2xl leading-tight"
+                style={{ fontWeight: 500 }}
+              >
+                El Ojo Experto
+              </h1>
+              <p className="text-ink-muted truncate text-sm">Tu mentora de bolsillo</p>
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -168,7 +259,10 @@ export function OjoExperto({
             )}
             <button
               type="button"
-              onClick={() => setMensajes([])}
+              onClick={() => {
+                setMensajes([]);
+                setConversacion(null);
+              }}
               aria-label="Nueva consulta"
               className="text-espresso flex size-11 items-center justify-center lg:hidden"
             >
@@ -244,9 +338,11 @@ export function OjoExperto({
               onEnviar={() => enviar(texto)}
             />
 
+            {/* ⚠️ Ver el mismo cambio en `OjoDemo`: fuera el "puede
+                equivocarse" —el descargo legal vive en los Términos— y nada de
+                decir que está "entrenado con" Elizabeth, porque no lo está. */}
             <p className="text-ink-muted mt-3 text-center text-xs">
-              El Ojo Experto es orientación con inteligencia artificial y puede equivocarse. Tu
-              criterio y el método del curso mandan.
+              Responde con las fichas y el método de Elizabeth.
             </p>
           </div>
         </div>
@@ -257,33 +353,85 @@ export function OjoExperto({
 
 /* ── Piezas ──────────────────────────────────────────────────────────────── */
 
+/**
+ * El estado vacío: la primera impresión del Ojo.
+ *
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ v4: ALINEADO A LA IZQUIERDA, NO CENTRADO
+ * ════════════════════════════════════════════════════════════════════════════
+ * Centrado parecía una pantalla de error ("no hay nada aquí"). Alineado a la
+ * izquierda, con el titular grande arriba, se lee como el comienzo de una
+ * conversación — que es lo que es.
+ *
+ * ⚠️ Y LA PRIMERA TARJETA ES DISTINTA A PROPÓSITO: la de foto es la función
+ * que de verdad separa al Ojo de un chat cualquiera, y la única que la alumna
+ * no adivina sola. En cacao y a doble alto, es lo primero que mira.
+ */
 function Vacio({ alPulsar }: { alPulsar: (t: string) => void }) {
   return (
-    <div className="py-10 text-center">
+    <div className="py-6 md:py-10">
       <span
         aria-hidden="true"
-        className="bg-espresso text-gold-light mx-auto flex size-14 items-center justify-center rounded-full"
+        className="bg-espresso text-gold-pale flex size-13 items-center justify-center rounded-(--radius-sm)"
       >
-        <Sparkles size={22} />
+        <Sparkles size={26} />
       </span>
-      <h2 className="titulo-seccion mt-5">¿Qué se te complica hoy?</h2>
-      <p className="text-ink-body mt-3">
-        Cuéntame o súbeme una foto de tu tejido y te digo qué ajustar.
+
+      <h2
+        className="font-display text-espresso mt-6 text-balance"
+        style={{ fontWeight: 500, fontSize: "clamp(36px, 5vw, 60px)", lineHeight: 1.05 }}
+      >
+        ¿Qué se te complica{" "}
+        <em className="text-gold italic" style={{ fontWeight: 400 }}>
+          hoy
+        </em>
+        ?
+      </h2>
+      <p className="text-ink-body mt-3 text-balance">
+        Mándame una foto de tu tejido y te digo cómo vas, o pregúntame lo que sea de tus bolsos:
+        materiales, proveedores, fotos y cómo venderlos.
       </p>
 
-      <ul className="mx-auto mt-8 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
-        {SUGERENCIAS.map((s) => (
-          <li key={s}>
-            <button
-              type="button"
-              onClick={() => alPulsar(s)}
-              className="bg-ivory border-line text-ink-body hover:border-gold w-full rounded-[var(--radius-lg)] border p-4 text-left text-sm transition-colors"
-            >
-              {s}
-            </button>
-          </li>
+      {/*
+        ⚠️ UNA COLUMNA EN MÓVIL PARA LA DESTACADA Y DOS PARA EL RESTO. A 375px
+        las preguntas largas en dos columnas se parten en seis líneas de letra
+        diminuta; la destacada necesita el ancho entero porque lleva descripción.
+      */}
+      <div className="mt-8 grid gap-3 md:grid-cols-[1.3fr_1fr_1fr]">
+        <button
+          type="button"
+          onClick={() => alPulsar(CON_FOTO.q)}
+          className="bg-cacao focus-visible:outline-gold-pale flex flex-col justify-end rounded-xl p-5 text-left transition-colors duration-150 focus-visible:outline-2 md:row-span-2 md:min-h-[320px]"
+        >
+          <span className="bg-gold-pale text-espresso mb-auto flex w-max items-center gap-2 rounded-(--radius-sm) px-3 py-1.5 text-sm font-semibold">
+            <Camera size={15} aria-hidden="true" />
+            Con foto
+          </span>
+          <span className="font-display text-cream mt-6 block text-2xl" style={{ fontWeight: 500 }}>
+            {CON_FOTO.q}
+          </span>
+          <span className="text-cream/75 mt-1.5 block text-sm text-pretty">{CON_FOTO.pie}</span>
+        </button>
+
+        {/* ⚠️ MANDA LA PREGUNTA, NO EL ÁREA. La versión anterior ponía
+            "MATERIALES" en grande y la pregunta debajo en gris: se leía como
+            un índice de categorías, y lo que hace tocar es ver escrita la duda
+            que una tiene. El área queda de pie, que es su papel. */}
+        {SUGERENCIAS.map(({ titulo, texto }, i) => (
+          <button
+            key={titulo}
+            type="button"
+            onClick={() => alPulsar(texto)}
+            className="bg-sand hover:bg-sand-hover focus-visible:outline-gold flex flex-col rounded-xl p-5 text-left transition-colors duration-150 focus-visible:outline-2"
+          >
+            <span className="text-cacao text-sm" style={{ fontWeight: 800 }}>
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span className="text-espresso mt-3 block font-semibold text-balance">{texto}</span>
+            <span className="text-ink-muted mt-1.5 block text-sm">{titulo}</span>
+          </button>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
@@ -297,11 +445,18 @@ function MensajeMio({ mensaje }: { mensaje: Mensaje }) {
           alt="La foto de tu tejido"
           width={220}
           height={220}
-          className="max-w-(--foto-mensaje) rounded-[var(--radius-lg)] object-cover"
+          /* v4: radio 10 y sin sombra. */
+          className="max-w-(--foto-mensaje) rounded-[10px] object-cover"
           unoptimized
         />
       )}
-      <p className="bg-sand text-espresso max-w-[85%] rounded-[var(--radius-lg)] px-5 py-3">
+      {/*
+        ⚠️ v4: BURBUJA CACAO, NO ARENA. Con arena la pregunta y las tarjetas
+        de sugerencia eran del mismo color y el hilo se leía como una lista de
+        bloques sueltos. El cacao separa "lo que yo dije" de todo lo demás.
+        La esquina de la cola va a 4px: es lo que la ancla a quien habla.
+      */}
+      <p className="bg-cacao text-cream max-w-[85%] rounded-xl rounded-br-[4px] px-4 py-3">
         {mensaje.texto}
       </p>
     </div>
@@ -321,14 +476,22 @@ function MensajeDelOjo({ mensaje }: { mensaje: Mensaje }) {
 
   return (
     <div className="flex gap-4">
+      {/* v4: tile cuadrado `--gold-pale` con el ícono en `--cacao`. */}
       <span
         aria-hidden="true"
-        className="bg-espresso text-gold-light flex size-9 shrink-0 items-center justify-center rounded-full"
+        className="bg-gold-pale text-cacao flex size-7 shrink-0 items-center justify-center rounded-(--radius-sm)"
       >
-        <Sparkles size={16} />
+        <Sparkles size={15} />
       </span>
 
       <div className="min-w-0 flex-1">
+        {/* La etiqueta solo cuando hubo foto: decir "diagnóstico de tu foto"
+            sobre una pregunta escrita sería mentir sobre lo que miró. */}
+        {mensaje.fotoUrl && (
+          <p className="bg-sand text-cacao mb-3 inline-block rounded-[4px] px-2.5 py-1 text-xs font-bold tracking-[0.12em] uppercase">
+            Diagnóstico de tu foto
+          </p>
+        )}
         <TextoDelOjo texto={mensaje.texto} />
 
         <div className="mt-4 flex items-center gap-1">
@@ -394,7 +557,7 @@ function Pensando() {
     <div className="flex gap-4">
       <span
         aria-hidden="true"
-        className="bg-espresso text-gold-light flex size-9 shrink-0 items-center justify-center rounded-full"
+        className="bg-gold-pale text-cacao flex size-7 shrink-0 items-center justify-center rounded-(--radius-sm)"
       >
         <Sparkles size={16} />
       </span>
@@ -404,7 +567,8 @@ function Pensando() {
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="bg-gold/50 size-2 animate-bounce rounded-full"
+            /* Cuadritos: en v4 no hay puntos redondos en el Ojo. */
+            className="bg-cacao/40 size-1.5 animate-bounce"
             style={{ animationDelay: `${i * 120}ms` }}
           />
         ))}
@@ -427,8 +591,10 @@ function Composer({
   onEnviar: () => void;
 }) {
   return (
-    <div className="bg-ivory border-line mt-3 flex items-end gap-2 rounded-[var(--radius-xl)] border p-2.5">
-      <label className="text-ink-muted hover:text-espresso flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors">
+    /* v4: marfil con borde `--line-strong` y radio 12. `--line` se perdía
+       sobre marfil y el campo parecía flotar sin contorno. */
+    <div className="bg-ivory border-line-strong mt-3 flex items-end gap-2 rounded-xl border p-2">
+      <label className="text-ink-muted hover:text-espresso flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-(--radius-sm) transition-colors duration-150">
         <Camera size={20} aria-hidden="true" />
         <span className="sr-only">Subir una foto de tu tejido</span>
         <input
@@ -473,7 +639,8 @@ function Composer({
         onClick={onEnviar}
         disabled={enviando || texto.trim().length < 3}
         aria-label="Enviar"
-        className="bg-espresso flex size-11 shrink-0 items-center justify-center rounded-full text-white transition-opacity disabled:opacity-40"
+        /* v4: cuadrado de 44px con radio 8 y la flecha en `--gold-pale`. */
+        className="bg-espresso text-gold-pale flex size-11 shrink-0 items-center justify-center rounded-(--radius-sm) transition-opacity disabled:opacity-40"
       >
         <ArrowUp size={20} />
       </button>
@@ -498,7 +665,8 @@ function SelectorContexto({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <div className="border-line bg-ivory flex h-11 items-center gap-2 rounded-full border px-4">
+      {/* v4: chip arena con radio 6, no píldora con borde. */}
+      <div className="bg-sand flex h-11 items-center gap-2 rounded-[6px] px-3">
         <select
           value={bolso ?? ""}
           onChange={(e) => elegir(e.target.value || null, null)}
@@ -576,33 +744,26 @@ function PanelHistorial({
       )}
 
       <aside
-        className={`bg-sand z-(--z-sticky) flex w-(--barra-lateral-ojo) shrink-0 flex-col p-4 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:transition-transform ${
+        /* ⚠️ v4: ESPRESSO, NO ARENA. Con arena el panel y el chat eran dos
+           tonos del mismo beige y la pantalla no tenía estructura: todo
+           flotaba. En oscuro, el chat queda claramente en primer plano. */
+        className={`bg-espresso z-(--z-sticky) flex w-(--barra-lateral-ojo) shrink-0 flex-col p-4 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:transition-transform ${
           abierto ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
         }`}
       >
         <Link href="/app" className="mb-5 flex items-center gap-3 px-2">
-          <span
-            aria-hidden="true"
-            className="bg-espresso flex size-9 shrink-0 items-center justify-center rounded-full"
-          >
-            <span
-              className="font-display text-gold-light text-lg italic"
-              style={{ fontWeight: 500, lineHeight: 1 }}
-            >
-              M
-            </span>
-          </span>
-          <span className="font-display text-espresso text-lg" style={{ fontWeight: 500 }}>
-            Manos Creadoras
+          <span className="font-display text-xl text-white" style={{ fontWeight: 500 }}>
+            Manos <em className="text-gold-pale italic">Creadoras</em>
           </span>
         </Link>
 
         <button
           type="button"
           onClick={nueva}
-          className="border-line bg-ivory text-espresso flex h-12 items-center gap-3 rounded-full border px-4 text-sm font-semibold"
+          className="bg-gold-pale text-espresso flex h-11 items-center justify-center gap-2 rounded-(--radius-sm) px-4 text-sm"
+          style={{ fontWeight: 800 }}
         >
-          <PenLine size={16} aria-hidden="true" />
+          <Plus size={16} aria-hidden="true" />
           Nueva consulta
         </button>
 
@@ -612,22 +773,24 @@ function PanelHistorial({
           <EnlacesApp />
         </div>
 
-        <nav className="border-line mt-5 flex-1 overflow-y-auto border-t pt-5">
+        <nav className="border-espresso-line mt-5 flex-1 overflow-y-auto border-t pt-5">
           {historial.length === 0 ? (
-            <p className="text-ink-muted px-2 text-sm">
+            <p className="text-on-dark-muted px-2 text-sm">
               Aquí van a quedar tus consultas, para que puedas volver a leerlas.
             </p>
           ) : (
             grupos.map(([titulo, items]) =>
               items.length === 0 ? null : (
                 <div key={titulo} className="mb-5">
-                  <p className="text-ink-muted px-2 text-xs font-semibold">{titulo}</p>
+                  <p className="text-gold-light px-2 text-xs font-bold tracking-[0.14em] uppercase">
+                    {titulo}
+                  </p>
                   <ul className="mt-2 flex flex-col gap-0.5">
                     {items.map((c) => (
                       <li key={c.id}>
                         <Link
                           href={`/app/ojo/${c.id}`}
-                          className="text-ink-body hover:bg-ivory block truncate rounded-lg px-2 py-2 text-sm transition-colors"
+                          className="text-on-dark-muted hover:bg-espresso-2 block truncate rounded-(--radius-sm) px-2 py-2 text-sm transition-colors duration-150"
                         >
                           {c.titulo}
                         </Link>
@@ -641,8 +804,8 @@ function PanelHistorial({
         </nav>
 
         {cupo && (
-          <div className="bg-ivory border-line mt-4 rounded-[var(--radius-lg)] border p-4">
-            <p className="text-espresso text-sm font-semibold">Tu uso este mes</p>
+          <div className="bg-espresso-2 mt-4 rounded-[10px] p-4">
+            <p className="text-gold-pale text-sm font-semibold">Tu uso este mes</p>
             <Medidor etiqueta="Preguntas" usado={cupo.preguntasUsadas} total={cupo.preguntasLimite} />
             <Medidor etiqueta="Fotos" usado={cupo.fotosUsadas} total={cupo.fotosLimite} />
           </div>
@@ -656,14 +819,16 @@ function Medidor({ etiqueta, usado, total }: { etiqueta: string; usado: number; 
   const pct = total > 0 ? Math.min(100, Math.round((usado / total) * 100)) : 0;
   return (
     <div className="mt-3">
-      <div className="text-ink-muted flex justify-between text-xs">
+      <div className="text-on-dark-muted flex justify-between text-xs">
         <span>{etiqueta}</span>
         <span>
-          <strong className="text-espresso font-semibold">{usado}</strong> de {total}
+          <strong className="font-semibold text-white">{usado}</strong> de {total}
         </span>
       </div>
-      <div className="bg-line mt-1 h-1.5 overflow-hidden rounded-full">
-        <span className="bg-gold block h-full rounded-full" style={{ width: `${pct}%` }} />
+      {/* ⚠️ v4: BARRA RECTA, NO REDONDEADA. A 4px de alto, un radio completo
+          convierte la barra en una pastilla y el relleno pequeño desaparece. */}
+      <div className="bg-espresso mt-1.5 h-1 overflow-hidden">
+        <span className="bg-gold-pale block h-full" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
