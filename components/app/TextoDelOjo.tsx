@@ -14,8 +14,24 @@ import { Fragment } from "react";
  * Si algún día hace falta más (tablas, enlaces), se amplía aquí. Hasta entonces,
  * esto cubre lo que el modelo escribe y nada más.
  */
-export function TextoDelOjo({ texto }: { texto: string }) {
+export function TextoDelOjo({
+  texto,
+  variante = "app",
+}: {
+  texto: string;
+  /**
+   * "demo" es el mini Ojo del home (2026-10-22): todo en el mismo cuerpo de
+   * 15/17px en espresso, sin veredicto en Cormorant — en una tarjeta pequeña,
+   * una frase a 28px se comía media tarjeta.
+   */
+  variante?: "app" | "demo";
+}) {
   const bloques = agrupar(texto);
+  const demo = variante === "demo";
+  const cuerpo = demo ? "demo-ojo-texto" : "ojo-cuerpo";
+  /* Espresso en los dos Ojo (2026-10-22, unificados): el gris de la app se
+     leía apagado al lado del home. */
+  const color = "text-espresso";
 
   return (
     <div className="flex flex-col gap-3">
@@ -29,9 +45,9 @@ export function TextoDelOjo({ texto }: { texto: string }) {
             de número en número.
           */
           return (
-            <ol key={i} className="ojo-cuerpo flex flex-col gap-2">
+            <ol key={i} className={`${cuerpo} flex flex-col gap-2`}>
               {bloque.lineas.map((l, j) => (
-                <li key={j} className="text-ink-body flex gap-3">
+                <li key={j} className={`${color} flex gap-3`}>
                   <span
                     aria-hidden="true"
                     className="bg-sand text-espresso cifra mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
@@ -48,9 +64,9 @@ export function TextoDelOjo({ texto }: { texto: string }) {
         }
         if (bloque.tipo === "ul") {
           return (
-            <ul key={i} className="ojo-cuerpo flex list-disc flex-col gap-2 pl-5">
+            <ul key={i} className={`${cuerpo} flex list-disc flex-col gap-2 pl-5`}>
               {bloque.lineas.map((l, j) => (
-                <li key={j} className="text-ink-body">
+                <li key={j} className={color}>
                   <Negritas texto={l} />
                 </li>
               ))}
@@ -67,7 +83,7 @@ export function TextoDelOjo({ texto }: { texto: string }) {
           PRIMER párrafo, y solo si es corto: un primer párrafo de cinco líneas
           a 28px sería un muro. Más largo, va como cualquier otro.
         */
-        if (i === 0 && parrafo.length <= VEREDICTO_MAXIMO) {
+        if (!demo && i === 0 && parrafo.length <= VEREDICTO_MAXIMO) {
           return (
             <p
               key={i}
@@ -86,7 +102,7 @@ export function TextoDelOjo({ texto }: { texto: string }) {
           parte igual que antes.
         */
         const accion = parrafo.match(ACCION);
-        if (accion) {
+        if (accion && !demo) {
           return (
             <div
               key={i}
@@ -101,7 +117,7 @@ export function TextoDelOjo({ texto }: { texto: string }) {
         }
 
         return (
-          <p key={i} className="text-ink-body ojo-cuerpo">
+          <p key={i} className={`${color} ${cuerpo}`}>
             <Negritas texto={parrafo} />
           </p>
         );

@@ -188,6 +188,25 @@ también en Mi plan y en el selector de pago.
   - Sin comprobar con Gemini real que el modelo escriba `**Prueba:**`: con IA
     simulada no sale la caja. Si no lo escribe, habría que pedirlo en el prompt.
   - Ya no se ve el contador de FOTOS del mes (la referencia solo muestra preguntas).
+- **Mini Ojo del home, versión arena (2026-10-22, `design-ref/home-ojo-claude-code`).**
+  Fondo arena plano, columna de texto corta + tarjeta marfil que abre con un
+  ejemplo FIJO ("¿Por qué se me abomba la base?") que no llama a la API ni gasta
+  preguntas; al preguntar, se reemplaza por la conversación real. 2 sugerencias
+  (fila con scroll lateral en móvil), alto máximo con scroll interno, la caja
+  de "usaste tus 2" FUERA del scroll. La cámara lleva a `#precio` (la demo no
+  sube fotos). Misma lógica, endpoint y analítica.
+- **Los dos Ojo, unificados (2026-10-22, pedido de Cristian).** Burbuja, avatar,
+  composer, puntos de "escribiendo" y píldoras viven en `components/app/
+  OjoPiezas.tsx` y los usan los dos. Paleta: cacao + marfil = alumna y enviar;
+  espresso + `--gold-light` = el Ojo; arena = cámara. Texto del Ojo en espresso.
+  Solo cambia el tamaño; el veredicto en Cormorant y la caja "Prueba" son solo
+  de la app (en la tarjeta del home no caben).
+- **"Inscribirme" también en la cabecera móvil del home (2026-10-22)**, a
+  `#precio` como en escritorio; "Entrar" pierde el borde para caber a 375px.
+- Pendientes de esta tanda:
+  - 🟡 La respuesta del ejemplo del home es PROVISIONAL: la tiene que validar Elizabeth.
+  - 🟡 El Ojo (arena) y Elizabeth (arena) quedan pegados del mismo color: no
+    se nota dónde acaba uno y empieza el otro. Lo decide Cristian.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a

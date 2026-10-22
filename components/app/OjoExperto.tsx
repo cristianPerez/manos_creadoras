@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowUp,
   Camera,
   Copy,
   ImageIcon,
@@ -21,6 +20,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { TextoDelOjo } from "@/components/app/TextoDelOjo";
 import { EnlacesSuperiores } from "@/components/app/NavegacionApp";
+import {
+  AvatarOjo,
+  BurbujaAlumna,
+  ComposerOjo,
+  Escribiendo,
+  IconoCamara,
+  claseCamara,
+} from "@/components/app/OjoPiezas";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Cupo } from "@/lib/alumna";
@@ -420,13 +427,13 @@ export function OjoExperto({
                     conComposer && (
                       <>
                         {fotoElegida}
-                        <Composer
+                        <ComposerOjo
                           grande
+                          camara={<BotonCamara grande alPulsar={elegirFoto} />}
                           placeholder="Pregúntame o sube una foto de tu tejido…"
                           texto={texto}
                           setTexto={setTexto}
                           enviando={enviando}
-                          elegirFoto={elegirFoto}
                           onEnviar={() => enviar(texto)}
                         />
                         <NotaComposer contador={contador} />
@@ -451,7 +458,7 @@ export function OjoExperto({
                       </div>
                     ),
                   )}
-                  {enviando && <Pensando />}
+                  {enviando && <Escribiendo />}
                 </div>
               )}
               <div ref={finRef} />
@@ -487,12 +494,12 @@ export function OjoExperto({
               {conComposer && (
                 <div className={vacio ? "lg:hidden" : ""}>
                   {fotoElegida}
-                  <Composer
+                  <ComposerOjo
+                    camara={<BotonCamara alPulsar={elegirFoto} />}
                     placeholder={vacio ? "Pregunta o sube una foto…" : "Sigue preguntando…"}
                     texto={texto}
                     setTexto={setTexto}
                     enviando={enviando}
-                    elegirFoto={elegirFoto}
                     onEnviar={() => enviar(texto)}
                   />
                   {vacio && <NotaComposer contador={contador} corta />}
@@ -648,13 +655,7 @@ function MensajeMio({ mensaje }: { mensaje: Mensaje }) {
           unoptimized
         />
       )}
-      {/*
-        Burbuja espresso: separa "lo que yo dije" de todo lo demás. La esquina
-        de abajo a la derecha va a 6px — es la que la ancla a quien habla.
-      */}
-      <p className="bg-espresso text-cream ojo-cuerpo max-w-[85%] rounded-lg rounded-br-(--radius-cola) px-4 py-3">
-        {mensaje.texto}
-      </p>
+      <BurbujaAlumna className="ojo-cuerpo">{mensaje.texto}</BurbujaAlumna>
     </div>
   );
 }
@@ -716,17 +717,6 @@ function MensajeDelOjo({ mensaje }: { mensaje: Mensaje }) {
   );
 }
 
-function AvatarOjo() {
-  return (
-    <span
-      aria-hidden="true"
-      className="bg-espresso text-gold-light flex size-7 shrink-0 items-center justify-center rounded-full"
-    >
-      <Sparkles size={14} />
-    </span>
-  );
-}
-
 function Accion({
   children,
   etiqueta,
@@ -754,103 +744,17 @@ function Accion({
   );
 }
 
-function Pensando() {
+/** La cámara de la app: abre el selector de foto (uno solo para toda la pantalla). */
+function BotonCamara({ alPulsar, grande = false }: { alPulsar: () => void; grande?: boolean }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <AvatarOjo />
-      {/* Tres puntos y no un texto: "pensando…" se lee una vez y cansa a la
-          tercera. El movimiento dice lo mismo sin decir nada. */}
-      <div className="flex items-center gap-1.5" role="status" aria-label="Escribiendo">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="bg-ink-muted/50 size-1.5 animate-bounce rounded-full"
-            style={{ animationDelay: `${i * 120}ms` }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/**
- * El composer: una sola píldora con la cámara, el texto y enviar (v5).
- * `grande` es el del centro del inicio en escritorio: botones de 48 y letra
- * de 17. El anclado abajo va a 44 y 16 — 16 como mínimo, porque con menos
- * Safari hace zoom al tocar el campo.
- */
-function Composer({
-  texto,
-  setTexto,
-  enviando,
-  elegirFoto,
-  onEnviar,
-  placeholder,
-  grande = false,
-}: {
-  texto: string;
-  setTexto: (t: string) => void;
-  enviando: boolean;
-  elegirFoto: () => void;
-  onEnviar: () => void;
-  placeholder: string;
-  grande?: boolean;
-}) {
-  const boton = grande ? "size-12" : "size-11";
-
-  /* El alto sigue al texto en cada cambio —al escribir, al vaciarse tras
-     enviar y al llenarlo una tarjeta—. Antes solo se medía al teclear, y tras
-     enviar el campo se quedaba con el alto de la pregunta anterior. */
-  const campo = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
-    const el = campo.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
-  }, [texto]);
-
-  return (
-    <div className="bg-ivory border-line-strong focus-within:border-gold flex items-end gap-2 rounded-xl border p-2 transition-colors duration-150">
-      <button
-        type="button"
-        onClick={elegirFoto}
-        aria-label="Subir una foto de tu tejido"
-        className={`bg-sand text-espresso hover:bg-sand-hover flex ${boton} shrink-0 items-center justify-center rounded-full transition-colors duration-150`}
-      >
-        <Camera size={20} aria-hidden="true" />
-      </button>
-
-      <textarea
-        ref={campo}
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        onKeyDown={(e) => {
-          // Enter envía, Mayús+Enter salta de línea: lo que ya hace todo chat.
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            onEnviar();
-          }
-        }}
-        rows={1}
-        placeholder={placeholder}
-        aria-label="Tu pregunta"
-        /* Sin anillo propio: el foco lo marca el borde dorado de la píldora. */
-        className={`text-espresso placeholder:text-ink-muted max-h-32 flex-1 foco-en-contenedor resize-none bg-transparent px-1 outline-none ${
-          grande ? "min-h-12 py-3 text-lg" : "min-h-11 py-2.5"
-        }`}
-        style={{ fontSize: grande ? undefined : "1rem" }}
-      />
-
-      <button
-        type="button"
-        onClick={onEnviar}
-        disabled={enviando || texto.trim().length < 3}
-        aria-label="Enviar"
-        className={`bg-espresso text-cream flex ${boton} shrink-0 items-center justify-center rounded-full transition-[opacity,transform] duration-150 active:scale-[0.94] disabled:cursor-not-allowed`}
-      >
-        <ArrowUp size={20} aria-hidden="true" />
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={alPulsar}
+      aria-label="Subir una foto de tu tejido"
+      className={claseCamara(grande)}
+    >
+      <IconoCamara />
+    </button>
   );
 }
 

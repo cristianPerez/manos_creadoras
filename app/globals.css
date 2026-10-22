@@ -226,6 +226,9 @@
   /* Ojo v5 (2026-10-21), de `design-ref/ojo-v5-claude-code`: */
   --radius-cajon: 24px;   /* el cajón "Mis consultas" en móvil (borde derecho) */
   --radius-cola: 6px;     /* la esquina de la burbuja de la alumna que apunta a ella */
+  /* Mini Ojo del home (2026-10-22): la tarjeta. 24px en móvil, 28 en escritorio
+     (= `--radius-foto`, pero es otra pieza y puede cambiar sola). */
+  --radius-demo: 24px;
 
   /* ====== TIPOGRAFÍA — las *-src las inyecta next/font desde app/layout.tsx ====== */
   --font-display: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
@@ -339,6 +342,7 @@
   --radius-bloque: var(--radius-bloque);
   --radius-cajon: var(--radius-cajon);
   --radius-cola: var(--radius-cola);
+  --radius-demo: var(--radius-demo);
 
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
@@ -427,6 +431,7 @@ body {
   }
   :root {
     --foto-mensaje: 220px;
+    --radius-demo: 28px;
   }
 }
 
@@ -468,6 +473,33 @@ body {
 }
 
 /*
+ * Mini Ojo del home, versión arena (2026-10-22, `design-ref/home-ojo-claude-code`).
+ * Los tamaños de la referencia: titular 38→54, texto del Ojo y párrafo 15/16→17.
+ */
+.demo-ojo-titulo {
+  font-size: 38px;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+.demo-ojo-texto {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.demo-ojo-bajada {
+  font-size: 16px;
+  line-height: 1.55;
+}
+@media (min-width: 1024px) {
+  .demo-ojo-titulo {
+    font-size: 54px;
+  }
+  .demo-ojo-texto,
+  .demo-ojo-bajada {
+    font-size: 17px;
+  }
+}
+
+/*
  * El hueco que deja el layout de `/app` para la barra de abajo en móvil. Era
  * `pb-24` (96px) con una barra que ya no medía eso; desde el Ojo v5 la barra
  * mide 64px exactos, y el hueco sale del mismo token que la barra, así una no
@@ -489,6 +521,15 @@ body {
 
 .sobre-oscuro :focus-visible {
   outline-color: var(--gold-pale);
+}
+
+/* Una fila con scroll lateral (las dudas del mini Ojo en móvil): se desliza
+   con el dedo, sin la barra gris que en escritorio aparece debajo. */
+.sin-barra {
+  scrollbar-width: none;
+}
+.sin-barra::-webkit-scrollbar {
+  display: none;
 }
 
 /* El campo de un composer en píldora (Ojo v5): el foco lo marca el borde de la

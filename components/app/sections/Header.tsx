@@ -6,9 +6,9 @@ import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
 /**
  * La cabecera del home.
  *
- * ⚠️ EN MÓVIL SE QUEDA EN LO MÍNIMO: logo y "Entrar". Abajo vive la barra fija
- * de compra (home v3), que lleva el precio y el "Inscribirme"; repetirlos aquí
- * sería poner dos botones iguales en la misma pantalla.
+ * En móvil: logo, "Entrar" e "Inscribirme". Hasta el 2026-10-22 iba solo
+ * "Entrar", porque la barra fija de compra de abajo ya lleva el "Inscribirme";
+ * Cristian lo pidió también arriba, como ruta al pago siempre a mano.
  *
  * Ya no es un componente de cliente: sin menú desplegable no hay estado que
  * guardar, así que se renderiza en el servidor y baja menos JavaScript.
@@ -60,15 +60,11 @@ export function Header() {
             Entrar
           </Link>
 
-          {/*
-            ⚠️ EN MÓVIL YA NO HAY "PLANES" AQUÍ (home v3). Se añadió el 17-oct
-            porque el primer acceso al precio estaba a media página; ahora lo
-            resuelve la barra fija de compra, que está siempre a la vista. Dos
-            botones al precio en la misma pantalla compiten entre sí.
-          */}
+          {/* En móvil, "Entrar" sin borde (2026-10-22): con "Inscribirme" al
+              lado, dos botones con caja no caben a 375px junto al nombre. */}
           <Link
             href="/entrar"
-            className="border-line-strong text-espresso flex h-11 items-center rounded-boton border px-5 text-sm font-semibold transition-transform active:scale-[0.98] md:hidden"
+            className="text-espresso flex h-11 items-center px-2 text-sm font-semibold md:hidden"
           >
             Entrar
           </Link>
@@ -82,7 +78,7 @@ export function Header() {
             href="#precio"
             origen="header"
             plan={FRECUENCIA_POR_DEFECTO}
-            className="bg-espresso text-gold-pale hidden h-11 items-center rounded-full px-7 text-sm font-bold transition-transform active:scale-[0.98] md:flex"
+            className="bg-espresso text-gold-pale flex h-11 items-center rounded-full px-4 text-sm font-bold whitespace-nowrap transition-transform active:scale-[0.98] md:px-7"
           >
             Inscribirme
           </EnlaceCompra>
