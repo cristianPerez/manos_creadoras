@@ -205,8 +205,10 @@ también en Mi plan y en el selector de pago.
   `#precio` como en escritorio; "Entrar" pierde el borde para caber a 375px.
 - Pendientes de esta tanda:
   - 🟡 La respuesta del ejemplo del home es PROVISIONAL: la tiene que validar Elizabeth.
-  - 🟡 El Ojo (arena) y Elizabeth (arena) quedan pegados del mismo color: no
-    se nota dónde acaba uno y empieza el otro. Lo decide Cristian.
+- **Elizabeth pasó a CREMA (2026-10-22, pedido de Cristian)** para separarse
+  del Ojo en arena. Sus tarjetas marfil llevan `border-line`. Queda crema
+  seguida de Planes (también crema); se lee bien por el titular y la tarjeta
+  oscura de Planes.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a

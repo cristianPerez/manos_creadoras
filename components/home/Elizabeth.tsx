@@ -21,7 +21,11 @@ export function Elizabeth({ bolsos, videos }: { bolsos: number; videos: number }
   ];
 
   return (
-    <section id="elizabeth" className="bg-sand px-5 py-12 md:py-20">
+    /* ⚠️ CREMA Y NO ARENA (2026-10-22, pedido de Cristian): el mini Ojo de
+       encima pasó a arena y las dos secciones se fundían en un solo bloque sin
+       borde. Las tarjetas marfil llevan ahora `border-line`, porque marfil
+       sobre crema casi no se distingue. */
+    <section id="elizabeth" className="bg-cream px-5 py-12 md:py-20">
       <Entrada className="mx-auto max-w-6xl">
         <div className="grid items-center gap-6 md:grid-cols-12 md:gap-12">
           {/* La foto grande solo en escritorio; en móvil va pequeña junto al
@@ -66,7 +70,7 @@ export function Elizabeth({ bolsos, videos }: { bolsos: number; videos: number }
 
             <ul className="mt-6 grid grid-cols-3 gap-2 md:max-w-xl md:gap-3">
               {cifras.map((c) => (
-                <li key={c.pie} className="bg-ivory rounded-md p-4">
+                <li key={c.pie} className="bg-ivory border-line rounded-md border p-4">
                   <span
                     className="font-display text-espresso block"
                     style={{ fontWeight: 500, fontSize: 36, lineHeight: 1 }}
@@ -109,7 +113,7 @@ export function Elizabeth({ bolsos, videos }: { bolsos: number; videos: number }
               {TESTIMONIOS.map((t) => (
                 <li
                   key={t.foto}
-                  className="bg-ivory flex w-65 shrink-0 snap-start flex-col rounded-bloque p-3 md:w-auto"
+                  className="bg-ivory border-line flex w-65 shrink-0 snap-start flex-col rounded-bloque border p-3 md:w-auto"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden rounded-md">
                     <Image
