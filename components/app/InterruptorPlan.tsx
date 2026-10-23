@@ -33,14 +33,18 @@ export function InterruptorPlan({
   const grande = tamano === "grande";
   const anual = valor === "anual";
 
+  /* La activa en semibold y la otra en medium (planes, 2026-10-22): con las dos
+     en semibold no se veía de un vistazo cuál estaba elegida. */
   const texto = (activo: boolean) =>
-    activo ? (oscuro ? "text-cream" : "text-espresso") : oscuro ? "text-white/55" : "text-ink-muted";
+    activo
+      ? `${oscuro ? "text-cream" : "text-espresso"} font-semibold`
+      : `${oscuro ? "text-white/55" : "text-ink-muted"} font-medium`;
 
   return (
     <div
       role="group"
       aria-label="Elige cómo pagar"
-      className={`flex items-center justify-center font-semibold ${grande ? "gap-4 text-base" : "gap-3 text-sm"}`}
+      className={`flex items-center justify-center ${grande ? "gap-4 text-base" : "gap-3 text-sm"}`}
     >
       <button
         type="button"
@@ -58,16 +62,24 @@ export function InterruptorPlan({
         onClick={() => alCambiar(anual ? "mensual" : "anual")}
         className="flex min-h-11 items-center [touch-action:manipulation]"
       >
+        {/*
+          ⚠️ EL CARRIL NO SE APAGA (planes, 2026-10-22). Mensual y anual son dos
+          opciones válidas, no encendido y apagado: en gris, "mensual" se leía
+          como desactivado. Lo que se mueve es la bolita. Café sobre claro —el
+          color de las acciones de compra del home; el dorado de antes daba
+          ~3,9:1 sobre arena y competía con el botón— y `--gold-pale` sobre
+          oscuro, donde el café no se vería. Plano: sin sombra en la bolita.
+        */}
         <span
           aria-hidden="true"
-          className={`relative block rounded-full transition-colors duration-200 ${
-            grande ? "h-8 w-14" : "h-7 w-12"
-          } ${anual ? "bg-gold" : oscuro ? "bg-white/25" : "bg-line-strong"}`}
+          className={`relative block rounded-full ${grande ? "h-9 w-16" : "h-7 w-12"} ${
+            oscuro ? "bg-gold-pale" : "bg-cacao"
+          }`}
         >
           <span
-            className={`bg-cream absolute top-1 left-1 block rounded-full shadow-sm transition-transform duration-200 ease-out ${
-              grande ? "size-6" : "size-5"
-            } ${anual ? (grande ? "translate-x-6" : "translate-x-5") : ""}`}
+            className={`absolute top-1 left-1 block rounded-full transition-transform duration-200 ease-out ${
+              oscuro ? "bg-espresso" : "bg-ivory"
+            } ${grande ? "size-7" : "size-5"} ${anual ? (grande ? "translate-x-7" : "translate-x-5") : ""}`}
           />
         </span>
       </button>
@@ -78,7 +90,13 @@ export function InterruptorPlan({
         className={`flex min-h-11 items-center gap-1.5 px-1 transition-colors [touch-action:manipulation] ${texto(anual)}`}
       >
         Anual
-        <span className="bg-gold-pale text-espresso rounded-full px-2 py-0.5 text-xs font-bold">
+        {/* Espresso sobre claro: el `--gold-pale` de antes casi no se
+            distinguía sobre arena. Sobre oscuro se queda en `--gold-pale`. */}
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+            oscuro ? "bg-gold-pale text-espresso" : "bg-espresso text-gold-pale"
+          }`}
+        >
           {grande ? `Ahorra ${ahorroAnualDe().pct}%` : `−${ahorroAnualDe().pct}%`}
         </span>
       </button>

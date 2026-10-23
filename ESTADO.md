@@ -220,6 +220,18 @@ también en Mi plan y en el selector de pago.
     en móvil las cápsulas van ARRIBA del héroe (decisión vieja: "como
     historias"), y la referencia nueva las pone debajo. No se cambió el orden
     (la regla lo prohíbe). Lo decide Cristian.
+  - Alumnas en 5 columnas desde 1024px (235px c/u, citas a 4 líneas, mismo
+    alto); carrusel con snap en móvil y tableta. De paso: los enlaces del
+    menú de la cabecera del home salen desde 1024px — a 768 empujaban
+    "Inscribirme" 24px fuera de la pantalla.
+  - **Planes: switch en café y tarjeta pulida (2026-10-22, `design-ref/planes-claude-code`).**
+    El carril ya no se "apaga" en mensual: café en los dos estados sobre
+    claro (`--gold-pale` sobre oscuro), bolita marfil sin sombra, chip
+    espresso; grande = 64×36. Tarjeta: eyebrow "Plan anual/mensual", sin el
+    enlace "o mensual por…" (lo hace el switch), fila de confianza con
+    íconos al fondo, garantía con escudo y WhatsApp dentro del panel marfil.
+    Nota: la barra fija de compra móvil NO lee el ciclo elegido (siempre
+    "desde US$7,49/mes" → `#precio`); solo lo comparten precio y `PagoConPlan`.
   - 🟡 El pie de la referencia trae columnas (Curso / Ayuda) con enlaces que
     hoy no están; se respetaron los enlaces actuales.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por

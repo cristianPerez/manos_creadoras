@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Lock } from "lucide-react";
+import { Check, CreditCard, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
@@ -12,11 +12,9 @@ import { medir } from "@/lib/analitica/mixpanel";
 import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida";
 import { WHATSAPP_URL } from "@/lib/landing";
 import {
-  ahorroAnualDe,
   GARANTIA,
   incluyeCon,
   notaDelCobro,
-  precioPorMes,
   precioPorMesDe,
   type Frecuencia,
 } from "@/lib/planes";
@@ -50,7 +48,6 @@ export function PrecioHome({
   // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
   const frecuencia = useFrecuenciaElegida();
   const quieto = useReducedMotion();
-  const otra: Frecuencia = frecuencia === "anual" ? "mensual" : "anual";
   const enlace = enlaces[frecuencia];
 
   const elegir = (f: Frecuencia) => {
@@ -80,9 +77,14 @@ export function PrecioHome({
         </div>
 
         <div className="border-line mt-6 grid overflow-hidden rounded-(--radius-foto) border max-md:rounded-bloque md:mt-8 md:grid-cols-2">
-          {/* ── Lo que se paga ── */}
-          <div className="bg-espresso sobre-oscuro grain-oscuro p-6 md:p-12">
-            <h3 className="font-display text-cream text-2xl text-balance md:text-3xl" style={{ fontWeight: 500 }}>
+          {/* ── Lo que se paga ── `flex-col` para que la fila de confianza
+              baje al fondo y las dos mitades midan lo mismo. */}
+          <div className="bg-espresso sobre-oscuro grain-oscuro flex flex-col px-5.5 py-6 md:p-11">
+            <p className="eyebrow">Plan {frecuencia}</p>
+            <h3
+              className="font-display text-cream mt-2 text-balance"
+              style={{ fontWeight: 500, fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.15 }}
+            >
               Curso completo de bolsos de perlas
             </h3>
 
@@ -103,41 +105,40 @@ export function PrecioHome({
             </p>
             <p className="text-on-dark-muted mt-2 text-base text-balance">{notaDelCobro(frecuencia)}</p>
 
+            {/*
+              ⚠️ SIN EL "o mensual por… / o anual por…" DE DEBAJO (planes,
+              2026-10-22). El switch está justo encima y hace lo mismo; el
+              enlace duplicaba el control y le restaba fuerza a este botón.
+            */}
             <EnlaceCompra
               href={enlace ?? `/pagar?ciclo=${frecuencia}`}
               origen="precio"
               plan={frecuencia}
               abrePago={Boolean(enlace)}
-              className="bg-gold-pale text-espresso mt-6 flex h-13.5 items-center justify-center rounded-full text-lg font-bold transition-transform active:scale-[0.98]"
+              className="bg-gold-pale text-espresso mt-6 flex h-13.5 items-center justify-center rounded-full text-base font-semibold transition-transform active:scale-[0.98]"
             >
               Inscribirme con el plan {frecuencia}
             </EnlaceCompra>
-
-            {/* Cambiar de ciclo desde aquí: quien duda entre los dos no tiene que
-                volver arriba al selector para comparar. */}
-            <button
-              type="button"
-              onClick={() => elegir(otra)}
-              className="text-gold-pale decoration-gold-pale mx-auto mt-3 block min-h-11 text-sm font-semibold underline underline-offset-4"
-            >
-              {otra === "mensual"
-                ? `o mensual por ${precioPorMes("mensual")}/mes`
-                : `o anual por ${precioPorMes("anual")}/mes (ahorras ${ahorroAnualDe().pct}%)`}
-            </button>
 
             {/*
               ⚠️ SI NO HAY ENLACE PARA ESE CICLO, NO SE FINGE QUE SE PUEDE PAGAR.
               El botón lleva a `/pagar` y aquí se dice qué va a pasar.
             */}
-            <div className="border-espresso-line mt-4 border-t pt-4">
+            <div className="border-espresso-line mt-6 border-t pt-4 md:mt-auto">
               {enlace ? (
-                <ul className="text-on-dark-muted flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                <ul className="text-on-dark-muted flex flex-col gap-2.5 text-sm md:flex-row md:flex-wrap md:gap-x-5">
                   <li className="flex items-center gap-2">
-                    <Lock size={14} aria-hidden="true" />
+                    <Lock size={15} className="text-gold-light shrink-0" aria-hidden="true" />
                     Pago seguro con OnePay
                   </li>
-                  <li>Tarjeta de crédito o débito</li>
-                  <li className="max-md:hidden">Acceso inmediato por correo</li>
+                  <li className="flex items-center gap-2">
+                    <CreditCard size={15} className="text-gold-light shrink-0" aria-hidden="true" />
+                    Tarjeta de crédito o débito
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Mail size={15} className="text-gold-light shrink-0" aria-hidden="true" />
+                    Acceso inmediato por correo
+                  </li>
                 </ul>
               ) : (
                 <p className="text-on-dark-muted text-sm">
@@ -149,7 +150,7 @@ export function PrecioHome({
 
           {/* ── Lo que se lleva ── En móvil va debajo (orden del DOM): primero
               se decide y se paga, y quien aún duda baja a leer. */}
-          <div className="bg-ivory p-6 md:p-12">
+          <div className="bg-ivory flex flex-col px-5.5 py-6 md:p-11">
             <p className="eyebrow">Incluye</p>
             <ul className="mt-4 flex flex-col gap-3.5">
               {incluyeCon({ bolsos, videos }).map((b) => (
@@ -165,23 +166,28 @@ export function PrecioHome({
               ))}
             </ul>
 
-            <div className="bg-sand mt-6 rounded-lg p-5">
-              <p className="text-espresso font-semibold">{GARANTIA.titulo}</p>
-              <p className="text-ink-body mt-1 text-sm">{GARANTIA.texto}</p>
+            <div className="bg-sand mt-6 flex gap-3 rounded-[18px] p-5 md:mt-auto">
+              <ShieldCheck size={22} className="text-cacao mt-0.5 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="text-espresso font-semibold">{GARANTIA.titulo}</p>
+                <p className="text-ink-body mt-1 text-sm">{GARANTIA.texto}</p>
+              </div>
             </div>
+
+            {/* Dentro del panel marfil (planes, 2026-10-22): equilibra el alto
+                de las dos columnas. */}
+            <p className="text-ink-body mt-4 text-sm">
+              ¿Dudas antes de inscribirte?{" "}
+              <EnlaceWhatsApp
+                href={WHATSAPP_URL}
+                origen="precio"
+                className="text-gold inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+              >
+                Escríbenos por WhatsApp
+              </EnlaceWhatsApp>
+            </p>
           </div>
         </div>
-
-        <p className="text-ink-body mt-6 text-center">
-          ¿Dudas antes de inscribirte?{" "}
-          <EnlaceWhatsApp
-            href={WHATSAPP_URL}
-            origen="precio"
-            className="text-gold inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
-          >
-            Escríbenos por WhatsApp
-          </EnlaceWhatsApp>
-        </p>
       </Entrada>
     </section>
   );
