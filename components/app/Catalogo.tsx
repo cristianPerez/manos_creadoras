@@ -1,6 +1,6 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { ChevronRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -62,7 +62,7 @@ export function Catalogo({
       <div
         role="group"
         aria-label="Filtrar bolsos"
-        className="mt-10 flex flex-wrap gap-2.5"
+        className="sin-barra -mx-4 mt-6 flex gap-2.5 overflow-x-auto px-4 lg:mx-0 lg:mt-8 lg:flex-wrap lg:px-0"
       >
         {(
           [
@@ -78,12 +78,14 @@ export function Catalogo({
               type="button"
               aria-pressed={activo}
               onClick={() => setFiltro(id)}
-              className={`flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors [touch-action:manipulation] ${
-                activo ? "bg-espresso text-white" : "border-line text-ink-body border"
+              className={`flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-5 text-base whitespace-nowrap transition-colors [touch-action:manipulation] ${
+                activo
+                  ? "bg-espresso border-espresso text-cream font-semibold"
+                  : "border-line-strong text-espresso hover:bg-sand"
               }`}
             >
               {texto}
-              <span className={activo ? "text-white/60" : "text-ink-muted"}>{cuenta[id]}</span>
+              <span className="cifra">{cuenta[id]}</span>
             </button>
           );
         })}
@@ -108,7 +110,7 @@ export function Catalogo({
           .
         </p>
       ) : (
-        <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-[repeat(auto-fill,minmax(230px,1fr))] lg:gap-x-5">
+        <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-5 lg:gap-x-4 lg:gap-y-8">
           {visibles.map((b) => (
             <li key={b.id}>
               <TarjetaBolso bolso={b} bloqueado={!b.gratis && !tieneAcceso} />
@@ -130,6 +132,7 @@ export function Catalogo({
 function Invitacion({
   bolsos,
   enlaces,
+  desde,
 }: {
   bolsos: Bolso[];
   desde: string;
@@ -140,41 +143,52 @@ function Invitacion({
   const deBolso = bolsos.length - llaveros;
 
   return (
-    <section
-      className="mt-8 flex flex-col gap-6 rounded-[var(--radius-xl)] p-7 text-white md:flex-row md:items-center md:p-8"
-      style={{ backgroundImage: "var(--card-destacada)" }}
-    >
-      <div className="flex-1">
-        <h2 className="font-display text-2xl text-balance" style={{ fontWeight: 500 }}>
-          ¿Y si sigues hasta el bolso terminado?
-        </h2>
-        <p className="mt-2 max-w-lg text-sm text-white/75">
-          {gratis ? `${gratis.nombre} es tuyo ahora mismo. ` : ""}
-          {/* ⚠️ Decía "se abren los 23, uno nuevo cada mes": contaba los llaveros
-              como bolsos y prometía un bolso nuevo al mes, que no existe
-              (corregido el 2026-10-21, igual que en el resto del sitio). */}
-          Con el plan se abren los {deBolso} bolsos
-          {llaveros > 0 ? ` y ${llaveros} llaveros` : ""}, el directorio de proveedores y el
-          Ojo Experto.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
-            Garantía de 7 días
-          </span>
-          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
-            {/* La valoración salió el 2026-10-17: no hay reseñas que la
-                respalden. Las alumnas sí son un dato real. */}
-            +1.200 alumnas
-          </span>
+    <>
+      {/*
+        ⚠️ CAFÉ PLANO (app interna, 2026-10-23): sin el degradado de
+        `--card-destacada`. En escritorio, una fila: la pregunta a la izquierda
+        y el selector con el botón a la derecha.
+      */}
+      <section className="bg-cacao sobre-oscuro mt-8 hidden items-center gap-8 rounded-(--radius-foto) px-8 py-7 lg:flex">
+        <div className="min-w-0 flex-1">
+          <h2 className="font-display text-cream text-balance" style={{ fontWeight: 500, fontSize: 30 }}>
+            ¿Y si sigues hasta el <em className="clave">bolso terminado</em>?
+          </h2>
+          <p className="text-sand mt-1.5">
+            {gratis ? `${gratis.nombre} es tuyo ahora mismo. ` : ""}
+            {/* ⚠️ Decía "se abren los 23, uno nuevo cada mes": contaba los
+                llaveros como bolsos y prometía un bolso nuevo al mes, que no
+                existe (corregido el 2026-10-21). */}
+            Con el plan se abren los {deBolso} bolsos
+            {llaveros > 0 ? ` y ${llaveros} llaveros` : ""}, el directorio de proveedores y el
+            Ojo Experto · garantía de 7 días.
+          </p>
         </div>
-      </div>
+        {/* ⚠️ Antes: "Crear mi cuenta gratis" → /entrar. Desde el 2026-10-21
+            lleva a PAGAR, con anual por defecto (pedido de Cristian). */}
+        <div className="shrink-0">
+          <PagoConPlan enlaces={enlaces} origen="catalogo" tono="oscuro" disposicion="fila" />
+        </div>
+      </section>
 
-      {/* ⚠️ Antes: "Crear mi cuenta gratis" → /entrar. Desde el 2026-10-21 lleva
-          a PAGAR, con anual por defecto (pedido de Cristian). */}
-      <div className="w-full shrink-0 md:w-72">
-        <PagoConPlan enlaces={enlaces} origen="catalogo" tono="oscuro" />
-      </div>
-    </section>
+      {/* En móvil se resume en una fila tocable: la tarjeta entera empujaba
+          los bolsos fuera de la primera pantalla. Lleva a Mi plan, donde
+          están el selector y el pago. */}
+      <Link
+        href="/app/plan"
+        className="bg-cacao sobre-oscuro mt-6 flex items-center gap-4 rounded-(--radius-foto) px-5 py-4 lg:hidden"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="font-display text-cream block" style={{ fontWeight: 500, fontSize: 21 }}>
+            ¿Sigues hasta el <em className="clave">bolso terminado</em>?
+          </span>
+          <span className="text-sand mt-0.5 block text-sm">
+            Desde {desde}/mes · garantía 7 días
+          </span>
+        </span>
+        <ChevronRight size={22} className="text-cream shrink-0" aria-hidden="true" />
+      </Link>
+    </>
   );
 }
 
@@ -221,9 +235,9 @@ function ContinuaDondeQuedaste({ bolso }: { bolso: Bolso }) {
         <p className="text-ink-body mt-1 text-sm">{siguiente.etiqueta}</p>
 
         <div className="mt-5 flex items-center gap-4">
-          <span className="bg-line h-1.5 flex-1 overflow-hidden rounded-full">
+          <span className="bg-sand-hover h-1.5 flex-1 overflow-hidden rounded-full">
             <span
-              className="bg-gold block h-full rounded-full"
+              className="bg-cacao block h-full rounded-full"
               style={{ width: `${Math.round((bolso.vistos / bolso.videos) * 100)}%` }}
             />
           </span>

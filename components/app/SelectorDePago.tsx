@@ -2,10 +2,10 @@
 
 import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { Check, ShieldCheck } from "lucide-react";
-import { AnimatePresence, animate, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import {
   GARANTIA,
   INCLUYE,
@@ -46,44 +46,43 @@ export function SelectorDePago({
   const quieto = useReducedMotion();
 
   return (
-    <div className="mt-10">
+    <div className="mt-8">
       {/* Interruptor y no píldora partida (2026-10-21, pedido de Cristian):
           el mismo de toda la app — `components/app/InterruptorPlan.tsx`. */}
       <InterruptorPlan valor={frecuencia} alCambiar={setFrecuencia} tamano="grande" />
 
-      <section
-        className="mt-8 grid gap-8 rounded-[var(--radius-xl)] p-8 text-white md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:p-10"
-        style={{ backgroundImage: "var(--card-destacada)" }}
-      >
-        <div>
-          <h2 className="font-display text-2xl text-balance" style={{ fontWeight: 500 }}>
+      {/*
+        ⚠️ LA MISMA TARJETA QUE EL PRECIO DEL HOME (app interna, 2026-10-23):
+        lo que se paga en espresso a la izquierda, lo que se lleva en marfil a
+        la derecha. Antes era un bloque con `--card-destacada` en degradado,
+        de otro sistema que el home.
+      */}
+      <section className="border-line mt-8 grid overflow-hidden rounded-(--radius-foto) border max-md:rounded-bloque md:grid-cols-2">
+        <div className="bg-espresso sobre-oscuro px-6 py-7 md:p-11">
+          <p className="eyebrow">Plan {frecuencia}</p>
+          <h2
+            className="font-display text-cream mt-2 text-balance max-md:hidden"
+            style={{ fontWeight: 500, fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.15 }}
+          >
             Curso completo de bolsos de perlas
           </h2>
-
-          <p className="mt-5 flex items-baseline gap-2">
+          <p className="mt-4 flex items-baseline gap-2">
             <span
-              className="font-display text-gold-light"
-              style={{ fontWeight: 500, fontSize: "clamp(56px, 8vw, 84px)", lineHeight: 1 }}
+              className="font-display text-gold-pale"
+              style={{ fontWeight: 500, fontSize: "clamp(64px, 7vw, 84px)", lineHeight: 1 }}
             >
               {/*
-                ⚠️ EL PRECIO CUENTA, no aparece de golpe — es la baseline 2 del
-                sistema y aquí además hace un trabajo concreto: al pasar de
-                mensual a anual, ver el número BAJAR de 25,00 a 20,83 es la
-                demostración del descuento. Escrito de golpe, el ahorro hay que
-                deducirlo; contando, se ve.
-
-                `key` fuerza que se remonte en cada cambio, que es lo que
-                dispara el conteo otra vez.
+                ⚠️ EL PRECIO CUENTA, no aparece de golpe: al pasar de mensual a
+                anual, ver el número BAJAR es la demostración del descuento.
               */}
               <PrecioQueCuenta hasta={precioPorMesDe()[frecuencia]} quieto={Boolean(quieto)} />
             </span>
-            <span className="text-lg text-white/60">/mes</span>
+            <span className="text-on-dark-muted text-lg">/mes</span>
           </p>
-
           {/* La nota cambia con un fundido corto: sustituir el texto de golpe
               bajo un número que se está moviendo es un salto más de los que el
               ojo puede seguir a la vez. */}
-          <div className="relative mt-2 grid text-sm text-white/70">
+          <div className="text-on-dark-muted relative mt-2 grid text-base">
             <AnimatePresence mode="wait" initial={false}>
               <motion.p
                 key={frecuencia}
@@ -101,74 +100,56 @@ export function SelectorDePago({
           {/*
             ⚠️ MIENTRAS NO HAYA PASARELA, EL BOTÓN NO FINGE COBRAR: lleva a
             contacto —donde se explica que el enlace de pago llega por correo— y
-            lo DICE antes de que se pulse. Un botón que promete pagar y abre un
-            formulario es una sorpresa justo en el momento de más intención.
+            lo DICE antes de que se pulse.
           */}
           <Link
             href={url ?? "/contacto"}
-            className="text-espresso mt-7 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
-            style={{ backgroundImage: "var(--boton-dorado)" }}
+            className="bg-gold-pale text-espresso mt-6 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
           >
             Quiero el plan {frecuencia === "anual" ? "anual" : "mensual"}
           </Link>
-
-          <p className="mt-3 text-center text-xs text-white/70">
+          <p className="text-on-dark-muted mt-4 text-center text-sm md:text-left">
             {url ? NOTA_PAGO : "Te escribimos al correo con el enlace de pago y tu acceso."}
-          </p>
-
-          {/*
-            ⚠️ LA ÚNICA PRUEBA SOCIAL QUE PODEMOS DEMOSTRAR, y va justo debajo
-            del botón: es donde aparece la duda de "¿y si no sirvo para esto?",
-            que es la objeción nº1 de la ficha de avatar.
-
-            Dice "sin experiencia previa" a propósito — el número solo, suelto,
-            impresiona pero no responde a esa duda concreta.
-
-            ⚠️ NO LLEVA VALORACIÓN. Había un "4,9/5" por la app y Cristian lo
-            retiró el 2026-10-17: no hay un sistema de reseñas que lo sostenga.
-            Una cifra que no se puede demostrar, si alguien la cuestiona, se
-            lleva por delante la credibilidad del resto de la página.
-          */}
-          <p className="mt-4 border-t border-white/10 pt-4 text-center text-sm text-white/75">
-            <strong className="font-semibold text-white">+1.200 alumnas</strong> en Latinoamérica
-            empezaron sin experiencia previa.
           </p>
         </div>
 
-        <div className="border-t border-white/12 pt-7 md:border-t-0 md:border-l md:pt-0 md:pl-10">
-          <p className="text-gold-light text-xs font-bold tracking-[0.18em] uppercase">Incluye</p>
+        <div className="bg-ivory flex flex-col px-6 py-7 md:p-11">
+          <p className="eyebrow">Incluye</p>
           <ul className="mt-4 flex flex-col gap-3">
             {INCLUYE.map((b) => (
-              <li key={b} className="flex items-start gap-3 text-sm text-white/85">
-                <Check size={15} strokeWidth={2.5} className="text-gold-light mt-0.5 shrink-0" aria-hidden="true" />
+              <li key={b} className="text-espresso flex items-start gap-3 text-base">
+                <Check size={17} strokeWidth={2.5} className="text-gold mt-1 shrink-0" aria-hidden="true" />
                 {b}
               </li>
             ))}
           </ul>
+          <div className="bg-sand mt-6 flex items-start gap-3 rounded-[18px] p-5 md:mt-auto">
+            <ShieldCheck size={22} className="text-cacao mt-0.5 shrink-0" aria-hidden="true" />
+            <p className="text-ink-body text-sm">
+              <strong className="text-espresso font-semibold">{GARANTIA.titulo}.</strong>{" "}
+              {GARANTIA.texto}
+            </p>
+          </div>
         </div>
       </section>
 
-      <div className="bg-ivory border-line mt-5 flex items-start gap-4 rounded-[var(--radius-lg)] border p-5">
-        <span
-          aria-hidden="true"
-          className="bg-sand text-gold flex size-10 shrink-0 items-center justify-center rounded-full"
-        >
-          <ShieldCheck size={19} />
-        </span>
-        <span>
-          <span className="text-espresso block font-semibold">{GARANTIA.titulo}</span>
-          <span className="text-ink-body block text-sm">{GARANTIA.texto}</span>
-        </span>
-      </div>
+      {/*
+        ⚠️ LA ÚNICA PRUEBA SOCIAL QUE PODEMOS DEMOSTRAR. Dice "sin experiencia
+        previa" a propósito: responde la objeción nº1 de la ficha de avatar
+        ("¿y si no sirvo para esto?"). Sin valoración: el "4,9/5" se retiró el
+        2026-10-17 porque no hay reseñas que lo sostengan.
+      */}
+      <p className="text-ink-body mt-6 text-center">
+        <strong className="text-espresso font-semibold">+1.200 alumnas</strong> en Latinoamérica
+        empezaron sin experiencia previa.
+      </p>
 
       {/*
-        ⚠️ EL CORREO, FUERA DE LA TARJETA DE VENTA. Estaba dentro, debajo del
-        botón, y ahí era un dato administrativo compitiendo con el CTA en el
-        punto exacto de la decisión. Sigue haciendo falta —es a esa cuenta a la
-        que se le abre el acceso— pero como pie de página, no como protagonista.
+        ⚠️ EL CORREO, FUERA DE LA TARJETA DE VENTA: como pie, no como
+        protagonista en el punto exacto de la decisión.
       */}
       {correo && (
-        <p className="text-ink-muted mt-4 text-center text-xs">
+        <p className="text-ink-muted mt-3 text-center text-xs">
           El acceso se abre en tu cuenta:{" "}
           <strong className="text-ink-body font-semibold">{correo}</strong>
         </p>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Catalogo } from "@/components/app/Catalogo";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual, nombreCorto } from "@/lib/alumna";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { continuarDonde, esLlavero, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
@@ -28,17 +29,26 @@ export default async function MisBolsos() {
    * hace que parezca que hay menos.
    */
   const saludo = alumna ? `Hola, ${nombreCorto(alumna)}` : "Acceso de cortesía";
-  const titulo = alumna ? "Tu colección" : "Empieza por el bolso gratis";
+  /* La última palabra en cursiva dorada, como los titulares del home. */
+  const titulo = alumna ? (
+    <>
+      Tu <em className="clave">colección</em>
+    </>
+  ) : (
+    <>
+      Empieza por el bolso <em className="clave">gratis</em>
+    </>
+  );
 
   return (
-    <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-10">
+      <div className="mx-auto max-w-310">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">{saludo}</p>
-            <h1 className="titulo-seccion mt-2 text-balance">{titulo}</h1>
+            <EyebrowLinea>{saludo}</EyebrowLinea>
+            <h1 className="titulo-seccion mt-3 text-balance">{titulo}</h1>
             {!alumna && (
-              <p className="text-ink-body mt-3 max-w-lg">
+              <p className="text-ink-body mt-3 max-w-2xl max-lg:hidden">
                 Cristal Brillante es tuyo sin pagar y sin crear cuenta. Los demás puedes verlos por
                 dentro —sus pasos y sus materiales— y tejerlos cuando tengas plan.
               </p>

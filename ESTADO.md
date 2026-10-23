@@ -232,6 +232,39 @@ también en Mi plan y en el selector de pago.
     íconos al fondo, garantía con escudo y WhatsApp dentro del panel marfil.
     Nota: la barra fija de compra móvil NO lee el ciclo elegido (siempre
     "desde US$7,49/mes" → `#precio`); solo lo comparten precio y `PagoConPlan`.
+- **Ficha del bolso con el video DENTRO (2026-10-23, `design-ref/app-interna-claude-code/02-ficha-bolso`).**
+  Cristian eligió la imagen (reproductor en la ficha) sobre el texto del prompt
+  (3 columnas sin video). `components/app/FichaBolso.tsx`: el paso a paso
+  cambia el video sin salir de la página; "Siguiente paso/parte"; materiales en
+  tarjeta espresso con medidas y "Ver en el directorio". El servidor firma las
+  URL SOLO con acceso (verificado: bolso de plan sin sesión = 0 enlaces). El
+  avance sigue con `BotonVisto` (probado: 0→1 de 6 y vuelta). Las páginas
+  `/app/bolsos/<bolso>/<orden>` siguen existiendo. Dos columnas desde 1280px
+  (con la barra lateral, a 1024 no cabían).
+- **Navegación unificada de la app (2026-10-23, secciones 1 y 2 del prompt).**
+  Fuera la barra lateral. La pone el layout de `/app` (`CabeceraApp` y
+  `BarraInferior` en `NavegacionApp.tsx`), igual en todas las páginas y en el
+  Ojo: escritorio = cabecera del home (logo "M", píldoras, Entrar/Inscribirme o
+  "Plan anual" + avatar); móvil = cabecera de marca (salvo ficha, lección y
+  Ojo, que traen la suya) y 5 pestañas con el Ojo al centro en un círculo que
+  sobresale. Ojo: panel arena, "Historial" + "+" en móvil, cajón "Tus
+  consultas". "Inscribirme" lleva a Mi plan. Tokens: `--alto-cabecera-app`
+  68px, `--alto-barra-inferior` 72px, `--elevacion-ojo` 30px. Probado sin y
+  con sesión, a 1440 y 390.
+- **Páginas de la app según sus referencias (2026-10-23, sección 3).**
+  Mis bolsos: eyebrow con línea, *gratis* en cursiva, tarjeta café plana (fila
+  con switch oscuro + botón crema en escritorio; fila tocable a Mi plan en
+  móvil), filtros en una fila, tarjetas 4:5 a 5 columnas. Directorio: franja
+  arena con título y buscador, 4 columnas / lista en móvil, "Comprar" café o
+  "Enlace pronto" punteado. Mi plan: página arena y tarjeta como el precio del
+  home. Cuenta: tarjeta partida con foto + formulario (también en `/entrar`).
+  Fuera todos los degradados de la app (`PagoConPlan` ahora café / gold-pale).
+  Verificado sin y con sesión a 1440 y 390: 0 degradados, 0 dorado sobre
+  oscuro, 0 desbordes.
+  - 🟡 "Ver el programa" del formulario apunta a `/#oferta`, ancla que ya no
+    existe en el home (hoy es `#precio`). No se cambió: es un enlace.
+  - 🟡 `PagoConPlan` (caja de pago en la ficha bloqueada) aún usa el botón en
+    degradado; el prompt pide quitarlo en toda la app interna.
   - 🟡 El pie de la referencia trae columnas (Curso / Ayuda) con enlaces que
     hoy no están; se respetaron los enlaces actuales.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por

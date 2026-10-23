@@ -1,9 +1,11 @@
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ActivarAvisos } from "@/components/app/ActivarAvisos";
 import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
 import { FormularioAcceso } from "@/components/app/FormularioAcceso";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual, cupoActual } from "@/lib/alumna";
 import { precioPorMes } from "@/lib/planes";
 
@@ -23,14 +25,29 @@ export default async function MiCuenta() {
   /* Sin sesión, esta pestaña ES el formulario de entrar. No se rebota a /entrar:
      sacarla de la app justo al tocar una pestaña se siente como un error. */
   if (!alumna) {
+    /*
+      Tarjeta marfil partida (app interna, 2026-10-23): un bolso a la izquierda
+      y el formulario a la derecha. La foto no es adorno: recuerda para qué se
+      entra. En móvil, la foto arriba y el formulario sin tarjeta.
+    */
     return (
-      <>
-          <main className="min-w-0 flex-1 px-5 py-10">
-          <div className="mx-auto max-w-md">
+      <main className="min-w-0 flex-1 px-4 py-5 lg:px-8 lg:py-16">
+        <div className="md:bg-ivory md:border-line mx-auto grid max-w-235 overflow-hidden md:grid-cols-2 md:rounded-(--radius-foto) md:border">
+          <div className="relative h-52.5 overflow-hidden rounded-(--radius-foto) md:h-auto md:min-h-140 md:rounded-none">
+            <Image
+              src="/images/bolso-anillos-de-seda.webp"
+              alt="Bolso Anillos de Seda, tejido en perlas"
+              fill
+              priority
+              sizes="(min-width: 768px) 470px, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="px-2 pt-6 md:flex md:flex-col md:justify-center md:p-12">
             <FormularioAcceso lugar="cuenta" />
           </div>
-        </main>
-      </>
+        </div>
+      </main>
     );
   }
 
@@ -40,17 +57,17 @@ export default async function MiCuenta() {
 
   return (
     <>
-      <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
+      <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-10">
         <div className="mx-auto max-w-2xl">
-          <p className="eyebrow">Tu cuenta</p>
-          <h1 className="titulo-seccion mt-2">Mi cuenta</h1>
+          <EyebrowLinea>Tu cuenta</EyebrowLinea>
+          <h1 className="titulo-seccion mt-3">
+            Mi <em className="clave">cuenta</em>
+          </h1>
 
           {/* La tarjeta del plan, en oscuro: es lo primero que se busca aquí. */}
-          <section
-            className="mt-8 rounded-[var(--radius-xl)] p-7 text-white"
-            style={{ backgroundImage: "var(--card-destacada)" }}
-          >
-            <p className="text-gold-light text-xs font-bold tracking-[0.18em] uppercase">
+          {/* Espresso plano (2026-10-23): sin el degradado de `--card-destacada`. */}
+          <section className="bg-espresso sobre-oscuro text-cream mt-8 rounded-(--radius-foto) p-7">
+            <p className="eyebrow">
               {alumna.tieneAcceso ? "Membresía activa" : "Sin plan"}
             </p>
             <h2 className="font-display mt-2 text-2xl" style={{ fontWeight: 500 }}>
@@ -59,9 +76,9 @@ export default async function MiCuenta() {
             </h2>
             {/* ⚠️ El precio sale de `lib/planes.ts`. Aquí vivían los precios
                 VIEJOS (USD 199/año) mientras la landing ya vendía otra cosa. */}
-            {precio && <p className="mt-1 text-white/70">{precio} al mes</p>}
+            {precio && <p className="text-on-dark-muted mt-1">{precio} al mes</p>}
             {alumna.venceEl && (
-              <p className="mt-1 text-sm text-white/60">
+              <p className="text-on-dark-muted mt-1 text-sm">
                 {alumna.estado === "cancelada" ? "Tienes acceso hasta el" : "Se renueva el"}{" "}
                 {new Date(alumna.venceEl).toLocaleDateString("es-CO", {
                   day: "numeric",
@@ -76,8 +93,7 @@ export default async function MiCuenta() {
               {!alumna.tieneAcceso && (
                 <Link
                   href="/app/plan"
-                  className="text-espresso flex h-12 items-center rounded-full px-6 text-sm font-semibold"
-                  style={{ backgroundImage: "var(--boton-dorado)" }}
+                  className="bg-gold-pale text-espresso flex h-12 items-center rounded-full px-6 text-sm font-semibold"
                 >
                   Ver el plan
                 </Link>
@@ -98,7 +114,7 @@ export default async function MiCuenta() {
                  */
                 <Link
                   href="/app/plan"
-                  className="flex h-12 items-center rounded-full border border-white/25 px-6 text-sm font-semibold text-white"
+                  className="border-espresso-line text-cream flex h-12 items-center rounded-full border px-6 text-sm font-semibold"
                 >
                   Gestionar mi plan
                 </Link>
@@ -176,7 +192,7 @@ export default async function MiCuenta() {
 
 function Tarjeta({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
-    <section className="bg-ivory border-line rounded-[var(--radius-lg)] border p-5">
+    <section className="bg-ivory border-line rounded-lg border p-5">
       <h2 className="text-espresso font-semibold">{titulo}</h2>
       <div className="mt-3">{children}</div>
     </section>
@@ -194,14 +210,14 @@ function Barra({ etiqueta, usado, total }: { etiqueta: string; usado: number; to
         </span>
       </div>
       <div
-        className="bg-line mt-1.5 h-1.5 overflow-hidden rounded-full"
+        className="bg-sand-hover mt-1.5 h-1.5 overflow-hidden rounded-full"
         role="progressbar"
         aria-valuenow={usado}
         aria-valuemin={0}
         aria-valuemax={total}
         aria-label={etiqueta}
       >
-        <span className="bg-gold block h-full rounded-full" style={{ width: `${pct}%` }} />
+        <span className="bg-cacao block h-full rounded-full" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

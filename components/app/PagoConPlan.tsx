@@ -28,11 +28,17 @@ export function PagoConPlan({
   enlaces,
   origen,
   tono = "claro",
+  disposicion = "columna",
 }: {
   enlaces: Record<Frecuencia, string | null>;
   origen: OrigenCompra;
   /** "oscuro" sobre espresso/cacao; "claro" sobre crema o arena. */
   tono?: "claro" | "oscuro";
+  /**
+   * "fila": el selector y el botón en una línea, con el precio en el botón
+   * (la tarjeta café de Mis bolsos, app interna 2026-10-23).
+   */
+  disposicion?: "columna" | "fila";
 }) {
   const frecuencia = useFrecuenciaElegida();
   const enlace = enlaces[frecuencia];
@@ -44,21 +50,42 @@ export function PagoConPlan({
     medir(EVENTOS.planToggle, { plan: f });
   };
 
+  if (disposicion === "fila") {
+    return (
+      <div className="flex flex-wrap items-center gap-6">
+        <InterruptorPlan valor={frecuencia} alCambiar={elegir} tono={tono} />
+        <EnlaceCompra
+          href={enlace ?? `/pagar?ciclo=${frecuencia}`}
+          origen={origen}
+          plan={frecuencia}
+          abrePago={Boolean(enlace)}
+          className="bg-cream text-espresso flex h-13 items-center justify-center rounded-full px-8 font-semibold whitespace-nowrap transition-transform active:scale-[0.98]"
+        >
+          Inscribirme · {precioPorMes(frecuencia)}/mes
+        </EnlaceCompra>
+      </div>
+    );
+  }
+
   return (
     <div className="flex w-full flex-col gap-3">
       <InterruptorPlan valor={frecuencia} alCambiar={elegir} tono={tono} />
 
+      {/* Plano (app interna, 2026-10-23): sin el dorado en degradado. Café
+          sobre claro, `--gold-pale` sobre oscuro — el mismo par que el home. */}
       <EnlaceCompra
         href={enlace ?? `/pagar?ciclo=${frecuencia}`}
         origen={origen}
         plan={frecuencia}
         abrePago={Boolean(enlace)}
-        className="text-espresso flex h-12 items-center justify-center rounded-full bg-(image:--boton-dorado) px-6 font-semibold transition-transform active:scale-[0.98]"
+        className={`flex h-12 items-center justify-center rounded-full px-6 font-semibold transition-transform active:scale-[0.98] ${
+          oscuro ? "bg-gold-pale text-espresso" : "bg-cacao text-ivory"
+        }`}
       >
         Inscribirme con el plan {frecuencia}
       </EnlaceCompra>
 
-      <p className={`text-center text-xs ${oscuro ? "text-white/65" : "text-ink-muted"}`}>
+      <p className={`text-center text-xs ${oscuro ? "text-on-dark-muted" : "text-ink-muted"}`}>
         {precioPorMes(frecuencia)}/mes · {notaDelCobro(frecuencia).split(" · ")[0]}
       </p>
     </div>
