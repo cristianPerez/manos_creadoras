@@ -31,8 +31,10 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Los enlaces, en escritorio */}
-        <nav className="hidden items-center gap-7 md:flex">
+        {/* Los enlaces, desde 1024px. Entre 768 y 1023 no caben junto a
+            "Entrar" e "Inscribirme": empujaban el botón 24px fuera de la
+            pantalla (2026-10-22). */}
+        <nav className="hidden items-center gap-7 lg:flex">
           {NAVEGACION.map((e) => (
             <a
               key={e.destino}

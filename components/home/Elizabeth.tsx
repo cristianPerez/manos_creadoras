@@ -94,18 +94,20 @@ export function Elizabeth({ bolsos, videos }: { bolsos: number; videos: number }
               <p className="text-ink-body mt-2">Fotos reales de la comunidad de alumnas en Telegram.</p>
             </header>
             {/*
-              En móvil, carrusel horizontal de tarjetas de 260px: cinco apiladas
-              serían media página de scroll. En escritorio, tres por fila.
+              En móvil y tableta, carrusel horizontal de tarjetas de 260px: cinco
+              apiladas serían media página de scroll. Desde 1024px, las CINCO en
+              una fila (2026-10-22): a tres por fila cada foto medía ~550×690 y
+              dos alumnas quedaban relegadas a una segunda fila.
 
               ⚠️ FOTO 4:5 Y NO 4:3 COMO LA REFERENCIA: las fotos reales son
               verticales (capturas de teléfono) y a 4:3 se cortaban el asa o la
               base del bolso, que es justo lo que se quiere ver.
             */}
-            <ul className="sin-barra -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 md:mx-0 md:mt-10 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0">
+            <ul className="sin-barra -mx-5 mt-8 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 md:mt-10 lg:mx-0 lg:grid lg:grid-cols-5 lg:gap-4 lg:overflow-visible lg:px-0">
               {TESTIMONIOS.map((t) => (
                 <li
                   key={t.foto}
-                  className="bg-ivory border-line flex w-65 shrink-0 snap-start flex-col overflow-hidden rounded-(--radius-capsula) border md:w-auto"
+                  className="bg-ivory border-line flex w-65 shrink-0 snap-start flex-col overflow-hidden rounded-lg border lg:w-auto"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden">
                     <Image
@@ -113,26 +115,29 @@ export function Elizabeth({ bolsos, videos }: { bolsos: number; videos: number }
                       alt={`Bolso tejido por ${t.nombre}`}
                       fill
                       loading="lazy"
-                      sizes="(min-width: 768px) 400px, 260px"
+                      sizes="(min-width: 1024px) 240px, 260px"
                       className="object-cover"
                     />
                     {t.detalle && (
-                      <span className="bg-cream/92 text-espresso absolute top-3 left-3 rounded-sm px-2 py-1 text-xs font-bold">
+                      <span className="bg-cream/92 text-espresso absolute top-2.5 left-2.5 rounded-sm px-2 py-1 text-xs font-bold">
                         {t.detalle}
                       </span>
                     )}
                   </div>
-                  <div className="flex flex-1 flex-col p-5 md:p-6">
+                  <div className="flex flex-1 flex-col p-4">
                     {t.frase && (
+                      /* 17px y 4 líneas como máximo: las cinco tarjetas
+                         quedan del mismo alto, y una frase larga se corta
+                         con "…" en vez de estirar su tarjeta. */
                       <blockquote
-                        className="font-display text-espresso text-lg italic md:text-xl"
-                        style={{ lineHeight: 1.3 }}
+                        className="font-display text-espresso line-clamp-4 italic"
+                        style={{ fontSize: 17, lineHeight: 1.3 }}
                       >
                         {/* Un diálogo ya lleva sus rayas: no se le ponen comillas encima. */}
                         {t.frase.startsWith("—") ? t.frase : `“${t.frase}”`}
                       </blockquote>
                     )}
-                    <p className="text-gold mt-auto pt-3 text-sm font-semibold">{t.nombre}</p>
+                    <p className="text-gold mt-auto pt-3 text-xs font-semibold">{t.nombre}</p>
                   </div>
                 </li>
               ))}
