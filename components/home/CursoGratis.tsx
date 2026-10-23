@@ -1,9 +1,9 @@
 "use client";
 
-import { ChevronRight, Play } from "lucide-react";
-import { motion } from "motion/react";
+import { Play } from "lucide-react";
 import Image from "next/image";
 import { Entrada } from "@/components/home/Entrada";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import Link from "next/link";
 import { ReproductorEnSitio } from "@/components/home/ReproductorEnSitio";
 import { useRef, useState } from "react";
@@ -67,6 +67,9 @@ export function CursoGratis({
    * repetir el video.
    */
   const [arranque, setArranque] = useState(0);
+  /* En móvil se ven 3 pasos y "Ver los N pasos" despliega el resto (home a
+     color, 2026-10-22): seis filas empujaban la sección a dos pantallas. */
+  const [todos, setTodos] = useState(false);
   const cajaVideo = useRef<HTMLDivElement>(null);
 
   const verPaso = (i: number) => {
@@ -96,19 +99,15 @@ export function CursoGratis({
       conjunto no. Si alguna vez hay que dar más aire, se da DENTRO del bloque,
       no entre bloques.
     */
-    <section id="gratis" className="bg-sand/40 px-5 py-10 md:py-12">
-      <Entrada className="mx-auto max-w-6xl">
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="eyebrow">Curso gratuito</p>
-            <h2
-              className="font-display text-espresso mt-2 text-balance"
-              style={{ fontWeight: 500, fontSize: "clamp(32px, 3.6vw, 46px)", lineHeight: 1.08 }}
-            >
-              Tu primer bolso completo, gratis.
-            </h2>
-          </div>
-          <p className="text-ink-muted text-sm max-md:hidden">
+    /* Home a color (2026-10-22): crema, sin el velo arena de antes. */
+    <section id="gratis" className="px-5 py-14 md:py-22">
+      <Entrada className="mx-auto max-w-[1240px]">
+        <header>
+          <EyebrowLinea>Curso gratuito</EyebrowLinea>
+          <h2 className="titulo-seccion mt-3 text-balance">
+            Tu primer bolso completo, <em className="clave">gratis</em>.
+          </h2>
+          <p className="text-ink-body mt-2">
             {nombre} · materiales + {pasos.length - 1} pasos · sin cuenta
           </p>
         </header>
@@ -145,7 +144,7 @@ export function CursoGratis({
               />
 
               <span
-                className={`bg-gold-light text-espresso pointer-events-none absolute top-5 left-5 rounded-full px-4 py-2 text-xs font-bold tracking-wider uppercase transition-opacity duration-300 ${
+                className={`bg-espresso text-cream pointer-events-none absolute top-5 left-5 rounded-full px-4 py-2 text-xs font-bold tracking-wider uppercase transition-opacity duration-300 ${
                   viendo ? "opacity-0" : "opacity-100"
                 }`}
               >
@@ -154,38 +153,26 @@ export function CursoGratis({
 
               <span
                 /* Se desvanece, no se quita de golpe: un bloque que desaparece
-                   de un fotograma a otro se lee como un fallo. */
+                   de un fotograma a otro se lee como un fallo.
+                   Home a color: espresso SÓLIDO, sin el vidrio desenfocado. */
                 aria-hidden={viendo}
-                className={`pointer-events-none absolute inset-x-4 bottom-4 block rounded-[var(--radius-capsula)] border border-white/20 p-5 transition-opacity duration-300 ${
+                className={`bg-espresso pointer-events-none absolute inset-x-4 bottom-4 flex items-end justify-between gap-4 rounded-(--radius-capsula) px-5 py-4 transition-opacity duration-300 ${
                   viendo ? "opacity-0" : "opacity-100"
                 }`}
-                style={{
-                  background: "var(--vidrio-fondo)",
-                  backdropFilter: "blur(var(--vidrio-desenfoque))",
-                }}
               >
-                <span className="text-gold-light block text-xs font-bold tracking-[0.16em] uppercase">
-                  {eyebrow}
-                </span>
-                <span
-                  className="font-display text-cream mt-1.5 block text-balance"
-                  style={{ fontWeight: 500, fontSize: "clamp(26px, 3vw, 34px)", lineHeight: 1.1 }}
-                >
-                  {paso.titulo}
-                </span>
-
-                <span className="mt-4 flex items-center gap-3">
-                  <span className="block h-1.5 flex-1 overflow-hidden rounded-full bg-white/25">
-                    <motion.span
-                      className="bg-gold-light block h-full rounded-full"
-                      initial={false}
-                      animate={{ width: `${((abierto + 1) / pasos.length) * 100}%` }}
-                      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                    />
+                <span className="min-w-0">
+                  <span className="text-gold-light block text-xs font-bold tracking-[0.16em] uppercase">
+                    {eyebrow}
                   </span>
-                  <span className="shrink-0 text-xs text-white/70">
-                    {abierto + 1} de {pasos.length}
+                  <span
+                    className="font-display text-cream mt-1 block text-balance"
+                    style={{ fontWeight: 500, fontSize: "clamp(24px, 2.6vw, 30px)", lineHeight: 1.1 }}
+                  >
+                    {paso.titulo}
                   </span>
+                </span>
+                <span className="text-on-dark-muted cifra shrink-0 pb-1 text-sm">
+                  {abierto + 1} de {pasos.length}
                 </span>
               </span>
             </div>
@@ -209,12 +196,14 @@ export function CursoGratis({
             <ul className="mt-4 flex flex-col gap-2 max-md:gap-1.5">
               {pasos.map((p, i) => {
                 const activo = i === abierto;
-                const anterior = i < abierto;
+                const oculto = !todos && i >= 3 && !activo;
                 return (
-                  <li key={p.orden}>
+                  <li key={p.orden} className={oculto ? "max-md:hidden" : ""}>
+                    {/* Activo en arena (sin borde ni sombra); el resto, marfil
+                        con línea. Profundidad por capas, no por sombras. */}
                     <div
-                      className={`rounded-fila overflow-hidden transition-colors max-md:rounded-md ${
-                        activo ? "bg-ivory border-gold border-2 shadow-md" : "bg-ivory border-line border"
+                      className={`rounded-fila overflow-hidden border transition-colors ${
+                        activo ? "bg-sand border-transparent" : "bg-ivory border-line"
                       }`}
                     >
                       <button
@@ -230,17 +219,12 @@ export function CursoGratis({
                         <span
                           aria-hidden="true"
                           className={`flex size-[30px] shrink-0 items-center justify-center rounded-sm text-sm font-bold max-md:size-7 ${
-                            anterior || activo ? "bg-gold text-white" : "bg-sand text-ink-body"
+                            activo ? "bg-cacao text-gold-pale" : "bg-sand text-cacao"
                           }`}
                         >
                           {p.numero ?? "·"}
                         </span>
                         <span className="text-espresso flex-1 font-semibold">{p.titulo}</span>
-                        <ChevronRight
-                          size={17}
-                          aria-hidden="true"
-                          className={`text-ink-muted shrink-0 transition-transform duration-200 ${activo ? "rotate-90" : ""}`}
-                        />
                       </button>
 
                       {activo && (
@@ -252,8 +236,7 @@ export function CursoGratis({
                             <button
                               type="button"
                               onClick={() => verPaso(i)}
-                              className="text-espresso flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold"
-                              style={{ backgroundImage: "var(--boton-dorado)" }}
+                              className="bg-cacao text-ivory flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-transform active:scale-[0.97]"
                             >
                               <Play size={14} fill="currentColor" aria-hidden="true" />
                               Ver este paso
@@ -262,7 +245,7 @@ export function CursoGratis({
                               <button
                                 type="button"
                                 onClick={() => verPaso(i + 1)}
-                                className="border-line text-espresso flex h-11 items-center rounded-full border px-5 text-sm font-semibold"
+                                className="border-line-strong text-espresso flex h-11 items-center rounded-full border px-5 text-sm font-semibold"
                               >
                                 Siguiente paso
                               </button>
@@ -275,6 +258,16 @@ export function CursoGratis({
                 );
               })}
             </ul>
+
+            {!todos && pasos.length > 3 && (
+              <button
+                type="button"
+                onClick={() => setTodos(true)}
+                className="text-gold mx-auto mt-2 flex min-h-11 items-center text-sm font-semibold underline underline-offset-4 md:hidden"
+              >
+                Ver los {pasos.length - 1} pasos
+              </button>
+            )}
           </div>
         </div>
       </Entrada>

@@ -205,10 +205,23 @@ también en Mi plan y en el selector de pago.
   `#precio` como en escritorio; "Entrar" pierde el borde para caber a 375px.
 - Pendientes de esta tanda:
   - 🟡 La respuesta del ejemplo del home es PROVISIONAL: la tiene que validar Elizabeth.
-- **Elizabeth pasó a CREMA (2026-10-22, pedido de Cristian)** para separarse
-  del Ojo en arena. Sus tarjetas marfil llevan `border-line`. Queda crema
-  seguida de Planes (también crema); se lee bien por el titular y la tarjeta
-  oscura de Planes.
+- **Home a color (2026-10-22, `design-ref/home-color-claude-code`).** Una
+  sección, un color. Mapa final (orden de escritorio): cabecera crema · héroe
+  crema · cápsulas ESPRESSO · curso gratis crema · banda "1 de 20" CAFÉ a todo
+  el ancho · Ojo arena · Elizabeth (bio) ESPRESSO · alumnas crema · precio
+  ARENA · preguntas crema · cierre CAFÉ · pie ESPRESSO. Sin sombras; capas
+  fondo → tarjeta → chip. Piezas nuevas: `EyebrowLinea` y, en `globals.css`,
+  `.sobre-oscuro` cambia solo el color de `.titulo-seccion`, `.eyebrow` y
+  `.clave`. Las cápsulas en móvil dejaron de ser historias circulares (fila
+  de tarjetas de 200px). El precio usa el interruptor en variante
+  "segmentado" (solo ahí; la app sigue con el switch). Mismos textos,
+  enlaces, anclas, pago y analítica.
+  - 🟡 En MÓVIL el héroe (crema) y el curso gratis (crema) quedan seguidos:
+    en móvil las cápsulas van ARRIBA del héroe (decisión vieja: "como
+    historias"), y la referencia nueva las pone debajo. No se cambió el orden
+    (la regla lo prohíbe). Lo decide Cristian.
+  - 🟡 El pie de la referencia trae columnas (Curso / Ayuda) con enlaces que
+    hoy no están; se respetaron los enlaces actuales.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a

@@ -3,10 +3,12 @@
 import { Minus, Plus } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useId, useState } from "react";
+import { EnlaceWhatsApp } from "@/components/home/EnlaceCompra";
 import { Entrada } from "@/components/home/Entrada";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
-import { PREGUNTAS_FRECUENTES } from "@/lib/landing";
+import { PREGUNTAS_FRECUENTES, WHATSAPP_URL } from "@/lib/landing";
 
 /**
  * Las preguntas frecuentes del home v3.
@@ -26,16 +28,29 @@ export function PreguntasFrecuentes() {
   const base = useId();
 
   return (
-    <section id="faq" className="px-5 py-12 md:py-16">
-      <Entrada className="mx-auto max-w-205">
-        <h2
-          className="font-display text-espresso text-center"
-          style={{ fontWeight: 500, fontSize: "clamp(32px, 3.6vw, 46px)", lineHeight: 1.08 }}
-        >
-          Preguntas frecuentes
-        </h2>
+    /* Home a color (2026-10-22): crema, y en escritorio en dos columnas — el
+       encabezado a la izquierda y el acordeón a la derecha. */
+    <section id="faq" className="px-5 py-14 md:py-22">
+      <Entrada className="mx-auto grid max-w-[1080px] gap-8 md:grid-cols-[minmax(0,5fr)_minmax(0,8fr)] md:gap-16">
+        <header>
+          <EyebrowLinea>Dudas</EyebrowLinea>
+          <h2 className="titulo-seccion mt-3">
+            Preguntas <em className="clave">frecuentes</em>
+          </h2>
+          <p className="text-ink-body mt-3">
+            ¿No está la tuya?{" "}
+            <EnlaceWhatsApp
+              href={WHATSAPP_URL}
+              origen="faq"
+              className="text-gold inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+            >
+              Escríbenos
+            </EnlaceWhatsApp>
+            .
+          </p>
+        </header>
 
-        <ul className="border-line mt-8 border-t">
+        <ul className="border-line border-t">
           {PREGUNTAS_FRECUENTES.map((p, i) => {
             const abiertaEsta = abierta === i;
             const idRespuesta = `${base}-r${i}`;

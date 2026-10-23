@@ -523,6 +523,22 @@ body {
   outline-color: var(--gold-pale);
 }
 
+/*
+ * Home a color (2026-10-22): dentro de una sección oscura (espresso o café)
+ * los estilos de sección cambian SOLOS de color. Sin esto, cada componente
+ * tendría que acordarse de pintar el titular en crema y el eyebrow en
+ * `--gold-light` — y `--gold` sobre oscuro no pasa el contraste.
+ */
+.sobre-oscuro .titulo-seccion {
+  color: var(--cream);
+}
+.sobre-oscuro .eyebrow {
+  color: var(--gold-light);
+}
+.sobre-oscuro .clave {
+  color: var(--gold-pale);
+}
+
 /* Una fila con scroll lateral (las dudas del mini Ojo en móvil): se desliza
    con el dedo, sin la barra gris que en escritorio aparece debajo. */
 .sin-barra {

@@ -186,20 +186,18 @@ export default async function Home() {
             aquí ya leyó el precio, las preguntas y la garantía. Mandarla otra
             vez a `#precio` sería hacerle subir a pulsar lo mismo.
           */}
-          <section className="px-5 pb-12 md:pb-16">
-            <div className="bg-espresso sobre-oscuro grain-oscuro rounded-bloque mx-auto flex max-w-6xl flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:px-12 md:py-10">
+          {/* Home a color (2026-10-22): franja café a todo el ancho y
+              centrada, no una tarjeta espresso dentro de la crema. */}
+          <section className="bg-cacao sobre-oscuro grain-oscuro px-5 py-12 text-center md:py-18">
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-5">
               <div>
                 <h2
                   className="font-display text-cream text-balance"
-                  style={{ fontWeight: 500, fontSize: "clamp(28px, 3vw, 38px)", lineHeight: 1.1 }}
+                  style={{ fontWeight: 500, fontSize: "clamp(32px, 4vw, 52px)", lineHeight: 1.08 }}
                 >
-                  ¿Te gustó? Hay{" "}
-                  <em className="text-gold-pale italic" style={{ fontWeight: 400 }}>
-                    {totalBolsos} bolsos
-                  </em>{" "}
-                  esperándote.
+                  ¿Te gustó? Hay <em className="clave">{totalBolsos} bolsos</em> esperándote.
                 </h2>
-                <p className="text-on-dark-muted mt-2">
+                <p className="text-sand mt-3">
                   Plan anual: un pago de {precioDelCobro("anual")} al año · garantía de 7 días.
                 </p>
               </div>
@@ -208,7 +206,7 @@ export default async function Home() {
                 origen="cierre"
                 plan="anual"
                 abrePago={Boolean(cobro.url.anual)}
-                className="bg-gold-pale text-espresso rounded-boton flex h-14 shrink-0 items-center justify-center px-8 font-extrabold transition-transform active:scale-[0.98]"
+                className="bg-cream text-espresso flex h-13.5 shrink-0 items-center justify-center rounded-full px-10 font-semibold transition-transform active:scale-[0.98] max-md:w-full"
               >
                 Inscribirme por {precioDesde()}/mes
               </EnlaceCompra>

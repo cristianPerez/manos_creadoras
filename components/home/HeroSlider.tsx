@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Play, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -99,7 +99,7 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
               foto casi cuadrada de antes no cabían. 4:3 sigue enseñando el
               bolso entero (asa incluida) y libera ~90px.
             */}
-            <div className="bg-espresso relative aspect-square overflow-hidden rounded-(--radius-foto) shadow-[0_24px_60px_-24px_rgba(42,31,25,0.45)] max-md:aspect-[4/3] max-md:rounded-bloque">
+            <div className="bg-espresso relative aspect-square overflow-hidden rounded-(--radius-foto) max-md:aspect-[4/3] max-md:rounded-bloque">
               {/* `key` por slug: al cambiar de bolso React monta una imagen
                   nueva, y con `animate-[aparecer]` el cambio se funde en vez de
                   saltar. */}
@@ -198,7 +198,7 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
           */}
           {/* En móvil no va: la v3 pone el titular justo bajo los puntos, y
               las historias de arriba ya dicen "cápsulas gratis" con imágenes. */}
-          <span className="bg-sand text-ink-body hidden rounded-full px-4 py-2 text-xs font-semibold md:inline-block">
+          <span className="bg-sand text-cacao hidden rounded-full px-4 py-2 text-xs font-semibold md:inline-block">
             5 cápsulas + 1 bolso completo gratis
           </span>
 
@@ -266,45 +266,29 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
 
           <p className="text-ink-body mt-4 md:hidden">{PARRAFO}</p>
 
-          <p className="text-ink-muted mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm md:mt-6">
-            {/*
-              ⚠️ LA VALORACIÓN "4,9/5" SE QUITÓ EL 2026-10-17 POR DECISIÓN DE
-              CRISTIAN: no hay un sistema de reseñas detrás que la sostenga, así
-              que era una cifra sin respaldo. Las +1.200 alumnas SÍ son reales y
-              se quedan.
-
-              Una prueba social que no se puede demostrar es peor que ninguna:
-              basta que alguien pregunte "¿dónde están esas reseñas?" para
-              perder la confianza en todo lo demás de la página.
-            */}
-            <span className="flex items-center gap-1.5">
-              <Star size={14} className="text-gold" fill="currentColor" aria-hidden="true" />
-              <strong className="text-espresso font-semibold">
-                +
-                <NumeroQueCuenta
-                  hasta={1200}
-                  formato={(n) => Math.round(n).toLocaleString("es-CO")}
-                  duracion={1.3}
-                />
-              </strong>
+          {/* Home a color (2026-10-22): la cifra en display, con una línea
+              arriba que separa la prueba social de los botones. Sin la
+              estrella: la referencia la quita y el número habla solo. */}
+          <div className="border-line mt-5 flex items-center gap-4 border-t pt-4 md:mt-7 md:gap-5 md:pt-5">
+            <strong
+              className="font-display text-espresso shrink-0"
+              style={{ fontWeight: 500, fontSize: "clamp(28px, 2.6vw, 34px)", lineHeight: 1 }}
+            >
+              +
+              <NumeroQueCuenta
+                hasta={1200}
+                formato={(n) => Math.round(n).toLocaleString("es-CO")}
+                duracion={1.3}
+              />
+            </strong>
+            <span className="text-ink-muted flex flex-col text-sm leading-snug">
               <span>alumnas en Latinoamérica</span>
+              {/* ⚠️ VUELVE EN LA V3 (2026-10-20). Sigue siendo cierto: el bolso
+                  gratis no pide tarjeta. La valoración "4,9/5" se quitó el
+                  2026-10-17 (sin reseñas que la respalden) y no vuelve. */}
+              <span>Sin tarjeta para empezar</span>
             </span>
-            {/* ⚠️ VUELVE EN LA V3 (2026-10-20): el diseño nuevo de Cristian lo
-                repone. Sigue siendo cierto —el bolso gratis no pide tarjeta—. */}
-            <span>Sin tarjeta para empezar</span>
-            {/*
-              ⚠️ "SIN TARJETA PARA EMPEZAR" SE QUITÓ EL 2026-10-19 (decisión de
-              Cristian). Queda anotado para que nadie lo reponga creyendo que
-              se perdió: es el segundo recorte de esta línea, después del
-              "4,9/5" del 17-oct, y la línea se queda SOLO con las +1.200
-              alumnas.
-
-              El dato sigue siendo cierto y se sigue diciendo donde toca —el
-              botón promete el bolso gratis y el paywall no aparece hasta
-              intentar más—, así que no se pierde la promesa: se deja de
-              repetir en el héroe.
-            */}
-          </p>
+          </div>
         </div>
       </div>
     </section>
@@ -318,7 +302,7 @@ function Flecha({ lado, onClick }: { lado: "izquierda" | "derecha"; onClick: () 
       type="button"
       onClick={onClick}
       aria-label={lado === "izquierda" ? "Bolso anterior" : "Bolso siguiente"}
-      className={`bg-cream/90 text-espresso absolute top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full shadow-md transition-transform active:scale-95 [touch-action:manipulation] ${
+      className={`bg-cream/90 text-espresso absolute top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full transition-transform active:scale-95 [touch-action:manipulation] ${
         lado === "izquierda" ? "left-3" : "right-3"
       }`}
     >
