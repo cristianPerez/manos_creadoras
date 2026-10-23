@@ -197,7 +197,7 @@ export function FormularioAcceso({
       <Reveal delay={0.14}>
         <p className="text-ink-body mt-5 text-sm max-md:text-center">
           ¿Todavía no compraste?{" "}
-          <Link href="/#oferta" className="text-gold font-semibold underline underline-offset-4">
+          <Link href="/#precio" className="text-gold font-semibold underline underline-offset-4">
             Ver el programa
           </Link>
         </p>

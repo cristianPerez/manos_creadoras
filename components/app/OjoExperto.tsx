@@ -277,8 +277,23 @@ export function OjoExperto({
   const contador = visitante
     ? { etiqueta: "Preguntas gratis", usado: usadasVisitante, total: PREGUNTAS_DE_VISITANTE }
     : usado
-      ? { etiqueta: "Preguntas este mes", usado: usado.preguntasUsadas, total: usado.preguntasLimite }
+      ? {
+          etiqueta: usado.plan === "gratis" ? "Preguntas gratis este mes" : "Preguntas este mes",
+          usado: usado.preguntasUsadas,
+          total: usado.preguntasLimite,
+        }
       : null;
+
+  /*
+   * Bajo el composer, el plan pagado NO lleva "0 de 600" (auditoría
+   * 2026-10-23): 600 es un tope de uso justo, no una promesa, y leído junto al
+   * "0 de 2 gratis" del visitante parecía otra oferta. Se avisa solo cuando ya
+   * gastó el 80%. El medidor completo sigue en el historial y en Mi cuenta.
+   */
+  const contadorNota =
+    contador && usado?.plan !== "gratis" && !visitante && contador.usado < contador.total * 0.8
+      ? null
+      : contador;
 
   const fotoElegida = foto && <FotoElegida foto={foto} quitar={() => setFoto(null)} />;
 
@@ -320,6 +335,9 @@ export function OjoExperto({
               "Historial" con texto y no una hamburguesa: la hamburguesa
               prometía un menú, y la navegación ya está en la barra de abajo.
               Lo que abre es el historial, y así se llama. */}
+          {/* En escritorio la cabecera de la app ya dice dónde está, pero la
+              página necesita su título para quien navega con lector. */}
+          <h1 className="sr-only max-lg:hidden">Ojo Experto</h1>
           <div className="border-line flex h-15 shrink-0 items-center justify-between gap-2 border-b px-3 lg:hidden">
             <button
               type="button"
@@ -371,7 +389,7 @@ export function OjoExperto({
                           enviando={enviando}
                           onEnviar={() => enviar(texto)}
                         />
-                        <NotaComposer contador={contador} />
+                        <NotaComposer contador={contadorNota} />
                       </>
                     )
                   }
@@ -437,7 +455,7 @@ export function OjoExperto({
                     enviando={enviando}
                     onEnviar={() => enviar(texto)}
                   />
-                  {vacio && <NotaComposer contador={contador} corta />}
+                  {vacio && <NotaComposer contador={contadorNota} corta />}
                 </div>
               )}
             </div>
@@ -535,9 +553,13 @@ function NotaComposer({
         ? corta
           ? " gratis"
           : " preguntas gratis"
-        : corta
-          ? " este mes"
-          : " preguntas este mes"}
+        : contador.etiqueta === "Preguntas gratis este mes"
+          ? corta
+            ? " gratis"
+            : " preguntas gratis este mes"
+          : corta
+            ? " este mes"
+            : " preguntas este mes"}
     </span>
   );
   return (

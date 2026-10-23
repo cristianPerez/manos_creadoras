@@ -80,14 +80,21 @@ function Logo({ tamano }: { tamano: "chico" | "grande" }) {
 }
 
 /** El avatar redondo con las iniciales: lleva a la cuenta. */
-function Avatar({ iniciales }: { iniciales: string | null }) {
+function Avatar({ iniciales, activo }: { iniciales: string | null; activo: boolean }) {
   return (
     <Link
       href="/app/cuenta"
       aria-label="Mi cuenta"
+      aria-current={activo ? "page" : undefined}
       className="flex size-11 shrink-0 items-center justify-center"
     >
-      <span className="bg-cacao text-gold-pale flex size-10 items-center justify-center rounded-full text-sm font-semibold">
+      {/* En Mi cuenta, el avatar es la "pestaña" activa: lleva el anillo
+          espresso, igual que la píldora de las otras secciones. */}
+      <span
+        className={`bg-cacao text-gold-pale flex size-10 items-center justify-center rounded-full text-sm font-semibold ${
+          activo ? "ring-espresso ring-offset-cream ring-2 ring-offset-2" : ""
+        }`}
+      >
         {iniciales ?? "·"}
       </span>
     </Link>
@@ -103,6 +110,7 @@ export function CabeceraApp() {
   const ruta = usePathname();
   const { conSesion, iniciales, plan } = useSesion();
   const enCuenta = ruta.startsWith("/app/cuenta");
+  const enPlan = ruta.startsWith("/app/plan");
   const conBarraPropia = ruta.startsWith("/app/ojo") || ruta.startsWith("/app/bolsos");
 
   return (
@@ -134,12 +142,16 @@ export function CabeceraApp() {
         <div className="ml-auto flex shrink-0 items-center gap-3">
           {conSesion ? (
             <>
-              {plan && (
+              {/* Con cuenta pero sin plan, la oferta sigue arriba: es quien más
+                  cerca está de comprar (auditoría 2026-10-23). */}
+              {plan ? (
                 <span className="bg-sand text-cacao rounded-full px-4 py-2 text-sm font-medium">
                   {plan}
                 </span>
+              ) : (
+                !enPlan && <Inscribirme />
               )}
-              <Avatar iniciales={iniciales} />
+              <Avatar iniciales={iniciales} activo={enCuenta} />
             </>
           ) : (
             <>
@@ -163,8 +175,11 @@ export function CabeceraApp() {
         <header className="bg-cream border-line sticky top-0 z-(--z-sticky) flex h-15 shrink-0 items-center justify-between gap-3 border-b px-4 lg:hidden">
           <Logo tamano="chico" />
           {conSesion ? (
-            <Avatar iniciales={iniciales} />
-          ) : ruta.startsWith("/app/plan") ? (
+            <div className="flex items-center gap-2">
+              {!plan && !enPlan && <Inscribirme />}
+              <Avatar iniciales={iniciales} activo={enCuenta} />
+            </div>
+          ) : enPlan ? (
             /* En Mi plan el plan ya está a la vista: arriba, "Entrar". */
             <Link
               href="/app/cuenta"

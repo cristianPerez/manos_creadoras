@@ -1,4 +1,3 @@
-import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -140,13 +139,16 @@ export default async function MiCuenta() {
             {cupo && (
               <Tarjeta titulo="Ojo Experto este mes">
                 <Barra
-                  etiqueta="Preguntas"
+                  etiqueta="Preguntas escritas"
                   usado={cupo.preguntasUsadas}
                   total={cupo.preguntasLimite}
                 />
                 <div className="mt-3">
-                  <Barra etiqueta="Fotos" usado={cupo.fotosUsadas} total={cupo.fotosLimite} />
+                  <Barra etiqueta="Fotos de tu tejido" usado={cupo.fotosUsadas} total={cupo.fotosLimite} />
                 </div>
+                <p className="text-ink-muted mt-3 text-sm">
+                  Se renuevan el día 1 de cada mes.
+                </p>
               </Tarjeta>
             )}
 
@@ -156,7 +158,8 @@ export default async function MiCuenta() {
 
             <Tarjeta titulo="Ayuda y legal">
               <ul className="flex flex-col">
-                {LEGALES.map((l) => (
+                {/* "Cómo cancelar" solo a quien tiene algo que cancelar. */}
+                {LEGALES.filter((l) => alumna.tieneAcceso || l.href !== "/legal/cancelar").map((l) => (
                   <li key={l.href}>
                     <Link
                       href={l.href}
@@ -166,17 +169,6 @@ export default async function MiCuenta() {
                     </Link>
                   </li>
                 ))}
-                {/* El Directorio no cabe en la barra de abajo de móvil: su
-                    puerta está aquí y en la ficha de cada bolso. */}
-                <li className="lg:hidden">
-                  <Link
-                    href="/app/directorio"
-                    className="text-ink-body hover:text-espresso flex h-11 items-center gap-2 text-sm"
-                  >
-                    Directorio de proveedores
-                    <ExternalLink size={13} aria-hidden="true" />
-                  </Link>
-                </li>
               </ul>
             </Tarjeta>
           </div>

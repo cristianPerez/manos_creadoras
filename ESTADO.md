@@ -440,6 +440,14 @@ toca reintentar en el servidor.
 
 ## 🟡 Pendientes de código (no bloquean vender)
 
+- ✅ **AUDITORÍA DE /app EN 3 ESTADOS (2026-10-23) — CORREGIDA.** La página de cada
+  paso ya no existe como pantalla: `/app/bolsos/[slug]/[orden]` redirige a la ficha
+  con `?video=N&ver=1` (se borraron PanelLeccion, PasoAPaso y ListaMateriales).
+  Cuenta gratis ve la oferta y "Inscribirme"; "Continúa" solo con avance real;
+  404 propio dentro de la app; Ojo pagado sin "0 de 600" (se avisa al 80%).
+  ⚠️ Decisión de negocio abierta: visitante tiene 2 preguntas, cuenta gratis 3/mes
+  (vienen de `plan_cupos`); no se tocó.
+
 - 🔴 **CÁPSULAS SIN AUDIO — DIAGNÓSTICO DEL 2026-10-21.** En Chrome de escritorio
   SÍ suenan (probado con toque real: el reproductor dice `getMuted=false`,
   volumen 100, y no salta el plan B). En TELÉFONOS no: (1) Safari de iPhone no

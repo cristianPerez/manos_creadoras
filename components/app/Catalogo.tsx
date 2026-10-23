@@ -29,7 +29,7 @@ export function Catalogo({
   bolsos: Bolso[];
   continuar: Bolso | null;
   tieneAcceso: boolean;
-  /** Quien mira no ha entrado: se le enseña la oferta junto al catálogo. */
+  /** Quien mira no tiene plan (con cuenta o sin ella): se le enseña la oferta. */
   invitada?: boolean;
   /** Los enlaces de pago de su país (`lib/checkout.ts`); `null` si ese ciclo no tiene. */
   enlaces: Record<Frecuencia, string | null>;
@@ -164,7 +164,7 @@ function ContinuaDondeQuedaste({ bolso }: { bolso: Bolso }) {
 
   return (
     <Link
-      href={`/app/bolsos/${bolso.slug}/${siguiente.orden}`}
+      href={`/app/bolsos/${bolso.slug}?video=${siguiente.orden}&ver=1`}
       className="bg-sand mt-8 grid overflow-hidden rounded-[var(--radius-lg)] sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
     >
       {/* Mismo hueco negro que tenía la ficha: aquí también va la foto, con el
@@ -176,7 +176,7 @@ function ContinuaDondeQuedaste({ bolso }: { bolso: Bolso }) {
             alt=""
             fill
             sizes="(min-width: 640px) 320px, 100vw"
-            className="object-cover opacity-70"
+            className="object-cover"
           />
         )}
         <span

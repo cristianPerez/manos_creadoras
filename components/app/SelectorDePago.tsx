@@ -106,7 +106,9 @@ export function SelectorDePago({
             href={url ?? "/contacto"}
             className="bg-gold-pale text-espresso mt-6 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
           >
-            Quiero el plan {frecuencia === "anual" ? "anual" : "mensual"}
+            {/* Con enlace de pago dice lo mismo que el home y Mis bolsos
+                (auditoría 2026-10-23); sin él no promete inscribir. */}
+            {url ? "Inscribirme con el plan" : "Quiero el plan"} {frecuencia === "anual" ? "anual" : "mensual"}
           </Link>
           <p className="text-on-dark-muted mt-4 text-center text-sm md:text-left">
             {url ? NOTA_PAGO : "Te escribimos al correo con el enlace de pago y tu acceso."}

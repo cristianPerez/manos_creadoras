@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Check, ChevronRight, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AccesoMateriales } from "@/components/app/AccesoMateriales";
 import { MaterialesDelBolso } from "@/components/app/MaterialesDelBolso";
 import type { Material } from "@/lib/bolsos-logica";
@@ -48,9 +48,9 @@ export type FilaFicha = {
  * paso abría su propia página y había que ir y volver para seguir el bolso.
  *
  * ⚠️ LO QUE NO CAMBIÓ: quién puede ver (el servidor firma la URL solo si hay
- * acceso), cómo se guarda el avance (el mismo `BotonVisto`, que refresca la
- * página al marcar) y las páginas de cada paso, que siguen existiendo para
- * los enlaces que ya apuntan a ellas.
+ * acceso) y cómo se guarda el avance (el mismo `BotonVisto`, que refresca la
+ * página al marcar). Las direcciones viejas de cada paso
+ * (`/app/bolsos/[slug]/[orden]`) redirigen aquí con `?video=N&ver=1`.
  */
 export function FichaBolso({
   slug,
@@ -63,6 +63,7 @@ export function FichaBolso({
   videos,
   filas,
   ordenInicial,
+  arrancarAlInicio = false,
   totalPasos,
   pago,
   materiales,
@@ -79,6 +80,8 @@ export function FichaBolso({
   videos: VideoFicha[];
   filas: FilaFicha[];
   ordenInicial: number;
+  /** Se llegó tocando un video concreto: arranca y la pantalla baja a él. */
+  arrancarAlInicio?: boolean;
   totalPasos: number;
   /** El banner café de pago (`BannerPlan`) cuando el bolso viene con el plan. */
   pago: ReactNode;
@@ -90,7 +93,7 @@ export function FichaBolso({
   /* Sube en cada elección: al elegir otro video, el reproductor se monta de
      nuevo y arranca solo (ella acaba de tocar, así que puede sonar). Al
      abrir la ficha NO arranca: nadie ha pedido todavía que suene nada. */
-  const [arranque, setArranque] = useState(0);
+  const [arranque, setArranque] = useState(arrancarAlInicio ? 1 : 0);
   const [viendo, setViendo] = useState(false);
 
   const actual = videos.find((v) => v.orden === orden) ?? videos[0];
@@ -114,6 +117,13 @@ export function FichaBolso({
     const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     cajaVideo.current?.scrollIntoView({ behavior: quieto ? "auto" : "smooth", block: "start" });
   }
+
+  /* Llegó tocando un video (`?video=N&ver=1`): en móvil el video ya está
+     arriba, pero en escritorio la cabecera lo empuja; se baja hasta él. */
+  useEffect(() => {
+    if (!arrancarAlInicio) return;
+    cajaVideo.current?.scrollIntoView({ behavior: "auto", block: "start" });
+  }, [arrancarAlInicio]);
 
   const etiquetaPaso =
     actual.paso === null
@@ -348,8 +358,8 @@ export function FichaBolso({
 
 /**
  * Las filas del paso a paso. Botones, no enlaces: cambian el video de arriba
- * sin salir de la ficha. "Materiales" va primero y sin número (ver la nota en
- * `PasoAPaso.tsx`: no es el paso 0, es lo de antes de empezar).
+ * sin salir de la ficha. "Materiales" va primero y sin número: no es el
+ * paso 0, es lo de antes de empezar.
  */
 function PasoAPasoFicha({
   filas,

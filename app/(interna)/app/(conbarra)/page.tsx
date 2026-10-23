@@ -28,7 +28,15 @@ export default async function MisBolsos() {
    * que hay dentro es lo que hace que valga la pena pagar — esconderlo solo
    * hace que parezca que hay menos.
    */
-  const saludo = alumna ? `Hola, ${nombreCorto(alumna)}` : "Acceso de cortesía";
+  /* Sin nombre en el perfil no se usa el correo ("Hola, auditoria-gratis"
+     se lee como un error): se saluda sin nombre. */
+  const saludo = alumna?.nombre ? `Hola, ${nombreCorto(alumna)}` : alumna ? "Hola de nuevo" : "Acceso de cortesía";
+  /* El gratis sale de la BASE, no escrito a mano: el texto decía "Cristal
+     Brillante" mientras el regalo era Nácar Soñado. */
+  const gratis = bolsos.find((b) => b.gratis) ?? null;
+  /* "Continúa donde quedaste" solo si de verdad empezó algo: con 0 vistos
+     la tarjeta prometía un avance que no existe. */
+  const retomar = alumna ? continuarDonde(bolsos) : null;
   /* La última palabra en cursiva dorada, como los titulares del home. */
   const titulo = alumna ? (
     <>
@@ -49,8 +57,8 @@ export default async function MisBolsos() {
             <h1 className="titulo-seccion mt-3 text-balance">{titulo}</h1>
             {!alumna && (
               <p className="text-ink-body mt-3 max-w-2xl max-lg:hidden">
-                Cristal Brillante es tuyo sin pagar y sin crear cuenta. Los demás puedes verlos por
-                dentro —sus pasos y sus materiales— y tejerlos cuando tengas plan.
+                {gratis ? `${gratis.nombre} es tuyo sin pagar y sin crear cuenta. ` : ""}Los demás
+                puedes verlos por dentro —sus pasos y sus materiales— y tejerlos cuando tengas plan.
               </p>
             )}
           </div>
@@ -71,9 +79,10 @@ export default async function MisBolsos() {
         <Catalogo
           desde={precioDesde()}
           bolsos={bolsos}
-          continuar={alumna ? continuarDonde(bolsos) : null}
+          continuar={retomar && retomar.vistos > 0 ? retomar : null}
           tieneAcceso={alumna?.tieneAcceso ?? false}
-          invitada={!alumna}
+          /* La oferta la ve TODA la que no tiene plan, con cuenta o sin ella. */
+          invitada={!alumna?.tieneAcceso}
           enlaces={cobro.url}
         />
       </div>

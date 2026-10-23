@@ -33,10 +33,15 @@ export async function generateMetadata({
 
 export default async function Ficha({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  /** `?video=N&ver=1`: llega de un enlace a un video concreto (la tarjeta de
+      retomar o la dirección vieja de cada paso), que arranca solo. */
+  searchParams: Promise<{ video?: string; ver?: string }>;
 }) {
   const { slug } = await params;
+  const { video, ver } = await searchParams;
   const [bolso, alumna, cobro] = await Promise.all([
     obtenerBolso(slug),
     alumnaActual(),
@@ -129,7 +134,12 @@ export default async function Ficha({
       meta={meta}
       videos={videos}
       filas={filas}
-      ordenInicial={siguiente?.orden ?? 0}
+      ordenInicial={
+        video !== undefined && videos.some((v) => v.orden === Number(video))
+          ? Number(video)
+          : (siguiente?.orden ?? 0)
+      }
+      arrancarAlInicio={ver === "1" && video !== undefined}
       totalPasos={bolso.pasos.length}
       pago={
         /*
