@@ -207,8 +207,12 @@
 
   --barra-lateral: 260px;
   --barra-lateral-ojo: 280px;
-  /* La barra de navegación de abajo en móvil (Ojo v5). */
-  --alto-barra-inferior: 64px;
+  /* La navegación unificada de la app (2026-10-23): la barra de abajo en
+     móvil, lo que sobresale el círculo del Ojo por encima de ella, y la
+     cabecera de arriba en escritorio. */
+  --alto-barra-inferior: 72px;
+  --elevacion-ojo: 30px;
+  --alto-cabecera-app: 68px;
 
   --radius-lg: 1.25rem;   /* 20px — tope bajo del rango 20-30 de la guía */
   --radius-xl: 1.875rem;  /* 30px — tope alto: tarjetas grandes */
@@ -423,11 +427,16 @@ body {
  * deja `pb-24` (6rem) para ella, y altura + hueco = una pantalla justa.
  */
 .alto-ojo {
-  height: calc(100dvh - var(--alto-barra-inferior) - env(safe-area-inset-bottom));
+  /* Móvil: la pantalla menos la barra de abajo y el círculo del Ojo que
+     sobresale. El Ojo pone su propia barra arriba, dentro de este alto. */
+  height: calc(
+    100dvh - var(--alto-barra-inferior) - var(--elevacion-ojo) - env(safe-area-inset-bottom)
+  );
 }
 @media (min-width: 1024px) {
   .alto-ojo {
-    height: 100dvh;
+    /* Escritorio: la pantalla menos la cabecera global de la app. */
+    height: calc(100dvh - var(--alto-cabecera-app));
   }
   :root {
     --foto-mensaje: 220px;
@@ -506,7 +515,9 @@ body {
  * puede cambiar sin la otra. Más el área segura del iPhone.
  */
 .hueco-barra-inferior {
-  padding-bottom: calc(var(--alto-barra-inferior) + env(safe-area-inset-bottom));
+  padding-bottom: calc(
+    var(--alto-barra-inferior) + var(--elevacion-ojo) + env(safe-area-inset-bottom)
+  );
 }
 @media (min-width: 1024px) {
   .hueco-barra-inferior {

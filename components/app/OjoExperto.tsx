@@ -4,7 +4,7 @@ import {
   Camera,
   Copy,
   ImageIcon,
-  Menu,
+  History,
   Palette,
   Plus,
   Search,
@@ -19,7 +19,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { TextoDelOjo } from "@/components/app/TextoDelOjo";
-import { EnlacesSuperiores } from "@/components/app/NavegacionApp";
 import {
   AvatarOjo,
   BurbujaAlumna,
@@ -28,7 +27,6 @@ import {
   IconoCamara,
   claseCamara,
 } from "@/components/app/OjoPiezas";
-import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Cupo } from "@/lib/alumna";
 import type { Frecuencia } from "@/lib/planes";
@@ -116,7 +114,6 @@ export function OjoExperto({
   conversacionInicial = null,
   visitante = false,
   enlaces = null,
-  iniciales = null,
 }: {
   historial: Conversacion[];
   cupo: Cupo | null;
@@ -135,8 +132,6 @@ export function OjoExperto({
   visitante?: boolean;
   /** Para la caja de "pásate al plan" cuando se acaban las preguntas gratis. */
   enlaces?: Record<Frecuencia, string | null> | null;
-  /** Las del avatar de la cabecera de escritorio. Solo con sesión. */
-  iniciales?: string | null;
 }) {
   const [mensajes, setMensajes] = useState<Mensaje[]>(mensajesIniciales);
 
@@ -278,12 +273,6 @@ export function OjoExperto({
 
   const vacio = mensajes.length === 0;
   const conComposer = pidePlan?.motivo !== "agotado";
-  /* El título de la barra de móvil: el del hilo si ya está en el historial, y
-     si es nuevo, la primera pregunta — que es de donde sale el título guardado. */
-  const tituloHilo =
-    historial.find((c) => c.id === conversacion)?.titulo ??
-    mensajes.find((m) => m.rol === "alumna")?.texto ??
-    "Ojo Experto";
 
   const contador = visitante
     ? { etiqueta: "Preguntas gratis", usado: usadasVisitante, total: PREGUNTAS_DE_VISITANTE }
@@ -313,58 +302,8 @@ export function OjoExperto({
         }}
       />
 
-      {/* ── Cabecera de escritorio (v5): la navegación sale de la barra lateral
-          y sube aquí, así la lateral queda solo para las consultas. ── */}
-      <header className="border-line bg-cream hidden h-18 shrink-0 items-center gap-8 border-b px-8 lg:flex">
-        <Link
-          href="/app"
-          className="font-display text-espresso shrink-0"
-          style={{ fontSize: 28, fontWeight: 500 }}
-        >
-          Manos{" "}
-          <em className="text-gold italic" style={{ fontWeight: 400 }}>
-            Creadoras
-          </em>
-        </Link>
-
-        <EnlacesSuperiores />
-
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          {visitante ? (
-            <>
-              <Link
-                href="/app/cuenta"
-                className="text-gold flex h-11 items-center px-4 text-sm font-semibold"
-              >
-                Entrar
-              </Link>
-              {/* ⚠️ "Inscribirme" Y NO "Crear cuenta gratis" como dice la
-                  referencia: desde el 2026-10-21 los "crear cuenta" de la app
-                  llevan a pagar (anual por defecto). Un "gratis" que abre un
-                  pago sería engañar. */}
-              <EnlaceCompra
-                href={enlaces?.anual ?? "/pagar?ciclo=anual"}
-                origen="ojo_cabecera"
-                plan="anual"
-                abrePago={Boolean(enlaces?.anual)}
-                className="bg-gold text-text-inverse flex h-11 items-center rounded-full px-6 text-sm font-semibold transition-transform duration-150 active:scale-[0.97]"
-              >
-                Inscribirme
-              </EnlaceCompra>
-            </>
-          ) : (
-            <Link
-              href="/app/cuenta"
-              aria-label="Mi cuenta"
-              className="flex size-11 items-center justify-center"
-            >
-              <span className="bg-sand text-espresso flex size-10 items-center justify-center rounded-full text-sm font-semibold">
-                {iniciales}
-              </span>
-            </Link>
-          )}
-        </div>
-      </header>
+      {/* La cabecera de escritorio ya no es del Ojo: es la global de la app
+          (`CabeceraApp`, en el layout), la misma en todas las páginas. */}
 
       <div className="flex min-h-0 flex-1">
         <PanelHistorial
@@ -377,35 +316,31 @@ export function OjoExperto({
         />
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-          {/* ── Barra de móvil: consultas · título · nueva ── */}
-          <div
-            className={`flex h-14 shrink-0 items-center gap-1 px-1.5 lg:hidden ${
-              vacio ? "" : "border-line border-b"
-            }`}
-          >
+          {/* ── Barra de móvil: historial · título · nueva (2026-10-23) ──
+              "Historial" con texto y no una hamburguesa: la hamburguesa
+              prometía un menú, y la navegación ya está en la barra de abajo.
+              Lo que abre es el historial, y así se llama. */}
+          <div className="border-line flex h-15 shrink-0 items-center justify-between gap-2 border-b px-3 lg:hidden">
             <button
               type="button"
               onClick={() => setPanelAbierto(true)}
-              aria-label="Mis consultas"
-              className="text-espresso flex size-11 shrink-0 items-center justify-center"
+              className="bg-sand text-espresso flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-medium"
             >
-              <Menu size={22} aria-hidden="true" />
+              <History size={18} aria-hidden="true" />
+              Historial
             </button>
-            {/* ⚠️ SIN EL LÁPIZ DE LA REFERENCIA: hoy no hay forma de renombrar
-                una consulta, y un lápiz que no hace nada rompe la confianza en
-                todo lo demás. Pendiente en ESTADO.md. */}
             <h1
-              className="font-display text-espresso min-w-0 flex-1 truncate text-center"
-              style={{ fontSize: vacio ? 22 : 21, fontWeight: 500 }}
+              className="font-display text-espresso min-w-0 truncate text-center"
+              style={{ fontSize: 22, fontWeight: 500 }}
             >
-              {vacio ? "Ojo Experto" : tituloHilo}
+              Ojo <em className="clave">Experto</em>
             </h1>
             {/* ⚠️ "+" Y NO EL LÁPIZ DE ANTES: el lápiz se leía como "editar". */}
             <button
               type="button"
               onClick={nueva}
               aria-label="Nueva consulta"
-              className="text-espresso flex size-11 shrink-0 items-center justify-center"
+              className="bg-espresso text-cream flex size-11 shrink-0 items-center justify-center rounded-full transition-transform active:scale-[0.95]"
             >
               <Plus size={22} aria-hidden="true" />
             </button>
@@ -816,19 +751,19 @@ function PanelHistorial({
 
       <aside
         aria-label="Mis consultas"
-        className={`bg-ivory border-line flex w-(--barra-lateral-ojo) shrink-0 flex-col gap-3.5 p-5 lg:border-r max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-(--z-modal) max-lg:w-80 max-lg:max-w-[85vw] max-lg:rounded-r-(--radius-cajon) max-lg:transition-[transform,visibility] max-lg:duration-300 max-lg:ease-out ${
+        className={`bg-sand border-line flex w-(--barra-lateral-ojo) shrink-0 flex-col gap-3.5 p-5 lg:border-r max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-(--z-modal) max-lg:w-80 max-lg:max-w-[85vw] max-lg:rounded-r-(--radius-cajon) max-lg:transition-[transform,visibility] max-lg:duration-300 max-lg:ease-out ${
           abierto ? "max-lg:translate-x-0" : "max-lg:invisible max-lg:-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between lg:hidden">
           <p className="font-display text-espresso" style={{ fontSize: 30, fontWeight: 500 }}>
-            Mis consultas
+            Tus <em className="clave">consultas</em>
           </p>
           <button
             type="button"
             onClick={cerrar}
             aria-label="Cerrar"
-            className="text-espresso -mr-2 flex size-11 items-center justify-center"
+            className="bg-ivory text-espresso flex size-11 items-center justify-center rounded-full"
           >
             <X size={22} aria-hidden="true" />
           </button>
@@ -837,14 +772,14 @@ function PanelHistorial({
         <button
           type="button"
           onClick={nueva}
-          className="bg-espresso text-cream flex h-12 items-center justify-center gap-2 rounded-full px-4 font-semibold transition-transform duration-150 active:scale-[0.98]"
+          className="bg-espresso text-cream flex h-12.5 items-center justify-center gap-2 rounded-full px-4 font-semibold transition-transform duration-150 active:scale-[0.98] lg:h-12"
           style={{ fontSize: "1rem" }}
         >
           <Plus size={18} aria-hidden="true" />
           Nueva consulta
         </button>
 
-        <label className="bg-sand focus-within:outline-gold flex h-11 items-center gap-3 rounded-full px-4 focus-within:outline-2">
+        <label className="bg-ivory border-line focus-within:outline-gold flex h-11 items-center gap-3 rounded-full border px-4 focus-within:outline-2">
           <Search size={16} className="text-ink-muted shrink-0" aria-hidden="true" />
           <input
             type="search"
@@ -876,8 +811,8 @@ function PanelHistorial({
                             aria-current={esActiva ? "page" : undefined}
                             className={`block truncate rounded-md px-3 py-3 text-sm transition-colors duration-150 ${
                               esActiva
-                                ? "bg-sand text-espresso font-semibold"
-                                : "text-ink-body hover:bg-sand hover:text-espresso"
+                                ? "bg-ivory text-espresso font-semibold"
+                                : "text-ink-body hover:bg-ivory/60 hover:text-espresso"
                             }`}
                           >
                             {c.titulo}

@@ -1,37 +1,51 @@
 import type { ReactNode } from "react";
-import { BarraInferior } from "@/components/app/NavegacionApp";
+import { BarraInferior, CabeceraApp } from "@/components/app/NavegacionApp";
 import { ProveedorSesion } from "@/components/app/SesionContexto";
-import { alumnaActual } from "@/lib/alumna";
+import { alumnaActual, iniciales } from "@/lib/alumna";
 
 /**
  * El marco de toda la app interna.
  *
- * ⚠️ AQUÍ NO VA LA BARRA LATERAL, Y ES DELIBERADO. Tres de las pantallas no la
- * llevan: la ficha del bolso y la lección usan una barra superior de "volver"
- * —porque ahí estás DENTRO de algo y lo que necesitas es salir, no saltar a
- * otra sección— y el Ojo Experto tiene la suya propia con el historial.
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ UNA SOLA NAVEGACIÓN (2026-10-23, `design-ref/app-interna-claude-code`)
+ * ════════════════════════════════════════════════════════════════════════════
+ * Hasta hoy había dos: la barra lateral arena de casi todas las páginas y la
+ * cabecera propia del Ojo, con otro logo y otro menú. Ahora la pone el layout,
+ * igual para todas: en escritorio una cabecera arriba (la del home), en móvil
+ * la cabecera de marca arriba y las pestañas abajo con el Ojo al centro.
  *
- * Si la pusiera aquí, esas tres tendrían que taparla o deshacerla. Así que el
- * layout solo aporta lo que TODAS comparten: el alto completo y la barra de
- * abajo en móvil. La lateral la pone cada pantalla que la quiere, con
- * `<ConBarraLateral>`.
+ * Las pantallas que necesitan otra cosa arriba en móvil —la ficha del bolso,
+ * la lección y el Ojo— la ponen ellas; `CabeceraApp` no pinta la de marca ahí.
  */
 export default async function LayoutApp({ children }: { children: ReactNode }) {
   /* `alumnaActual` está cacheada por petición: la página la vuelve a pedir y
-     no cuesta una consulta más. La barra necesita saberlo para decir "Entrar"
-     o "Mi cuenta" desde el primer fotograma (ver `SesionContexto`). */
+     no cuesta una consulta más. La navegación necesita saberlo para decir
+     "Inscribirme" o pintar el avatar desde el primer fotograma. */
   const alumna = await alumnaActual();
+  const sesion = {
+    conSesion: Boolean(alumna),
+    iniciales: alumna ? iniciales(alumna) : null,
+    plan:
+      alumna?.tieneAcceso && alumna.ciclo
+        ? `Plan ${alumna.ciclo}`
+        : alumna?.tieneAcceso
+          ? "Con plan"
+          : null,
+  };
+
   return (
-    <ProveedorSesion conSesion={Boolean(alumna)}>
-    <div className="flex min-h-dvh flex-col">
-      {/*
-        El hueco en móvil (`.hueco-barra-inferior`): la barra de abajo va fija y no empuja nada.
-        Sin este hueco, la última tarjeta de cada pantalla queda debajo de ella
-        y nadie puede pulsarla.
-      */}
-      <div className="hueco-barra-inferior flex flex-1">{children}</div>
-      <BarraInferior />
-    </div>
+    <ProveedorSesion sesion={sesion}>
+      <div className="flex min-h-dvh flex-col">
+        <CabeceraApp />
+        {/*
+          El hueco de abajo en móvil (`.hueco-barra-inferior`): la barra va fija
+          y no empuja nada. Sin él, la última tarjeta de cada pantalla queda
+          debajo de ella —y del círculo del Ojo, que sobresale— y nadie puede
+          pulsarla.
+        */}
+        <div className="hueco-barra-inferior flex flex-1">{children}</div>
+        <BarraInferior />
+      </div>
     </ProveedorSesion>
   );
 }

@@ -54,7 +54,9 @@ export default async function Leccion({ params }: Props) {
 
   return (
     <main className="min-w-0 flex-1">
-      <div className="border-line bg-cream/90 sticky top-0 z-(--z-sticky) border-b backdrop-blur-sm">
+      {/* En escritorio, debajo de la cabecera global (que también es fija):
+          con `top-0` las dos se montaban. Plana, sin el vidrio de antes. */}
+      <div className="border-line bg-cream sticky top-0 z-(--z-sticky) border-b lg:top-(--alto-cabecera-app)">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
           <Link
             href={`/app/bolsos/${bolso.slug}`}
@@ -143,8 +145,7 @@ export default async function Leccion({ params }: Props) {
                  a la ficha, que es donde se ve lo que acaba de terminar. */
               <Link
                 href={`/app/bolsos/${bolso.slug}?terminado=1`}
-                className="text-espresso flex h-12 items-center gap-2 rounded-full px-6 text-sm font-semibold"
-                style={{ backgroundImage: "var(--boton-dorado)" }}
+                className="bg-cacao text-ivory flex h-12 items-center gap-2 rounded-full px-6 text-sm font-semibold"
               >
                 Terminar el bolso
                 <ArrowRight size={16} aria-hidden="true" />
