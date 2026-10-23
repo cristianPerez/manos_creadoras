@@ -291,6 +291,21 @@ también en Mi plan y en el selector de pago.
   cargado en QA).
   - ⚠️ Al pasar a producción: correr `ENV_FILE=.env.prod node scripts/seed-capsulas.mjs`
     para que las etiquetas cortas lleguen también allí.
+- **🔴→✅ Los enlaces de acceso no salían (resuelto 2026-10-23, QA y prod).**
+  Supabase manda los correos por Resend con una clave de Resend como
+  contraseña SMTP; el 17-oct se creó una clave nueva y se BORRÓ la vieja, y
+  Supabase siguió con la muerta → `500 Error sending magic link email` desde
+  el 15-oct. Se puso la clave vigente (`RESEND_API_KEY`) como `smtp_pass` en
+  los dos proyectos. Probado: el enlace llega en QA y en prod.
+  ⚠️ Si se vuelve a rotar la clave de Resend, hay que actualizarla TAMBIÉN en
+  Supabase → Authentication → SMTP (las dos bases).
+  · De paso: 5 de las 6 plantillas de correo eran inválidas (notas con
+    `{{ }}` dentro de comentarios HTML). Arregladas en `supabase/templates/` y
+    subidas a QA y prod; validadas con el motor de Go.
+  - 🟡 A quien entra POR PRIMERA VEZ con el enlace le llega el correo genérico
+    de Supabase en inglés ("Confirm your email address"), no "Confirma tu
+    correo". Nuestras plantillas están bien (se validaron y renderizan); la
+    causa está del lado de Supabase. Pendiente de investigar.
   - 🟡 "Ver el programa" del formulario apunta a `/#oferta`, ancla que ya no
     existe en el home (hoy es `#precio`). No se cambió: es un enlace.
   - 🟡 `PagoConPlan` (caja de pago en la ficha bloqueada) aún usa el botón en

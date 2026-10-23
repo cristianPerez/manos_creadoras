@@ -14,11 +14,11 @@
 -->
 <!--
   ⚠️ EL DESTINO LO ELIGE QUIEN PIDE EL CORREO, NO EL `Site URL`.
-  Antes era `{{ .SiteURL }}` fijo y el enlace salia SIEMPRE hacia donde apuntara
+  Antes era `.SiteURL` fijo y el enlace salia SIEMPRE hacia donde apuntara
   ese ajuste del panel: pedias entrar desde localhost y el correo te mandaba a
   QA. `.RedirectTo` es lo que pidio la app, y Supabase solo lo rellena si la
   direccion esta en la lista de *Redirect URLs*, asi que no sirve para mandar a
-  nadie a una web ajena. El `{{ else }}` cubre los correos disparados a mano
+  nadie a una web ajena. El `else` cubre los correos disparados a mano
   desde el panel, que no traen destino.
 -->
 <!doctype html>

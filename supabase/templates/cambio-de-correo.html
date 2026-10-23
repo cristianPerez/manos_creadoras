@@ -6,7 +6,7 @@
   (viene activado de fábrica), este MISMO texto se envía a las DOS direcciones:
   la vieja y la nueva. Por eso el mensaje no dice "tu correo nuevo es X" — tiene
   que tener sentido leído desde cualquiera de las dos bandejas.
-  `{{ .TokenHash }}` vale el código que le corresponde a quien recibe el correo.
+  `.TokenHash` vale el código que le corresponde a quien recibe el correo.
 
   Paleta: la guia de marca de design-ref/07-guia-de-marca.png (crema #FBF6EE ·
   marfil #FFFDF9 · espresso #2A1F19 · dorado #8C6A2F sobre claro).
@@ -15,11 +15,11 @@
 -->
 <!--
   ⚠️ EL DESTINO LO ELIGE QUIEN PIDE EL CORREO, NO EL `Site URL`.
-  Antes era `{{ .SiteURL }}` fijo y el enlace salia SIEMPRE hacia donde apuntara
+  Antes era `.SiteURL` fijo y el enlace salia SIEMPRE hacia donde apuntara
   ese ajuste del panel: pedias entrar desde localhost y el correo te mandaba a
   QA. `.RedirectTo` es lo que pidio la app, y Supabase solo lo rellena si la
   direccion esta en la lista de *Redirect URLs*, asi que no sirve para mandar a
-  nadie a una web ajena. El `{{ else }}` cubre los correos disparados a mano
+  nadie a una web ajena. El `else` cubre los correos disparados a mano
   desde el panel, que no traen destino.
 -->
 <!doctype html>
