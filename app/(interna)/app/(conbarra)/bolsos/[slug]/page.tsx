@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   FichaBolso,
   type FilaFicha,
   type VideoFicha,
 } from "@/components/app/FichaBolso";
-import { ListaMateriales } from "@/components/app/ListaMateriales";
-import { PagoConPlan } from "@/components/app/PagoConPlan";
+import { BannerPlan } from "@/components/app/BannerPlan";
 import { alumnaActual } from "@/lib/alumna";
 import { enlacesDeCobro } from "@/lib/checkout";
 import {
   esLlavero,
+  listarBolsos,
   medidasEnTexto,
   medidasOrdenadas,
   obtenerBolso,
@@ -52,6 +51,9 @@ export default async function Ficha({
    * falta el plan. Esconderlo en el navegador no protegería nada.
    */
   const bloqueado = !bolso.gratis && !alumna?.tieneAcceso;
+  /* Los totales del banner (bolsos, llaveros, el gratis): solo hacen falta si
+     hay que enseñar la oferta. */
+  const catalogo = bloqueado ? await listarBolsos() : null;
   const siguiente = siguienteVideo(bolso);
   const medidas = medidasEnTexto(bolso.medidas);
 
@@ -130,64 +132,24 @@ export default async function Ficha({
       ordenInicial={siguiente?.orden ?? 0}
       totalPasos={bolso.pasos.length}
       pago={
-        bloqueado && (
-          /*
-          Bloqueado: se enseña TODO el índice —cuántos pasos, qué materiales,
-          las medidas— y solo se retiene el video. Es lo que hace que valga la
-          pena pagar: ya sabes exactamente qué recibes. Desde el 2026-10-21
-          lleva a PAGAR, anual por defecto con el selector a mensual.
+        /*
+          Bloqueado: se enseña TODO el índice —pasos, materiales, medidas— y
+          solo se retiene el video. El banner es el MISMO de Mis bolsos
+          (`BannerPlan`, pedido de Cristian 2026-10-23): una sola oferta.
         */
-          <div className="bg-sand rounded-(--radius-lg) p-5">
-            <p className="text-espresso font-semibold">
-              Este {esLlavero(bolso) ? "llavero" : "bolso"} viene con el plan
-            </p>
-            <p className="text-ink-body mt-1 text-sm">
-              Puedes ver sus pasos y sus materiales. Para los videos necesitas
-              el plan, desde {precioDesde()} al mes.
-            </p>
-            <div className="mt-4">
-              <PagoConPlan enlaces={cobro.url} origen="ficha_bolso" />
-            </div>
-          </div>
+        catalogo && (
+          <BannerPlan
+            gratisNombre={catalogo.find((b) => b.gratis)?.nombre ?? null}
+            bolsos={catalogo.filter((b) => !esLlavero(b)).length}
+            llaveros={catalogo.filter(esLlavero).length}
+            desde={precioDesde()}
+            enlaces={cobro.url}
+            origen="ficha_bolso"
+          />
         )
       }
-      materiales={
-        <ListaMateriales
-          materiales={bolso.materiales}
-          aparte={
-            <>
-              {medidas && (
-                <dl className="flex justify-between gap-4">
-                  {medidasOrdenadas(bolso.medidas).map(([clave, valor]) => (
-                    <div key={clave} className="text-center">
-                      <dd
-                        className="font-display text-gold-pale"
-                        style={{ fontWeight: 500, fontSize: 30, lineHeight: 1 }}
-                      >
-                        {String(valor).replace(".", ",")}
-                      </dd>
-                      <dt className="text-on-dark-muted mt-1 text-xs">
-                        {etiquetaMedida(clave)}
-                      </dt>
-                    </div>
-                  ))}
-                </dl>
-              )}
-              <Link
-                href="/app/directorio"
-                className="bg-gold-pale text-espresso mt-auto flex h-13 items-center justify-center rounded-full px-6 font-semibold transition-transform active:scale-[0.98]"
-              >
-                Ver en el directorio
-              </Link>
-            </>
-          }
-        />
-      }
+      materiales={bolso.materiales}
+      medidas={medidasOrdenadas(bolso.medidas)}
     />
   );
-}
-
-/** `alto_con_asa` → "alto con asa". Las claves vienen del JSON y varían por bolso. */
-function etiquetaMedida(clave: string): string {
-  return clave.replace(/_/g, " ");
 }

@@ -59,7 +59,7 @@ export function PagoConPlan({
           origen={origen}
           plan={frecuencia}
           abrePago={Boolean(enlace)}
-          className="bg-cream text-espresso flex h-13 items-center justify-center rounded-full px-8 font-semibold whitespace-nowrap transition-transform active:scale-[0.98]"
+          className="bg-cream text-espresso flex h-13 grow items-center justify-center rounded-full px-8 font-semibold whitespace-nowrap transition-transform active:scale-[0.98]"
         >
           Inscribirme · {precioPorMes(frecuencia)}/mes
         </EnlaceCompra>

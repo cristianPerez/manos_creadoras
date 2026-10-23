@@ -1,10 +1,10 @@
 "use client";
 
-import { ChevronRight, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { PagoConPlan } from "@/components/app/PagoConPlan";
+import { BannerPlan } from "@/components/app/BannerPlan";
 import { TarjetaBolso } from "@/components/app/TarjetaBolso";
 import { esLlavero, estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
 import type { Frecuencia } from "@/lib/planes";
@@ -123,11 +123,9 @@ export function Catalogo({
 }
 
 /**
- * La oferta, para quien todavía no ha entrado.
- *
- * Va DENTRO del catálogo y no en una pantalla aparte: quien llega quiere ver
- * los bolsos, y lo que la convence de pagar es tenerlos delante. Un muro antes
- * de enseñar nada solo consigue que se vaya.
+ * La oferta, para quien todavía no ha entrado. Va DENTRO del catálogo y no en
+ * una pantalla aparte: lo que la convence de pagar es tener los bolsos delante.
+ * La pieza es `BannerPlan`, la misma que usa la ficha de un bolso con plan.
  */
 function Invitacion({
   bolsos,
@@ -138,57 +136,19 @@ function Invitacion({
   desde: string;
   enlaces: Record<Frecuencia, string | null>;
 }) {
-  const gratis = bolsos.find((b) => b.gratis);
   const llaveros = bolsos.filter(esLlavero).length;
-  const deBolso = bolsos.length - llaveros;
-
   return (
-    <>
-      {/*
-        ⚠️ CAFÉ PLANO (app interna, 2026-10-23): sin el degradado de
-        `--card-destacada`. En escritorio, una fila: la pregunta a la izquierda
-        y el selector con el botón a la derecha.
-      */}
-      <section className="bg-cacao sobre-oscuro mt-8 hidden items-center gap-8 rounded-(--radius-foto) px-8 py-7 lg:flex">
-        <div className="min-w-0 flex-1">
-          <h2 className="font-display text-cream text-balance" style={{ fontWeight: 500, fontSize: 30 }}>
-            ¿Y si sigues hasta el <em className="clave">bolso terminado</em>?
-          </h2>
-          <p className="text-sand mt-1.5">
-            {gratis ? `${gratis.nombre} es tuyo ahora mismo. ` : ""}
-            {/* ⚠️ Decía "se abren los 23, uno nuevo cada mes": contaba los
-                llaveros como bolsos y prometía un bolso nuevo al mes, que no
-                existe (corregido el 2026-10-21). */}
-            Con el plan se abren los {deBolso} bolsos
-            {llaveros > 0 ? ` y ${llaveros} llaveros` : ""}, el directorio de proveedores y el
-            Ojo Experto · garantía de 7 días.
-          </p>
-        </div>
-        {/* ⚠️ Antes: "Crear mi cuenta gratis" → /entrar. Desde el 2026-10-21
-            lleva a PAGAR, con anual por defecto (pedido de Cristian). */}
-        <div className="shrink-0">
-          <PagoConPlan enlaces={enlaces} origen="catalogo" tono="oscuro" disposicion="fila" />
-        </div>
-      </section>
-
-      {/* En móvil se resume en una fila tocable: la tarjeta entera empujaba
-          los bolsos fuera de la primera pantalla. Lleva a Mi plan, donde
-          están el selector y el pago. */}
-      <Link
-        href="/app/plan"
-        className="bg-cacao sobre-oscuro mt-6 flex items-center gap-4 rounded-(--radius-foto) px-5 py-4 lg:hidden"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="font-display text-cream block" style={{ fontWeight: 500, fontSize: 21 }}>
-            ¿Sigues hasta el <em className="clave">bolso terminado</em>?
-          </span>
-          <span className="text-sand mt-0.5 block text-sm">
-            Desde {desde}/mes · garantía 7 días
-          </span>
-        </span>
-        <ChevronRight size={22} className="text-cream shrink-0" aria-hidden="true" />
-      </Link>
-    </>
+    <div className="mt-8 max-lg:mt-6">
+      <BannerPlan
+        gratisNombre={bolsos.find((b) => b.gratis)?.nombre ?? null}
+        bolsos={bolsos.length - llaveros}
+        llaveros={llaveros}
+        desde={desde}
+        enlaces={enlaces}
+        origen="catalogo"
+        compactoEnMovil
+      />
+    </div>
   );
 }
 

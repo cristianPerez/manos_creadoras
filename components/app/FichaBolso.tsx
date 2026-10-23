@@ -2,7 +2,10 @@
 
 import { ArrowLeft, Check, ChevronRight, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { AccesoMateriales } from "@/components/app/AccesoMateriales";
+import { MaterialesDelBolso } from "@/components/app/MaterialesDelBolso";
+import type { Material } from "@/lib/bolsos-logica";
 import { BotonVisto } from "@/components/app/BotonVisto";
 import { Reproductor } from "@/components/app/Reproductor";
 import { ReproductorEnSitio } from "@/components/home/ReproductorEnSitio";
@@ -63,6 +66,7 @@ export function FichaBolso({
   totalPasos,
   pago,
   materiales,
+  medidas,
 }: {
   slug: string;
   nombre: string;
@@ -76,10 +80,11 @@ export function FichaBolso({
   filas: FilaFicha[];
   ordenInicial: number;
   totalPasos: number;
-  /** La caja de pago cuando el bolso viene con el plan. */
+  /** El banner café de pago (`BannerPlan`) cuando el bolso viene con el plan. */
   pago: ReactNode;
-  /** La tarjeta espresso de materiales y medidas. */
-  materiales: ReactNode;
+  materiales: Material[];
+  /** `[clave, valor]` en cm, ya ordenadas. */
+  medidas: [string, number][];
 }) {
   const [orden, setOrden] = useState(ordenInicial);
   /* Sube en cada elección: al elegir otro video, el reproductor se monta de
@@ -94,10 +99,20 @@ export function FichaBolso({
   const vistos = videos.filter((v) => v.visto).length;
   const pct = videos.length > 0 ? Math.round((vistos / videos.length) * 100) : 0;
 
+  /*
+   * ⚠️ ELEGIR UN PASO = VERLO (2026-10-23, pedido de Cristian). El video
+   * arranca solo —con sonido; el reproductor cae a mudo si el navegador no
+   * deja— y la pantalla sube hasta él. En móvil el paso a paso queda DEBAJO
+   * del video, así que sin el scroll se tocaba un paso y no pasaba nada a la
+   * vista. `scroll-mt` deja el video justo bajo la barra fija de arriba.
+   */
+  const cajaVideo = useRef<HTMLDivElement>(null);
   function ver(o: number) {
     setOrden(o);
     setViendo(false);
     setArranque((n) => n + 1);
+    const quieto = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    cajaVideo.current?.scrollIntoView({ behavior: quieto ? "auto" : "smooth", block: "start" });
   }
 
   const etiquetaPaso =
@@ -183,7 +198,10 @@ export function FichaBolso({
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-8">
           {/* ── El video y lo que va con él ── */}
           <div className="min-w-0">
-            <div className="relative overflow-hidden lg:rounded-(--radius-foto)">
+            <div
+              ref={cajaVideo}
+              className="relative scroll-mt-15 overflow-hidden lg:scroll-mt-21 lg:rounded-(--radius-foto)"
+            >
               {actual.url ? (
                 <div className="bg-espresso aspect-video">
                   <ReproductorEnSitio
@@ -287,7 +305,23 @@ export function FichaBolso({
                 <PasoAPasoFicha filas={filas} videos={videos} orden={orden} ver={ver} />
               </div>
 
-              <div className="mt-6 pb-8 lg:pb-0">{materiales}</div>
+              {/*
+                ⚠️ LOS MATERIALES, SOLO EN SU PASO (2026-10-23). En el de
+                Materiales va la lista completa; en los demás, una fila que la
+                abre en un panel sin salir del paso — repetir el bloque entero
+                debajo de cada video le quitaba protagonismo al video.
+              */}
+              <div className="mt-6 pb-8 lg:pb-0">
+                {actual.paso === null ? (
+                  <MaterialesDelBolso materiales={materiales} medidas={medidas} variante="completa" />
+                ) : (
+                  <AccesoMateriales
+                    materiales={materiales}
+                    medidas={medidas}
+                    irAMateriales={() => ver(0)}
+                  />
+                )}
+              </div>
             </div>
           </div>
 

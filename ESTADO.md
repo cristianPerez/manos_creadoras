@@ -261,6 +261,22 @@ también en Mi plan y en el selector de pago.
   Fuera todos los degradados de la app (`PagoConPlan` ahora café / gold-pale).
   Verificado sin y con sesión a 1440 y 390: 0 degradados, 0 dorado sobre
   oscuro, 0 desbordes.
+- **Ficha: materiales por paso, banner y "elegir = ver" (2026-10-23,
+  `PROMPT-ficha-materiales-por-paso.md` + pedido de Cristian).**
+  · Paso Materiales: "Lo que *necesitas*" completo (`MaterialesDelBolso`,
+    tarjeta marfil, "nombre · cantidad", chip opcional, franja MEDIDAS). Pasos
+    1-5: solo la fila "Materiales del bolso · N" (`AccesoMateriales`), que abre
+    cajón derecho (escritorio) u hoja de abajo (móvil). El video NO se
+    reinicia al abrir/cerrar (verificado: mismo iframe).
+  · Marcar "ya lo tengo" se conservó: la fila entera es el interruptor (la
+    referencia no dibuja casilla, pero quitarlo era quitar una función).
+  · Bolso con plan: el mismo banner café de Mis bolsos (`BannerPlan`).
+  · Elegir un paso (o "Siguiente paso") arranca el video con sonido y sube
+    hasta él (probado en móvil: de 303px abajo al video bajo la barra).
+  - 🟡 Las páginas de cada paso (`/app/bolsos/<bolso>/<paso>`) siguen con la
+    lista vieja (`ListaMateriales`) en su panel lateral.
+  - 🟡 En iPhone, Safari puede bloquear el sonido dentro del reproductor de
+    Bunny (pendiente conocido): el video arranca mudo y hay que tocar el volumen.
   - 🟡 "Ver el programa" del formulario apunta a `/#oferta`, ancla que ya no
     existe en el home (hoy es `#precio`). No se cambió: es un enlace.
   - 🟡 `PagoConPlan` (caja de pago en la ficha bloqueada) aún usa el botón en
