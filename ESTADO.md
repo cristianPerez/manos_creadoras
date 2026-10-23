@@ -216,10 +216,9 @@ también en Mi plan y en el selector de pago.
   de tarjetas de 200px). El precio conserva el SWITCH de verdad (la
   referencia traía píldora partida; Cristian pidió el switch, 22-oct). Mismos textos,
   enlaces, anclas, pago y analítica.
-  - 🟡 En MÓVIL el héroe (crema) y el curso gratis (crema) quedan seguidos:
-    en móvil las cápsulas van ARRIBA del héroe (decisión vieja: "como
-    historias"), y la referencia nueva las pone debajo. No se cambió el orden
-    (la regla lo prohíbe). Lo decide Cristian.
+  - ✅ (2026-10-23, pedido de Cristian) En móvil las cápsulas ya van DEBAJO
+    del héroe, como en escritorio: un solo orden para todos los anchos. Con
+    eso el héroe (crema) ya no queda pegado al curso gratis (crema).
   - Alumnas en 5 columnas desde 1024px (235px c/u, citas a 4 líneas, mismo
     alto); carrusel con snap en móvil y tableta. De paso: los enlaces del
     menú de la cabecera del home salen desde 1024px — a 768 empujaban

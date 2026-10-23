@@ -136,15 +136,12 @@ export default async function Home() {
       <Header />
 
       {/*
-        ⚠️ EL ORDEN CAMBIA CON EL ANCHO, y por eso `main` es un flex con `order`.
-
-        En MÓVIL las cápsulas van arriba del todo, como historias: es lo primero
-        que se toca y así lo pide el diseño. En ESCRITORIO van DEBAJO del banner,
-        porque ahí el banner es la pieza que vende y mandarlo al segundo lugar
-        sería enterrar el titular.
-
-        Se hace con `order` y no duplicando componentes: un solo bloque de
-        cápsulas, un solo estado de "vistas", un solo visor.
+        ⚠️ EL MISMO ORDEN EN MÓVIL Y EN ESCRITORIO (2026-10-23, pedido de
+        Cristian). Hasta hoy, en móvil las cápsulas iban arriba del todo, "como
+        historias", y el banner quedaba segundo. Desde que las cápsulas son una
+        fila de tarjetas sobre espresso (home a color), arriba solo enterraban
+        el titular — y además dejaban el banner (crema) pegado al curso gratis
+        (crema). Ahora: banner → cápsulas → curso gratis, en todos los anchos.
 
         ── HOME V3 (2026-10-20): el orden de venta ──────────────────────────
         banner (con precio) → cápsulas → curso gratis → banda "1 de 16" → Ojo →
@@ -153,15 +150,13 @@ export default async function Home() {
         en móvil, la barra fija.
       */}
       <main className="flex flex-col">
-        <div className="order-1 md:order-2">
-          <Capsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas} />
-        </div>
         {/* `id="banner"`: la barra fija de compra lo observa para no aparecer
             mientras el banner —que ya trae su botón— está a la vista. */}
-        <div id="banner" className="order-2 md:order-1">
+        <div id="banner">
           <HeroSlider fotos={fotos} totalBolsos={totalBolsos} />
         </div>
-        <div className="order-3">
+        <Capsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas} />
+        <div>
           {gratis && (
             <CursoGratis
               slug={gratis.slug}
