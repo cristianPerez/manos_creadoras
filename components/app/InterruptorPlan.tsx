@@ -21,7 +21,6 @@ export function InterruptorPlan({
   alCambiar,
   tono = "claro",
   tamano = "normal",
-  variante = "interruptor",
 }: {
   valor: Frecuencia;
   alCambiar: (f: Frecuencia) => void;
@@ -29,41 +28,10 @@ export function InterruptorPlan({
   tono?: "claro" | "oscuro";
   /** "grande" para la sección de precios, donde es la decisión principal. */
   tamano?: "normal" | "grande";
-  /**
-   * "segmentado": píldora de dos opciones, con la elegida en espresso. SOLO la
-   * usa el precio del home a color (2026-10-22, su referencia lo pide así).
-   * En el resto de la app sigue el interruptor, que es lo que pidió Cristian
-   * el 21-oct para que no pareciera otro botón al lado del de pagar.
-   */
-  variante?: "interruptor" | "segmentado";
 }) {
   const oscuro = tono === "oscuro";
   const grande = tamano === "grande";
   const anual = valor === "anual";
-
-  if (variante === "segmentado") {
-    const opcion = (activa: boolean) =>
-      `flex h-11 items-center gap-2 rounded-full px-5 text-base transition-colors duration-200 [touch-action:manipulation] ${
-        activa ? "bg-espresso text-cream font-semibold" : "text-ink-body hover:text-espresso"
-      }`;
-    return (
-      <div
-        role="group"
-        aria-label="Elige cómo pagar"
-        className="bg-ivory border-line mx-auto flex w-max items-center gap-1 rounded-full border p-1"
-      >
-        <button type="button" aria-pressed={!anual} onClick={() => alCambiar("mensual")} className={opcion(!anual)}>
-          Mensual
-        </button>
-        <button type="button" aria-pressed={anual} onClick={() => alCambiar("anual")} className={opcion(anual)}>
-          Anual
-          <span className="bg-gold-pale text-espresso rounded-full px-2 py-0.5 text-xs font-bold">
-            Ahorra {ahorroAnualDe().pct}%
-          </span>
-        </button>
-      </div>
-    );
-  }
 
   const texto = (activo: boolean) =>
     activo ? (oscuro ? "text-cream" : "text-espresso") : oscuro ? "text-white/55" : "text-ink-muted";

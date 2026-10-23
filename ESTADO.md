@@ -213,8 +213,8 @@ también en Mi plan y en el selector de pago.
   fondo → tarjeta → chip. Piezas nuevas: `EyebrowLinea` y, en `globals.css`,
   `.sobre-oscuro` cambia solo el color de `.titulo-seccion`, `.eyebrow` y
   `.clave`. Las cápsulas en móvil dejaron de ser historias circulares (fila
-  de tarjetas de 200px). El precio usa el interruptor en variante
-  "segmentado" (solo ahí; la app sigue con el switch). Mismos textos,
+  de tarjetas de 200px). El precio conserva el SWITCH de verdad (la
+  referencia traía píldora partida; Cristian pidió el switch, 22-oct). Mismos textos,
   enlaces, anclas, pago y analítica.
   - 🟡 En MÓVIL el héroe (crema) y el curso gratis (crema) quedan seguidos:
     en móvil las cápsulas van ARRIBA del héroe (decisión vieja: "como

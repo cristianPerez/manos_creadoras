@@ -74,7 +74,9 @@ export function PrecioHome({
         </header>
 
         <div className="mt-6 md:mt-8">
-          <InterruptorPlan valor={frecuencia} alCambiar={elegir} variante="segmentado" />
+          {/* Interruptor de verdad y no píldora partida (2026-10-21 y de nuevo
+              el 22-oct, pedido de Cristian): el mismo de toda la app. */}
+          <InterruptorPlan valor={frecuencia} alCambiar={elegir} tamano="grande" />
         </div>
 
         <div className="border-line mt-6 grid overflow-hidden rounded-(--radius-foto) border max-md:rounded-bloque md:mt-8 md:grid-cols-2">
