@@ -445,8 +445,9 @@ toca reintentar en el servidor.
   con `?video=N&ver=1` (se borraron PanelLeccion, PasoAPaso y ListaMateriales).
   Cuenta gratis ve la oferta y "Inscribirme"; "Continúa" solo con avance real;
   404 propio dentro de la app; Ojo pagado sin "0 de 600" (se avisa al 80%).
-  ⚠️ Decisión de negocio abierta: visitante tiene 2 preguntas, cuenta gratis 3/mes
-  (vienen de `plan_cupos`); no se tocó.
+  ✅ Cupos del Ojo decididos por Cristian (2026-10-23): visitante 2 preguntas en
+  total, cuenta gratis **8 al mes** (migración 0036, aplicada en QA; ⏸️ producción
+  pendiente de su OK con `db push`). No se re-pregunta.
 
 - 🔴 **CÁPSULAS SIN AUDIO — DIAGNÓSTICO DEL 2026-10-21.** En Chrome de escritorio
   SÍ suenan (probado con toque real: el reproductor dice `getMuted=false`,

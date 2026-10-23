@@ -233,8 +233,8 @@ export async function POST(req: Request) {
     ⚠️ AQUÍ HABÍA UN PORTAZO: `if (!tiene_acceso_de) → 403 sin membresía activa`.
 
     Desde la 0012 el Ojo Experto ya no exige haber comprado: exige TENER CUENTA
-    y que te quede cupo. Quien se registró gratis entra con 3 consultas al mes;
-    quien tiene el programa, con 40. La puerta no es un sí/no, es un número.
+    y que te quede cupo. Quien se registró gratis entra con 8 consultas al mes;
+    quien tiene el programa, con 600 (tope de uso justo). La puerta no es un sí/no, es un número.
 
     El cupo lo dice la base (`cupo_de`), no una constante en el código: antes los
     límites vivían en `lib/config.ts` y los repetían la API y la pantalla, que es
