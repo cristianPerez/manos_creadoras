@@ -33,10 +33,12 @@ export function BotonVisto({
           await marcarVideo(bolsoId, videoId, !optimista);
         })
       }
-      className={`flex h-13 shrink-0 items-center gap-2 rounded-full px-6 font-semibold transition-colors [touch-action:manipulation] ${
-        optimista ? "bg-sand text-espresso" : "text-espresso"
+      /* Plano (app interna, 2026-10-23): con borde mientras falta, arena al
+         marcarlo. El dorado en degradado de antes competía con "Siguiente
+         paso", que es la acción principal de la ficha. */
+      className={`flex h-13 shrink-0 items-center justify-center gap-2 rounded-full px-6 font-semibold transition-colors [touch-action:manipulation] ${
+        optimista ? "bg-sand text-espresso" : "border-line-strong text-espresso border"
       }`}
-      style={optimista ? undefined : { backgroundImage: "var(--boton-dorado)" }}
     >
       <Check size={18} strokeWidth={2.5} aria-hidden="true" />
       {optimista ? "Visto" : "Marcar como visto"}
