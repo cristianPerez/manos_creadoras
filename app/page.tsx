@@ -5,7 +5,7 @@ import { FooterLegal } from "@/components/app/sections/FooterLegal";
 import { Header } from "@/components/app/sections/Header";
 import { BandaUnoDe16 } from "@/components/home/BandaUnoDe16";
 import { BarraCompraMovil } from "@/components/home/BarraCompraMovil";
-import { Capsulas } from "@/components/home/Capsulas";
+import { Capsulas, HistoriasCapsulas, ProveedorCapsulas } from "@/components/home/Capsulas";
 import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
 import { Elizabeth } from "@/components/home/Elizabeth";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
@@ -149,13 +149,17 @@ export default async function Home() {
         un toque en todo el recorrido: header, banner, banda, precio, cierre y,
         en móvil, la barra fija.
       */}
+      {/* Las cápsulas salen dos veces en móvil (historias arriba y tarjetas
+          bajo el banner) y comparten estado: lo que ya vio y el visor. */}
+      <ProveedorCapsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas}>
       <main className="flex flex-col">
+        <HistoriasCapsulas />
         {/* `id="banner"`: la barra fija de compra lo observa para no aparecer
             mientras el banner —que ya trae su botón— está a la vista. */}
         <div id="banner">
           <HeroSlider fotos={fotos} totalBolsos={totalBolsos} />
         </div>
-        <Capsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas} />
+        <Capsulas />
         <div>
           {gratis && (
             <CursoGratis
@@ -209,6 +213,7 @@ export default async function Home() {
           </section>
         </div>
       </main>
+      </ProveedorCapsulas>
 
       <FooterLegal />
       <BarraCompraMovil />

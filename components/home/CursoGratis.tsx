@@ -208,10 +208,11 @@ export function CursoGratis({
                     >
                       <button
                         type="button"
-                        onClick={() => {
-                          setAbierto(i);
-                          setViendo(false);
-                        }}
+                        /* Tocar el paso = verlo (2026-10-23, pedido de
+                           Cristian): sube al video y arranca con sonido. Antes
+                           solo desplegaba la fila y había que buscar "Ver este
+                           paso". */
+                        onClick={() => verPaso(i)}
                         aria-expanded={activo}
                         aria-controls={`paso-${p.orden}`}
                         className="flex min-h-[54px] w-full items-center gap-3 px-4 py-2 text-left [touch-action:manipulation] max-md:min-h-[52px]"

@@ -9,7 +9,11 @@ import { alumnaActual } from "@/lib/alumna";
 import { obtenerBolso } from "@/lib/bolsos";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 
-type Props = { params: Promise<{ slug: string; orden: string }> };
+type Props = {
+  params: Promise<{ slug: string; orden: string }>;
+  /** `?ver=1`: se llegó tocando un paso, así que el video arranca solo. */
+  searchParams: Promise<{ ver?: string }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -17,8 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: bolso ? `${bolso.nombre} — Manos Creadoras` : "Manos Creadoras" };
 }
 
-export default async function Leccion({ params }: Props) {
+export default async function Leccion({ params, searchParams }: Props) {
   const { slug, orden: ordenTexto } = await params;
+  const { ver } = await searchParams;
   const orden = Number(ordenTexto);
   const [bolso, alumna] = await Promise.all([obtenerBolso(slug), alumnaActual()]);
 
@@ -96,6 +101,7 @@ export default async function Leccion({ params }: Props) {
             titulo={bolso.nombre}
             poster={poster}
             respaldo={bolso.portadaUrl}
+            arrancar={ver === "1"}
           />
 
           <div className="mt-6 flex flex-wrap items-start justify-between gap-4">
@@ -122,7 +128,7 @@ export default async function Leccion({ params }: Props) {
           <nav className="border-line mt-8 flex flex-wrap justify-between gap-3 border-t pt-6">
             {anterior !== null ? (
               <Link
-                href={`/app/bolsos/${bolso.slug}/${anterior}`}
+                href={`/app/bolsos/${bolso.slug}/${anterior}?ver=1`}
                 className="border-line text-espresso flex h-12 items-center gap-2 rounded-full border px-5 text-sm font-semibold"
               >
                 <ArrowLeft size={16} aria-hidden="true" />
@@ -134,7 +140,7 @@ export default async function Leccion({ params }: Props) {
 
             {siguiente !== null ? (
               <Link
-                href={`/app/bolsos/${bolso.slug}/${siguiente}`}
+                href={`/app/bolsos/${bolso.slug}/${siguiente}?ver=1`}
                 className="border-line text-espresso flex h-12 items-center gap-2 rounded-full border px-5 text-sm font-semibold"
               >
                 Siguiente

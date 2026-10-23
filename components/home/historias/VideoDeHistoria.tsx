@@ -28,13 +28,51 @@ export function VideoDeHistoria({
   alSaberDuracion,
   /** Avisa cuando el video termina, para pasar a la siguiente. */
   alTerminar,
+  detenido = false,
+  alReanudar,
+  alCambiarMudo,
+  pedirSonido = 0,
 }: {
   url: string;
   titulo: string;
   alSaberDuracion: (segundos: number) => void;
   alTerminar: () => void;
+  /**
+   * ⚠️ TOCAR EL VIDEO LO DETIENE Y ENSEÑA LOS CONTROLES (2026-10-23, pedido
+   * de Cristian). Detenido, el iframe recibe los toques y se destapa la barra
+   * de Bunny: así, si el navegador lo arrancó mudo, ella misma sube el volumen
+   * desde el reproductor — el único camino que funciona en todos, iPhone
+   * incluido, porque el toque es SUYO dentro del reproductor.
+   */
+  detenido?: boolean;
+  /** Le dio a reproducir en los controles de Bunny: la historia sigue. */
+  alReanudar?: () => void;
+  /** Avisa si tuvo que arrancar mudo, para ofrecer "Activar sonido". */
+  alCambiarMudo?: (mudo: boolean) => void;
+  /** Sube en cada toque a "Activar sonido": se le pide a Bunny el volumen. */
+  pedirSonido?: number;
 }) {
   const marco = useRef<HTMLIFrameElement>(null);
+
+  const pedirAlReproductor = (metodo: string, valor?: string | number | boolean) =>
+    marco.current?.contentWindow?.postMessage(
+      JSON.stringify({ context: "player.js", method: metodo, value: valor }),
+      "*",
+    );
+
+  /* Detener desde fuera (el toque en el centro del visor). */
+  const detenidoRef = useRef(detenido);
+  const ultimaPausa = useRef(0);
+  useEffect(() => {
+    detenidoRef.current = detenido;
+    if (detenido) pedirAlReproductor("pause");
+  }, [detenido]);
+
+  useEffect(() => {
+    if (pedirSonido === 0) return;
+    pedirAlReproductor("unmute");
+    pedirAlReproductor("setVolume", 100);
+  }, [pedirSonido]);
 
   /*
    * ════════════════════════════════════════════════════════════════════════
@@ -152,6 +190,27 @@ export function VideoDeHistoria({
       }
 
       if (d?.event === "play" || d?.event === "timeupdate") arranco.current = true;
+      /* Detenido por un toque y ella le dio a reproducir en Bunny: sigue. El
+         ref se suelta YA, sin esperar al render, para que el `timeupdate` que
+         llega justo detrás no lo vuelva a pausar. */
+      if (d?.event === "play" && detenidoRef.current) {
+        detenidoRef.current = false;
+        alReanudar?.();
+        return;
+      }
+      /*
+       * ⚠️ SI SIGUE AVANZANDO DETENIDO, SE INSISTE. Bunny ignora la pausa
+       * mientras arranca (probado: tocar al segundo de abrir no lo paraba) y
+       * después sigue como si nada. Mientras esté detenido y llegue tiempo,
+       * se le vuelve a pedir — como mucho una vez cada medio segundo.
+       */
+      if (d?.event === "timeupdate" && detenidoRef.current) {
+        const ahora = Date.now();
+        if (ahora - ultimaPausa.current > 500) {
+          ultimaPausa.current = ahora;
+          pedir("pause");
+        }
+      }
 
       if (d?.event === "ended") alTerminar();
 
@@ -161,7 +220,11 @@ export function VideoDeHistoria({
 
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
-  }, [alSaberDuracion, alTerminar, mudo]);
+  }, [alSaberDuracion, alTerminar, alReanudar, mudo]);
+
+  useEffect(() => {
+    alCambiarMudo?.(mudo);
+  }, [mudo, alCambiarMudo]);
 
   return (
     <>
@@ -208,7 +271,7 @@ export function VideoDeHistoria({
        * Sin esto, el iframe se quedaría con el gesto y tocar el centro no
        * avanzaría la historia.
        */
-        className="pointer-events-none absolute inset-0 size-full border-0"
+        className={`absolute inset-0 size-full border-0 ${detenido ? "" : "pointer-events-none"}`}
       />
 
       {/*
@@ -227,10 +290,12 @@ export function VideoDeHistoria({
         su barra. Encaja con el pie del visor, que ya es oscuro, y no deforma el
         video ni recorta nada de la imagen.
       */}
-      <span
-        aria-hidden="true"
-        className="bg-espresso pointer-events-none absolute inset-x-0 bottom-0 h-18"
-      />
+      {!detenido && (
+        <span
+          aria-hidden="true"
+          className="bg-espresso pointer-events-none absolute inset-x-0 bottom-0 h-18"
+        />
+      )}
     </>
   );
 }

@@ -276,6 +276,21 @@ también en Mi plan y en el selector de pago.
     lista vieja (`ListaMateriales`) en su panel lateral.
   - 🟡 En iPhone, Safari puede bloquear el sonido dentro del reproductor de
     Bunny (pendiente conocido): el video arranca mudo y hay que tocar el volumen.
+- **Videos: tocar un paso = verlo, y tocar el video = detenerlo (2026-10-23).**
+  Revisados todos: ficha (ya), curso gratis del home (tocar la fila del
+  temario ahora reproduce y sube al video), páginas de cada paso (`?ver=1` al
+  llegar desde un paso → arranca solo; sin él, no), cápsulas (abren sonando).
+  En el visor de cápsulas: bordes = pasar, CENTRO = detener y destapar los
+  controles de Bunny (volumen incluido); si Bunny ignora la pausa al arrancar,
+  se reenvía. Si el navegador obliga a mudo, sale "Activar sonido" (visor y
+  `ReproductorEnSitio`).
+- **Historias de cápsulas en móvil, de vuelta (2026-10-23).** Círculos arriba
+  del héroe + tarjetas bajo el héroe, con estado compartido
+  (`ProveedorCapsulas`: vistas y un solo visor). Anillo dorado liso. Etiquetas
+  de UNA palabra: Hilo, Arranque, Empate, Firmeza, Aro (`seed-capsulas.mjs`,
+  cargado en QA).
+  - ⚠️ Al pasar a producción: correr `ENV_FILE=.env.prod node scripts/seed-capsulas.mjs`
+    para que las etiquetas cortas lleguen también allí.
   - 🟡 "Ver el programa" del formulario apunta a `/#oferta`, ancla que ya no
     existe en el home (hoy es `#precio`). No se cambió: es un enlace.
   - 🟡 `PagoConPlan` (caja de pago en la ficha bloqueada) aún usa el botón en

@@ -2,7 +2,7 @@
 
 import { Play } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Entrada } from "@/components/home/Entrada";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { VisorDeHistorias } from "@/components/home/historias/VisorDeHistorias";
@@ -24,9 +24,35 @@ const LLAVE = "mc_capsulas_vistas";
  * verticales, en rejilla en escritorio y en fila con scroll lateral en móvil.
  * Las historias circulares de móvil se fueron con la referencia nueva.
  */
-export function Capsulas({
+type ContextoCapsulas = {
+  capsulas: Capsula[];
+  vistas: string[];
+  abrir: (indice: number) => void;
+};
+
+const Contexto = createContext<ContextoCapsulas | null>(null);
+
+function useCapsulas(): ContextoCapsulas {
+  const c = useContext(Contexto);
+  if (!c) throw new Error("Las cápsulas necesitan <ProveedorCapsulas> alrededor");
+  return c;
+}
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ DOS PRESENTACIONES, UN SOLO ESTADO (2026-10-23)
+ * ════════════════════════════════════════════════════════════════════════════
+ * En móvil las cápsulas salen DOS veces (pedido de Cristian): como historias
+ * en círculos arriba del todo (`HistoriasCapsulas`) y como tarjetas debajo del
+ * banner (`Capsulas`). Entre las dos va el banner, así que no pueden ser un
+ * solo componente — pero sí compartir el estado: lo que ya vio, y el visor.
+ * Una cápsula vista desde un círculo sale como "Vista" en su tarjeta, y hay
+ * un solo visor abierto, no dos.
+ */
+export function ProveedorCapsulas({
   capsulas,
   urlsDeVideo,
+  children,
 }: {
   capsulas: Capsula[];
   /*
@@ -35,6 +61,7 @@ export function Capsulas({
    * para todos los videos, incluidos los de pago.
    */
   urlsDeVideo: Record<string, string | null>;
+  children: ReactNode;
 }) {
   const [vistas, setVistas] = useState<string[]>([]);
   const [abierta, setAbierta] = useState<number | null>(null);
@@ -64,6 +91,82 @@ export function Capsulas({
     });
   }
 
+  return (
+    <Contexto.Provider value={{ capsulas, vistas, abrir: setAbierta }}>
+      {children}
+      {abierta !== null && (
+        <VisorDeHistorias
+          capsulas={capsulas}
+          indice={abierta}
+          irA={setAbierta}
+          marcarVista={marcarVista}
+          cerrar={() => setAbierta(null)}
+          urlsDeVideo={urlsDeVideo}
+        />
+      )}
+    </Contexto.Provider>
+  );
+}
+
+/**
+ * Las historias en círculo, arriba del todo. Solo en móvil: el gesto ya lo
+ * conoce cualquiera que use Instagram, y no hay que explicarlo. Vuelven el
+ * 2026-10-23 (pedido de Cristian), además de las tarjetas de abajo.
+ *
+ * ⚠️ ANILLO DORADO LISO, SIN DEGRADADO: el home a color es plano. Sin ver,
+ * anillo `--gold`; vista, `--line-strong` y la foto atenuada.
+ */
+export function HistoriasCapsulas() {
+  const { capsulas, vistas, abrir } = useCapsulas();
+  if (capsulas.length === 0) return null;
+
+  return (
+    <section aria-label="Cápsulas gratis, en historias" className="md:hidden">
+      <ul className="sin-barra flex gap-4 overflow-x-auto px-5 pt-4 pb-2">
+        {capsulas.map((c, i) => {
+          const vista = vistas.includes(c.id);
+          return (
+            <li key={c.id} className="shrink-0">
+              <button
+                type="button"
+                onClick={() => abrir(i)}
+                aria-label={`Ver cápsula ${i + 1}: ${c.titulo}${vista ? " (vista)" : ""}`}
+                className="flex w-19 flex-col items-center gap-2 [touch-action:manipulation]"
+              >
+                {/* 72px y CÍRCULO DE VERDAD: `aspect-square` + `shrink-0`,
+                    porque con texto debajo una altura heredada lo vuelve óvalo. */}
+                <span
+                  aria-hidden="true"
+                  className={`block aspect-square size-18 shrink-0 rounded-full border-[2.5px] p-[2.5px] ${
+                    vista ? "border-line-strong" : "border-gold"
+                  }`}
+                >
+                  <span className="bg-espresso relative block size-full overflow-hidden rounded-full">
+                    <ImagenDeCapsula
+                      miniatura={c.miniaturaUrl}
+                      respaldo={c.portadaUrl}
+                      sizes="72px"
+                      className={`object-cover ${vista ? "opacity-70" : ""}`}
+                    />
+                  </span>
+                </span>
+                {/* Una palabra, en dorado: bajo un anillo dorado una etiqueta
+                    negra rompe la unidad y se lee como texto de sistema. */}
+                <span className="text-gold w-full truncate text-center text-xs font-semibold">
+                  {c.etiquetaCorta}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Las tarjetas, debajo del banner (todas las pantallas). */
+export function Capsulas() {
+  const { capsulas, vistas, abrir } = useCapsulas();
   if (capsulas.length === 0) return null;
 
   return (
@@ -107,7 +210,7 @@ export function Capsulas({
                   <Entrada retraso={Math.min(i, 4) * 0.06}>
                   <button
                     type="button"
-                    onClick={() => setAbierta(i)}
+                    onClick={() => abrir(i)}
                     /* Sin el borde dorado ni la sombra de antes: `--gold`
                        sobre espresso no pasa el contraste, y en la versión a
                        color la profundidad no viene de sombras. La vista se
@@ -170,16 +273,6 @@ export function Capsulas({
         </div>
       </section>
 
-      {abierta !== null && (
-        <VisorDeHistorias
-          capsulas={capsulas}
-          indice={abierta}
-          irA={setAbierta}
-          marcarVista={marcarVista}
-          cerrar={() => setAbierta(null)}
-          urlsDeVideo={urlsDeVideo}
-        />
-      )}
     </div>
   );
 }

@@ -25,7 +25,7 @@ export function PasoAPaso({
     <ol className="flex flex-col gap-3">
       <li>
         <Fila
-          href={`/app/bolsos/${bolso.slug}/0`}
+          href={`/app/bolsos/${bolso.slug}/0?ver=1`}
           titulo="Materiales"
           pie={bolso.materialesVisto ? "Visto · 1 video" : "1 video"}
           completado={bolso.materialesVisto}
@@ -40,7 +40,7 @@ export function PasoAPaso({
         return (
           <li key={paso.numero}>
             <Fila
-              href={`/app/bolsos/${bolso.slug}/${paso.partes[0].orden}`}
+              href={`/app/bolsos/${bolso.slug}/${paso.partes[0].orden}?ver=1`}
               numero={paso.numero}
               titulo={`${paso.numero}. ${paso.titulo}`}
               pie={
@@ -60,7 +60,7 @@ export function PasoAPaso({
                     {paso.partes.map((parte) => (
                       <li key={parte.id}>
                         <Link
-                          href={`/app/bolsos/${bolso.slug}/${parte.orden}`}
+                          href={`/app/bolsos/${bolso.slug}/${parte.orden}?ver=1`}
                           className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${
                             parte.orden === ordenActual ? "bg-sand" : "hover:bg-sand/60"
                           }`}

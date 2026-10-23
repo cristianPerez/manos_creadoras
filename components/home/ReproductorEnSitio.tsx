@@ -1,6 +1,6 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { Play, VolumeX } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
@@ -67,6 +67,8 @@ export function ReproductorEnSitio({
    * es un video mudo, nunca uno parado.
    */
   const [mudo, setMudo] = useState(false);
+  /* Tocó "Activar sonido": el botón se va (si no sonó, quedan los controles). */
+  const [sonidoPedido, setSonidoPedido] = useState(false);
   const arranco = useRef(false);
   const relojPlanB = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -255,6 +257,33 @@ export function ReproductorEnSitio({
           allowFullScreen
           className="absolute inset-0 size-full border-0"
         />
+        {/*
+          ⚠️ SI EL NAVEGADOR OBLIGÓ A ARRANCAR MUDO, SE DICE (2026-10-23).
+          Antes el video sonaba mudo y nada lo explicaba. El botón le pide a
+          Bunny que active el sonido; si ese navegador tampoco lo deja, tocar
+          el video lo pausa y enseña los controles de Bunny, con su volumen.
+        */}
+        {mudo && (
+          <button
+            type="button"
+            onClick={() => {
+              const pedir = (metodo: string, valor?: number) =>
+                marco.current?.contentWindow?.postMessage(
+                  JSON.stringify({ context: "player.js", method: metodo, value: valor }),
+                  "*",
+                );
+              pedir("unmute");
+              pedir("setVolume", 100);
+              setSonidoPedido(true);
+            }}
+            className={`bg-espresso text-cream absolute top-4 right-4 flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-opacity ${
+              sonidoPedido ? "pointer-events-none opacity-0" : "opacity-100"
+            }`}
+          >
+            <VolumeX size={16} aria-hidden="true" />
+            Activar sonido
+          </button>
+        )}
       </div>
     );
   }
