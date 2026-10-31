@@ -23,11 +23,12 @@ revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 
 ---
 
-## 💵 EL PRECIO: UNO SOLO (2026-10-19)
+## 💵 EL PRECIO: UNO SOLO (subido el 2026-10-31)
 
 Fuente única: `lib/planes.ts` → `PRECIOS`. **Ningún precio escrito en otro sitio.**
 
-**US$9,99 al mes · US$89,90 al año** (= US$7,49/mes · ahorra US$30, 25%).
+**US$19,70 al mes · US$167 al año** (= US$13,92/mes · ahorra US$69, 29%).
+Antes eran US$9,99 / US$89,90; Cristian los subió el 2026-10-31.
 Son EXACTAMENTE los planes de OnePay: si un día no coinciden, manda OnePay —es
 quien cobra— y la constante miente. Se cambian los dos sitios a la vez.
 
@@ -40,15 +41,37 @@ US$350" y el reloj no cambiaba nada al llegar a cero. Palabras de Cristian:
 → Para una oferta de verdad hace falta PRIMERO un segundo plan en OnePay y que
 el enlace cambie al expirar. Si no, es decoración.
 
-**En OnePay, empresa "Manos Creadoras"** (0028): mensual `01a14b95-f607…` y anual
-`01a14b96-796a…`, que se lee "Mensual · 12 ciclos" = **cobra cada 12 meses**. Sin
-período de prueba. Los enlaces viven en `plan_checkout`, no en el código.
+**En OnePay, empresa "Manos Creadoras"** (migración 0037, 2026-10-31): los planes
+NO se editan de precio, se crean nuevos. Los vigentes son
+`01a192d6-6925…` (Mensual · US$19.70) y `01a192d6-d124…` (Anual · US$167.00),
+los dos en **USD, impuesto 0%** (se cobra exactamente lo que anuncia la página)
+y sin período de prueba. El anual ya usa la frecuencia "Anual" del panel, no el
+apaño de "Mensual · 12 ciclos" de la 0028. Mismo enlace para Colombia y para
+internacional. Los enlaces viven en `plan_checkout`, no en el código.
+⚠️ Los planes viejos (9,99 / 89,90) siguen existiendo: quien ya compró conserva
+su precio. No se borran sin decisión de Cristian.
 
 ---
 
 ## 💳 El circuito de pago, verificado de punta a punta (2026-10-17)
 
-Webhook `ab3b6206` → `https://qa.manoscreadoras.co/api/webhooks/onepay`, 9
+⚠️ **EL WEBHOOK SE REHÍZO EL 2026-10-31.** El `ab3b6206` de abajo vivía en la
+empresa que ahora es "El Charcu" y los webhooks NO se comparten entre empresas:
+desde la mudanza de la 0028 los pagos no avisaban a nadie. El vigente es
+**`7b4d702e` · "QA · Manos Creadoras"** → `https://qa.manoscreadoras.co/api/webhooks/onepay`,
+**activo**, con los 5 eventos que el código entiende (pagada · cancelada · no
+pagada · vencida · finalizada; "creada" se deja fuera a propósito — una
+suscripción creada todavía no se cobró). Su Secreto y su Header **solo se
+enseñan una vez**: están en `.env.local` y en Vercel **Preview** (creados ese
+día; antes no existía ninguna variable ONEPAY en Vercel). Probado en local: un
+pago firmado entra con 200 y abre la membresía; con un correo desconocido queda
+como huérfano, que es lo correcto.
+🔴 **PRODUCCIÓN NO TIENE WEBHOOK.** Este es solo el de QA. Antes de vender hay
+que crear el suyo apuntando a `https://manoscreadoras.co/api/webhooks/onepay` y
+poner SUS claves (distintas) en Vercel **Production**.
+
+Webhook ANTERIOR `ab3b6206` (muerto, en la empresa equivocada) →
+`https://qa.manoscreadoras.co/api/webhooks/onepay`, 9
 eventos, claves en `.env.local` y en Vercel **Preview**. Probado contra QA: sin
 firma → 401 · pago → membresía activa + correo de bienvenida (visto en Resend) ·
 repetido → `repetido` · cancelación → `cancelada` **conservando el acceso hasta
@@ -231,6 +254,49 @@ también en Mi plan y en el selector de pago.
     íconos al fondo, garantía con escudo y WhatsApp dentro del panel marfil.
     Nota: la barra fija de compra móvil NO lee el ciclo elegido (siempre
     "desde US$7,49/mes" → `#precio`); solo lo comparten precio y `PagoConPlan`.
+- **Sección navideña entre el banner y las cápsulas (2026-10-31, pedido de
+  Cristian; referencia: sparkle-bag-studio.lovable.app).**
+  `components/home/Navidad.tsx`: **franja CAFÉ (`--cacao`) a todo el ancho, sin
+  bordes crema ni radio** (así la pidió Cristian el 31-oct; nació como tarjeta
+  redondeada sobre un respiro crema, como la referencia, para no pegarla al
+  espresso de las cápsulas). Consecuencia aceptada: café toca espresso sin nada
+  en medio, y el home pasa a tener dos oscuros seguidos.
+  Badge en píldora con ícono de regalo, titular serif con
+  *navideños* en `--gold-pale`, 4 fotos verticales (fila con scroll en móvil,
+  rejilla de 4 en escritorio). Es informativa: no lleva CTA propio.
+  · Las 4 fotos vienen de la referencia, reescaladas a 720×1000 WebP q70
+    (`public/images/navidad-{esferas,coronas,baston,regalo}.webp`, 30-60 KB).
+  · El badge dice "Edición navideña" y no "Bono 4" como el original: aquí no
+    hay bonos numerados.
+  - Revisor visual: 28/40 → **31/40 · 15/20 craft · 13/20 copy · FIEL (0
+    desvíos de 6)**. Corregido tras su nota: rejilla 2×2 en móvil (la fila con
+    scroll escondía 2 de las 4 piezas y no tenía dots ni flechas), subtítulo
+    anclado al deseo #1/#4 del avatar y `gap` de 16 en vez de 12.
+  - **CTA al pie (2026-10-31, pedido de Cristian):** botón "Inscribirme" a
+    `#precio`, origen `navidad` en Mixpanel. Dice solo "Inscribirme" sin el
+    precio porque "Inscribirme · desde US$X/mes" parte en dos líneas a 375px y
+    el precio ya está en la barra fija que se ve a la vez.
+    ⚠️ **El texto se queda en "Inscribirme" — decisión de Cristian
+    (2026-10-31), no se re-pregunta.** El revisor bajó la nota de 31/40 a 28/40
+    por esto: a 375px quedan TRES botones "Inscribirme" a la vez (cabecera,
+    panel y barra fija) con destinos distintos, y proponía "Ver los planes",
+    que es lo que ya dice la banda "1 de 20" cuando manda al mismo `#precio`.
+    Se planteó y Cristian prefirió "Inscribirme". Riesgo aceptado.
+  - **Las 4 fotos son ENLACES A `#precio`** (2026-10-31, pedido de Cristian),
+    origen `navidad_pieza` en Mixpanel, con zoom de la imagen al pasar el
+    cursor (`group-hover:scale-105`, 500ms). Nacieron como `figure` inertes y
+    eso rompía la regla UX 11. **No llevan a sus videos**: esos todavía no
+    están en el catálogo.
+    · El zoom va en la `<Image>`, no en el enlace: escalar la tarjeta movería
+      el título y el degradado, y el texto escalado se ve borroso.
+    · Sin `motion-safe:`, que además NO generaba la clase: `globals.css` ya
+      corta todas las transiciones con `prefers-reduced-motion`, y Tailwind
+      envuelve `group-hover` en `@media (hover: hover)` solo.
+  - 🟡 **Los videos navideños NO están en el catálogo.** Cuando se carguen:
+    van con la forma de los llaveros (un video completo por pieza, sin
+    lecciones) y entran en el plan de pago. Faltan sus IDs de Bunny — no se
+    pueden buscar desde el repo, que solo guarda `BUNNY_TOKEN_KEY` (firmar),
+    no la clave de API que lista la biblioteca.
 - **Ficha del bolso con el video DENTRO (2026-10-23, `design-ref/app-interna-claude-code/02-ficha-bolso`).**
   Cristian eligió la imagen (reproductor en la ficha) sobre el texto del prompt
   (3 columnas sin video). `components/app/FichaBolso.tsx`: el paso a paso
@@ -446,8 +512,8 @@ toca reintentar en el servidor.
   Cuenta gratis ve la oferta y "Inscribirme"; "Continúa" solo con avance real;
   404 propio dentro de la app; Ojo pagado sin "0 de 600" (se avisa al 80%).
   ✅ Cupos del Ojo decididos por Cristian (2026-10-23): visitante 2 preguntas en
-  total, cuenta gratis **8 al mes** (migración 0036, aplicada en QA; ⏸️ producción
-  pendiente de su OK con `db push`). No se re-pregunta.
+  total, cuenta gratis **8 al mes** (migración 0036, aplicada en QA y en
+  producción el 2026-10-23). No se re-pregunta.
 
 - 🔴 **CÁPSULAS SIN AUDIO — DIAGNÓSTICO DEL 2026-10-21.** En Chrome de escritorio
   SÍ suenan (probado con toque real: el reproductor dice `getMuted=false`,
@@ -548,7 +614,7 @@ toca reintentar en el servidor.
 el DNS** en Namecheap: `A @ 216.198.79.1` y `CNAME www
 54c77d9c2092c13e.vercel-dns-017.com`.
 
-**Base de producción (`icbh…`):** 35 migraciones aplicadas con `db push` (la 0002
+**Base de producción (`icbh…`):** 36 migraciones aplicadas con `db push` (la 0002
 tenía un fallo de tilde que impedía montarla desde cero — corregido); esquema
 idéntico a QA (24 tablas, 27 políticas, 52 índices, 0 sin RLS); catálogo cargado
 con `ENV_FILE=.env.prod node scripts/seed-bolsos.mjs` y `seed-capsulas.mjs`,
