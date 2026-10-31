@@ -91,7 +91,14 @@ export function PrecioHome({
             <p className="mt-4 flex items-baseline gap-2">
               <span
                 className="font-display text-gold-pale"
-                style={{ fontWeight: 500, fontSize: "clamp(64px, 7vw, 84px)", lineHeight: 1 }}
+                /*
+                 * ⚠️ EL MÍNIMO BAJÓ DE 64px A 52px EL 2026-10-31. Con el precio
+                 * viejo la cifra tenía 3 dígitos ("US$7,49") y sobraba sitio; con
+                 * "US$13,92" y "US$19,70" el bloque llegaba a 15px del borde en un
+                 * móvil de 375px y el número dejaba de dominar la tarjeta. Si algún
+                 * día el precio vuelve a tener 3 dígitos, se puede subir otra vez.
+                 */
+                style={{ fontWeight: 500, fontSize: "clamp(52px, 7vw, 84px)", lineHeight: 1 }}
               >
                 {/*
                   ⚠️ `PrecioQueCuenta` Y NO `NumeroQueCuenta`: aquel cuenta cuando
