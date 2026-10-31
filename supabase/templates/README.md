@@ -6,9 +6,29 @@ en: **Supabase → Authentication → Emails → Templates**.
 Se pega **todo el contenido del archivo**, desde la primera línea hasta la última.
 En el campo **Subject** (asunto) va el texto de la columna "Asunto".
 
+## ⚠️ DESDE EL 2026-10-31 EL CORREO LLEVA UN CÓDIGO, NO UN ENLACE
+
+La alumna ya no toca un botón: **escribe 6 números** en la misma pantalla donde
+los pidió. Lo que hay que saber para no romperlo:
+
+- **`magic-link.html` y `confirmar-registro.html` enseñan `{{ .Token }}` y NO
+  llevan `{{ .ConfirmationURL }}`.** No es un descuido: el enlace y el código
+  son **el mismo token de un solo uso**, y los filtros de Outlook/Hotmail abren
+  los enlaces de los correos para comprobarlos. Si van juntos, el filtro gasta
+  el token y el código le llega muerto a la alumna. El Charcu lo probó con los
+  dos juntos el 2026-10-30 y falló exactamente así.
+- **Hay que poner «Email OTP Length» en 6** en Authentication → Providers →
+  Email. La app acepta de 6 a 8 para que no importe el orden en que se cambie
+  en cada entorno, pero el texto de la pantalla dice "6 números".
+- **El enlace viejo sigue entrando.** `/auth/callback` no se tocó, así que los
+  correos que ya estaban en buzones y los enlaces de `npm run alumna:crear`
+  funcionan igual.
+- Las dos plantillas van **en los dos entornos**: QA y producción. Cambiar el
+  código y olvidar la plantilla de uno deja a esas alumnas sin número.
+
 | Casilla en Supabase | Archivo | Asunto sugerido | ¿Sale de verdad? |
 |---|---|---|---|
-| **Magic Link** | `magic-link.html` | Tu acceso a Manos Creadoras | ✅ **Sí, es EL correo importante** — el que recibe la alumna cada vez que entra |
+| **Magic Link** | `magic-link.html` | Tu código para entrar a Manos Creadoras | ✅ **Sí, es EL correo importante** — el que recibe la alumna cada vez que entra |
 | **Confirm signup** | `confirmar-registro.html` | Confirma tu correo | Casi nunca (las cuentas las crea el webhook ya confirmadas), pero conviene tenerlo bien |
 | **Invite user** | `invitacion.html` | Tu lugar en Manos Creadoras está listo | Solo si se invita a alguien a mano desde el panel |
 | **Change Email Address** | `cambio-de-correo.html` | Confirma el cambio de correo | Solo si una alumna cambia su correo |

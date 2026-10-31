@@ -6,9 +6,10 @@ import { useState, type FormEvent } from "react";
 import { Eyebrow } from "@/components/app/Eyebrow";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
+import { CasillaCodigo } from "@/components/app/CasillaCodigo";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
-import { requestMagicLink } from "@/lib/auth";
+import { requestMagicLink, verificarCodigo } from "@/lib/auth";
 
 /**
  * El formulario de acceso, SIN envoltura.
@@ -38,7 +39,33 @@ export function FormularioAcceso({
   const [email, setEmail] = useState("");
   const [estado, setEstado] = useState<Estado>("idle");
   const [mensajeError, setMensajeError] = useState("");
+  /** Error de la casilla del código, aparte del de la casilla del correo. */
+  const [errorCodigo, setErrorCodigo] = useState("");
+  const [verificando, setVerificando] = useState(false);
   const correoValido = EMAIL_PATTERN.test(email);
+
+  async function entrarConCodigo(codigo: string) {
+    if (verificando) return;
+    setVerificando(true);
+    setErrorCodigo("");
+
+    const r = await verificarCodigo(email, codigo);
+    if (!r.ok) {
+      setErrorCodigo(r.error);
+      setVerificando(false);
+      return;
+    }
+
+    /*
+     * ⚠️ NAVEGACIÓN COMPLETA (`location.assign`), no el router de Next. El
+     * servidor tiene que volver a leer la sesión recién creada para pintar la
+     * app con ella; con una navegación de cliente seguiría viendo la de antes
+     * —o ninguna— y la alumna aterrizaría otra vez en la puerta.
+     * No se suelta `verificando`: la página se está yendo, y volver a
+     * habilitar el botón solo invita a un segundo intento que ya no hace falta.
+     */
+    window.location.assign(r.destino);
+  }
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -82,10 +109,19 @@ export function FormularioAcceso({
             className="text-text-secondary mt-3"
             style={{ fontSize: "var(--text-base)", lineHeight: "var(--leading-base)" }}
           >
-            Te mandamos un enlace a{" "}
-            <strong className="text-text-primary font-medium">{email}</strong> para entrar sin
-            contraseña. Si no lo ves en unos minutos, revisa spam.
+            Te mandamos un código de 6 números a{" "}
+            <strong className="text-text-primary font-medium">{email}</strong>. Escríbelo aquí para
+            entrar. Si no lo ves en unos minutos, revisa spam.
           </p>
+        </Reveal>
+
+        {/*
+          ⚠️ LA CASILLA VA AQUÍ, EN LA MISMA PANTALLA donde pidió el código, y en
+          eso está todo el arreglo: el enlace obligaba a saltar al buzón y volver,
+          y ese salto es justo donde se perdía la gente (ver `lib/auth.ts`).
+        */}
+        <Reveal delay={0.04}>
+          <CasillaCodigo onEnviar={entrarConCodigo} verificando={verificando} error={errorCodigo} />
         </Reveal>
 
         {/*
@@ -137,8 +173,8 @@ export function FormularioAcceso({
           Entra con tu <em className="clave">correo</em>
         </h1>
         <p className="text-ink-body mt-4 text-base">
-          Te mandamos un enlace — así guardamos tu avance y tus conversaciones con el Ojo Experto,
-          sin que tengas que recordar ninguna contraseña.
+          Te mandamos un código de 6 números — así guardamos tu avance y tus conversaciones con el
+          Ojo Experto, sin que tengas que recordar ninguna contraseña.
         </p>
       </Reveal>
 
@@ -188,7 +224,7 @@ export function FormularioAcceso({
                 <Loader2 className="animate-spin" size={16} aria-hidden="true" /> Enviando…
               </>
             ) : (
-              "Mandarme el enlace"
+              "Mandarme el código"
             )}
           </button>
         </form>
