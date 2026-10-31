@@ -5,11 +5,12 @@ import { FooterLegal } from "@/components/app/sections/FooterLegal";
 import { Header } from "@/components/app/sections/Header";
 import { BandaUnoDe16 } from "@/components/home/BandaUnoDe16";
 import { BarraCompraMovil } from "@/components/home/BarraCompraMovil";
-import { Capsulas } from "@/components/home/Capsulas";
+import { Capsulas, HistoriasCapsulas, ProveedorCapsulas } from "@/components/home/Capsulas";
 import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
 import { Elizabeth } from "@/components/home/Elizabeth";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { HeroSlider, type FotoHero } from "@/components/home/HeroSlider";
+import { Navidad } from "@/components/home/Navidad";
 import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
 import { PreguntasFrecuentes } from "@/components/home/PreguntasFrecuentes";
@@ -136,15 +137,12 @@ export default async function Home() {
       <Header />
 
       {/*
-        ⚠️ EL ORDEN CAMBIA CON EL ANCHO, y por eso `main` es un flex con `order`.
-
-        En MÓVIL las cápsulas van arriba del todo, como historias: es lo primero
-        que se toca y así lo pide el diseño. En ESCRITORIO van DEBAJO del banner,
-        porque ahí el banner es la pieza que vende y mandarlo al segundo lugar
-        sería enterrar el titular.
-
-        Se hace con `order` y no duplicando componentes: un solo bloque de
-        cápsulas, un solo estado de "vistas", un solo visor.
+        ⚠️ EL MISMO ORDEN EN MÓVIL Y EN ESCRITORIO (2026-10-23, pedido de
+        Cristian). Hasta hoy, en móvil las cápsulas iban arriba del todo, "como
+        historias", y el banner quedaba segundo. Desde que las cápsulas son una
+        fila de tarjetas sobre espresso (home a color), arriba solo enterraban
+        el titular — y además dejaban el banner (crema) pegado al curso gratis
+        (crema). Ahora: banner → cápsulas → curso gratis, en todos los anchos.
 
         ── HOME V3 (2026-10-20): el orden de venta ──────────────────────────
         banner (con precio) → cápsulas → curso gratis → banda "1 de 16" → Ojo →
@@ -152,16 +150,22 @@ export default async function Home() {
         un toque en todo el recorrido: header, banner, banda, precio, cierre y,
         en móvil, la barra fija.
       */}
+      {/* Las cápsulas salen dos veces en móvil (historias arriba y tarjetas
+          bajo el banner) y comparten estado: lo que ya vio y el visor. */}
+      <ProveedorCapsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas}>
       <main className="flex flex-col">
-        <div className="order-1 md:order-2">
-          <Capsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas} />
-        </div>
+        <HistoriasCapsulas />
         {/* `id="banner"`: la barra fija de compra lo observa para no aparecer
             mientras el banner —que ya trae su botón— está a la vista. */}
-        <div id="banner" className="order-2 md:order-1">
+        <div id="banner">
           <HeroSlider fotos={fotos} totalBolsos={totalBolsos} />
         </div>
-        <div className="order-3">
+        {/* Entre el banner y las cápsulas (2026-10-31, pedido de Cristian).
+            Va en tarjeta café sobre crema para no pegar dos bloques oscuros:
+            ver la cabecera de `Navidad.tsx`. */}
+        <Navidad />
+        <Capsulas />
+        <div>
           {gratis && (
             <CursoGratis
               slug={gratis.slug}
@@ -186,20 +190,18 @@ export default async function Home() {
             aquí ya leyó el precio, las preguntas y la garantía. Mandarla otra
             vez a `#precio` sería hacerle subir a pulsar lo mismo.
           */}
-          <section className="px-5 pb-12 md:pb-16">
-            <div className="bg-espresso sobre-oscuro grain-oscuro rounded-bloque mx-auto flex max-w-6xl flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between md:px-12 md:py-10">
+          {/* Home a color (2026-10-22): franja café a todo el ancho y
+              centrada, no una tarjeta espresso dentro de la crema. */}
+          <section className="bg-cacao sobre-oscuro grain-oscuro px-5 py-12 text-center md:py-18">
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-5">
               <div>
                 <h2
                   className="font-display text-cream text-balance"
-                  style={{ fontWeight: 500, fontSize: "clamp(28px, 3vw, 38px)", lineHeight: 1.1 }}
+                  style={{ fontWeight: 500, fontSize: "clamp(32px, 4vw, 52px)", lineHeight: 1.08 }}
                 >
-                  ¿Te gustó? Hay{" "}
-                  <em className="text-gold-pale italic" style={{ fontWeight: 400 }}>
-                    {totalBolsos} bolsos
-                  </em>{" "}
-                  esperándote.
+                  ¿Te gustó? Hay <em className="clave">{totalBolsos} bolsos</em> esperándote.
                 </h2>
-                <p className="text-on-dark-muted mt-2">
+                <p className="text-sand mt-3">
                   Plan anual: un pago de {precioDelCobro("anual")} al año · garantía de 7 días.
                 </p>
               </div>
@@ -208,7 +210,7 @@ export default async function Home() {
                 origen="cierre"
                 plan="anual"
                 abrePago={Boolean(cobro.url.anual)}
-                className="bg-gold-pale text-espresso rounded-boton flex h-14 shrink-0 items-center justify-center px-8 font-extrabold transition-transform active:scale-[0.98]"
+                className="bg-cream text-espresso flex h-13.5 shrink-0 items-center justify-center rounded-full px-10 font-semibold transition-transform active:scale-[0.98] max-md:w-full"
               >
                 Inscribirme por {precioDesde()}/mes
               </EnlaceCompra>
@@ -216,6 +218,7 @@ export default async function Home() {
           </section>
         </div>
       </main>
+      </ProveedorCapsulas>
 
       <FooterLegal />
       <BarraCompraMovil />

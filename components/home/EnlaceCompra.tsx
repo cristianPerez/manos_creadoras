@@ -10,13 +10,18 @@ export type OrigenCompra =
   | "header"
   | "banner_precio"
   | "banda_1de16"
+  // El panel navideño (2026-10-31): su botón del pie y cada una de las 4 fotos.
+  | "navidad"
+  | "navidad_pieza"
   | "precio"
   | "cierre"
   | "barra_movil"
   // Dentro de la app (2026-10-21): los que antes decían "Crear mi cuenta gratis".
   | "catalogo"
   | "ficha_bolso"
-  | "ojo_agotado";
+  | "ojo_agotado"
+  // Cabecera de escritorio del Ojo v5, para quien entra sin cuenta.
+  | "ojo_cabecera";
 
 /**
  * Un enlace de compra que deja dicho desde dónde se tocó.

@@ -1,10 +1,9 @@
 "use client";
 
-import { KeyRound, Loader2, MailCheck } from "lucide-react";
+import { Loader2, Mail, MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { Eyebrow } from "@/components/app/Eyebrow";
-import { GoldSubmitButton } from "@/components/app/GoldButton";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
 import { EVENTOS } from "@/lib/analitica/eventos";
@@ -122,21 +121,22 @@ export function FormularioAcceso({
 
   return (
     <>
-      <Reveal className="text-center">
-        <div className="flex justify-center">
-          <IconChip icon={KeyRound} size={56} />
-        </div>
-        <Eyebrow>Tu cuenta</Eyebrow>
-        <h1
-          className="font-display font-normal text-text-primary mt-2"
-          style={{ fontSize: "var(--text-2xl)" }}
+      {/* App interna (2026-10-23): alineado a la izquierda, con el sobre en un
+          círculo arena y la palabra clave en cursiva, como el resto de la app. */}
+      <Reveal>
+        <span
+          aria-hidden="true"
+          className="bg-sand text-cacao hidden size-13 items-center justify-center rounded-full md:flex"
         >
-          Entra con tu correo
+          <Mail size={22} />
+        </span>
+        <p className="eyebrow md:mt-6">Tu cuenta</p>
+        {/* Más chico que el titular de sección: va dentro de media tarjeta y,
+            a 54px, "correo" se iba solo a una segunda línea. */}
+        <h1 className="titulo-seccion mt-3" style={{ fontSize: "clamp(36px, 3vw, 44px)" }}>
+          Entra con tu <em className="clave">correo</em>
         </h1>
-        <p
-          className="text-text-secondary mt-3"
-          style={{ fontSize: "var(--text-sm)", lineHeight: "var(--leading-base)" }}
-        >
+        <p className="text-ink-body mt-4 text-base">
           Te mandamos un enlace — así guardamos tu avance y tus conversaciones con el Ojo Experto,
           sin que tengas que recordar ninguna contraseña.
         </p>
@@ -144,11 +144,7 @@ export function FormularioAcceso({
 
       {avisoDelEnlace && (
         <Reveal delay={0.04}>
-          <p
-            className="mt-4 rounded-lg border border-border-default bg-surface-tertiary p-3 text-status-warning"
-            style={{ fontSize: "var(--text-xs)", lineHeight: "var(--leading-base)" }}
-            role="alert"
-          >
+          <p className="bg-sand text-espresso mt-4 rounded-md p-3 text-sm" role="alert">
             {avisoDelEnlace}
           </p>
         </Reveal>
@@ -156,7 +152,13 @@ export function FormularioAcceso({
 
       <Reveal delay={0.08}>
         <form onSubmit={enviar} className="mt-6 flex flex-col gap-3">
+          {/* Etiqueta VISIBLE: el placeholder desaparece al escribir y no sirve
+              de etiqueta. */}
+          <label htmlFor="correo-acceso" className="text-espresso text-sm font-semibold">
+            Correo
+          </label>
           <input
+            id="correo-acceso"
             type="email"
             required
             autoComplete="email"
@@ -167,32 +169,35 @@ export function FormularioAcceso({
               setEmail(e.target.value);
               if (estado === "error") setEstado("idle");
             }}
-            placeholder="tu@correo.com"
-            aria-label="Tu correo electrónico"
-            className="h-13 rounded-lg border border-border-default bg-surface-tertiary px-4 text-text-primary placeholder:text-text-tertiary outline-none focus:border-border-strong disabled:opacity-60"
-            style={{ fontSize: "var(--text-base)" }}
+            placeholder="tucorreo@ejemplo.com"
+            className="bg-ivory border-line-strong text-espresso placeholder:text-ink-muted h-14 rounded-full border px-6 outline-none focus-visible:border-(--gold) disabled:opacity-60"
+            style={{ fontSize: "1rem" }}
           />
           {estado === "error" && (
-            <p className="text-status-error" style={{ fontSize: "var(--text-xs)" }} role="alert">
+            <p className="text-status-error text-sm" role="alert">
               {mensajeError}
             </p>
           )}
-          <GoldSubmitButton className="w-full" disabled={estado === "loading" || !correoValido}>
+          <button
+            type="submit"
+            disabled={estado === "loading" || !correoValido}
+            className="bg-cacao text-ivory mt-1 flex h-14 w-full items-center justify-center gap-2 rounded-full font-semibold transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
             {estado === "loading" ? (
               <>
-                <Loader2 className="animate-spin" size={16} /> Enviando…
+                <Loader2 className="animate-spin" size={16} aria-hidden="true" /> Enviando…
               </>
             ) : (
-              "Mandarme el enlace →"
+              "Mandarme el enlace"
             )}
-          </GoldSubmitButton>
+          </button>
         </form>
       </Reveal>
 
       <Reveal delay={0.14}>
-        <p className="text-center text-text-tertiary mt-6" style={{ fontSize: "var(--text-xs)" }}>
+        <p className="text-ink-body mt-5 text-sm max-md:text-center">
           ¿Todavía no compraste?{" "}
-          <Link href="/#oferta" className="text-brand-primary">
+          <Link href="/#precio" className="text-gold font-semibold underline underline-offset-4">
             Ver el programa
           </Link>
         </p>

@@ -86,6 +86,16 @@ export function nombreCorto(alumna: Alumna | null): string {
   return alumna.email.split("@")[0];
 }
 
+/**
+ * Las iniciales del avatar de la cabecera del Ojo (v5): "Cristian Pérez" → "CP".
+ * Sin nombre, la primera letra del correo.
+ */
+export function iniciales(alumna: Alumna): string {
+  const partes = (alumna.nombre ?? "").trim().split(/\s+/).filter(Boolean);
+  if (partes.length > 0) return partes.slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  return (alumna.email[0] ?? "?").toUpperCase();
+}
+
 /** Cuántas preguntas y fotos le quedan este mes al Ojo Experto. */
 export type Cupo = {
   plan: Plan;

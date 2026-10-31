@@ -1,15 +1,14 @@
 "use client";
 
 import {
-  ArrowUp,
   Camera,
-  Clapperboard,
   Copy,
-  Menu,
+  ImageIcon,
+  History,
   Palette,
-  PenLine,
   Plus,
-  Spool,
+  Search,
+  ShoppingBag,
   Sparkles,
   ThumbsDown,
   ThumbsUp,
@@ -17,10 +16,17 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { TextoDelOjo } from "@/components/app/TextoDelOjo";
-import { EnlacesApp } from "@/components/app/NavegacionApp";
+import {
+  AvatarOjo,
+  BurbujaAlumna,
+  ComposerOjo,
+  Escribiendo,
+  IconoCamara,
+  claseCamara,
+} from "@/components/app/OjoPiezas";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Cupo } from "@/lib/alumna";
 import type { Frecuencia } from "@/lib/planes";
@@ -40,56 +46,50 @@ export type Conversacion = { id: string; titulo: string; cuando: string };
 
 export type BolsoBreve = { slug: string; nombre: string; pasos: string[] };
 
-/**
- * Las cuatro puertas de entrada al Ojo Experto.
- *
- * ════════════════════════════════════════════════════════════════════════════
- * ⚠️ ANTES LAS CUATRO PREGUNTABAN LO MISMO: CÓMO TEJER
- * ════════════════════════════════════════════════════════════════════════════
- * "¿Está pareja mi tensión?", "la base se abomba", "cómo remato el borde",
- * "se me tuerce el asa". Las cuatro del mismo tema, y las cuatro para alguien
- * que ya está tejiendo con un problema delante.
- *
- * Eso enseñaba un ayudante de tejido. Las nuevas enseñan un ayudante de
- * NEGOCIO —materiales, fotos, diseño y redes—, que es lo que de verdad
- * justifica pagar: tejer ya se aprende con los videos. Pedido de Cristian el
- * 2026-10-20.
- *
- * ⚠️ LOS ÍCONOS SON SVG, NO LOS EMOJIS DEL ENCARGO. Cristian los escribió con
- * emoji (🧵 📸 🎨 🎬) y el sentido se respeta, pero el sistema los prohíbe
- * como íconos: cada sistema operativo los dibuja distinto, no heredan el color
- * de la marca y en Android se ven como pegatinas. Mismo significado, con
- * Lucide y en un chip dorado.
- *
- * `texto` es lo que se manda de verdad; `titulo` es solo el gancho que se lee
- * de un vistazo. En un teléfono, cuatro preguntas largas sin titular son un
- * muro de letra pequeña.
- */
-const CON_FOTO = {
-  q: "¿Está pareja mi tensión?",
-  pie: "Sube la foto de tu base y la reviso vuelta por vuelta.",
-};
+type Foto = { base64: string; url: string };
 
+/**
+ * Las cuatro puertas de entrada al Ojo Experto (v5, 2026-10-21).
+ *
+ * ⚠️ TÍTULO CORTO + UNA LÍNEA, NO LA PREGUNTA ENTERA. En la v4 cada tarjeta
+ * llevaba la pregunta completa ("¿Cómo puedo crear fotos profesionales de mis
+ * bolsos sin tener una buena cámara?") y un número 01-04: cuatro párrafos que
+ * leer antes de tocar nada. Ahora se lee el tema de un vistazo y la pregunta
+ * larga —`texto`— es la que se manda, igual que antes.
+ *
+ * ⚠️ LA DE FOTO NO MANDA NADA: abre el selector de foto. Es la función que
+ * separa al Ojo de un chat cualquiera, y mandar "¿Está pareja mi tensión?" sin
+ * foto —lo que hacía la v4— era pedirle que juzgara un tejido que no veía.
+ * La sugerencia de "Redes" se cayó: el diseño pide cuatro.
+ */
 const SUGERENCIAS = [
   {
-    Icono: Spool,
-    titulo: "Materiales",
-    texto: "¿Dónde consigo los materiales para hacer mis bolsos?",
+    Icono: Camera,
+    titulo: "Revisar mi tejido",
+    pie: "Tensión, puntos, forma",
+    texto: "Revisa mi tejido: ¿cómo va la tensión, los puntos y la forma?",
+    conFoto: true,
   },
   {
-    Icono: Camera,
-    titulo: "Fotos",
+    Icono: ShoppingBag,
+    titulo: "Conseguir materiales",
+    pie: "Hilos, herrajes, dónde",
+    texto: "¿Dónde consigo los materiales para hacer mis bolsos?",
+    conFoto: false,
+  },
+  {
+    Icono: ImageIcon,
+    titulo: "Fotos que venden",
+    pie: "Con tu celular",
     texto: "¿Cómo puedo crear fotos profesionales de mis bolsos sin tener una buena cámara?",
+    conFoto: false,
   },
   {
     Icono: Palette,
-    titulo: "Diseño",
+    titulo: "Ideas de diseño",
+    pie: "Colores y combinaciones",
     texto: "¿Qué combinaciones de colores y diseños originales puedo crear para mi próximo bolso?",
-  },
-  {
-    Icono: Clapperboard,
-    titulo: "Redes",
-    texto: "¿Cómo puedo convertir las fotos de mis bolsos en videos llamativos para mis redes sociales?",
+    conFoto: false,
   },
 ] as const;
 
@@ -99,11 +99,15 @@ const SUGERENCIAS = [
  * ⚠️ TODO EL ESTADO VIVE AQUÍ Y NO EN LA URL. Una consulta a medio escribir, una
  * foto ya elegida y una respuesta llegando no sobreviven a una navegación, así
  * que la pantalla no navega: cambia de conversación sin recargar.
+ *
+ * ⚠️ v5 (2026-10-21): YA NO SE ELIGE BOLSO NI PASO. El selector se quitó de la
+ * pantalla, pero el estado sigue: si se entra con `?bolso=` o se retoma un hilo
+ * que era de un bolso, se manda igual que antes. Sin eso, va vacío — que es lo
+ * que la ruta ya recibía cuando la alumna no elegía nada.
  */
 export function OjoExperto({
   historial,
   cupo,
-  bolsos,
   bolsoInicial,
   pasoInicial,
   mensajesIniciales = [],
@@ -113,6 +117,7 @@ export function OjoExperto({
 }: {
   historial: Conversacion[];
   cupo: Cupo | null;
+  /** Ya no se pinta (v5); se mantiene para no cambiar las páginas que lo pasan. */
   bolsos: BolsoBreve[];
   bolsoInicial: string | null;
   pasoInicial: number | null;
@@ -122,7 +127,7 @@ export function OjoExperto({
   conversacionInicial?: string | null;
   /**
    * Sin sesión (2026-10-21, pedido de Cristian): el Ojo se abre igual, con las 2
-   * preguntas gratis de visitante que ya daba el home. Sin historial ni medidor.
+   * preguntas gratis de visitante que ya daba el home.
    */
   visitante?: boolean;
   /** Para la caja de "pásate al plan" cuando se acaban las preguntas gratis. */
@@ -138,11 +143,11 @@ export function OjoExperto({
   */
   const [conversacion, setConversacion] = useState<string | null>(conversacionInicial);
   const [texto, setTexto] = useState("");
-  const [foto, setFoto] = useState<{ base64: string; url: string } | null>(null);
+  const [foto, setFoto] = useState<Foto | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bolso, setBolso] = useState<string | null>(bolsoInicial);
-  const [paso, setPaso] = useState<number | null>(pasoInicial);
+  const [bolso] = useState<string | null>(bolsoInicial);
+  const [paso] = useState<number | null>(pasoInicial);
   const [usado, setUsado] = useState(cupo);
   /* Cuántas de las preguntas gratis de visitante lleva. Lo dice el servidor
      en cada respuesta (`uso.preguntas`): el contador vive en la base. */
@@ -153,13 +158,29 @@ export function OjoExperto({
     null,
   );
   const [panelAbierto, setPanelAbierto] = useState(false);
+  useEffect(() => {
+    if (!panelAbierto) return;
+    const alTeclear = (e: KeyboardEvent) => e.key === "Escape" && setPanelAbierto(false);
+    window.addEventListener("keydown", alTeclear);
+    return () => window.removeEventListener("keydown", alTeclear);
+  }, [panelAbierto]);
 
   const finRef = useRef<HTMLDivElement>(null);
+  /* Al abrir un hilo, de golpe al final; después, suave. Con "smooth" también
+     al abrir, la pantalla arrancaba a media conversación y deslizaba sola. */
+  const primeraVez = useRef(true);
   useEffect(() => {
-    finRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    finRef.current?.scrollIntoView({
+      behavior: primeraVez.current ? "auto" : "smooth",
+      block: "end",
+    });
+    primeraVez.current = false;
   }, [mensajes.length, enviando]);
 
-  const bolsoElegido = bolsos.find((b) => b.slug === bolso) ?? null;
+  /* Un solo selector de foto para toda la pantalla: lo abren la cámara de
+     cualquiera de los dos composers y la tarjeta "Revisar mi tejido". */
+  const inputFoto = useRef<HTMLInputElement>(null);
+  const elegirFoto = () => inputFoto.current?.click();
 
   async function enviar(preguntaTexto: string) {
     const pregunta = preguntaTexto.trim();
@@ -244,176 +265,203 @@ export function OjoExperto({
     }
   }
 
+  function nueva() {
+    setMensajes([]);
+    setConversacion(null);
+    setPanelAbierto(false);
+  }
+
+  const vacio = mensajes.length === 0;
+  const conComposer = pidePlan?.motivo !== "agotado";
+
+  const contador = visitante
+    ? { etiqueta: "Preguntas gratis", usado: usadasVisitante, total: PREGUNTAS_DE_VISITANTE }
+    : usado
+      ? {
+          etiqueta: usado.plan === "gratis" ? "Preguntas gratis este mes" : "Preguntas este mes",
+          usado: usado.preguntasUsadas,
+          total: usado.preguntasLimite,
+        }
+      : null;
+
+  /*
+   * Bajo el composer, el plan pagado NO lleva "0 de 600" (auditoría
+   * 2026-10-23): 600 es un tope de uso justo, no una promesa, y leído junto al
+   * "0 de 2 gratis" del visitante parecía otra oferta. Se avisa solo cuando ya
+   * gastó el 80%. El medidor completo sigue en el historial y en Mi cuenta.
+   */
+  const contadorNota =
+    contador && usado?.plan !== "gratis" && !visitante && contador.usado < contador.total * 0.8
+      ? null
+      : contador;
+
+  const fotoElegida = foto && <FotoElegida foto={foto} quitar={() => setFoto(null)} />;
+
   return (
-    <div className="flex min-h-dvh w-full">
-      <PanelHistorial
-        historial={historial}
-        visitante={visitante}
-        cupo={usado}
-        abierto={panelAbierto}
-        cerrar={() => setPanelAbierto(false)}
-        nueva={() => {
-          setMensajes([]);
-          setConversacion(null);
-          setPanelAbierto(false);
+    <div className="alto-ojo flex w-full flex-col overflow-hidden">
+      <input
+        ref={inputFoto}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(e) => {
+          const archivo = e.target.files?.[0];
+          e.target.value = "";
+          if (!archivo) return;
+          const lector = new FileReader();
+          lector.onload = () =>
+            setFoto({ base64: String(lector.result), url: URL.createObjectURL(archivo) });
+          lector.readAsDataURL(archivo);
         }}
       />
 
-      <main className="flex min-w-0 flex-1 flex-col">
-        {/* ⚠️ v4: 72px y con el tile. La cabecera vieja era solo texto, así
-            que la pantalla arrancaba sin ningún ancla visual — parecía una
-            página de documentación, no un asistente. */}
-        <header className="border-line flex h-18 shrink-0 items-center justify-between gap-3 border-b px-4 md:px-6">
-          <button
-            type="button"
-            onClick={() => setPanelAbierto(true)}
-            aria-label="Ver mis consultas"
-            className="text-espresso flex size-11 items-center justify-center lg:hidden"
-          >
-            <Menu size={20} />
-          </button>
+      {/* La cabecera de escritorio ya no es del Ojo: es la global de la app
+          (`CabeceraApp`, en el layout), la misma en todas las páginas. */}
 
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="bg-cacao text-gold-pale flex size-9 shrink-0 items-center justify-center rounded-(--radius-sm)"
-            >
-              <Sparkles size={18} />
-            </span>
-            <span className="min-w-0">
-              <h1
-                className="font-display text-espresso truncate text-2xl leading-tight"
-                style={{ fontWeight: 500 }}
-              >
-                El Ojo Experto
-              </h1>
-              <p className="text-ink-muted truncate text-sm">Tu mentora de bolsillo</p>
-            </span>
-          </div>
+      <div className="flex min-h-0 flex-1">
+        <PanelHistorial
+          historial={historial}
+          activa={conversacion}
+          contador={contador}
+          abierto={panelAbierto}
+          cerrar={() => setPanelAbierto(false)}
+          nueva={nueva}
+        />
 
-          <div className="flex items-center gap-2">
-            {usado && (
-              <span className="text-ink-muted hidden text-xs sm:inline">
-                {usado.preguntasUsadas} preguntas · {usado.fotosUsadas} fotos este mes
-              </span>
-            )}
-            {visitante && (
-              <span className="text-ink-muted text-xs">
-                {Math.max(0, PREGUNTAS_DE_VISITANTE - usadasVisitante)} de {PREGUNTAS_DE_VISITANTE}{" "}
-                preguntas gratis
-              </span>
-            )}
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {/* ── Barra de móvil: historial · título · nueva (2026-10-23) ──
+              "Historial" con texto y no una hamburguesa: la hamburguesa
+              prometía un menú, y la navegación ya está en la barra de abajo.
+              Lo que abre es el historial, y así se llama. */}
+          {/* En escritorio la cabecera de la app ya dice dónde está, pero la
+              página necesita su título para quien navega con lector. */}
+          <h1 className="sr-only max-lg:hidden">Ojo Experto</h1>
+          <div className="border-line flex h-15 shrink-0 items-center justify-between gap-2 border-b px-3 lg:hidden">
             <button
               type="button"
-              onClick={() => {
-                setMensajes([]);
-                setConversacion(null);
-              }}
-              aria-label="Nueva consulta"
-              className="text-espresso flex size-11 items-center justify-center lg:hidden"
+              onClick={() => setPanelAbierto(true)}
+              className="bg-sand text-espresso flex h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-medium"
             >
-              <PenLine size={18} />
+              <History size={18} aria-hidden="true" />
+              Historial
+            </button>
+            <h1
+              className="font-display text-espresso min-w-0 truncate text-center"
+              style={{ fontSize: 22, fontWeight: 500 }}
+            >
+              Ojo <em className="clave">Experto</em>
+            </h1>
+            {/* ⚠️ "+" Y NO EL LÁPIZ DE ANTES: el lápiz se leía como "editar". */}
+            <button
+              type="button"
+              onClick={nueva}
+              aria-label="Nueva consulta"
+              className="bg-espresso text-cream flex size-11 shrink-0 items-center justify-center rounded-full transition-transform active:scale-[0.95]"
+            >
+              <Plus size={22} aria-hidden="true" />
             </button>
           </div>
-        </header>
 
-        <div className="flex-1 overflow-y-auto px-5 py-8">
-          <div className="mx-auto max-w-(--columna-chat)">
-            {mensajes.length === 0 ? (
-              <Vacio alPulsar={enviar} />
-            ) : (
-              <div className="flex flex-col gap-8">
-                {mensajes.map((m) =>
-                  m.rol === "alumna" ? (
-                    <MensajeMio key={m.id} mensaje={m} />
-                  ) : (
-                    <MensajeDelOjo key={m.id} mensaje={m} />
-                  ),
-                )}
-                {enviando && <Pensando />}
-              </div>
-            )}
-            <div ref={finRef} />
-          </div>
-        </div>
-
-        <div className="border-line shrink-0 border-t px-5 py-4">
-          <div className="mx-auto max-w-(--columna-chat)">
-            {error && (
-              <p role="alert" className="text-gold mb-3 text-sm font-semibold">
-                {error}
-              </p>
-            )}
-
-            {pidePlan && enlaces && (
-              <div className="bg-sand mb-4 rounded-(--radius-lg) p-5">
-                <p className="font-display text-espresso text-xl" style={{ fontWeight: 500 }}>
-                  {pidePlan.mensaje}
-                </p>
-                <p className="text-ink-body mt-1 text-sm">
-                  Con el plan, el Ojo Experto te responde todo el mes y revisa las fotos de tu
-                  tejido.
-                </p>
-                <div className="mt-4">
-                  <PagoConPlan enlaces={enlaces} origen="ojo_agotado" />
-                </div>
-              </div>
-            )}
-
-            {/* Agotadas las gratis, el composer sobra: su trabajo lo hace la
-                caja de arriba. Si solo fue la foto, se sigue escribiendo. */}
-            {pidePlan?.motivo !== "agotado" && (
-            <>
-            <SelectorContexto
-              bolsos={bolsos}
-              bolso={bolso}
-              paso={paso}
-              elegir={(b, p) => {
-                setBolso(b);
-                setPaso(p);
-              }}
-              nombre={bolsoElegido?.nombre ?? null}
-            />
-
-            {foto && (
-              <div className="mt-3 flex items-center gap-3">
-                <Image
-                  src={foto.url}
-                  alt="La foto que vas a mandar"
-                  width={56}
-                  height={56}
-                  className="size-14 rounded-xl object-cover"
-                  unoptimized
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 lg:px-8">
+            <div className="mx-auto flex min-h-full max-w-(--columna-chat) flex-col">
+              {vacio ? (
+                <Vacio
+                  alPulsar={(s) => {
+                    if (s.conFoto) {
+                      if (!texto.trim()) setTexto(s.texto);
+                      elegirFoto();
+                    } else {
+                      enviar(s.texto);
+                    }
+                  }}
+                  composer={
+                    conComposer && (
+                      <>
+                        {fotoElegida}
+                        <ComposerOjo
+                          grande
+                          camara={<BotonCamara grande alPulsar={elegirFoto} />}
+                          placeholder="Pregúntame o sube una foto de tu tejido…"
+                          texto={texto}
+                          setTexto={setTexto}
+                          enviando={enviando}
+                          onEnviar={() => enviar(texto)}
+                        />
+                        <NotaComposer contador={contadorNota} />
+                      </>
+                    )
+                  }
                 />
-                <button
-                  type="button"
-                  onClick={() => setFoto(null)}
-                  className="text-ink-muted flex items-center gap-1 text-sm"
-                >
-                  <X size={14} aria-hidden="true" /> Quitar
-                </button>
-              </div>
-            )}
-
-            <Composer
-              texto={texto}
-              setTexto={setTexto}
-              enviando={enviando}
-              onFoto={setFoto}
-              onEnviar={() => enviar(texto)}
-            />
-            </>
-            )}
-
-            {/* ⚠️ Ver el mismo cambio en `OjoDemo`: fuera el "puede
-                equivocarse" —el descargo legal vive en los Términos— y nada de
-                decir que está "entrenado con" Elizabeth, porque no lo está. */}
-            <p className="text-ink-muted mt-3 text-center text-xs">
-              Responde con las fichas y el método de Elizabeth.
-            </p>
+              ) : (
+                <div aria-live="polite" className="flex flex-col gap-8 py-6 lg:gap-10 lg:py-10">
+                  {/* ⚠️ LA CLAVE LLEVA LA POSICIÓN: la ruta devuelve como id de
+                      cada respuesta el del HILO, así que desde la segunda
+                      respuesta dos mensajes compartían clave y React mezclaba
+                      su estado (copiado, me sirvió). */}
+                  {mensajes.map((m, i) =>
+                    m.rol === "alumna" ? (
+                      <div key={`${m.id}-${i}`} className="reveal">
+                        <MensajeMio mensaje={m} />
+                      </div>
+                    ) : (
+                      <div key={`${m.id}-${i}`} className="reveal">
+                        <MensajeDelOjo mensaje={m} />
+                      </div>
+                    ),
+                  )}
+                  {enviando && <Escribiendo />}
+                </div>
+              )}
+              <div ref={finRef} />
+            </div>
           </div>
-        </div>
-      </main>
+
+          <div className="shrink-0 px-4 pt-2 pb-3 lg:px-8 lg:pb-5">
+            <div className="mx-auto max-w-(--columna-chat)">
+              {error && (
+                <p role="alert" className="text-gold mb-3 text-sm font-semibold">
+                  {error}
+                </p>
+              )}
+
+              {pidePlan && enlaces && (
+                <div className="bg-sand mb-3 rounded-lg p-5">
+                  <p className="font-display text-espresso text-xl" style={{ fontWeight: 500 }}>
+                    {pidePlan.mensaje}
+                  </p>
+                  <p className="text-ink-body mt-1 text-sm">
+                    Con el plan, el Ojo Experto te responde todo el mes y revisa las fotos de tu
+                    tejido.
+                  </p>
+                  <div className="mt-4">
+                    <PagoConPlan enlaces={enlaces} origen="ojo_agotado" />
+                  </div>
+                </div>
+              )}
+
+              {/* Agotadas las gratis, el composer sobra: su trabajo lo hace la
+                  caja de arriba. En escritorio y sin mensajes, el composer va
+                  en el centro (dentro de `Vacio`) y este se esconde. */}
+              {conComposer && (
+                <div className={vacio ? "lg:hidden" : ""}>
+                  {fotoElegida}
+                  <ComposerOjo
+                    camara={<BotonCamara alPulsar={elegirFoto} />}
+                    placeholder={vacio ? "Pregunta o sube una foto…" : "Sigue preguntando…"}
+                    texto={texto}
+                    setTexto={setTexto}
+                    enviando={enviando}
+                    onEnviar={() => enviar(texto)}
+                  />
+                  {vacio && <NotaComposer contador={contadorNota} corta />}
+                </div>
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
@@ -423,30 +471,30 @@ export function OjoExperto({
 /**
  * El estado vacío: la primera impresión del Ojo.
  *
- * ════════════════════════════════════════════════════════════════════════════
- * ⚠️ v4: ALINEADO A LA IZQUIERDA, NO CENTRADO
- * ════════════════════════════════════════════════════════════════════════════
- * Centrado parecía una pantalla de error ("no hay nada aquí"). Alineado a la
- * izquierda, con el titular grande arriba, se lee como el comienzo de una
- * conversación — que es lo que es.
- *
- * ⚠️ Y LA PRIMERA TARJETA ES DISTINTA A PROPÓSITO: la de foto es la función
- * que de verdad separa al Ojo de un chat cualquiera, y la única que la alumna
- * no adivina sola. En cacao y a doble alto, es lo primero que mira.
+ * ⚠️ v5: CENTRADO Y CON CUATRO BLOQUES, NADA MÁS — ícono, titular, composer y
+ * tarjetas. Se fueron el párrafo de explicación, la numeración 01-04 y la
+ * tarjeta café de foto: la v4 pedía leer seis bloques antes de escribir.
+ * En móvil el composer no va aquí sino anclado abajo, sobre la barra.
  */
-function Vacio({ alPulsar }: { alPulsar: (t: string) => void }) {
+function Vacio({
+  alPulsar,
+  composer,
+}: {
+  alPulsar: (s: (typeof SUGERENCIAS)[number]) => void;
+  composer: ReactNode;
+}) {
   return (
-    <div className="py-6 md:py-10">
+    <div className="flex flex-1 flex-col justify-center py-6 lg:py-10">
       <span
         aria-hidden="true"
-        className="bg-espresso text-gold-pale flex size-13 items-center justify-center rounded-(--radius-sm)"
+        className="reveal bg-espresso text-gold-light mx-auto flex size-13 items-center justify-center rounded-full lg:size-14"
       >
-        <Sparkles size={26} />
+        <Sparkles size={24} />
       </span>
 
       <h2
-        className="font-display text-espresso mt-6 text-balance"
-        style={{ fontWeight: 500, fontSize: "clamp(36px, 5vw, 60px)", lineHeight: 1.05 }}
+        className="reveal font-display text-espresso ojo-titular mt-5 text-center text-balance"
+        style={{ fontWeight: 500, ["--reveal-delay" as string]: "60ms" }}
       >
         ¿Qué se te complica{" "}
         <em className="text-gold italic" style={{ fontWeight: 400 }}>
@@ -454,51 +502,99 @@ function Vacio({ alPulsar }: { alPulsar: (t: string) => void }) {
         </em>
         ?
       </h2>
-      <p className="text-ink-body mt-3 text-balance">
-        Mándame una foto de tu tejido y te digo cómo vas, o pregúntame lo que sea de tus bolsos:
-        materiales, proveedores, fotos y cómo venderlos.
-      </p>
 
-      {/*
-        ⚠️ UNA COLUMNA EN MÓVIL PARA LA DESTACADA Y DOS PARA EL RESTO. A 375px
-        las preguntas largas en dos columnas se parten en seis líneas de letra
-        diminuta; la destacada necesita el ancho entero porque lleva descripción.
-      */}
-      <div className="mt-8 grid gap-3 md:grid-cols-[1.3fr_1fr_1fr]">
-        <button
-          type="button"
-          onClick={() => alPulsar(CON_FOTO.q)}
-          className="bg-cacao focus-visible:outline-gold-pale flex flex-col justify-end rounded-xl p-5 text-left transition-colors duration-150 focus-visible:outline-2 md:row-span-2 md:min-h-[320px]"
-        >
-          <span className="bg-gold-pale text-espresso mb-auto flex w-max items-center gap-2 rounded-(--radius-sm) px-3 py-1.5 text-sm font-semibold">
-            <Camera size={15} aria-hidden="true" />
-            Con foto
-          </span>
-          <span className="font-display text-cream mt-6 block text-2xl" style={{ fontWeight: 500 }}>
-            {CON_FOTO.q}
-          </span>
-          <span className="text-cream/75 mt-1.5 block text-sm text-pretty">{CON_FOTO.pie}</span>
-        </button>
+      {composer && (
+        <div className="reveal mt-7 hidden lg:block" style={{ ["--reveal-delay" as string]: "120ms" }}>
+          {composer}
+        </div>
+      )}
 
-        {/* ⚠️ MANDA LA PREGUNTA, NO EL ÁREA. La versión anterior ponía
-            "MATERIALES" en grande y la pregunta debajo en gris: se leía como
-            un índice de categorías, y lo que hace tocar es ver escrita la duda
-            que una tiene. El área queda de pie, que es su papel. */}
-        {SUGERENCIAS.map(({ titulo, texto }, i) => (
+      <div className="mt-6 grid grid-cols-2 gap-2.5 lg:mt-10 lg:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] lg:gap-3">
+        {/* Entrada escalonada: 60ms entre tarjeta y tarjeta. Con movimiento
+            reducido, `.reveal` no anima (bloque de `prefers-reduced-motion`). */}
+        {SUGERENCIAS.map((s, i) => (
           <button
-            key={titulo}
+            key={s.titulo}
             type="button"
-            onClick={() => alPulsar(texto)}
-            className="bg-sand hover:bg-sand-hover focus-visible:outline-gold flex flex-col rounded-xl p-5 text-left transition-colors duration-150 focus-visible:outline-2"
+            onClick={() => alPulsar(s)}
+            style={{ ["--reveal-delay" as string]: `${180 + i * 60}ms` }}
+            className="reveal bg-ivory border-line hover:border-line-strong focus-visible:outline-gold flex min-h-30 flex-col justify-between gap-4 rounded-lg border p-4 text-left transition-colors duration-150 focus-visible:outline-2 active:scale-[0.98] lg:min-h-38 lg:p-5"
           >
-            <span className="text-cacao text-sm" style={{ fontWeight: 800 }}>
-              {String(i + 1).padStart(2, "0")}
+            <s.Icono size={22} strokeWidth={1.75} className="text-gold" aria-hidden="true" />
+            <span>
+              <span
+                className="text-espresso block leading-snug font-semibold"
+                style={{ fontSize: "1rem" }}
+              >
+                {s.titulo}
+              </span>
+              <span className="text-ink-muted ojo-nota mt-1 block">{s.pie}</span>
             </span>
-            <span className="text-espresso mt-3 block font-semibold text-balance">{texto}</span>
-            <span className="text-ink-muted mt-1.5 block text-sm">{titulo}</span>
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** "Cómo funciona el Ojo · 0 de 2 preguntas gratis", bajo el composer. */
+function NotaComposer({
+  contador,
+  corta = false,
+}: {
+  contador: { etiqueta: string; usado: number; total: number } | null;
+  /** Móvil: "Cómo funciona" a la izquierda y "0 de 2 gratis" a la derecha. */
+  corta?: boolean;
+}) {
+  const cifra = contador && (
+    <span className="cifra">
+      {contador.usado} de {contador.total}
+      {contador.etiqueta === "Preguntas gratis"
+        ? corta
+          ? " gratis"
+          : " preguntas gratis"
+        : contador.etiqueta === "Preguntas gratis este mes"
+          ? corta
+            ? " gratis"
+            : " preguntas gratis este mes"
+          : corta
+            ? " este mes"
+            : " preguntas este mes"}
+    </span>
+  );
+  return (
+    <p
+      className={`text-ink-muted ojo-nota mt-2 flex items-center gap-5 ${
+        corta ? "justify-between px-2" : "justify-center"
+      }`}
+    >
+      {/* El Ojo explicado con un ejemplo vivo: la sección del home. */}
+      <Link href="/#ojo" className="hover:text-espresso underline underline-offset-2">
+        {corta ? "Cómo funciona" : "Cómo funciona el Ojo"}
+      </Link>
+      {cifra}
+    </p>
+  );
+}
+
+function FotoElegida({ foto, quitar }: { foto: Foto; quitar: () => void }) {
+  return (
+    <div className="mb-2 flex items-center gap-3">
+      <Image
+        src={foto.url}
+        alt="La foto que vas a mandar"
+        width={56}
+        height={56}
+        className="size-14 rounded-md object-cover"
+        unoptimized
+      />
+      <button
+        type="button"
+        onClick={quitar}
+        className="text-ink-muted hover:text-espresso flex h-11 items-center gap-1 text-sm"
+      >
+        <X size={14} aria-hidden="true" /> Quitar
+      </button>
     </div>
   );
 }
@@ -512,20 +608,11 @@ function MensajeMio({ mensaje }: { mensaje: Mensaje }) {
           alt="La foto de tu tejido"
           width={220}
           height={220}
-          /* v4: radio 10 y sin sombra. */
-          className="max-w-(--foto-mensaje) rounded-[10px] object-cover"
+          className="max-w-(--foto-mensaje) rounded-lg object-cover"
           unoptimized
         />
       )}
-      {/*
-        ⚠️ v4: BURBUJA CACAO, NO ARENA. Con arena la pregunta y las tarjetas
-        de sugerencia eran del mismo color y el hilo se leía como una lista de
-        bloques sueltos. El cacao separa "lo que yo dije" de todo lo demás.
-        La esquina de la cola va a 4px: es lo que la ancla a quien habla.
-      */}
-      <p className="bg-cacao text-cream max-w-[85%] rounded-xl rounded-br-[4px] px-4 py-3">
-        {mensaje.texto}
-      </p>
+      <BurbujaAlumna className="ojo-cuerpo">{mensaje.texto}</BurbujaAlumna>
     </div>
   );
 }
@@ -534,59 +621,54 @@ function MensajeMio({ mensaje }: { mensaje: Mensaje }) {
  * La respuesta NO va en burbuja.
  *
  * Es la diferencia visual entre preguntar y que te expliquen: la burbuja es un
- * mensaje, el texto suelto es una explicación. Ponerle burbuja a las dos haría
- * que la pantalla pareciera un chat de WhatsApp, que es justo lo que no es.
+ * mensaje, el texto suelto es una explicación.
+ *
+ * ⚠️ SIN LA ETIQUETA "Vi en tu foto: …" DE LA REFERENCIA: la respuesta de la
+ * ruta no dice qué entendió el Ojo de la foto, y inventarla sería mentir sobre
+ * lo que miró. Pendiente en ESTADO.md.
  */
 function MensajeDelOjo({ mensaje }: { mensaje: Mensaje }) {
   const [opinion, setOpinion] = useState<-1 | 1 | null>(mensaje.feedback ?? null);
   const [copiado, setCopiado] = useState(false);
 
   return (
-    <div className="flex gap-4">
-      {/* v4: tile cuadrado `--gold-pale` con el ícono en `--cacao`. */}
-      <span
-        aria-hidden="true"
-        className="bg-gold-pale text-cacao flex size-7 shrink-0 items-center justify-center rounded-(--radius-sm)"
-      >
-        <Sparkles size={15} />
-      </span>
+    <div className="min-w-0">
+      <div className="flex items-center gap-2.5">
+        <AvatarOjo />
+        <span className="text-espresso text-sm font-semibold">Ojo Experto</span>
+      </div>
 
-      <div className="min-w-0 flex-1">
-        {/* La etiqueta solo cuando hubo foto: decir "diagnóstico de tu foto"
-            sobre una pregunta escrita sería mentir sobre lo que miró. */}
-        {mensaje.fotoUrl && (
-          <p className="bg-sand text-cacao mb-3 inline-block rounded-[4px] px-2.5 py-1 text-xs font-bold tracking-[0.12em] uppercase">
-            Diagnóstico de tu foto
-          </p>
-        )}
+      <div className="mt-3">
         <TextoDelOjo texto={mensaje.texto} />
+      </div>
 
-        <div className="mt-4 flex items-center gap-1">
-          <Accion
-            etiqueta={copiado ? "Copiado" : "Copiar"}
-            onClick={async () => {
-              await navigator.clipboard.writeText(mensaje.texto);
-              setCopiado(true);
-              setTimeout(() => setCopiado(false), 1500);
-            }}
-          >
-            <Copy size={15} />
-          </Accion>
-          <Accion
-            etiqueta="Me sirvió"
-            activo={opinion === 1}
-            onClick={() => setOpinion(opinion === 1 ? null : 1)}
-          >
-            <ThumbsUp size={15} />
-          </Accion>
-          <Accion
-            etiqueta="No me sirvió"
-            activo={opinion === -1}
-            onClick={() => setOpinion(opinion === -1 ? null : -1)}
-          >
-            <ThumbsDown size={15} />
-          </Accion>
-        </div>
+      {/* -ml-3.5: el ícono de 15px va centrado en un botón de 44, así que sin
+          esto arrancaba 14px a la derecha del margen del texto. */}
+      <div className="mt-3 -ml-3.5 flex items-center gap-1">
+        <Accion
+          etiqueta={copiado ? "Copiado" : "Copiar"}
+          onClick={async () => {
+            await navigator.clipboard.writeText(mensaje.texto);
+            setCopiado(true);
+            setTimeout(() => setCopiado(false), 1500);
+          }}
+        >
+          <Copy size={15} />
+        </Accion>
+        <Accion
+          etiqueta="Me sirvió"
+          activo={opinion === 1}
+          onClick={() => setOpinion(opinion === 1 ? null : 1)}
+        >
+          <ThumbsUp size={15} />
+        </Accion>
+        <Accion
+          etiqueta="No me sirvió"
+          activo={opinion === -1}
+          onClick={() => setOpinion(opinion === -1 ? null : -1)}
+        >
+          <ThumbsDown size={15} />
+        </Accion>
       </div>
     </div>
   );
@@ -598,7 +680,7 @@ function Accion({
   activo = false,
   onClick,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   etiqueta: string;
   activo?: boolean;
   onClick: () => void;
@@ -610,7 +692,7 @@ function Accion({
       aria-label={etiqueta}
       aria-pressed={activo}
       title={etiqueta}
-      className={`flex size-9 items-center justify-center rounded-lg transition-colors ${
+      className={`flex size-11 items-center justify-center rounded-full transition-colors ${
         activo ? "text-gold bg-sand" : "text-ink-muted hover:text-espresso"
       }`}
     >
@@ -619,254 +701,147 @@ function Accion({
   );
 }
 
-function Pensando() {
+/** La cámara de la app: abre el selector de foto (uno solo para toda la pantalla). */
+function BotonCamara({ alPulsar, grande = false }: { alPulsar: () => void; grande?: boolean }) {
   return (
-    <div className="flex gap-4">
-      <span
-        aria-hidden="true"
-        className="bg-gold-pale text-cacao flex size-7 shrink-0 items-center justify-center rounded-(--radius-sm)"
-      >
-        <Sparkles size={16} />
-      </span>
-      {/* Tres puntos y no un texto: "pensando…" se lee una vez y cansa a la
-          tercera. El movimiento dice lo mismo sin decir nada. */}
-      <div className="flex items-center gap-1.5 pt-3" role="status" aria-label="Escribiendo">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            /* Cuadritos: en v4 no hay puntos redondos en el Ojo. */
-            className="bg-cacao/40 size-1.5 animate-bounce"
-            style={{ animationDelay: `${i * 120}ms` }}
-          />
-        ))}
-      </div>
-    </div>
+    <button
+      type="button"
+      onClick={alPulsar}
+      aria-label="Subir una foto de tu tejido"
+      className={claseCamara(grande)}
+    >
+      <IconoCamara />
+    </button>
   );
 }
 
-function Composer({
-  texto,
-  setTexto,
-  enviando,
-  onFoto,
-  onEnviar,
-}: {
-  texto: string;
-  setTexto: (t: string) => void;
-  enviando: boolean;
-  onFoto: (f: { base64: string; url: string } | null) => void;
-  onEnviar: () => void;
-}) {
-  return (
-    /* v4: marfil con borde `--line-strong` y radio 12. `--line` se perdía
-       sobre marfil y el campo parecía flotar sin contorno. */
-    <div className="bg-ivory border-line-strong mt-3 flex items-end gap-2 rounded-xl border p-2">
-      <label className="text-ink-muted hover:text-espresso flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-(--radius-sm) transition-colors duration-150">
-        <Camera size={20} aria-hidden="true" />
-        <span className="sr-only">Subir una foto de tu tejido</span>
-        <input
-          type="file"
-          accept="image/*"
-          className="sr-only"
-          onChange={(e) => {
-            const archivo = e.target.files?.[0];
-            if (!archivo) return;
-            const lector = new FileReader();
-            lector.onload = () =>
-              onFoto({ base64: String(lector.result), url: URL.createObjectURL(archivo) });
-            lector.readAsDataURL(archivo);
-          }}
-        />
-      </label>
-
-      <textarea
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        onKeyDown={(e) => {
-          // Enter envía, Mayús+Enter salta de línea: lo que ya hace todo chat.
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            onEnviar();
-          }
-        }}
-        rows={1}
-        placeholder="Pregúntale al Ojo Experto o sube una foto…"
-        aria-label="Tu pregunta"
-        className="text-espresso placeholder:text-ink-muted max-h-40 min-h-11 flex-1 resize-none bg-transparent py-2.5 outline-none"
-        style={{ height: "auto" }}
-        onInput={(e) => {
-          const el = e.currentTarget;
-          el.style.height = "auto";
-          el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={onEnviar}
-        disabled={enviando || texto.trim().length < 3}
-        aria-label="Enviar"
-        /* v4: cuadrado de 44px con radio 8 y la flecha en `--gold-pale`. */
-        className="bg-espresso text-gold-pale flex size-11 shrink-0 items-center justify-center rounded-(--radius-sm) transition-opacity disabled:opacity-40"
-      >
-        <ArrowUp size={20} />
-      </button>
-    </div>
-  );
+/** Para buscar sin que importen las tildes ni las mayúsculas: "tensión" = "TENSION". */
+function normalizar(t: string): string {
+  return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
-function SelectorContexto({
-  bolsos,
-  bolso,
-  paso,
-  nombre,
-  elegir,
-}: {
-  bolsos: BolsoBreve[];
-  bolso: string | null;
-  paso: number | null;
-  nombre: string | null;
-  elegir: (b: string | null, p: number | null) => void;
-}) {
-  const pasos = bolsos.find((b) => b.slug === bolso)?.pasos ?? [];
-
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      {/* v4: chip arena con radio 6, no píldora con borde. */}
-      <div className="bg-sand flex h-11 items-center gap-2 rounded-[6px] px-3">
-        <select
-          value={bolso ?? ""}
-          onChange={(e) => elegir(e.target.value || null, null)}
-          aria-label="Sobre qué bolso preguntas"
-          className="text-espresso max-w-40 bg-transparent text-sm font-semibold outline-none"
-        >
-          <option value="">Sin bolso</option>
-          {bolsos.map((b) => (
-            <option key={b.slug} value={b.slug}>
-              {b.nombre}
-            </option>
-          ))}
-        </select>
-
-        {pasos.length > 0 && (
-          <>
-            <span aria-hidden="true" className="text-ink-muted">
-              ·
-            </span>
-            <select
-              value={paso ?? ""}
-              onChange={(e) => elegir(bolso, e.target.value ? Number(e.target.value) : null)}
-              aria-label="En qué paso vas"
-              className="text-espresso bg-transparent text-sm font-semibold outline-none"
-            >
-              <option value="">Paso</option>
-              {pasos.map((t, i) => (
-                <option key={t} value={i + 1}>
-                  Paso {i + 1}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-      </div>
-
-      <p className="text-ink-muted text-xs">
-        {nombre
-          ? "El Ojo Experto usa la ficha de este bolso para responderte."
-          : "Elige un bolso y responderá sabiendo sus materiales y sus pasos."}
-      </p>
-    </div>
-  );
-}
-
+/**
+ * Las consultas: barra lateral marfil en escritorio, cajón en móvil (v5).
+ *
+ * ⚠️ AQUÍ YA NO VA LA NAVEGACIÓN (Mis bolsos, Directorio…). En escritorio subió
+ * a la cabecera y en móvil está en la barra de abajo: repetirla aquí eran dos
+ * menús iguales a un dedo de distancia. Tampoco el bloque oscuro de "Tu uso
+ * este mes": queda una sola fila con las preguntas, que es lo que se agota.
+ */
 function PanelHistorial({
   historial,
-  visitante = false,
-  cupo,
+  activa,
+  contador,
   abierto,
   cerrar,
   nueva,
 }: {
   historial: Conversacion[];
-  visitante?: boolean;
-  cupo: Cupo | null;
+  activa: string | null;
+  contador: { etiqueta: string; usado: number; total: number } | null;
   abierto: boolean;
   cerrar: () => void;
   nueva: () => void;
 }) {
+  const [busqueda, setBusqueda] = useState("");
+  const q = normalizar(busqueda.trim());
+  /* La búsqueda filtra lo que ya está cargado (las últimas 30): no pide nada
+     al servidor. */
+  const visibles = q ? historial.filter((c) => normalizar(c.titulo).includes(q)) : historial;
+
   const grupos: [string, Conversacion[]][] = [
-    ["Hoy", historial.filter((c) => c.cuando === "hoy")],
-    ["Esta semana", historial.filter((c) => c.cuando === "semana")],
-    ["Anteriores", historial.filter((c) => c.cuando === "antes")],
+    ["Hoy", visibles.filter((c) => c.cuando === "hoy")],
+    ["Esta semana", visibles.filter((c) => c.cuando === "semana")],
+    ["Anteriores", visibles.filter((c) => c.cuando === "antes")],
   ];
+
+  const pct = contador && contador.total > 0
+    ? Math.min(100, Math.round((contador.usado / contador.total) * 100))
+    : 0;
 
   return (
     <>
-      {/* En móvil el panel se abre encima; la cortina cierra al tocar fuera. */}
+      {/* En móvil el panel se abre encima; tocar el fondo lo cierra. */}
       {abierto && (
         <button
           type="button"
-          aria-label="Cerrar"
+          aria-label="Cerrar mis consultas"
           onClick={cerrar}
-          className="bg-espresso/40 fixed inset-0 z-(--z-sticky) lg:hidden"
+          className="bg-(--surface-overlay) fixed inset-0 z-(--z-overlay) lg:hidden"
         />
       )}
 
       <aside
-        /* ⚠️ v4: ESPRESSO, NO ARENA. Con arena el panel y el chat eran dos
-           tonos del mismo beige y la pantalla no tenía estructura: todo
-           flotaba. En oscuro, el chat queda claramente en primer plano. */
-        className={`bg-espresso z-(--z-sticky) flex w-(--barra-lateral-ojo) shrink-0 flex-col p-4 max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:transition-transform ${
-          abierto ? "max-lg:translate-x-0" : "max-lg:-translate-x-full"
+        aria-label="Mis consultas"
+        className={`bg-sand border-line flex w-(--barra-lateral-ojo) shrink-0 flex-col gap-3.5 p-5 lg:border-r max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-(--z-modal) max-lg:w-80 max-lg:max-w-[85vw] max-lg:rounded-r-(--radius-cajon) max-lg:transition-[transform,visibility] max-lg:duration-300 max-lg:ease-out ${
+          abierto ? "max-lg:translate-x-0" : "max-lg:invisible max-lg:-translate-x-full"
         }`}
       >
-        <Link href="/app" className="mb-5 flex items-center gap-3 px-2">
-          <span className="font-display text-xl text-white" style={{ fontWeight: 500 }}>
-            Manos <em className="text-gold-pale italic">Creadoras</em>
-          </span>
-        </Link>
+        <div className="flex items-center justify-between lg:hidden">
+          <p className="font-display text-espresso" style={{ fontSize: 30, fontWeight: 500 }}>
+            Tus <em className="clave">consultas</em>
+          </p>
+          <button
+            type="button"
+            onClick={cerrar}
+            aria-label="Cerrar"
+            className="bg-ivory text-espresso flex size-11 items-center justify-center rounded-full"
+          >
+            <X size={22} aria-hidden="true" />
+          </button>
+        </div>
 
         <button
           type="button"
           onClick={nueva}
-          className="bg-gold-pale text-espresso flex h-11 items-center justify-center gap-2 rounded-(--radius-sm) px-4 text-sm"
-          style={{ fontWeight: 800 }}
+          className="bg-espresso text-cream flex h-12.5 items-center justify-center gap-2 rounded-full px-4 font-semibold transition-transform duration-150 active:scale-[0.98] lg:h-12"
+          style={{ fontSize: "1rem" }}
         >
-          <Plus size={16} aria-hidden="true" />
+          <Plus size={18} aria-hidden="true" />
           Nueva consulta
         </button>
 
-        {/* La misma navegación que el resto de la app: desde aquí también se
-            vuelve a los bolsos sin pasar por el logo. */}
-        <div className="mt-5">
-          <EnlacesApp />
-        </div>
+        <label className="bg-ivory border-line focus-within:outline-gold flex h-11 items-center gap-3 rounded-full border px-4 focus-within:outline-2">
+          <Search size={16} className="text-ink-muted shrink-0" aria-hidden="true" />
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar consulta"
+            aria-label="Buscar consulta"
+            className="text-espresso placeholder:text-ink-muted min-w-0 flex-1 bg-transparent text-sm outline-none"
+          />
+        </label>
 
-        <nav className="border-espresso-line mt-5 flex-1 overflow-y-auto border-t pt-5">
-          {historial.length === 0 ? (
-            <p className="text-on-dark-muted px-2 text-sm">
-              {visitante
-                ? "Con el plan, tus consultas se guardan aquí para que puedas volver a leerlas."
-                : "Aquí van a quedar tus consultas, para que puedas volver a leerlas."}
+        <nav aria-label="Historial de consultas" className="-mx-1 mt-1 min-h-0 flex-1 overflow-y-auto px-1">
+          {visibles.length === 0 ? (
+            <p className="text-ink-muted px-1 text-sm">
+              {q ? "Ninguna consulta con esas palabras." : "Todavía no tienes consultas."}
             </p>
           ) : (
             grupos.map(([titulo, items]) =>
               items.length === 0 ? null : (
-                <div key={titulo} className="mb-5">
-                  <p className="text-gold-light px-2 text-xs font-bold tracking-[0.14em] uppercase">
-                    {titulo}
-                  </p>
-                  <ul className="mt-2 flex flex-col gap-0.5">
-                    {items.map((c) => (
-                      <li key={c.id}>
-                        <Link
-                          href={`/app/ojo/${c.id}`}
-                          className="text-on-dark-muted hover:bg-espresso-2 block truncate rounded-(--radius-sm) px-2 py-2 text-sm transition-colors duration-150"
-                        >
-                          {c.titulo}
-                        </Link>
-                      </li>
-                    ))}
+                <div key={titulo} className="mb-4">
+                  <p className="eyebrow px-3 pb-1.5">{titulo}</p>
+                  <ul className="flex flex-col gap-0.5">
+                    {items.map((c) => {
+                      const esActiva = c.id === activa;
+                      return (
+                        <li key={c.id}>
+                          <Link
+                            href={`/app/ojo/${c.id}`}
+                            aria-current={esActiva ? "page" : undefined}
+                            className={`block truncate rounded-md px-3 py-3 text-sm transition-colors duration-150 ${
+                              esActiva
+                                ? "bg-ivory text-espresso font-semibold"
+                                : "text-ink-body hover:bg-ivory/60 hover:text-espresso"
+                            }`}
+                          >
+                            {c.titulo}
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ),
@@ -874,33 +849,28 @@ function PanelHistorial({
           )}
         </nav>
 
-        {cupo && (
-          <div className="bg-espresso-2 mt-4 rounded-[10px] p-4">
-            <p className="text-gold-pale text-sm font-semibold">Tu uso este mes</p>
-            <Medidor etiqueta="Preguntas" usado={cupo.preguntasUsadas} total={cupo.preguntasLimite} />
-            <Medidor etiqueta="Fotos" usado={cupo.fotosUsadas} total={cupo.fotosLimite} />
-          </div>
+        {/* El medidor lleva a Mi plan: en móvil "Mi plan" ya no está en la
+            barra de abajo, y este es el momento en que interesa. */}
+        {contador && (
+          <Link
+            href="/app/plan"
+            className="border-line hover:text-espresso block border-t pt-4 pb-1"
+          >
+            <span className="flex items-baseline justify-between text-sm">
+              <span className="text-ink-body">{contador.etiqueta}</span>
+              <span className="text-espresso cifra font-semibold">
+                {contador.usado} de {contador.total}
+              </span>
+            </span>
+            <span className="bg-sand-hover mt-2.5 block h-1.5 overflow-hidden rounded-full">
+              <span
+                className="bg-espresso block h-full rounded-full"
+                style={{ width: `${pct}%` }}
+              />
+            </span>
+          </Link>
         )}
       </aside>
     </>
-  );
-}
-
-function Medidor({ etiqueta, usado, total }: { etiqueta: string; usado: number; total: number }) {
-  const pct = total > 0 ? Math.min(100, Math.round((usado / total) * 100)) : 0;
-  return (
-    <div className="mt-3">
-      <div className="text-on-dark-muted flex justify-between text-xs">
-        <span>{etiqueta}</span>
-        <span>
-          <strong className="font-semibold text-white">{usado}</strong> de {total}
-        </span>
-      </div>
-      {/* ⚠️ v4: BARRA RECTA, NO REDONDEADA. A 4px de alto, un radio completo
-          convierte la barra en una pastilla y el relleno pequeño desaparece. */}
-      <div className="bg-espresso mt-1.5 h-1 overflow-hidden">
-        <span className="bg-gold-pale block h-full" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
   );
 }

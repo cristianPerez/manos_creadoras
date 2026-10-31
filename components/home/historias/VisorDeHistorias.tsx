@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { VolumeX, X } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Capsula } from "@/lib/capsulas";
@@ -79,6 +79,21 @@ export function VisorDeHistorias({
 
   const [duracionMs, setDuracionMs] = useState(DURACION_POR_DEFECTO_MS);
   const [enPausa, setEnPausa] = useState(false);
+  /* Detenida por un toque en el centro: video pausado y controles de Bunny a
+     la vista (ver `VideoDeHistoria`). Distinto de `enPausa`, que es mantener
+     pulsado y se suelta solo. */
+  const [detenido, setDetenido] = useState(false);
+  const [mudo, setMudo] = useState(false);
+  const [pedirSonido, setPedirSonido] = useState(0);
+  /*
+   * ⚠️ "SONÓ DE VERDAD", NO "SE LO PEDÍ" (2026-10-31). Hasta hoy el botón se
+   * escondía con `pedirSonido === 0`, o sea en cuanto lo tocabas. Safari de
+   * iPhone ignora el `unmute` hacia un iframe de otro dominio SIN avisar, así
+   * que el botón se iba, el video seguía mudo y no quedaba forma de insistir.
+   * Ahora solo se va cuando Bunny confirma que el mudo se levantó.
+   */
+  const [sonidoConfirmado, setSonidoConfirmado] = useState(false);
+  const reanudar = useCallback(() => setDetenido(false), []);
 
   /*
    * ⚠️ EL REINICIO AL CAMBIAR DE CÁPSULA SE HACE EN EL RENDER, NO EN UN EFECTO.
@@ -97,6 +112,12 @@ export function VisorDeHistorias({
     setIndicePintado(indice);
     setDuracionMs(DURACION_POR_DEFECTO_MS);
     setEnPausa(false);
+    setDetenido(false);
+    setMudo(false);
+    setPedirSonido(0);
+    /* La confirmación es de ESE iframe: la cápsula siguiente monta uno nuevo
+       y vuelve a jugarse el sonido desde cero. */
+    setSonidoConfirmado(false);
   }
 
   const avanzar = useCallback(() => {
@@ -142,10 +163,10 @@ export function VisorDeHistorias({
    * nunca pasaría de la primera. El reloj va aparte y la raya solo lo dibuja.
    */
   useEffect(() => {
-    if (enPausa) return;
+    if (enPausa || detenido) return;
     const id = setTimeout(avanzar, duracionMs);
     return () => clearTimeout(id);
-  }, [duracionMs, enPausa, avanzar]);
+  }, [duracionMs, enPausa, detenido, avanzar]);
 
   /* La duración real que manda Bunny sustituye a la de por defecto. */
   const alSaberDuracion = useCallback((segundos: number) => {
@@ -201,9 +222,17 @@ export function VisorDeHistorias({
      * el ancho del VISOR y no de la ventana, porque en escritorio el visor es
      * una columna estrecha en el centro.
      */
+    /*
+     * ⚠️ UN TOQUE EN EL CENTRO DETIENE Y ENSEÑA LOS CONTROLES (2026-10-23,
+     * pedido de Cristian); los bordes siguen pasando de cápsula. Antes toda la
+     * pantalla avanzaba o retrocedía, y si el navegador arrancaba el video
+     * mudo no había forma de activar el sonido.
+     */
     const caja2 = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    if (e.clientX - caja2.left > caja2.width / 2) avanzar();
-    else retroceder();
+    const x = (e.clientX - caja2.left) / caja2.width;
+    if (x > 0.7) avanzar();
+    else if (x < 0.3) retroceder();
+    else if (urlsDeVideo[capsulas[indice].id]) setDetenido(true);
   }
 
   function alTeclado(e: React.KeyboardEvent) {
@@ -274,6 +303,11 @@ export function VisorDeHistorias({
               titulo={capsula.titulo}
               alSaberDuracion={alSaberDuracion}
               alTerminar={avanzar}
+              detenido={detenido}
+              alReanudar={reanudar}
+              alCambiarMudo={setMudo}
+              alConfirmarSonido={setSonidoConfirmado}
+              pedirSonido={pedirSonido}
             />
           )}
 
@@ -295,7 +329,7 @@ export function VisorDeHistorias({
           la pantalla avanza la historia.
         */}
         <div
-          className="absolute inset-0 z-[5] [touch-action:pan-y]"
+          className={`absolute inset-0 z-[5] [touch-action:pan-y] ${detenido ? "pointer-events-none" : ""}`}
           onPointerDown={alTocar}
           onPointerUp={alSoltar}
           onPointerCancel={() => {
@@ -310,7 +344,7 @@ export function VisorDeHistorias({
             total={capsulas.length}
             indice={indice}
             duracionMs={duracionMs}
-            enPausa={enPausa}
+            enPausa={enPausa || detenido}
           />
 
           <div className="mt-4 flex items-center gap-3">
@@ -345,7 +379,35 @@ export function VisorDeHistorias({
           )}
         </div>
 
-        <footer className="relative z-10 p-5">
+        {/*
+          Arrancó mudo porque el navegador no dejó con sonido: se ofrece, y se
+          mantiene hasta que Bunny confirme que suena.
+
+          Si el primer intento no se confirmó, el botón cambia de texto y
+          apunta al único camino que funciona en todos los teléfonos: tocar el
+          video, que lo detiene y destapa los controles de Bunny —volumen
+          incluido— DENTRO del iframe, donde el toque sí cuenta como suyo.
+        */}
+        {mudo && !detenido && !sonidoConfirmado && (
+          <button
+            type="button"
+            onClick={() => setPedirSonido((n) => n + 1)}
+            className="bg-cream text-espresso absolute top-24 right-4 z-10 flex h-11 max-w-[70%] items-center gap-2 rounded-full px-4 text-sm font-semibold [touch-action:manipulation]"
+          >
+            <VolumeX size={16} aria-hidden="true" className="shrink-0" />
+            <span className="truncate">
+              {pedirSonido === 0 ? "Activar sonido" : "Toca el video para el volumen"}
+            </span>
+          </button>
+        )}
+
+        {/* Detenida: el pie se aparta para que se vean y se puedan tocar los
+            controles de Bunny (play, barra, volumen), que quedan debajo. */}
+        <footer
+          className={`relative z-10 p-5 transition-opacity duration-200 ${
+            detenido ? "pointer-events-none opacity-0" : "opacity-100"
+          }`}
+        >
           <h3
             className="font-display text-cream text-balance"
             style={{ fontWeight: 500, fontSize: "30px", lineHeight: 1.1 }}

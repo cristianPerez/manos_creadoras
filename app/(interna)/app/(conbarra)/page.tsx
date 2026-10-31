@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Catalogo } from "@/components/app/Catalogo";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual, nombreCorto } from "@/lib/alumna";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { continuarDonde, esLlavero, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
@@ -27,20 +28,37 @@ export default async function MisBolsos() {
    * que hay dentro es lo que hace que valga la pena pagar — esconderlo solo
    * hace que parezca que hay menos.
    */
-  const saludo = alumna ? `Hola, ${nombreCorto(alumna)}` : "Acceso de cortesía";
-  const titulo = alumna ? "Tu colección" : "Empieza por el bolso gratis";
+  /* Sin nombre en el perfil no se usa el correo ("Hola, auditoria-gratis"
+     se lee como un error): se saluda sin nombre. */
+  const saludo = alumna?.nombre ? `Hola, ${nombreCorto(alumna)}` : alumna ? "Hola de nuevo" : "Acceso de cortesía";
+  /* El gratis sale de la BASE, no escrito a mano: el texto decía "Cristal
+     Brillante" mientras el regalo era Nácar Soñado. */
+  const gratis = bolsos.find((b) => b.gratis) ?? null;
+  /* "Continúa donde quedaste" solo si de verdad empezó algo: con 0 vistos
+     la tarjeta prometía un avance que no existe. */
+  const retomar = alumna ? continuarDonde(bolsos) : null;
+  /* La última palabra en cursiva dorada, como los titulares del home. */
+  const titulo = alumna ? (
+    <>
+      Tu <em className="clave">colección</em>
+    </>
+  ) : (
+    <>
+      Empieza por el bolso <em className="clave">gratis</em>
+    </>
+  );
 
   return (
-    <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-10">
+      <div className="mx-auto max-w-310">
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">{saludo}</p>
-            <h1 className="titulo-seccion mt-2 text-balance">{titulo}</h1>
+            <EyebrowLinea>{saludo}</EyebrowLinea>
+            <h1 className="titulo-seccion mt-3 text-balance">{titulo}</h1>
             {!alumna && (
-              <p className="text-ink-body mt-3 max-w-lg">
-                Cristal Brillante es tuyo sin pagar y sin crear cuenta. Los demás puedes verlos por
-                dentro —sus pasos y sus materiales— y tejerlos cuando tengas plan.
+              <p className="text-ink-body mt-3 max-w-2xl max-lg:hidden">
+                {gratis ? `${gratis.nombre} es tuyo sin pagar y sin crear cuenta. ` : ""}Los demás
+                puedes verlos por dentro —sus pasos y sus materiales— y tejerlos cuando tengas plan.
               </p>
             )}
           </div>
@@ -61,9 +79,10 @@ export default async function MisBolsos() {
         <Catalogo
           desde={precioDesde()}
           bolsos={bolsos}
-          continuar={alumna ? continuarDonde(bolsos) : null}
+          continuar={retomar && retomar.vistos > 0 ? retomar : null}
           tieneAcceso={alumna?.tieneAcceso ?? false}
-          invitada={!alumna}
+          /* La oferta la ve TODA la que no tiene plan, con cuenta o sin ella. */
+          invitada={!alumna?.tieneAcceso}
           enlaces={cobro.url}
         />
       </div>

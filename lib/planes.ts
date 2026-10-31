@@ -83,7 +83,7 @@ export type Precios = { mensual: number; anual: number };
  * de OnePay dice otra, manda OnePay —es quien cobra— y esta constante está
  * mintiendo. Al cambiar un precio se cambian LOS DOS SITIOS, en el mismo rato.
  */
-export const PRECIOS: Precios = { mensual: 9.99, anual: 89.9 };
+export const PRECIOS: Precios = { mensual: 19.7, anual: 167 };
 
 /**
  * Lo que cuesta cada mes según cómo se pague.
@@ -161,7 +161,7 @@ export const GARANTIA = {
   texto: "Si el curso no es para ti, pides tu reembolso dentro de los primeros 7 días.",
 } as const;
 
-/** "US$9,99" — en dólares, con coma decimal porque la audiencia es LATAM:
+/** "US$19,70" — en dólares, con coma decimal porque la audiencia es LATAM:
  *  ahí "9.99" se lee como nueve mil noventa y nueve. */
 export function dolares(v: number): string {
   return `US$${Number.isInteger(v) ? v : v.toFixed(2).replace(".", ",")}`;
@@ -191,7 +191,7 @@ export function notaDelCobro(frecuencia: Frecuencia): string {
     : `Se cobra ${precioDelCobro("mensual")} cada mes · cancelas cuando quieras`;
 }
 
-/** "desde US$7,49 al mes" — el gancho corto que usan varias pantallas. */
+/** "desde US$13,92 al mes" — el gancho corto que usan varias pantallas. */
 export function precioDesde(): string {
   return precioPorMes("anual");
 }

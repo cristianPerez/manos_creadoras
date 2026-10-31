@@ -23,11 +23,12 @@ revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 
 ---
 
-## 💵 EL PRECIO: UNO SOLO (2026-10-19)
+## 💵 EL PRECIO: UNO SOLO (subido el 2026-10-31)
 
 Fuente única: `lib/planes.ts` → `PRECIOS`. **Ningún precio escrito en otro sitio.**
 
-**US$9,99 al mes · US$89,90 al año** (= US$7,49/mes · ahorra US$30, 25%).
+**US$19,70 al mes · US$167 al año** (= US$13,92/mes · ahorra US$69, 29%).
+Antes eran US$9,99 / US$89,90; Cristian los subió el 2026-10-31.
 Son EXACTAMENTE los planes de OnePay: si un día no coinciden, manda OnePay —es
 quien cobra— y la constante miente. Se cambian los dos sitios a la vez.
 
@@ -40,15 +41,50 @@ US$350" y el reloj no cambiaba nada al llegar a cero. Palabras de Cristian:
 → Para una oferta de verdad hace falta PRIMERO un segundo plan en OnePay y que
 el enlace cambie al expirar. Si no, es decoración.
 
-**En OnePay, empresa "Manos Creadoras"** (0028): mensual `01a14b95-f607…` y anual
-`01a14b96-796a…`, que se lee "Mensual · 12 ciclos" = **cobra cada 12 meses**. Sin
-período de prueba. Los enlaces viven en `plan_checkout`, no en el código.
+**En OnePay, empresa "Manos Creadoras"** (migración 0037, 2026-10-31): los planes
+NO se editan de precio, se crean nuevos. Los vigentes son
+`01a192d6-6925…` (Mensual · US$19.70) y `01a192d6-d124…` (Anual · US$167.00),
+los dos en **USD, impuesto 0%** (se cobra exactamente lo que anuncia la página)
+y sin período de prueba. El anual ya usa la frecuencia "Anual" del panel, no el
+apaño de "Mensual · 12 ciclos" de la 0028. Mismo enlace para Colombia y para
+internacional. Los enlaces viven en `plan_checkout`, no en el código.
+⚠️ Los planes viejos (9,99 / 89,90) siguen existiendo: quien ya compró conserva
+su precio. No se borran sin decisión de Cristian.
 
 ---
 
 ## 💳 El circuito de pago, verificado de punta a punta (2026-10-17)
 
-Webhook `ab3b6206` → `https://qa.manoscreadoras.co/api/webhooks/onepay`, 9
+⚠️ **EL PANEL DE ONEPAY TIENE DOS MUNDOS Y SE CONFUNDEN CON FACILIDAD**
+(descubierto por las malas el 2026-10-31). Arriba del panel hay una barra
+naranja «Estás en modo de pruebas»: **cada modo tiene SUS planes y SUS
+webhooks, y no se ven entre ellos**. Entrar al panel sin mirar esa barra y
+concluir que "no hay nada creado" es el error que se cometió ese día: se dio
+por muerto el webhook `ab3b6206` —que estaba vivo en modo pruebas— y se
+pisaron sus claves en Vercel con las de otro. QA dejó de aceptar pagos hasta
+que se repusieron. **Antes de tocar nada en OnePay: mira en qué modo estás.**
+
+**MODO PRUEBAS → es lo que usa QA.** Webhook `ab3b6206` · "Manos Creadoras QA
+(pruebas)" → `https://qa.manoscreadoras.co/api/webhooks/onepay`, activo; sus
+claves son las de `.env.local` y las de Vercel **Preview**. Sus planes al
+precio nuevo: `01a193ae-cdcc…` (Mensual US$19,70) y `01a193af-4e14…` (Anual
+US$167). El checkout de prueba trae tarjetas que simulan cada caso (Visa 4242
+aprueba; hay otras para vencida, sin fondos y rechazo del banco).
+
+**MODO REAL → es lo de producción.** Planes `01a192d6-6925…` (Mensual) y
+`01a192d6-d124…` (Anual), los que fija la migración 0037. Webhook `7b4d702e`,
+creado ese día con los 5 eventos que el código entiende (pagada · cancelada ·
+no pagada · vencida · finalizada; "creada" se deja fuera a propósito — una
+suscripción creada todavía no se cobró).
+
+⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
+(y así debe ser: los enlaces son configuración de cada entorno, no esquema —
+ver `supabase/migrations/README.md`). La 0037 deja los enlaces REALES, que son
+los correctos para producción; en QA se sobrescriben a mano. Si algún día QA
+vuelve a enseñar los enlaces reales, es que alguien reaplicó la 0037 allí.
+
+Webhook ANTERIOR `ab3b6206` →
+`https://qa.manoscreadoras.co/api/webhooks/onepay`, 9
 eventos, claves en `.env.local` y en Vercel **Preview**. Probado contra QA: sin
 firma → 401 · pago → membresía activa + correo de bienvenida (visto en Resend) ·
 repetido → `repetido` · cancelación → `cancelada` **conservando el acceso hasta
@@ -162,6 +198,199 @@ también en Mi plan y en el selector de pago.
   3). Arreglado de paso: el Ojo de visitante respondía "sesión inválida" porque
   mandaba `Authorization: Bearer` vacío. ⚠️ El plan es UNO solo: no existe
   "Creadora" desde el 13-oct.
+- **Ojo interno en UN pantallazo (2026-10-21).** `.alto-ojo` (100dvh − barra en
+  móvil, 100dvh en desktop): la barra de escribir queda anclada y solo el chat
+  hace scroll. En móvil el vacío se compactó (sugerencias en filas, sin ícono ni
+  nota al pie). Medido: 0 scroll de página a 390×844 y 1440×900.
+- **Ojo v5 minimalista (2026-10-21, `design-ref/ojo-v5-claude-code`).** Solo
+  estilos, misma lógica. Escritorio: cabecera con logo + píldoras (Mis bolsos,
+  Directorio, Ojo, Mi plan) + "Entrar/Inscribirme" o avatar; barra lateral
+  MARFIL con Nueva consulta, buscador (filtra en el cliente las 30 cargadas),
+  historial y medidor de preguntas (lleva a Mi plan). Inicio centrado: ícono,
+  titular, composer en píldora y 4 tarjetas (la de foto abre el selector).
+  Conversación: veredicto en Cormorant si el 1er párrafo es corto (≤140), caja
+  marfil para párrafos `**Etiqueta:** …`. Móvil: barra con ☰ · título · "+",
+  cajón "Mis consultas" (cierra con X, fondo o Escape), barra de abajo de 4
+  pestañas en todo `/app` (Mis bolsos, Ojo, Directorio, Cuenta; 64px, token
+  `--alto-barra-inferior`). Se quitó el selector de bolso/paso: el estado sigue
+  y se manda igual. Arreglado de paso: claves repetidas en los mensajes (la ruta
+  devuelve el id del HILO como id de cada respuesta). Revisor: 27/40 · 10/20 ·
+  FIEL — "no lista" por movimiento y controles; se aplicó lo que era estilo.
+  Pendientes del v5 (necesitan lógica, no se inventaron):
+  - Etiqueta "Vi en tu foto: …" (la ruta no devuelve qué entendió).
+  - Renombrar consulta (no hay acción; por eso no se pintó el lápiz).
+  - Respuestas rápidas bajo cada respuesta (no existen).
+  - Detener una respuesta en curso y borrar consultas (pedidos del revisor).
+  - Sin comprobar con Gemini real que el modelo escriba `**Prueba:**`: con IA
+    simulada no sale la caja. Si no lo escribe, habría que pedirlo en el prompt.
+  - Ya no se ve el contador de FOTOS del mes (la referencia solo muestra preguntas).
+- **Mini Ojo del home, versión arena (2026-10-22, `design-ref/home-ojo-claude-code`).**
+  Fondo arena plano, columna de texto corta + tarjeta marfil que abre con un
+  ejemplo FIJO ("¿Por qué se me abomba la base?") que no llama a la API ni gasta
+  preguntas; al preguntar, se reemplaza por la conversación real. 2 sugerencias
+  (fila con scroll lateral en móvil), alto máximo con scroll interno, la caja
+  de "usaste tus 2" FUERA del scroll. La cámara lleva a `#precio` (la demo no
+  sube fotos). Misma lógica, endpoint y analítica.
+- **Los dos Ojo, unificados (2026-10-22, pedido de Cristian).** Burbuja, avatar,
+  composer, puntos de "escribiendo" y píldoras viven en `components/app/
+  OjoPiezas.tsx` y los usan los dos. Paleta: cacao + marfil = alumna y enviar;
+  espresso + `--gold-light` = el Ojo; arena = cámara. Texto del Ojo en espresso.
+  Solo cambia el tamaño; el veredicto en Cormorant y la caja "Prueba" son solo
+  de la app (en la tarjeta del home no caben).
+- **"Inscribirme" también en la cabecera móvil del home (2026-10-22)**, a
+  `#precio` como en escritorio; "Entrar" pierde el borde para caber a 375px.
+- Pendientes de esta tanda:
+  - 🟡 La respuesta del ejemplo del home es PROVISIONAL: la tiene que validar Elizabeth.
+- **Home a color (2026-10-22, `design-ref/home-color-claude-code`).** Una
+  sección, un color. Mapa final (orden de escritorio): cabecera crema · héroe
+  crema · cápsulas ESPRESSO · curso gratis crema · banda "1 de 20" CAFÉ a todo
+  el ancho · Ojo arena · Elizabeth (bio) ESPRESSO · alumnas crema · precio
+  ARENA · preguntas crema · cierre CAFÉ · pie ESPRESSO. Sin sombras; capas
+  fondo → tarjeta → chip. Piezas nuevas: `EyebrowLinea` y, en `globals.css`,
+  `.sobre-oscuro` cambia solo el color de `.titulo-seccion`, `.eyebrow` y
+  `.clave`. Las cápsulas en móvil dejaron de ser historias circulares (fila
+  de tarjetas de 200px). El precio conserva el SWITCH de verdad (la
+  referencia traía píldora partida; Cristian pidió el switch, 22-oct). Mismos textos,
+  enlaces, anclas, pago y analítica.
+  - ✅ (2026-10-23, pedido de Cristian) En móvil las cápsulas ya van DEBAJO
+    del héroe, como en escritorio: un solo orden para todos los anchos. Con
+    eso el héroe (crema) ya no queda pegado al curso gratis (crema).
+  - Alumnas en 5 columnas desde 1024px (235px c/u, citas a 4 líneas, mismo
+    alto); carrusel con snap en móvil y tableta. De paso: los enlaces del
+    menú de la cabecera del home salen desde 1024px — a 768 empujaban
+    "Inscribirme" 24px fuera de la pantalla.
+  - **Planes: switch en café y tarjeta pulida (2026-10-22, `design-ref/planes-claude-code`).**
+    El carril ya no se "apaga" en mensual: café en los dos estados sobre
+    claro (`--gold-pale` sobre oscuro), bolita marfil sin sombra, chip
+    espresso; grande = 64×36. Tarjeta: eyebrow "Plan anual/mensual", sin el
+    enlace "o mensual por…" (lo hace el switch), fila de confianza con
+    íconos al fondo, garantía con escudo y WhatsApp dentro del panel marfil.
+    Nota: la barra fija de compra móvil NO lee el ciclo elegido (siempre
+    "desde US$7,49/mes" → `#precio`); solo lo comparten precio y `PagoConPlan`.
+- **Sección navideña entre el banner y las cápsulas (2026-10-31, pedido de
+  Cristian; referencia: sparkle-bag-studio.lovable.app).**
+  `components/home/Navidad.tsx`: **franja CAFÉ (`--cacao`) a todo el ancho, sin
+  bordes crema ni radio** (así la pidió Cristian el 31-oct; nació como tarjeta
+  redondeada sobre un respiro crema, como la referencia, para no pegarla al
+  espresso de las cápsulas). Consecuencia aceptada: café toca espresso sin nada
+  en medio, y el home pasa a tener dos oscuros seguidos.
+  Badge en píldora con ícono de regalo, titular serif con
+  *navideños* en `--gold-pale`, 4 fotos verticales (fila con scroll en móvil,
+  rejilla de 4 en escritorio). Es informativa: no lleva CTA propio.
+  · Las 4 fotos vienen de la referencia, reescaladas a 720×1000 WebP q70
+    (`public/images/navidad-{esferas,coronas,baston,regalo}.webp`, 30-60 KB).
+  · El badge dice "Edición navideña" y no "Bono 4" como el original: aquí no
+    hay bonos numerados.
+  - Revisor visual: 28/40 → **31/40 · 15/20 craft · 13/20 copy · FIEL (0
+    desvíos de 6)**. Corregido tras su nota: rejilla 2×2 en móvil (la fila con
+    scroll escondía 2 de las 4 piezas y no tenía dots ni flechas), subtítulo
+    anclado al deseo #1/#4 del avatar y `gap` de 16 en vez de 12.
+  - **CTA al pie (2026-10-31, pedido de Cristian):** botón "Inscribirme" a
+    `#precio`, origen `navidad` en Mixpanel. Dice solo "Inscribirme" sin el
+    precio porque "Inscribirme · desde US$X/mes" parte en dos líneas a 375px y
+    el precio ya está en la barra fija que se ve a la vez.
+    ⚠️ **El texto se queda en "Inscribirme" — decisión de Cristian
+    (2026-10-31), no se re-pregunta.** El revisor bajó la nota de 31/40 a 28/40
+    por esto: a 375px quedan TRES botones "Inscribirme" a la vez (cabecera,
+    panel y barra fija) con destinos distintos, y proponía "Ver los planes",
+    que es lo que ya dice la banda "1 de 20" cuando manda al mismo `#precio`.
+    Se planteó y Cristian prefirió "Inscribirme". Riesgo aceptado.
+  - **Las 4 fotos son ENLACES A `#precio`** (2026-10-31, pedido de Cristian),
+    origen `navidad_pieza` en Mixpanel, con zoom de la imagen al pasar el
+    cursor (`group-hover:scale-105`, 500ms). Nacieron como `figure` inertes y
+    eso rompía la regla UX 11. **No llevan a sus videos**: esos todavía no
+    están en el catálogo.
+    · El zoom va en la `<Image>`, no en el enlace: escalar la tarjeta movería
+      el título y el degradado, y el texto escalado se ve borroso.
+    · Sin `motion-safe:`, que además NO generaba la clase: `globals.css` ya
+      corta todas las transiciones con `prefers-reduced-motion`, y Tailwind
+      envuelve `group-hover` en `@media (hover: hover)` solo.
+  - 🟡 **Los videos navideños NO están en el catálogo.** Cuando se carguen:
+    van con la forma de los llaveros (un video completo por pieza, sin
+    lecciones) y entran en el plan de pago. Faltan sus IDs de Bunny — no se
+    pueden buscar desde el repo, que solo guarda `BUNNY_TOKEN_KEY` (firmar),
+    no la clave de API que lista la biblioteca.
+- **Ficha del bolso con el video DENTRO (2026-10-23, `design-ref/app-interna-claude-code/02-ficha-bolso`).**
+  Cristian eligió la imagen (reproductor en la ficha) sobre el texto del prompt
+  (3 columnas sin video). `components/app/FichaBolso.tsx`: el paso a paso
+  cambia el video sin salir de la página; "Siguiente paso/parte"; materiales en
+  tarjeta espresso con medidas y "Ver en el directorio". El servidor firma las
+  URL SOLO con acceso (verificado: bolso de plan sin sesión = 0 enlaces). El
+  avance sigue con `BotonVisto` (probado: 0→1 de 6 y vuelta). Las páginas
+  `/app/bolsos/<bolso>/<orden>` siguen existiendo. Dos columnas desde 1280px
+  (con la barra lateral, a 1024 no cabían).
+- **Navegación unificada de la app (2026-10-23, secciones 1 y 2 del prompt).**
+  Fuera la barra lateral. La pone el layout de `/app` (`CabeceraApp` y
+  `BarraInferior` en `NavegacionApp.tsx`), igual en todas las páginas y en el
+  Ojo: escritorio = cabecera del home (logo "M", píldoras, Entrar/Inscribirme o
+  "Plan anual" + avatar); móvil = cabecera de marca (salvo ficha, lección y
+  Ojo, que traen la suya) y 5 pestañas con el Ojo al centro en un círculo que
+  sobresale. Ojo: panel arena, "Historial" + "+" en móvil, cajón "Tus
+  consultas". "Inscribirme" lleva a Mi plan. Tokens: `--alto-cabecera-app`
+  68px, `--alto-barra-inferior` 72px, `--elevacion-ojo` 30px. Probado sin y
+  con sesión, a 1440 y 390.
+- **Páginas de la app según sus referencias (2026-10-23, sección 3).**
+  Mis bolsos: eyebrow con línea, *gratis* en cursiva, tarjeta café plana (fila
+  con switch oscuro + botón crema en escritorio; fila tocable a Mi plan en
+  móvil), filtros en una fila, tarjetas 4:5 a 5 columnas. Directorio: franja
+  arena con título y buscador, 4 columnas / lista en móvil, "Comprar" café o
+  "Enlace pronto" punteado. Mi plan: página arena y tarjeta como el precio del
+  home. Cuenta: tarjeta partida con foto + formulario (también en `/entrar`).
+  Fuera todos los degradados de la app (`PagoConPlan` ahora café / gold-pale).
+  Verificado sin y con sesión a 1440 y 390: 0 degradados, 0 dorado sobre
+  oscuro, 0 desbordes.
+- **Ficha: materiales por paso, banner y "elegir = ver" (2026-10-23,
+  `PROMPT-ficha-materiales-por-paso.md` + pedido de Cristian).**
+  · Paso Materiales: "Lo que *necesitas*" completo (`MaterialesDelBolso`,
+    tarjeta marfil, "nombre · cantidad", chip opcional, franja MEDIDAS). Pasos
+    1-5: solo la fila "Materiales del bolso · N" (`AccesoMateriales`), que abre
+    cajón derecho (escritorio) u hoja de abajo (móvil). El video NO se
+    reinicia al abrir/cerrar (verificado: mismo iframe).
+  · Marcar "ya lo tengo" se conservó: la fila entera es el interruptor (la
+    referencia no dibuja casilla, pero quitarlo era quitar una función).
+  · Bolso con plan: el mismo banner café de Mis bolsos (`BannerPlan`).
+  · Elegir un paso (o "Siguiente paso") arranca el video con sonido y sube
+    hasta él (probado en móvil: de 303px abajo al video bajo la barra).
+  - 🟡 Las páginas de cada paso (`/app/bolsos/<bolso>/<paso>`) siguen con la
+    lista vieja (`ListaMateriales`) en su panel lateral.
+  - 🟡 En iPhone, Safari puede bloquear el sonido dentro del reproductor de
+    Bunny (pendiente conocido): el video arranca mudo y hay que tocar el volumen.
+- **Videos: tocar un paso = verlo, y tocar el video = detenerlo (2026-10-23).**
+  Revisados todos: ficha (ya), curso gratis del home (tocar la fila del
+  temario ahora reproduce y sube al video), páginas de cada paso (`?ver=1` al
+  llegar desde un paso → arranca solo; sin él, no), cápsulas (abren sonando).
+  En el visor de cápsulas: bordes = pasar, CENTRO = detener y destapar los
+  controles de Bunny (volumen incluido); si Bunny ignora la pausa al arrancar,
+  se reenvía. Si el navegador obliga a mudo, sale "Activar sonido" (visor y
+  `ReproductorEnSitio`).
+- **Historias de cápsulas en móvil, de vuelta (2026-10-23).** Círculos arriba
+  del héroe + tarjetas bajo el héroe, con estado compartido
+  (`ProveedorCapsulas`: vistas y un solo visor). Anillo dorado liso. Etiquetas
+  de UNA palabra: Hilo, Arranque, Empate, Firmeza, Aro (`seed-capsulas.mjs`,
+  cargado en QA).
+  - ⚠️ Al pasar a producción: correr `ENV_FILE=.env.prod node scripts/seed-capsulas.mjs`
+    para que las etiquetas cortas lleguen también allí.
+- **🔴→✅ Los enlaces de acceso no salían (resuelto 2026-10-23, QA y prod).**
+  Supabase manda los correos por Resend con una clave de Resend como
+  contraseña SMTP; el 17-oct se creó una clave nueva y se BORRÓ la vieja, y
+  Supabase siguió con la muerta → `500 Error sending magic link email` desde
+  el 15-oct. Se puso la clave vigente (`RESEND_API_KEY`) como `smtp_pass` en
+  los dos proyectos. Probado: el enlace llega en QA y en prod.
+  ⚠️ Si se vuelve a rotar la clave de Resend, hay que actualizarla TAMBIÉN en
+  Supabase → Authentication → SMTP (las dos bases).
+  · De paso: 5 de las 6 plantillas de correo eran inválidas (notas con
+    `{{ }}` dentro de comentarios HTML). Arregladas en `supabase/templates/` y
+    subidas a QA y prod; validadas con el motor de Go.
+  - 🟡 A quien entra POR PRIMERA VEZ con el enlace le llega el correo genérico
+    de Supabase en inglés ("Confirm your email address"), no "Confirma tu
+    correo". Nuestras plantillas están bien (se validaron y renderizan); la
+    causa está del lado de Supabase. Pendiente de investigar.
+  - 🟡 "Ver el programa" del formulario apunta a `/#oferta`, ancla que ya no
+    existe en el home (hoy es `#precio`). No se cambió: es un enlace.
+  - 🟡 `PagoConPlan` (caja de pago en la ficha bloqueada) aún usa el botón en
+    degradado; el prompt pide quitarlo en toda la app interna.
+  - 🟡 El pie de la referencia trae columnas (Curso / Ayuda) con enlaces que
+    hoy no están; se respetaron los enlaces actuales.
 - 🔴 **QUIEN PAGA SIN CUENTA QUEDA HUÉRFANO.** El webhook busca a la alumna por
   el correo del checkout; si no tiene cuenta, el pago no se asigna, no sale el
   correo y hay que activarla a mano. Con los "Inscribirme" yendo directo a
@@ -290,6 +519,15 @@ toca reintentar en el servidor.
 
 ## 🟡 Pendientes de código (no bloquean vender)
 
+- ✅ **AUDITORÍA DE /app EN 3 ESTADOS (2026-10-23) — CORREGIDA.** La página de cada
+  paso ya no existe como pantalla: `/app/bolsos/[slug]/[orden]` redirige a la ficha
+  con `?video=N&ver=1` (se borraron PanelLeccion, PasoAPaso y ListaMateriales).
+  Cuenta gratis ve la oferta y "Inscribirme"; "Continúa" solo con avance real;
+  404 propio dentro de la app; Ojo pagado sin "0 de 600" (se avisa al 80%).
+  ✅ Cupos del Ojo decididos por Cristian (2026-10-23): visitante 2 preguntas en
+  total, cuenta gratis **8 al mes** (migración 0036, aplicada en QA y en
+  producción el 2026-10-23). No se re-pregunta.
+
 - 🔴 **CÁPSULAS SIN AUDIO — DIAGNÓSTICO DEL 2026-10-21.** En Chrome de escritorio
   SÍ suenan (probado con toque real: el reproductor dice `getMuted=false`,
   volumen 100, y no salta el plan B). En TELÉFONOS no: (1) Safari de iPhone no
@@ -304,6 +542,14 @@ toca reintentar en el servidor.
   Los **tres** sitios con video —cápsulas, curso gratis y lecciones de `/app`—
   comparten el mismo reproductor y la misma lógica: intentan sonar y, si no
   les dejan, se remontan mudos. El peor caso es un video mudo, nunca parado.
+  ✅ **2026-10-31: el botón "Activar sonido" ya no es una trampa.** Desaparecía
+  en cuanto lo tocabas, y Safari de iPhone ignora el `unmute` hacia un iframe
+  de otro dominio EN SILENCIO → botón fuera, video mudo, sin forma de
+  insistir. Ahora se pregunta `getMuted` 400 ms después y el botón solo se
+  retira con la confirmación; si sigue mudo pasa a "Toca el video para el
+  volumen". La confirmación va en un estado APARTE de `mudo`, que es la `key`
+  del iframe (tocarla remontaría el video desde cero). Probado simulando los
+  mensajes de Bunny, las tres ramas. **No sustituye a oírlo en un iPhone.**
   Falta **oírlo en un celular**; desde el navegador no se puede.
   ⚠️ **NO reabrir el tema sin leer los comentarios de `ReproductorEnSitio` y
   `VideoDeHistoria`**: están probadas y descartadas las tres vías obvias
@@ -384,12 +630,12 @@ toca reintentar en el servidor.
 
 ## 🚀 PRODUCCIÓN PUBLICADA — CON LA VENTA APAGADA (2026-10-21)
 
-**En vivo:** https://manos-creadoras.vercel.app (rama `main`, PR #2, `82338ce`).
+**En vivo:** https://manos-creadoras.vercel.app (rama `main`; PR #2 `82338ce` y PR #3 `9d9623e` del 2026-10-21: `/app` sin muros, botones de pago con interruptor).
 `manoscreadoras.co` y `www` (→ redirige al apex) ya están en el proyecto, **falta
 el DNS** en Namecheap: `A @ 216.198.79.1` y `CNAME www
 54c77d9c2092c13e.vercel-dns-017.com`.
 
-**Base de producción (`icbh…`):** 35 migraciones aplicadas con `db push` (la 0002
+**Base de producción (`icbh…`):** 36 migraciones aplicadas con `db push` (la 0002
 tenía un fallo de tilde que impedía montarla desde cero — corregido); esquema
 idéntico a QA (24 tablas, 27 políticas, 52 índices, 0 sin RLS); catálogo cargado
 con `ENV_FILE=.env.prod node scripts/seed-bolsos.mjs` y `seed-capsulas.mjs`,

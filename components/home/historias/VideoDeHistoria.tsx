@@ -28,13 +28,75 @@ export function VideoDeHistoria({
   alSaberDuracion,
   /** Avisa cuando el video termina, para pasar a la siguiente. */
   alTerminar,
+  detenido = false,
+  alReanudar,
+  alCambiarMudo,
+  alConfirmarSonido,
+  pedirSonido = 0,
 }: {
   url: string;
   titulo: string;
   alSaberDuracion: (segundos: number) => void;
   alTerminar: () => void;
+  /**
+   * ⚠️ TOCAR EL VIDEO LO DETIENE Y ENSEÑA LOS CONTROLES (2026-10-23, pedido
+   * de Cristian). Detenido, el iframe recibe los toques y se destapa la barra
+   * de Bunny: así, si el navegador lo arrancó mudo, ella misma sube el volumen
+   * desde el reproductor — el único camino que funciona en todos, iPhone
+   * incluido, porque el toque es SUYO dentro del reproductor.
+   */
+  detenido?: boolean;
+  /** Le dio a reproducir en los controles de Bunny: la historia sigue. */
+  alReanudar?: () => void;
+  /** Avisa si tuvo que arrancar mudo, para ofrecer "Activar sonido". */
+  alCambiarMudo?: (mudo: boolean) => void;
+  /**
+   * Dice si Bunny CONFIRMÓ que el sonido quedó activo tras pedírselo. Es lo
+   * que decide si el botón "Activar sonido" ya sobra — no basta con haberlo
+   * tocado: Safari de iPhone ignora el `unmute` sin avisar.
+   */
+  alConfirmarSonido?: (activo: boolean) => void;
+  /** Sube en cada toque a "Activar sonido": se le pide a Bunny el volumen. */
+  pedirSonido?: number;
 }) {
   const marco = useRef<HTMLIFrameElement>(null);
+
+  const pedirAlReproductor = (metodo: string, valor?: string | number | boolean) =>
+    marco.current?.contentWindow?.postMessage(
+      JSON.stringify({ context: "player.js", method: metodo, value: valor }),
+      "*",
+    );
+
+  /* Detener desde fuera (el toque en el centro del visor). */
+  const detenidoRef = useRef(detenido);
+  const ultimaPausa = useRef(0);
+  useEffect(() => {
+    detenidoRef.current = detenido;
+    if (detenido) pedirAlReproductor("pause");
+  }, [detenido]);
+
+  /*
+   * ⚠️ PEDIR SONIDO NO ES CONSEGUIRLO, Y ANTES SE DABA POR HECHO.
+   *
+   * Hasta el 2026-10-31 el botón "Activar sonido" se escondía en cuanto lo
+   * tocabas. Pero `unmute` viaja a un iframe de OTRO dominio
+   * (`mediadelivery.net`) y Safari de iPhone lo ignora EN SILENCIO: no
+   * contesta que no, simplemente no hace nada. Resultado: el botón
+   * desaparecía, el video seguía mudo y ya no había forma de volver a pedirlo.
+   *
+   * Ahora se le PREGUNTA a Bunny si de verdad se quitó el mudo (`getMuted`) y
+   * el botón solo se va con esa confirmación. Sin respuesta, se queda — que es
+   * el lado seguro: un botón de más molesta; uno de menos deja sin audio.
+   */
+  useEffect(() => {
+    if (pedirSonido === 0) return;
+    pedirAlReproductor("unmute");
+    pedirAlReproductor("setVolume", 100);
+    /* 400ms: lo justo para que Bunny procese el `unmute` antes de que le
+       preguntemos. Preguntar en el mismo tic devuelve el estado viejo. */
+    const t = setTimeout(() => pedirAlReproductor("getMuted"), 400);
+    return () => clearTimeout(t);
+  }, [pedirSonido]);
 
   /*
    * ════════════════════════════════════════════════════════════════════════
@@ -151,7 +213,44 @@ export function VideoDeHistoria({
         return;
       }
 
+      /*
+       * La respuesta a `getMuted`. Se aceptan las dos formas en que player.js
+       * contesta según la versión (`event` o `method`) porque no controlamos
+       * cuál sirve Bunny, y equivocarse aquí significa dejar el botón puesto
+       * para siempre.
+       *
+       * ⚠️ NO se toca `mudo`: ese estado es la `key` del iframe y cambiarlo
+       * REMONTARÍA el video desde el segundo cero. El sonido confirmado es un
+       * dato aparte, solo para que el botón sepa si ya sobra.
+       */
+      const metodo = (d as { method?: string } | null)?.method;
+      if (d?.event === "getMuted" || metodo === "getMuted") {
+        alConfirmarSonido?.(d?.value === false);
+        return;
+      }
+
       if (d?.event === "play" || d?.event === "timeupdate") arranco.current = true;
+      /* Detenido por un toque y ella le dio a reproducir en Bunny: sigue. El
+         ref se suelta YA, sin esperar al render, para que el `timeupdate` que
+         llega justo detrás no lo vuelva a pausar. */
+      if (d?.event === "play" && detenidoRef.current) {
+        detenidoRef.current = false;
+        alReanudar?.();
+        return;
+      }
+      /*
+       * ⚠️ SI SIGUE AVANZANDO DETENIDO, SE INSISTE. Bunny ignora la pausa
+       * mientras arranca (probado: tocar al segundo de abrir no lo paraba) y
+       * después sigue como si nada. Mientras esté detenido y llegue tiempo,
+       * se le vuelve a pedir — como mucho una vez cada medio segundo.
+       */
+      if (d?.event === "timeupdate" && detenidoRef.current) {
+        const ahora = Date.now();
+        if (ahora - ultimaPausa.current > 500) {
+          ultimaPausa.current = ahora;
+          pedir("pause");
+        }
+      }
 
       if (d?.event === "ended") alTerminar();
 
@@ -161,7 +260,11 @@ export function VideoDeHistoria({
 
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
-  }, [alSaberDuracion, alTerminar, mudo]);
+  }, [alSaberDuracion, alTerminar, alReanudar, alConfirmarSonido, mudo]);
+
+  useEffect(() => {
+    alCambiarMudo?.(mudo);
+  }, [mudo, alCambiarMudo]);
 
   return (
     <>
@@ -208,7 +311,7 @@ export function VideoDeHistoria({
        * Sin esto, el iframe se quedaría con el gesto y tocar el centro no
        * avanzaría la historia.
        */
-        className="pointer-events-none absolute inset-0 size-full border-0"
+        className={`absolute inset-0 size-full border-0 ${detenido ? "" : "pointer-events-none"}`}
       />
 
       {/*
@@ -227,10 +330,12 @@ export function VideoDeHistoria({
         su barra. Encaja con el pie del visor, que ya es oscuro, y no deforma el
         video ni recorta nada de la imagen.
       */}
-      <span
-        aria-hidden="true"
-        className="bg-espresso pointer-events-none absolute inset-x-0 bottom-0 h-18"
-      />
+      {!detenido && (
+        <span
+          aria-hidden="true"
+          className="bg-espresso pointer-events-none absolute inset-x-0 bottom-0 h-18"
+        />
+      )}
     </>
   );
 }

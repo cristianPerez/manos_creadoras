@@ -38,10 +38,10 @@ const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KE
 
 const CAPSULAS = [
   { orden: 1, titulo: "Hilo adecuado", etiqueta_corta: "Hilo",        subtitulo: "Qué hilo usar y por qué",              video_id: "e1369c32-359f-47eb-b297-be3aac955306", portada: "cristal-brillante" },
-  { orden: 2, titulo: "Nueva fila",    etiqueta_corta: "Nueva fila",  subtitulo: "El arranque, paso a paso",             video_id: "83690ef8-e672-4ffe-961b-2065318b8c3b", portada: "brillo-lunar" },
-  { orden: 3, titulo: "Nuevo hilo",    etiqueta_corta: "Nuevo hilo",  subtitulo: "Sin que se note el empate",            video_id: "0efda986-7980-42cd-bc02-8c640ba7cdcc", portada: "perla-tejida" },
+  { orden: 2, titulo: "Nueva fila",    etiqueta_corta: "Arranque",    subtitulo: "El arranque, paso a paso",             video_id: "83690ef8-e672-4ffe-961b-2065318b8c3b", portada: "brillo-lunar" },
+  { orden: 3, titulo: "Nuevo hilo",    etiqueta_corta: "Empate",      subtitulo: "Sin que se note el empate",            video_id: "0efda986-7980-42cd-bc02-8c640ba7cdcc", portada: "perla-tejida" },
   { orden: 4, titulo: "Tejido firme",  etiqueta_corta: "Firmeza",     subtitulo: "Para que el bolso guarde su forma",    video_id: "ae790fcb-6ed4-493d-8e68-4c1dda688404", portada: "gota-de-rocio" },
-  { orden: 5, titulo: "Aro lateral",   etiqueta_corta: "Aro lateral", subtitulo: "El aro de los laterales, paso a paso", video_id: "746210f3-ff17-4e26-9503-8c8f7c159896", portada: "marfil-elegante" },
+  { orden: 5, titulo: "Aro lateral",   etiqueta_corta: "Aro",         subtitulo: "El aro de los laterales, paso a paso", video_id: "746210f3-ff17-4e26-9503-8c8f7c159896", portada: "marfil-elegante" },
 ];
 
 const { error } = await db.from("capsulas").upsert(

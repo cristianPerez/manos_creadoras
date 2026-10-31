@@ -4,7 +4,7 @@ import { Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { PagoConPlan } from "@/components/app/PagoConPlan";
+import { BannerPlan } from "@/components/app/BannerPlan";
 import { TarjetaBolso } from "@/components/app/TarjetaBolso";
 import { esLlavero, estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
 import type { Frecuencia } from "@/lib/planes";
@@ -29,7 +29,7 @@ export function Catalogo({
   bolsos: Bolso[];
   continuar: Bolso | null;
   tieneAcceso: boolean;
-  /** Quien mira no ha entrado: se le enseña la oferta junto al catálogo. */
+  /** Quien mira no tiene plan (con cuenta o sin ella): se le enseña la oferta. */
   invitada?: boolean;
   /** Los enlaces de pago de su país (`lib/checkout.ts`); `null` si ese ciclo no tiene. */
   enlaces: Record<Frecuencia, string | null>;
@@ -62,7 +62,7 @@ export function Catalogo({
       <div
         role="group"
         aria-label="Filtrar bolsos"
-        className="mt-10 flex flex-wrap gap-2.5"
+        className="sin-barra -mx-4 mt-6 flex gap-2.5 overflow-x-auto px-4 lg:mx-0 lg:mt-8 lg:flex-wrap lg:px-0"
       >
         {(
           [
@@ -78,12 +78,14 @@ export function Catalogo({
               type="button"
               aria-pressed={activo}
               onClick={() => setFiltro(id)}
-              className={`flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors [touch-action:manipulation] ${
-                activo ? "bg-espresso text-white" : "border-line text-ink-body border"
+              className={`flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-5 text-base whitespace-nowrap transition-colors [touch-action:manipulation] ${
+                activo
+                  ? "bg-espresso border-espresso text-cream font-semibold"
+                  : "border-line-strong text-espresso hover:bg-sand"
               }`}
             >
               {texto}
-              <span className={activo ? "text-white/60" : "text-ink-muted"}>{cuenta[id]}</span>
+              <span className="cifra">{cuenta[id]}</span>
             </button>
           );
         })}
@@ -108,7 +110,7 @@ export function Catalogo({
           .
         </p>
       ) : (
-        <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-[repeat(auto-fill,minmax(230px,1fr))] lg:gap-x-5">
+        <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-5 lg:gap-x-4 lg:gap-y-8">
           {visibles.map((b) => (
             <li key={b.id}>
               <TarjetaBolso bolso={b} bloqueado={!b.gratis && !tieneAcceso} />
@@ -121,60 +123,32 @@ export function Catalogo({
 }
 
 /**
- * La oferta, para quien todavía no ha entrado.
- *
- * Va DENTRO del catálogo y no en una pantalla aparte: quien llega quiere ver
- * los bolsos, y lo que la convence de pagar es tenerlos delante. Un muro antes
- * de enseñar nada solo consigue que se vaya.
+ * La oferta, para quien todavía no ha entrado. Va DENTRO del catálogo y no en
+ * una pantalla aparte: lo que la convence de pagar es tener los bolsos delante.
+ * La pieza es `BannerPlan`, la misma que usa la ficha de un bolso con plan.
  */
 function Invitacion({
   bolsos,
   enlaces,
+  desde,
 }: {
   bolsos: Bolso[];
   desde: string;
   enlaces: Record<Frecuencia, string | null>;
 }) {
-  const gratis = bolsos.find((b) => b.gratis);
   const llaveros = bolsos.filter(esLlavero).length;
-  const deBolso = bolsos.length - llaveros;
-
   return (
-    <section
-      className="mt-8 flex flex-col gap-6 rounded-[var(--radius-xl)] p-7 text-white md:flex-row md:items-center md:p-8"
-      style={{ backgroundImage: "var(--card-destacada)" }}
-    >
-      <div className="flex-1">
-        <h2 className="font-display text-2xl text-balance" style={{ fontWeight: 500 }}>
-          ¿Y si sigues hasta el bolso terminado?
-        </h2>
-        <p className="mt-2 max-w-lg text-sm text-white/75">
-          {gratis ? `${gratis.nombre} es tuyo ahora mismo. ` : ""}
-          {/* ⚠️ Decía "se abren los 23, uno nuevo cada mes": contaba los llaveros
-              como bolsos y prometía un bolso nuevo al mes, que no existe
-              (corregido el 2026-10-21, igual que en el resto del sitio). */}
-          Con el plan se abren los {deBolso} bolsos
-          {llaveros > 0 ? ` y ${llaveros} llaveros` : ""}, el directorio de proveedores y el
-          Ojo Experto.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
-            Garantía de 7 días
-          </span>
-          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold">
-            {/* La valoración salió el 2026-10-17: no hay reseñas que la
-                respalden. Las alumnas sí son un dato real. */}
-            +1.200 alumnas
-          </span>
-        </div>
-      </div>
-
-      {/* ⚠️ Antes: "Crear mi cuenta gratis" → /entrar. Desde el 2026-10-21 lleva
-          a PAGAR, con anual por defecto (pedido de Cristian). */}
-      <div className="w-full shrink-0 md:w-72">
-        <PagoConPlan enlaces={enlaces} origen="catalogo" tono="oscuro" />
-      </div>
-    </section>
+    <div className="mt-8 max-lg:mt-6">
+      <BannerPlan
+        gratisNombre={bolsos.find((b) => b.gratis)?.nombre ?? null}
+        bolsos={bolsos.length - llaveros}
+        llaveros={llaveros}
+        desde={desde}
+        enlaces={enlaces}
+        origen="catalogo"
+        compactoEnMovil
+      />
+    </div>
   );
 }
 
@@ -190,7 +164,7 @@ function ContinuaDondeQuedaste({ bolso }: { bolso: Bolso }) {
 
   return (
     <Link
-      href={`/app/bolsos/${bolso.slug}/${siguiente.orden}`}
+      href={`/app/bolsos/${bolso.slug}?video=${siguiente.orden}&ver=1`}
       className="bg-sand mt-8 grid overflow-hidden rounded-[var(--radius-lg)] sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
     >
       {/* Mismo hueco negro que tenía la ficha: aquí también va la foto, con el
@@ -202,7 +176,7 @@ function ContinuaDondeQuedaste({ bolso }: { bolso: Bolso }) {
             alt=""
             fill
             sizes="(min-width: 640px) 320px, 100vw"
-            className="object-cover opacity-70"
+            className="object-cover"
           />
         )}
         <span
@@ -221,9 +195,9 @@ function ContinuaDondeQuedaste({ bolso }: { bolso: Bolso }) {
         <p className="text-ink-body mt-1 text-sm">{siguiente.etiqueta}</p>
 
         <div className="mt-5 flex items-center gap-4">
-          <span className="bg-line h-1.5 flex-1 overflow-hidden rounded-full">
+          <span className="bg-sand-hover h-1.5 flex-1 overflow-hidden rounded-full">
             <span
-              className="bg-gold block h-full rounded-full"
+              className="bg-cacao block h-full rounded-full"
               style={{ width: `${Math.round((bolso.vistos / bolso.videos) * 100)}%` }}
             />
           </span>

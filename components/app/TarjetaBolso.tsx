@@ -1,4 +1,3 @@
-import { Lock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { estadoDe, medidasEnTexto, type Bolso } from "@/lib/bolsos-logica";
@@ -21,7 +20,9 @@ export function TarjetaBolso({ bolso, bloqueado }: { bolso: Bolso; bloqueado: bo
       className="group block focus-visible:outline-none"
       aria-label={`${bolso.nombre}${bloqueado ? " — necesita un plan de pago" : ""}`}
     >
-      <div className="bg-espresso relative aspect-square overflow-hidden rounded-[var(--radius-lg)]">
+      {/* Foto 4:5 (app interna, 2026-10-23): los bolsos son verticales y en
+          cuadrado se cortaba el asa. */}
+      <div className="bg-espresso relative aspect-[4/5] overflow-hidden rounded-lg">
         {bolso.portadaUrl ? (
           <Image
             src={bolso.portadaUrl}
@@ -49,13 +50,13 @@ export function TarjetaBolso({ bolso, bloqueado }: { bolso: Bolso; bloqueado: bo
       </div>
 
       <h3
-        className="font-display text-espresso mt-3 truncate text-lg"
-        style={{ fontWeight: 500 }}
+        className="font-display text-espresso mt-3 truncate"
+        style={{ fontWeight: 500, fontSize: 21, lineHeight: 1.2 }}
       >
         {bolso.nombre}
       </h3>
 
-      <p className="text-ink-muted text-sm">
+      <p className="text-ink-muted mt-0.5 text-xs">
         {bolso.videos} videos
         {/* Las medidas solo si existen: siete bolsos aún no las tienen, y un
             " · " suelto al final se lee como un error. */}
@@ -66,14 +67,14 @@ export function TarjetaBolso({ bolso, bloqueado }: { bolso: Bolso; bloqueado: bo
           vacías en la rejilla son trece recordatorios de que no has hecho nada. */}
       {avance > 0 && (
         <div
-          className="bg-line mt-2 h-1 overflow-hidden rounded-full"
+          className="bg-sand-hover mt-2 h-1 overflow-hidden rounded-full"
           role="progressbar"
           aria-valuenow={avance}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-label={`${bolso.vistos} de ${bolso.videos} videos`}
         >
-          <span className="bg-gold block h-full rounded-full" style={{ width: `${avance}%` }} />
+          <span className="bg-cacao block h-full rounded-full" style={{ width: `${avance}%` }} />
         </div>
       )}
     </Link>
@@ -89,20 +90,16 @@ function Etiqueta({
   gratis: boolean;
   bloqueado: boolean;
 }) {
+  /* Planos (2026-10-23): sin el vidrio desenfocado del "Con plan". */
   const base =
-    "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold tracking-[0.1em] uppercase";
+    "absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase";
 
   if (bloqueado) {
-    return (
-      <span className={`${base} bg-espresso/80 text-gold-light backdrop-blur-sm`}>
-        <Lock size={11} aria-hidden="true" />
-        Con plan
-      </span>
-    );
+    return <span className={`${base} bg-espresso text-gold-pale`}>Con plan</span>;
   }
-  if (gratis) return <span className={`${base} bg-gold-light text-espresso`}>Gratis</span>;
+  if (gratis) return <span className={`${base} bg-gold-pale text-espresso`}>Gratis</span>;
   if (estado === "terminado")
-    return <span className={`${base} bg-gold-light text-espresso`}>Terminado</span>;
+    return <span className={`${base} bg-gold-pale text-espresso`}>Terminado</span>;
   if (estado === "en-curso")
     return <span className={`${base} bg-ivory text-espresso`}>En curso</span>;
   return null;

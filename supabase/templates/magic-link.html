@@ -80,7 +80,7 @@
                 </table>
 
                 <!-- ⚠️ EL DESTINO LO ELIGE LA APP, NO EL `Site URL`.
-                     Antes esto era `{{ .SiteURL }}` fijo, así que el enlace salía
+                     Antes esto era `.SiteURL` fijo, así que el enlace salía
                      SIEMPRE hacia QA: daba igual que se pidiera desde localhost,
                      el correo llegaba apuntando a qa.manoscreadoras.co y no había
                      forma de entrar en local con el proceso normal.
@@ -88,7 +88,7 @@
                      lib/auth.ts), y Supabase solo lo rellena si coincide con la
                      lista de *Redirect URLs* — o sea que no se puede usar para
                      mandar a una alumna a una web ajena.
-                     El `{{ else }}` conserva el comportamiento viejo para los
+                     El `else` conserva el comportamiento viejo para los
                      correos que se disparan sin destino (invitar a mano desde el
                      panel), que si no se quedarían con un enlace roto. -->
 

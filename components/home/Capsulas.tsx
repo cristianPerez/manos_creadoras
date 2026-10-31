@@ -2,8 +2,9 @@
 
 import { Play } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Entrada } from "@/components/home/Entrada";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { VisorDeHistorias } from "@/components/home/historias/VisorDeHistorias";
 import type { Capsula } from "@/lib/capsulas";
 
@@ -19,13 +20,39 @@ const LLAVE = "mc_capsulas_vistas";
  * veces la lógica de marcar visto — y que un día una mitad se enterara y la
  * otra no.
  *
- * En escritorio son tarjetas verticales porque hay sitio para que se vean las
- * cinco a la vez. En móvil son historias circulares: el gesto ya lo conoce
- * cualquiera que use Instagram, y no hay que explicarlo.
+ * Desde el home a color (2026-10-22) es UNA sola presentación: tarjetas
+ * verticales, en rejilla en escritorio y en fila con scroll lateral en móvil.
+ * Las historias circulares de móvil se fueron con la referencia nueva.
  */
-export function Capsulas({
+type ContextoCapsulas = {
+  capsulas: Capsula[];
+  vistas: string[];
+  abrir: (indice: number) => void;
+};
+
+const Contexto = createContext<ContextoCapsulas | null>(null);
+
+function useCapsulas(): ContextoCapsulas {
+  const c = useContext(Contexto);
+  if (!c) throw new Error("Las cápsulas necesitan <ProveedorCapsulas> alrededor");
+  return c;
+}
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ DOS PRESENTACIONES, UN SOLO ESTADO (2026-10-23)
+ * ════════════════════════════════════════════════════════════════════════════
+ * En móvil las cápsulas salen DOS veces (pedido de Cristian): como historias
+ * en círculos arriba del todo (`HistoriasCapsulas`) y como tarjetas debajo del
+ * banner (`Capsulas`). Entre las dos va el banner, así que no pueden ser un
+ * solo componente — pero sí compartir el estado: lo que ya vio, y el visor.
+ * Una cápsula vista desde un círculo sale como "Vista" en su tarjeta, y hay
+ * un solo visor abierto, no dos.
+ */
+export function ProveedorCapsulas({
   capsulas,
   urlsDeVideo,
+  children,
 }: {
   capsulas: Capsula[];
   /*
@@ -34,6 +61,7 @@ export function Capsulas({
    * para todos los videos, incluidos los de pago.
    */
   urlsDeVideo: Record<string, string | null>;
+  children: ReactNode;
 }) {
   const [vistas, setVistas] = useState<string[]>([]);
   const [abierta, setAbierta] = useState<number | null>(null);
@@ -63,128 +91,155 @@ export function Capsulas({
     });
   }
 
+  return (
+    <Contexto.Provider value={{ capsulas, vistas, abrir: setAbierta }}>
+      {children}
+      {abierta !== null && (
+        <VisorDeHistorias
+          capsulas={capsulas}
+          indice={abierta}
+          irA={setAbierta}
+          marcarVista={marcarVista}
+          cerrar={() => setAbierta(null)}
+          urlsDeVideo={urlsDeVideo}
+        />
+      )}
+    </Contexto.Provider>
+  );
+}
+
+/**
+ * Las historias en círculo, arriba del todo. Solo en móvil: el gesto ya lo
+ * conoce cualquiera que use Instagram, y no hay que explicarlo. Vuelven el
+ * 2026-10-23 (pedido de Cristian), además de las tarjetas de abajo.
+ *
+ * ⚠️ ANILLO DORADO LISO, SIN DEGRADADO: el home a color es plano. Sin ver,
+ * anillo `--gold`; vista, `--line-strong` y la foto atenuada.
+ */
+export function HistoriasCapsulas() {
+  const { capsulas, vistas, abrir } = useCapsulas();
+  if (capsulas.length === 0) return null;
+
+  return (
+    <section aria-label="Cápsulas gratis, en historias" className="md:hidden">
+      <ul className="sin-barra flex gap-4 overflow-x-auto px-5 pt-4 pb-2">
+        {capsulas.map((c, i) => {
+          const vista = vistas.includes(c.id);
+          return (
+            <li key={c.id} className="shrink-0">
+              <button
+                type="button"
+                onClick={() => abrir(i)}
+                aria-label={`Ver cápsula ${i + 1}: ${c.titulo}${vista ? " (vista)" : ""}`}
+                className="flex w-19 flex-col items-center gap-2 [touch-action:manipulation]"
+              >
+                {/* 72px y CÍRCULO DE VERDAD: `aspect-square` + `shrink-0`,
+                    porque con texto debajo una altura heredada lo vuelve óvalo. */}
+                <span
+                  aria-hidden="true"
+                  className={`block aspect-square size-18 shrink-0 rounded-full border-[2.5px] p-[2.5px] ${
+                    vista ? "border-line-strong" : "border-gold"
+                  }`}
+                >
+                  <span className="bg-espresso relative block size-full overflow-hidden rounded-full">
+                    <ImagenDeCapsula
+                      miniatura={c.miniaturaUrl}
+                      respaldo={c.portadaUrl}
+                      sizes="72px"
+                      className={`object-cover ${vista ? "opacity-70" : ""}`}
+                    />
+                  </span>
+                </span>
+                {/* Una palabra, en dorado: bajo un anillo dorado una etiqueta
+                    negra rompe la unidad y se lee como texto de sistema. */}
+                <span className="text-gold w-full truncate text-center text-xs font-semibold">
+                  {c.etiquetaCorta}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Las tarjetas, debajo del banner (todas las pantallas). */
+export function Capsulas() {
+  const { capsulas, vistas, abrir } = useCapsulas();
   if (capsulas.length === 0) return null;
 
   return (
     /*
-      ⚠️ EL ANCLA VA EN EL ENVOLTORIO, NO EN CADA PRESENTACIÓN. Son dos bloques
-      —el de móvil y el de escritorio— y poner `id="capsulas"` en los dos daría
-      HTML inválido con el ancla duplicada: el navegador saltaría al primero, que
-      en escritorio está oculto, y el enlace del menú no llevaría a ningún sitio.
+      El ancla va en el envoltorio: `id="capsulas"` es a donde lleva el menú.
     */
     <div id="capsulas">
-      {/* ── Móvil: historias circulares, pegadas al borde ── */}
-      <section aria-label="Cápsulas gratis" className="md:hidden">
-        <ul className="flex gap-4 overflow-x-auto px-5 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {capsulas.map((c, i) => {
-            const vista = vistas.includes(c.id);
-            return (
-              <li key={c.id} className="shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setAbierta(i)}
-                  className="flex w-19 flex-col items-center gap-2 [touch-action:manipulation]"
-                >
-                  {/*
-                    El anillo: 72px y CÍRCULO DE VERDAD. `aspect-square` +
-                    `shrink-0` porque dentro de un flex con texto debajo, una
-                    altura heredada lo convierte en óvalo — que es exactamente
-                    lo que delata una historia mal hecha.
-                  */}
-                  <span
-                    aria-hidden="true"
-                    className="block size-18 shrink-0 rounded-full p-[2.5px]"
-                    style={{
-                      aspectRatio: "1",
-                      backgroundImage: vista ? "none" : "var(--anillo-historia)",
-                      backgroundColor: vista ? "var(--punto-inactivo)" : undefined,
-                    }}
-                  >
-                    <span className="border-cream bg-espresso relative block size-full overflow-hidden rounded-full border-[2.5px]">
-                      <ImagenDeCapsula
-                        miniatura={c.miniaturaUrl}
-                        respaldo={c.portadaUrl}
-                        sizes="72px"
-                        className={`object-cover ${vista ? "opacity-70" : ""}`}
-                      />
-                    </span>
-                  </span>
-
-                  {/* ⚠️ DORADO, NUNCA NEGRO: bajo un anillo dorado, una etiqueta
-                      negra rompe la unidad y se lee como texto de sistema. */}
-                  <span className="text-gold w-full truncate text-center text-xs font-bold">
-                    {c.etiquetaCorta}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      {/* ── Escritorio: tarjetas verticales ── */}
-      <section aria-label="Cápsulas gratis" className="max-md:hidden px-5 py-10 md:py-12">
-        <div className="mx-auto max-w-6xl">
+      {/*
+        ── Home a color (2026-10-22): UNA sola presentación, sobre espresso ──
+        Hasta hoy en móvil eran historias circulares; la referencia nueva pide
+        la misma tarjeta que en escritorio, en una fila con scroll lateral de
+        tarjetas de 200px. Mismo visor y mismo estado de vistas.
+      */}
+      <section
+        aria-label="Cápsulas gratis"
+        className="bg-espresso sobre-oscuro grain-oscuro px-5 py-14 md:py-22"
+      >
+        <div className="mx-auto max-w-[1240px]">
           <header className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="eyebrow">Cápsulas gratis</p>
-              <h2
-                className="font-display text-espresso mt-2"
-                style={{ fontWeight: 500, fontSize: "clamp(32px, 3.6vw, 46px)", lineHeight: 1.08 }}
-              >
-                5 videos cortos para empezar hoy
+              <EyebrowLinea>Cápsulas gratis</EyebrowLinea>
+              <h2 className="titulo-seccion mt-3">
+                5 videos cortos para empezar <em className="clave">hoy</em>
               </h2>
-              <p className="text-ink-body mt-2">
+              <p className="text-on-dark-muted mt-2">
                 Sin crear cuenta. Tócalos en orden o salta al que necesites.
               </p>
             </div>
-            <p className="text-ink-muted text-sm">
-              <strong className="text-espresso font-semibold">{vistas.length}</strong> de{" "}
-              {capsulas.length} vistas
+            <p className="bg-espresso-2 text-gold-pale cifra rounded-full px-4 py-2 text-sm font-semibold">
+              {vistas.length} de {capsulas.length} vistas
             </p>
           </header>
 
-          <ul className="mt-8 grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+          <ul className="sin-barra -mx-5 mt-6 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 md:mx-0 md:mt-8 md:grid md:gap-4 md:overflow-visible md:px-0 md:[grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
             {capsulas.map((c, i) => {
               const vista = vistas.includes(c.id);
               return (
-                <li key={c.id}>
+                <li key={c.id} className="w-50 shrink-0 snap-start md:w-auto">
                   {/* 60ms entre tarjetas: lo justo para que se lea como una fila
                       que entra, sin que la última se haga esperar. */}
                   <Entrada retraso={Math.min(i, 4) * 0.06}>
                   <button
                     type="button"
-                    onClick={() => setAbierta(i)}
-                    className={`group bg-espresso relative block w-full overflow-hidden rounded-(--radius-capsula) text-left transition-transform duration-200 hover:-translate-y-1 ${
-                      vista ? "border-sand border-2 opacity-82" : "border-gold border-2 shadow-lg"
+                    onClick={() => abrir(i)}
+                    /* Sin el borde dorado ni la sombra de antes: `--gold`
+                       sobre espresso no pasa el contraste, y en la versión a
+                       color la profundidad no viene de sombras. La vista se
+                       marca con la etiqueta y la opacidad. */
+                    className={`group bg-espresso-2 relative block w-full overflow-hidden rounded-(--radius-capsula) text-left transition-transform duration-200 hover:-translate-y-1 ${
+                      vista ? "opacity-82" : ""
                     }`}
                     style={{ aspectRatio: "3 / 4.4" }}
                   >
                     <ImagenDeCapsula
                       miniatura={c.miniaturaUrl}
                       respaldo={c.portadaUrl}
-                      sizes="(min-width: 768px) 240px, 50vw"
+                      sizes="(min-width: 768px) 240px, 200px"
                       className="object-cover"
                     />
 
                     {/* Degradado arriba Y abajo: sin él, el número y el título
                         quedan sobre la foto y con una portada clara desaparecen.
-                        Más fuerte desde la v3: ver `--capsula-degradado`. */}
+                        Es el único degradado que se queda en el home. */}
                     <span
                       aria-hidden="true"
                       className="absolute inset-0"
                       style={{ backgroundImage: "var(--capsula-degradado)" }}
                     />
 
-                    {/* El número con fondo: sobre una portada clara, el dorado
-                        solo no se lee. */}
-                    <span className="bg-espresso/60 absolute top-3 left-3 rounded-full px-2.5 py-1">
-                      <span
-                        className="font-display text-gold-light block text-sm italic"
-                        style={{ fontWeight: 500, lineHeight: 1 }}
-                      >
-                        {String(c.orden).padStart(2, "0")}
-                      </span>
+                    <span
+                      className="cifra text-gold-pale absolute top-3 left-4 text-sm font-semibold"
+                    >
+                      {String(c.orden).padStart(2, "0")}
                     </span>
 
                     {vista && (
@@ -207,7 +262,7 @@ export function Capsulas({
                       >
                         {c.titulo}
                       </span>
-                      <span className="mt-1 block text-sm text-white/70">{c.subtitulo}</span>
+                      <span className="text-on-dark-muted mt-1 block text-sm">{c.subtitulo}</span>
                     </span>
                   </button>
                   </Entrada>
@@ -218,16 +273,6 @@ export function Capsulas({
         </div>
       </section>
 
-      {abierta !== null && (
-        <VisorDeHistorias
-          capsulas={capsulas}
-          indice={abierta}
-          irA={setAbierta}
-          marcarVista={marcarVista}
-          cerrar={() => setAbierta(null)}
-          urlsDeVideo={urlsDeVideo}
-        />
-      )}
     </div>
   );
 }

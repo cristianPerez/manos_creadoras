@@ -34,7 +34,7 @@ export async function requestMagicLink(email: string): Promise<MagicLinkResult> 
     options: {
       // Sin `shouldCreateUser: false` → si el correo no tiene cuenta, se crea.
       // El disparador de la 0012 le monta su perfil; sin concesiones, así que
-      // entra al mismo sitio que un visitante pero con sus 3 consultas.
+      // entra al mismo sitio que un visitante pero con sus 8 consultas.
       /*
        * El destino sale del navegador, así que entrar desde localhost manda a
        * localhost y desde QA manda a QA. Esto funciona porque la plantilla del

@@ -1,22 +1,20 @@
 "use client";
 
-import { Check, Lock, ShieldCheck } from "lucide-react";
+import { Check, CreditCard, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
 import { EnlaceCompra, EnlaceWhatsApp } from "@/components/home/EnlaceCompra";
 import { Entrada } from "@/components/home/Entrada";
-import { IconoWhatsApp } from "@/components/home/IconoWhatsApp";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida";
 import { WHATSAPP_URL } from "@/lib/landing";
 import {
-  ahorroAnualDe,
   GARANTIA,
   incluyeCon,
   notaDelCobro,
-  precioPorMes,
   precioPorMesDe,
   type Frecuencia,
 } from "@/lib/planes";
@@ -25,7 +23,7 @@ import {
  * El precio, en el home.
  *
  * ⚠️ EL PRECIO SE ENSEÑA SIEMPRE POR MES, pague como pague. Es lo único que se
- * puede comparar de un vistazo: "US$89,90 al año" frente a "US$9,99 al mes"
+ * puede comparar de un vistazo: "US$167 al año" frente a "US$19,70 al mes"
  * obliga a dividir mentalmente, y quien tiene que hacer cuentas para entender
  * una oferta normalmente no la acepta. El cobro real va justo debajo, dicho con
  * todas las palabras.
@@ -50,7 +48,6 @@ export function PrecioHome({
   // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
   const frecuencia = useFrecuenciaElegida();
   const quieto = useReducedMotion();
-  const otra: Frecuencia = frecuencia === "anual" ? "mensual" : "anual";
   const enlace = enlaces[frecuencia];
 
   const elegir = (f: Frecuencia) => {
@@ -60,41 +57,48 @@ export function PrecioHome({
   };
 
   return (
-    <section id="precio" className="px-5 py-12 md:py-16">
-      <Entrada className="mx-auto max-w-5xl">
+    /* Home a color (2026-10-22): arena, entre la crema de las alumnas y la de
+       las preguntas. La tarjeta se parte en dos: lo que se paga en espresso,
+       lo que se lleva en marfil. */
+    <section id="precio" className="bg-sand px-5 py-14 md:py-22">
+      <Entrada className="mx-auto max-w-[1080px]">
         <header className="text-center">
-          <p className="eyebrow">Inscripción</p>
-          <h2
-            className="font-display text-espresso mt-2 text-balance"
-            style={{ fontWeight: 500, fontSize: "clamp(36px, 4.4vw, 60px)", lineHeight: 1.06 }}
-          >
-            Un solo plan, todo incluido.
+          <EyebrowLinea centrado>Inscripción</EyebrowLinea>
+          <h2 className="titulo-seccion mt-3 text-balance">
+            Un solo plan, <em className="clave">todo incluido</em>.
           </h2>
           <p className="text-ink-body mt-3 max-md:hidden">Paga cada mes o ahorra pagando el año.</p>
         </header>
 
-        {/* Interruptor y no píldora partida (2026-10-21, pedido de Cristian):
-            el mismo de toda la app — `components/app/InterruptorPlan.tsx`. */}
         <div className="mt-6 md:mt-8">
+          {/* Interruptor de verdad y no píldora partida (2026-10-21 y de nuevo
+              el 22-oct, pedido de Cristian): el mismo de toda la app. */}
           <InterruptorPlan valor={frecuencia} alCambiar={elegir} tamano="grande" />
         </div>
 
-        {/*
-          ⚠️ ESPRESSO SÓLIDO, SIN DEGRADADO (v3). La tarjeta de la v2 llevaba
-          `--card-destacada` (cacao → espresso); al lado de la banda "1 de 16",
-          que ahora es cacao sólido, el degradado hacía que las dos piezas
-          oscuras de la página parecieran de dos sistemas distintos.
-        */}
-        <div className="bg-espresso sobre-oscuro grain-oscuro mt-6 grid overflow-hidden rounded-lg text-white max-md:rounded-bloque md:mt-8 md:grid-cols-2">
-          <div className="p-6 md:p-10">
-            <h3 className="font-display text-cream text-2xl text-balance md:text-3xl" style={{ fontWeight: 500 }}>
+        <div className="border-line mt-6 grid overflow-hidden rounded-(--radius-foto) border max-md:rounded-bloque md:mt-8 md:grid-cols-2">
+          {/* ── Lo que se paga ── `flex-col` para que la fila de confianza
+              baje al fondo y las dos mitades midan lo mismo. */}
+          <div className="bg-espresso sobre-oscuro grain-oscuro flex flex-col px-5.5 py-6 md:p-11">
+            <p className="eyebrow">Plan {frecuencia}</p>
+            <h3
+              className="font-display text-cream mt-2 text-balance"
+              style={{ fontWeight: 500, fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.15 }}
+            >
               Curso completo de bolsos de perlas
             </h3>
 
             <p className="mt-4 flex items-baseline gap-2">
               <span
                 className="font-display text-gold-pale"
-                style={{ fontWeight: 500, fontSize: "clamp(64px, 8vw, 96px)", lineHeight: 1 }}
+                /*
+                 * ⚠️ EL MÍNIMO BAJÓ DE 64px A 52px EL 2026-10-31. Con el precio
+                 * viejo la cifra tenía 3 dígitos ("US$7,49") y sobraba sitio; con
+                 * "US$13,92" y "US$19,70" el bloque llegaba a 15px del borde en un
+                 * móvil de 375px y el número dejaba de dominar la tarjeta. Si algún
+                 * día el precio vuelve a tener 3 dígitos, se puede subir otra vez.
+                 */
+                style={{ fontWeight: 500, fontSize: "clamp(52px, 7vw, 84px)", lineHeight: 1 }}
               >
                 {/*
                   ⚠️ `PrecioQueCuenta` Y NO `NumeroQueCuenta`: aquel cuenta cuando
@@ -106,26 +110,19 @@ export function PrecioHome({
               </span>
               <span className="text-on-dark-muted text-lg">/mes</span>
             </p>
-            <p className="text-cream/85 mt-2 text-base text-balance">{notaDelCobro(frecuencia)}</p>
+            <p className="text-on-dark-muted mt-2 text-base text-balance">{notaDelCobro(frecuencia)}</p>
 
-            {/* Cambiar de ciclo desde aquí: quien duda entre los dos no tiene que
-                volver arriba al selector para comparar. */}
-            <button
-              type="button"
-              onClick={() => elegir(otra)}
-              className="text-gold-pale decoration-gold-pale mt-4 min-h-11 text-base font-bold underline underline-offset-4"
-            >
-              {otra === "mensual"
-                ? `o mensual por ${precioPorMes("mensual")}/mes`
-                : `o anual por ${precioPorMes("anual")}/mes (ahorras ${ahorroAnualDe().pct}%)`}
-            </button>
-
+            {/*
+              ⚠️ SIN EL "o mensual por… / o anual por…" DE DEBAJO (planes,
+              2026-10-22). El switch está justo encima y hace lo mismo; el
+              enlace duplicaba el control y le restaba fuerza a este botón.
+            */}
             <EnlaceCompra
               href={enlace ?? `/pagar?ciclo=${frecuencia}`}
               origen="precio"
               plan={frecuencia}
               abrePago={Boolean(enlace)}
-              className="bg-gold-pale text-espresso rounded-boton mt-4 flex h-14 items-center justify-center text-lg font-extrabold transition-transform active:scale-[0.98]"
+              className="bg-gold-pale text-espresso mt-6 flex h-13.5 items-center justify-center rounded-full text-base font-semibold transition-transform active:scale-[0.98]"
             >
               Inscribirme con el plan {frecuencia}
             </EnlaceCompra>
@@ -134,77 +131,69 @@ export function PrecioHome({
               ⚠️ SI NO HAY ENLACE PARA ESE CICLO, NO SE FINGE QUE SE PUEDE PAGAR.
               El botón lleva a `/pagar` y aquí se dice qué va a pasar.
             */}
-            {enlace ? (
-              <ul className="text-on-dark-muted mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm md:gap-x-6">
-                <li className="flex items-center gap-2">
-                  <Lock size={14} aria-hidden="true" />
-                  Pago seguro con OnePay
-                </li>
-                <li>Tarjeta de crédito o débito</li>
-                {/* En móvil no cabe en la misma línea (ref. 20 lo omite). */}
-                <li className="max-md:hidden">Acceso inmediato por correo</li>
-              </ul>
-            ) : (
-              <p className="text-on-dark-muted mt-4 text-sm">
-                Te escribimos al correo con el enlace de pago y tu acceso.
-              </p>
-            )}
+            <div className="border-espresso-line mt-6 border-t pt-4 md:mt-auto">
+              {enlace ? (
+                <ul className="text-on-dark-muted flex flex-col gap-2.5 text-sm md:flex-row md:flex-wrap md:gap-x-5">
+                  <li className="flex items-center gap-2">
+                    <Lock size={15} className="text-gold-light shrink-0" aria-hidden="true" />
+                    Pago seguro con OnePay
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CreditCard size={15} className="text-gold-light shrink-0" aria-hidden="true" />
+                    Tarjeta de crédito o débito
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Mail size={15} className="text-gold-light shrink-0" aria-hidden="true" />
+                    Acceso inmediato por correo
+                  </li>
+                </ul>
+              ) : (
+                <p className="text-on-dark-muted text-sm">
+                  Te escribimos al correo con el enlace de pago y tu acceso.
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* En móvil, "Incluye" va DESPUÉS del botón (orden natural del DOM):
-              primero se decide y se paga, y quien aún duda baja a leer. */}
-          <div className="border-espresso-line mx-6 border-t py-6 md:mx-0 md:border-t-0 md:border-l md:p-10 md:pt-16">
-            <p className="text-gold-pale text-xs font-bold tracking-[0.18em] uppercase max-md:hidden">
-              Incluye
-            </p>
-            <ul className="flex flex-col gap-4 md:mt-5">
+          {/* ── Lo que se lleva ── En móvil va debajo (orden del DOM): primero
+              se decide y se paga, y quien aún duda baja a leer. */}
+          <div className="bg-ivory flex flex-col px-5.5 py-6 md:p-11">
+            <p className="eyebrow">Incluye</p>
+            <ul className="mt-4 flex flex-col gap-3.5">
               {incluyeCon({ bolsos, videos }).map((b) => (
-                <li key={b} className="text-cream flex items-start gap-3 text-base">
+                <li key={b} className="text-espresso flex items-start gap-3 text-base">
                   <Check
                     size={17}
                     strokeWidth={2.5}
-                    className="text-gold-light mt-1 shrink-0"
+                    className="text-gold mt-1 shrink-0"
                     aria-hidden="true"
                   />
                   {b}
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="bg-ivory border-line flex items-center gap-4 rounded-md border p-5">
-            <ShieldCheck size={24} className="text-gold shrink-0" aria-hidden="true" />
-            <span>
-              <span className="text-espresso block font-semibold">{GARANTIA.titulo}</span>
-              <span className="text-ink-body block text-sm">{GARANTIA.texto}</span>
-            </span>
-          </div>
+            <div className="bg-sand mt-6 flex gap-3 rounded-[18px] p-5 md:mt-auto">
+              <ShieldCheck size={22} className="text-cacao mt-0.5 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="text-espresso font-semibold">{GARANTIA.titulo}</p>
+                <p className="text-ink-body mt-1 text-sm">{GARANTIA.texto}</p>
+              </div>
+            </div>
 
-          {/* Escritorio: tarjeta con botón. Móvil: botón a todo el ancho (ref. 20). */}
-          <div className="bg-ivory border-line hidden items-center justify-between gap-4 rounded-md border p-5 md:flex">
-            <span>
-              <span className="text-espresso block font-semibold">¿Dudas antes de inscribirte?</span>
-              <span className="text-ink-body block text-sm">Escríbenos y te respondemos.</span>
-            </span>
-            <EnlaceWhatsApp
-              href={WHATSAPP_URL}
-              origen="precio"
-              className="border-espresso text-espresso rounded-boton flex h-12 shrink-0 items-center gap-2 border px-5 font-bold"
-            >
-              <IconoWhatsApp size={18} />
-              WhatsApp
-            </EnlaceWhatsApp>
+            {/* Dentro del panel marfil (planes, 2026-10-22): equilibra el alto
+                de las dos columnas. */}
+            <p className="text-ink-body mt-4 text-sm">
+              ¿Dudas antes de inscribirte?{" "}
+              <EnlaceWhatsApp
+                href={WHATSAPP_URL}
+                origen="precio"
+                className="text-gold inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+              >
+                Escríbenos por WhatsApp
+              </EnlaceWhatsApp>
+            </p>
           </div>
-          <EnlaceWhatsApp
-            href={WHATSAPP_URL}
-            origen="precio"
-            className="border-espresso text-espresso rounded-md flex h-14 items-center justify-center gap-3 border font-bold md:hidden"
-          >
-            <IconoWhatsApp size={20} />
-            ¿Dudas? Escríbenos por WhatsApp
-          </EnlaceWhatsApp>
         </div>
       </Entrada>
     </section>

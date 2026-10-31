@@ -1,15 +1,23 @@
-import { ArrowLeft, Play, Sparkles } from "lucide-react";
-import Image from "next/image";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ListaMateriales, TarjetaDirectorio } from "@/components/app/ListaMateriales";
-import { PasoAPaso } from "@/components/app/PasoAPaso";
-import { PagoConPlan } from "@/components/app/PagoConPlan";
+import {
+  FichaBolso,
+  type FilaFicha,
+  type VideoFicha,
+} from "@/components/app/FichaBolso";
+import { BannerPlan } from "@/components/app/BannerPlan";
 import { alumnaActual } from "@/lib/alumna";
 import { enlacesDeCobro } from "@/lib/checkout";
-import { esLlavero, medidasEnTexto, medidasOrdenadas, obtenerBolso, siguienteVideo } from "@/lib/bolsos";
+import {
+  esLlavero,
+  listarBolsos,
+  medidasEnTexto,
+  medidasOrdenadas,
+  obtenerBolso,
+  siguienteVideo,
+} from "@/lib/bolsos";
 import { precioDesde } from "@/lib/planes";
+import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 
 export async function generateMetadata({
   params,
@@ -18,11 +26,22 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const bolso = await obtenerBolso(slug);
-  return { title: bolso ? `${bolso.nombre} — Manos Creadoras` : "Manos Creadoras" };
+  return {
+    title: bolso ? `${bolso.nombre} — Manos Creadoras` : "Manos Creadoras",
+  };
 }
 
-export default async function Ficha({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Ficha({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  /** `?video=N&ver=1`: llega de un enlace a un video concreto (la tarjeta de
+      retomar o la dirección vieja de cada paso), que arranca solo. */
+  searchParams: Promise<{ video?: string; ver?: string }>;
+}) {
   const { slug } = await params;
+  const { video, ver } = await searchParams;
   const [bolso, alumna, cobro] = await Promise.all([
     obtenerBolso(slug),
     alumnaActual(),
@@ -31,196 +50,116 @@ export default async function Ficha({ params }: { params: Promise<{ slug: string
 
   if (!bolso) notFound();
 
+  /*
+   * ⚠️ EL PORTERO SIGUE AQUÍ, EN EL SERVIDOR. Sin acceso no se firma ninguna
+   * URL de video: la ficha recibe `url: null` y el reproductor dice que hace
+   * falta el plan. Esconderlo en el navegador no protegería nada.
+   */
   const bloqueado = !bolso.gratis && !alumna?.tieneAcceso;
+  /* Los totales del banner (bolsos, llaveros, el gratis): solo hacen falta si
+     hay que enseñar la oferta. */
+  const catalogo = bloqueado ? await listarBolsos() : null;
   const siguiente = siguienteVideo(bolso);
   const medidas = medidasEnTexto(bolso.medidas);
 
+  const firmar = (videoId: string) =>
+    bloqueado || !videoId
+      ? null
+      : urlDelReproductor({ proveedor: "bunny", id: videoId });
+  const miniatura = (videoId: string) =>
+    bloqueado || !videoId ? null : urlDeMiniatura(videoId);
+
+  /* Todos los videos del bolso en orden: materiales (0) y cada parte de cada
+     paso. La ficha elige cuál se carga sin salir de la página. */
+  const videos: VideoFicha[] = [
+    {
+      orden: 0,
+      videoId: bolso.videoMaterialesId,
+      titulo: "Materiales",
+      paso: null,
+      parte: null,
+      visto: bolso.materialesVisto,
+      url: firmar(bolso.videoMaterialesId),
+      poster: miniatura(bolso.videoMaterialesId),
+    },
+    ...bolso.pasos.flatMap((p) =>
+      p.partes.map((l) => ({
+        orden: l.orden,
+        videoId: l.videoId,
+        titulo: p.titulo,
+        paso: p.numero,
+        parte: p.partes.length > 1 ? l.parte : null,
+        visto: l.vista,
+        url: firmar(l.videoId),
+        poster: miniatura(l.videoId),
+      })),
+    ),
+  ];
+
+  const filas: FilaFicha[] = [
+    {
+      numero: null,
+      titulo: "Materiales",
+      ordenes: [0],
+      completado: bolso.materialesVisto,
+    },
+    ...bolso.pasos.map((p) => ({
+      numero: p.numero,
+      titulo: p.titulo,
+      ordenes: p.partes.map((l) => l.orden),
+      completado: p.completado,
+    })),
+  ];
+
+  /* Un llavero no tiene pasos (es un solo video): "0 pasos" sobra. Y "1
+     videos" se lee como un error. */
+  const meta = [
+    bolso.pasos.length > 0
+      ? `${bolso.pasos.length} ${bolso.pasos.length === 1 ? "paso" : "pasos"}`
+      : null,
+    `${bolso.videos} ${bolso.videos === 1 ? "video" : "videos"}`,
+    medidas,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <main className="min-w-0 flex-1">
-      {/*
-        La barra lateral está siempre (la pone el layout), así que esta barra de
-        arriba ya no tiene que servir de menú. Se queda porque sigue haciendo
-        dos cosas que la lateral no hace: decir DÓNDE estás dentro de la app y
-        dar el salto directo al Ojo Experto con el contexto de este bolso.
-      */}
-      <div className="border-line bg-cream/90 sticky top-0 z-(--z-sticky) border-b backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-5">
-          <Link
-            href="/app"
-            className="text-ink-muted hover:text-espresso flex items-center gap-2 text-sm"
-          >
-            <ArrowLeft size={16} aria-hidden="true" />
-            Mis bolsos
-          </Link>
-          <Link
-            href={`/app/ojo?bolso=${bolso.slug}`}
-            className="text-gold flex items-center gap-2 text-sm font-semibold"
-          >
-            <Sparkles size={16} aria-hidden="true" />
-            Ojo Experto
-          </Link>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-5xl px-5 py-8 md:py-10">
-        <header className="grid gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-center">
-          <div className="bg-espresso relative aspect-square overflow-hidden rounded-[var(--radius-xl)]">
-            {bolso.portadaUrl ? (
-              <Image
-                src={bolso.portadaUrl}
-                alt={`Bolso ${bolso.nombre}, tejido en cuentas`}
-                fill
-                /* `priority`: es la imagen grande de la primera pantalla de la
-                   ficha. Cargarla tarde deja un rectángulo negro justo donde se
-                   mira primero. */
-                priority
-                sizes="(min-width: 768px) 420px, 100vw"
-                className="object-cover"
-              />
-            ) : (
-              /* Los cinco bolsos sin foto todavía: la inicial sobre espresso en
-                 vez de un rectángulo vacío que parezca que algo falló. */
-              <span
-                aria-hidden="true"
-                className="font-display text-gold/25 absolute inset-0 flex items-center justify-center text-7xl"
-                style={{ fontWeight: 500 }}
-              >
-                {bolso.nombre.charAt(0)}
-              </span>
-            )}
-          </div>
-
-          <div>
-            <h1 className="titulo-seccion">{bolso.nombre}</h1>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Chip>
-                {/* Un llavero no tiene pasos (es un solo video): "0 pasos" sobra.
-                    Y "1 videos" se lee como un error. */}
-                {bolso.pasos.length > 0 &&
-                  `${bolso.pasos.length} ${bolso.pasos.length === 1 ? "paso" : "pasos"} · `}
-                {bolso.videos} {bolso.videos === 1 ? "video" : "videos"}
-              </Chip>
-              {medidas && <Chip>{medidas}</Chip>}
-              {bolso.gratis && <Chip destacado>Gratis</Chip>}
-            </div>
-
-            <div className="mt-5 flex items-center gap-4">
-              <span className="bg-line h-1.5 flex-1 overflow-hidden rounded-full">
-                <span
-                  className="bg-gold block h-full rounded-full"
-                  style={{ width: `${Math.round((bolso.vistos / bolso.videos) * 100)}%` }}
-                />
-              </span>
-              <span className="text-ink-muted shrink-0 text-sm">
-                {bolso.vistos} de {bolso.videos}
-              </span>
-            </div>
-
-            {bloqueado ? (
-              /*
-                Bloqueado: se enseña TODO el índice —cuántos pasos, qué
-                materiales, las medidas— y solo se retiene el video. Es lo que
-                hace que valga la pena pagar: ya sabes exactamente qué recibes.
-              */
-              <div className="bg-sand mt-6 rounded-[var(--radius-lg)] p-5">
-                <p className="text-espresso font-semibold">
-                  Este {esLlavero(bolso) ? "llavero" : "bolso"} viene con el plan
-                </p>
-                <p className="text-ink-body mt-1 text-sm">
-                  {/* ⚠️ Decía "necesitas Creadora o Maestra": planes que no existen
-                      desde el 2026-10-13 (hay uno solo). Corregido el 2026-10-20. */}
-                  Puedes ver sus pasos y sus materiales. Para los videos necesitas el plan,
-                  desde {precioDesde()} al mes.
-                </p>
-                {/*
-                  ⚠️ ANTES EL DESTINO DEPENDÍA DE QUIÉN MIRABA: sin cuenta, "Crear
-                  mi cuenta gratis"; con cuenta, "Ver los planes". Desde el
-                  2026-10-21 los dos van a PAGAR, con anual por defecto y el
-                  selector para cambiar a mensual (pedido de Cristian).
-                */}
-                <div className="mt-4">
-                  <PagoConPlan enlaces={cobro.url} origen="ficha_bolso" />
-                </div>
-              </div>
-            ) : (
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                {siguiente ? (
-                  <Link
-                    href={`/app/bolsos/${bolso.slug}/${siguiente.orden}`}
-                    className="text-espresso flex h-13 flex-1 items-center justify-center gap-2 rounded-full px-6 font-semibold"
-                    style={{ backgroundImage: "var(--boton-dorado)" }}
-                  >
-                    <Play size={16} fill="currentColor" aria-hidden="true" />
-                    <span className="truncate">Continuar: {siguiente.etiqueta}</span>
-                  </Link>
-                ) : (
-                  <p className="bg-sand text-espresso flex h-13 flex-1 items-center justify-center rounded-full px-6 font-semibold">
-                    ¡Bolso terminado!
-                  </p>
-                )}
-                <Link
-                  href={`/app/ojo?bolso=${bolso.slug}`}
-                  className="border-line text-espresso flex h-13 items-center justify-center rounded-full border px-6 font-semibold"
-                >
-                  Preguntar sobre este bolso
-                </Link>
-              </div>
-            )}
-          </div>
-        </header>
-
-        <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <section>
-            <h2 className="font-display text-espresso text-2xl" style={{ fontWeight: 500 }}>
-              Paso a paso
-            </h2>
-            <div className="mt-5">
-              <PasoAPaso bolso={bolso} />
-            </div>
-          </section>
-
-          <section>
-            <ListaMateriales materiales={bolso.materiales} />
-            <TarjetaDirectorio />
-            {medidas && (
-              <div className="bg-sand mt-5 rounded-[var(--radius-lg)] p-5">
-                <h3 className="text-espresso font-semibold">Medidas del bolso terminado</h3>
-                <dl className="mt-3 flex flex-wrap gap-6">
-                  {medidasOrdenadas(bolso.medidas).map(([clave, valor]) => (
-                    <div key={clave}>
-                      <dd
-                        className="font-display text-espresso text-2xl"
-                        style={{ fontWeight: 500 }}
-                      >
-                        {String(valor).replace(".", ",")}
-                      </dd>
-                      <dt className="text-ink-muted text-xs">cm de {etiquetaMedida(clave)}</dt>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-    </main>
+    <FichaBolso
+      slug={bolso.slug}
+      nombre={bolso.nombre}
+      gratis={bolso.gratis}
+      bloqueado={bloqueado}
+      bolsoId={bolso.id}
+      portadaUrl={bolso.portadaUrl}
+      meta={meta}
+      videos={videos}
+      filas={filas}
+      ordenInicial={
+        video !== undefined && videos.some((v) => v.orden === Number(video))
+          ? Number(video)
+          : (siguiente?.orden ?? 0)
+      }
+      arrancarAlInicio={ver === "1" && video !== undefined}
+      totalPasos={bolso.pasos.length}
+      pago={
+        /*
+          Bloqueado: se enseña TODO el índice —pasos, materiales, medidas— y
+          solo se retiene el video. El banner es el MISMO de Mis bolsos
+          (`BannerPlan`, pedido de Cristian 2026-10-23): una sola oferta.
+        */
+        catalogo && (
+          <BannerPlan
+            gratisNombre={catalogo.find((b) => b.gratis)?.nombre ?? null}
+            bolsos={catalogo.filter((b) => !esLlavero(b)).length}
+            llaveros={catalogo.filter(esLlavero).length}
+            desde={precioDesde()}
+            enlaces={cobro.url}
+            origen="ficha_bolso"
+          />
+        )
+      }
+      materiales={bolso.materiales}
+      medidas={medidasOrdenadas(bolso.medidas)}
+    />
   );
-}
-
-function Chip({ children, destacado = false }: { children: React.ReactNode; destacado?: boolean }) {
-  return (
-    <span
-      className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-        destacado ? "bg-gold-light text-espresso" : "bg-sand text-ink-body"
-      }`}
-    >
-      {children}
-    </span>
-  );
-}
-
-/** `alto_con_asa` → "alto con asa". Las claves vienen del JSON y varían por bolso. */
-function etiquetaMedida(clave: string): string {
-  return clave.replace(/_/g, " ");
 }

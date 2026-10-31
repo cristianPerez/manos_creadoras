@@ -5,6 +5,7 @@ import { CancelarMembresia } from "@/components/app/CancelarMembresia";
 import { RegistrarPais } from "@/components/app/RegistrarPais";
 import { SelectorDePago } from "@/components/app/SelectorDePago";
 import { Entrada } from "@/components/home/Entrada";
+import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual } from "@/lib/alumna";
 import { esLlavero, listarBolsos } from "@/lib/bolsos";
 import { fechaLarga, finDelCicloEnCurso } from "@/lib/ciclo";
@@ -65,8 +66,10 @@ export default async function MiPlan({
    * contenido respira sin que el pie quede flotando en el vacío.
    */
   return (
-    <main className="min-h-dvh flex-1 px-5 py-10 pb-20 lg:pb-10">
-      <div className="mx-auto max-w-3xl">
+    /* Página en ARENA (app interna, 2026-10-23), como la sección de precio
+       del home: la tarjeta marfil/espresso se separa del fondo sin sombras. */
+    <main className="bg-sand flex-1 px-4 py-8 lg:px-8 lg:py-12">
+      <div className="mx-auto max-w-270">
         <RegistrarPais />
 
         {alumna?.tieneAcceso ? (
@@ -87,9 +90,9 @@ export default async function MiPlan({
                 `prefers-reduced-motion`. */}
             <Entrada>
               <header className="text-center">
-                <p className="eyebrow">Tu plan</p>
-                <h1 className="titulo-seccion mt-2 text-balance">
-                  Desbloquea los {totalBolsos} bolsos
+                <EyebrowLinea centrado>Tu plan</EyebrowLinea>
+                <h1 className="titulo-seccion mt-3 text-balance">
+                  Desbloquea los <em className="clave">{totalBolsos} bolsos</em>
                 </h1>
                 {/*
                   ⚠️ ANCLADO AL DOLOR Nº4 DE LA FICHA DE AVATAR: "ya gasté plata
@@ -102,7 +105,7 @@ export default async function MiPlan({
                   desperdiciado es lo que convierte el precio en una cuenta a
                   favor: ya se gastó eso, y sin que le quedara el bolso.
                 */}
-                <p className="text-ink-body mt-3 text-balance">
+                <p className="text-ink-body mx-auto mt-3 max-w-2xl text-balance max-md:hidden">
                   Un bolso que no queda bien cuesta más que esto en cuentas y herrajes. Aquí tienes
                   el paso a paso de los {totalBolsos}, y el Ojo Experto revisando el tuyo.
                 </p>
@@ -169,19 +172,19 @@ function YaTienePlan({
       */}
       <Entrada>
         <header className="text-center">
-          <p className="eyebrow">Tu plan</p>
-          <h1 className="titulo-seccion mt-2 text-balance">Tienes el curso completo</h1>
+          <EyebrowLinea centrado>Tu plan</EyebrowLinea>
+          <h1 className="titulo-seccion mt-3 text-balance">
+            Tienes el curso <em className="clave">completo</em>
+          </h1>
         </header>
       </Entrada>
 
       <Entrada retraso={0.07}>
-      <section
-        className="mt-8 rounded-[var(--radius-xl)] p-8 text-center text-white md:p-10"
-        style={{ backgroundImage: "var(--card-destacada)" }}
-      >
+      {/* Espresso plano (2026-10-23): sin el degradado de `--card-destacada`. */}
+      <section className="bg-espresso sobre-oscuro mx-auto mt-8 max-w-3xl rounded-(--radius-foto) p-8 text-center text-cream md:p-10">
         <span
           aria-hidden="true"
-          className="bg-gold-light/15 text-gold-light mx-auto flex size-14 items-center justify-center rounded-full"
+          className="bg-espresso-2 text-gold-pale mx-auto flex size-14 items-center justify-center rounded-full"
         >
           <Check size={26} strokeWidth={2.5} />
         </span>
@@ -193,7 +196,7 @@ function YaTienePlan({
         {/* 85% y no 70%: sobre el marrón de la tarjeta, el 70% se quedaba
             justo en el límite de contraste y esta línea es la que dice si le
             van a cobrar o no. */}
-        <p className="mt-3 text-sm text-white/85">
+        <p className="text-on-dark-muted mt-3 text-sm">
           {estado === "cancelada" && fecha
             ? /* Canceló pero pagó el período: se dice la verdad completa, que es
                  buena noticia —conserva el acceso— y evita el "pero si cancelé". */
@@ -210,13 +213,13 @@ function YaTienePlan({
       <div className="mt-5 flex flex-wrap justify-center gap-3">
         <Link
           href="/app"
-          className="bg-espresso flex h-12 items-center rounded-full px-7 font-semibold text-white transition-transform active:scale-[0.98]"
+          className="bg-cacao text-ivory flex h-12 items-center rounded-full px-7 font-semibold transition-transform active:scale-[0.98]"
         >
           Ir a mis bolsos
         </Link>
         <Link
           href="/app/cuenta"
-          className="border-line text-ink-body flex h-12 items-center rounded-full border px-7 font-semibold"
+          className="border-line-strong text-espresso flex h-12 items-center rounded-full border px-7 font-semibold"
         >
           Mi cuenta
         </Link>
@@ -240,8 +243,10 @@ function YaTienePlan({
         (marfil). El `-mx-5 px-5` la saca a sangre en móvil, donde una banda
         con márgenes flotando se ve como un parche.
       */}
-      <div className="bg-sand -mx-5 mt-10 px-5 py-8">
-        <p className="text-gold text-xs font-bold tracking-[0.18em] uppercase">Tu plan incluye</p>
+      {/* Marfil con línea: la página ya es arena, así que la lista sube un
+          nivel en vez de hundirse. */}
+      <div className="bg-ivory border-line mx-auto mt-10 max-w-3xl rounded-(--radius-foto) border px-6 py-7">
+        <p className="eyebrow">Tu plan incluye</p>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {INCLUYE.map((b) => (
             <li

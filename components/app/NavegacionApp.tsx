@@ -1,109 +1,213 @@
 "use client";
 
-import { LogIn, Sparkles, Store, ShoppingBag, Tag, User } from "lucide-react";
+import { ShoppingBag, Sparkle, Store, Tag, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useConSesion } from "@/components/app/SesionContexto";
+import { useSesion } from "@/components/app/SesionContexto";
 
 /**
- * La navegación de la app, en sus dos formas.
+ * ════════════════════════════════════════════════════════════════════════════
+ * LA NAVEGACIÓN DE LA APP, UNA SOLA (2026-10-23)
+ * ════════════════════════════════════════════════════════════════════════════
+ * Referencia: `design-ref/app-interna-claude-code`. Antes había una barra
+ * lateral arena en escritorio y el Ojo tenía su propia cabecera con otro logo
+ * y otro menú: dos apps pegadas. Ahora:
  *
- * ⚠️ NO SON LOS MISMOS DESTINOS. La barra lateral de escritorio lleva CUATRO
- * (Mis bolsos, Directorio, Ojo Experto, Mi cuenta) y la de móvil solo TRES: el
- * Directorio se cae. No es un olvido del diseño — a cuatro destinos, cada uno
- * se queda en 93px y el texto empieza a partirse. El Directorio se abre desde
- * la ficha del bolso y desde Mi cuenta, que es donde de verdad se necesita:
- * cuando estás mirando qué materiales comprar.
+ *   · Escritorio: una cabecera arriba, la del home (logo "M", píldoras, y a la
+ *     derecha "Entrar"/"Inscribirme" o el plan y el avatar).
+ *   · Móvil: la cabecera de marca arriba y cinco pestañas abajo, con el Ojo
+ *     al centro en un círculo que sobresale — es lo que más se abre.
+ *
+ * ⚠️ "Mi plan" VUELVE A LA BARRA DE MÓVIL. Con cuatro pestañas se había
+ * quedado fuera; la referencia la pide y cabe a 390px con etiquetas de 11px.
  */
 
-export const DESTINOS = [
-  { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag, enMovil: true },
-  { href: "/app/directorio", texto: "Directorio", Icono: Store, enMovil: false },
-  { href: "/app/ojo", texto: "Ojo Experto", Icono: Sparkles, enMovil: true },
-  /*
-   * ⚠️ `enMovil: false` NO ES UN OLVIDO, por el mismo motivo que el Directorio.
-   * La barra de abajo ya va con tres y a cuatro el texto empieza a partirse.
-   *
-   * En móvil se llega igual: "Mi cuenta" lleva aquí, y la ficha de un bolso
-   * bloqueado también — que es justo cuando interesa, no cuando se mira el menú.
-   */
-  { href: "/app/plan", texto: "Mi plan", Icono: Tag, enMovil: false },
-  { href: "/app/cuenta", texto: "Mi cuenta", Icono: User, enMovil: true },
-] as const;
+type Destino = { href: string; texto: string; Icono: typeof ShoppingBag };
+
+/** Las píldoras de escritorio, en el orden de la referencia. */
+const DESTINOS_ESCRITORIO: Destino[] = [
+  { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag },
+  { href: "/app/ojo", texto: "Ojo Experto", Icono: Sparkle },
+  { href: "/app/directorio", texto: "Directorio", Icono: Store },
+  { href: "/app/plan", texto: "Mi plan", Icono: Tag },
+];
+
+/** Las pestañas de móvil: el Ojo en el medio (va aparte, en su círculo). */
+const IZQUIERDA: Destino[] = [
+  { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag },
+  { href: "/app/directorio", texto: "Directorio", Icono: Store },
+];
+const DERECHA: Destino[] = [
+  { href: "/app/plan", texto: "Mi plan", Icono: Tag },
+  { href: "/app/cuenta", texto: "Cuenta", Icono: User },
+];
 
 /**
- * `/app` solo está activo en su propia página, no en todo lo que cuelga de él.
- * Si no, al abrir una ficha se encenderían "Mis bolsos" y nada más, perdiendo
- * la pista de dónde estás.
+ * `/app` solo está activo en su propia página y en las fichas de bolso, no en
+ * todo lo que cuelga de él. Si no, al abrir el Ojo se encendería también
+ * "Mis bolsos".
  */
-/**
- * La última pestaña dice "Entrar" a quien no ha iniciado sesión y "Mi cuenta" a
- * quien sí (2026-10-21, pedido de Cristian). Es el ÚNICO sitio de la app donde
- * aparece el formulario de entrar: el resto de pestañas se ven sin cuenta.
- */
-function useDestinos() {
-  const conSesion = useConSesion();
-  return DESTINOS.map((d) =>
-    d.href === "/app/cuenta" && !conSesion ? { ...d, texto: "Entrar", Icono: LogIn } : d,
-  );
-}
-
 function estaActivo(href: string, ruta: string): boolean {
   return href === "/app" ? ruta === "/app" || ruta.startsWith("/app/bolsos") : ruta.startsWith(href);
 }
 
-/**
- * Los mismos destinos, en vertical, para reutilizarlos dentro de la barra del
- * Ojo Experto — que tiene su propia barra pero necesita la misma navegación.
- */
-export function EnlacesApp() {
-  const ruta = usePathname();
-  const destinos = useDestinos();
+/** El logo del home: la "M" en Cormorant cursiva dentro del círculo espresso. */
+function Logo({ tamano }: { tamano: "chico" | "grande" }) {
+  const grande = tamano === "grande";
   return (
-    <nav className="flex flex-col gap-1">
-      {destinos.map(({ href, texto, Icono }) => {
-        const activo = estaActivo(href, ruta);
-        return (
-          <Link
-            key={href}
-            href={href}
-            aria-current={activo ? "page" : undefined}
-            className={`flex h-12 items-center gap-3 rounded-full px-4 text-sm font-semibold transition-colors ${
-              activo ? "bg-espresso text-white" : "text-ink-body hover:text-espresso"
-            }`}
-          >
-            <Icono size={18} aria-hidden="true" />
-            {texto}
-          </Link>
-        );
-      })}
-    </nav>
+    <Link href="/app" className="flex shrink-0 items-center gap-3">
+      <span
+        aria-hidden="true"
+        className={`bg-espresso flex shrink-0 items-center justify-center rounded-full ${
+          grande ? "size-9" : "size-8.5"
+        }`}
+      >
+        <span
+          className="font-display text-gold-light italic"
+          style={{ fontWeight: 500, fontSize: grande ? 20 : 19, lineHeight: 1 }}
+        >
+          M
+        </span>
+      </span>
+      <span
+        className="font-display text-espresso whitespace-nowrap"
+        style={{ fontWeight: 500, fontSize: grande ? 21 : 20 }}
+      >
+        Manos Creadoras
+      </span>
+    </Link>
   );
 }
 
-/** La barra lateral de 260 px. Solo en escritorio. */
-export function BarraLateral() {
+/** El avatar redondo con las iniciales: lleva a la cuenta. */
+function Avatar({ iniciales, activo }: { iniciales: string | null; activo: boolean }) {
   return (
-    <aside className="bg-sand hidden w-(--barra-lateral) shrink-0 flex-col gap-1 px-4 py-6 lg:flex">
-      <Link href="/app" className="mb-6 flex items-center gap-3 px-3">
-        <span
-          aria-hidden="true"
-          className="bg-espresso flex size-9 shrink-0 items-center justify-center rounded-full"
-        >
-          <span
-            className="font-display text-gold-light text-lg italic"
-            style={{ fontWeight: 500, lineHeight: 1 }}
-          >
-            M
-          </span>
-        </span>
-        <span className="font-display text-espresso text-lg" style={{ fontWeight: 500 }}>
-          Manos Creadoras
-        </span>
-      </Link>
+    <Link
+      href="/app/cuenta"
+      aria-label="Mi cuenta"
+      aria-current={activo ? "page" : undefined}
+      className="flex size-11 shrink-0 items-center justify-center"
+    >
+      {/* En Mi cuenta, el avatar es la "pestaña" activa: lleva el anillo
+          espresso, igual que la píldora de las otras secciones. */}
+      <span
+        className={`bg-cacao text-gold-pale flex size-10 items-center justify-center rounded-full text-sm font-semibold ${
+          activo ? "ring-espresso ring-offset-cream ring-2 ring-offset-2" : ""
+        }`}
+      >
+        {iniciales ?? "·"}
+      </span>
+    </Link>
+  );
+}
 
-      <EnlacesApp />
-    </aside>
+/**
+ * La cabecera: en escritorio, la misma en todas las páginas; en móvil, la de
+ * marca SOLO donde la pantalla no trae la suya (la ficha, la lección y el Ojo
+ * tienen su propia barra arriba).
+ */
+export function CabeceraApp() {
+  const ruta = usePathname();
+  const { conSesion, iniciales, plan } = useSesion();
+  const enCuenta = ruta.startsWith("/app/cuenta");
+  const enPlan = ruta.startsWith("/app/plan");
+  const conBarraPropia = ruta.startsWith("/app/ojo") || ruta.startsWith("/app/bolsos");
+
+  return (
+    <>
+      {/* ── Escritorio ── */}
+      <header className="bg-cream border-line sticky top-0 z-(--z-sticky) hidden h-(--alto-cabecera-app) shrink-0 items-center gap-8 border-b px-8 lg:flex">
+        <Logo tamano="grande" />
+
+        <nav aria-label="Navegación principal" className="flex items-center gap-1">
+          {DESTINOS_ESCRITORIO.map(({ href, texto }) => {
+            const activo = estaActivo(href, ruta);
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={activo ? "page" : undefined}
+                className={`flex h-11 items-center rounded-full px-4.5 text-sm transition-colors duration-150 ${
+                  activo
+                    ? "bg-espresso text-cream font-semibold"
+                    : "text-ink-body hover:text-espresso"
+                }`}
+              >
+                {texto}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          {conSesion ? (
+            <>
+              {/* Con cuenta pero sin plan, la oferta sigue arriba: es quien más
+                  cerca está de comprar (auditoría 2026-10-23). */}
+              {plan ? (
+                <span className="bg-sand text-cacao rounded-full px-4 py-2 text-sm font-medium">
+                  {plan}
+                </span>
+              ) : (
+                !enPlan && <Inscribirme />
+              )}
+              <Avatar iniciales={iniciales} activo={enCuenta} />
+            </>
+          ) : (
+            <>
+              <Link
+                href="/app/cuenta"
+                aria-current={enCuenta ? "page" : undefined}
+                className={`text-espresso flex h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors ${
+                  enCuenta ? "bg-sand" : "hover:bg-sand"
+                }`}
+              >
+                Entrar
+              </Link>
+              <Inscribirme />
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* ── Móvil: la de marca ── */}
+      {!conBarraPropia && (
+        <header className="bg-cream border-line sticky top-0 z-(--z-sticky) flex h-15 shrink-0 items-center justify-between gap-3 border-b px-4 lg:hidden">
+          <Logo tamano="chico" />
+          {conSesion ? (
+            <div className="flex items-center gap-2">
+              {!plan && !enPlan && <Inscribirme />}
+              <Avatar iniciales={iniciales} activo={enCuenta} />
+            </div>
+          ) : enPlan ? (
+            /* En Mi plan el plan ya está a la vista: arriba, "Entrar". */
+            <Link
+              href="/app/cuenta"
+              className="text-espresso flex h-11 items-center px-2 text-base font-semibold"
+            >
+              Entrar
+            </Link>
+          ) : (
+            <Inscribirme />
+          )}
+        </header>
+      )}
+    </>
+  );
+}
+
+/**
+ * "Inscribirme" lleva a Mi plan, no directo al pago: ahí está el selector
+ * mensual/anual y el botón de pagar con el enlace del país.
+ */
+function Inscribirme() {
+  return (
+    <Link
+      href="/app/plan"
+      className="bg-cacao text-ivory flex h-11 shrink-0 items-center rounded-full px-5 text-sm font-semibold whitespace-nowrap transition-transform active:scale-[0.97]"
+    >
+      Inscribirme
+    </Link>
   );
 }
 
@@ -111,39 +215,69 @@ export function BarraLateral() {
  * La barra de abajo. Solo en móvil.
  *
  * Va fija y por encima de todo (`z-sticky`), así que el contenido necesita
- * dejarle sitio — eso lo hace el `pb` del contenedor en el layout, no aquí:
- * una barra fija que además empuja el contenido es una barra que no es fija.
+ * dejarle sitio — eso lo hace `.hueco-barra-inferior` en el layout, contando
+ * también lo que sobresale el círculo del Ojo.
  */
 export function BarraInferior() {
   const ruta = usePathname();
-  const destinos = useDestinos();
+  const enOjo = ruta.startsWith("/app/ojo");
+
+  const pestana = ({ href, texto, Icono }: Destino) => {
+    const activo = estaActivo(href, ruta);
+    return (
+      <Link
+        key={href}
+        href={href}
+        aria-current={activo ? "page" : undefined}
+        className={`flex flex-1 flex-col items-center justify-center gap-1 text-xs ${
+          activo ? "text-espresso font-semibold" : "text-ink-muted"
+        }`}
+        style={{ fontSize: 11 }}
+      >
+        {/* La activa lleva una píldora arena detrás del ícono. */}
+        <span
+          aria-hidden="true"
+          className={`flex h-8 w-13 items-center justify-center rounded-full ${activo ? "bg-sand" : ""}`}
+        >
+          <Icono size={22} strokeWidth={1.75} />
+        </span>
+        {texto}
+      </Link>
+    );
+  };
 
   return (
     <nav
       aria-label="Navegación principal"
-      className="border-line bg-cream/95 fixed inset-x-0 bottom-0 z-(--z-sticky) border-t backdrop-blur-sm lg:hidden"
+      className="border-line bg-ivory fixed inset-x-0 bottom-0 z-(--z-sticky) border-t lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="mx-auto flex max-w-md">
-        {destinos.filter((d) => d.enMovil).map(({ href, texto, Icono }) => {
-          const activo = estaActivo(href, ruta);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={activo ? "page" : undefined}
-              className={`relative flex flex-1 flex-col items-center gap-1 pt-3 pb-2 text-xs font-semibold transition-colors ${
-                activo ? "text-gold" : "text-ink-muted"
-              }`}
-            >
-              {/* La línea de 2px sobre el destino activo. Va dentro del enlace
-                  y pegada al borde superior para que no dependa del alto. */}
-              {activo && <span aria-hidden="true" className="bg-gold absolute inset-x-5 top-0 h-0.5" />}
-              <Icono size={20} aria-hidden="true" />
-              {texto}
-            </Link>
-          );
-        })}
+      <div className="mx-auto flex h-(--alto-barra-inferior) max-w-md items-stretch">
+        {IZQUIERDA.map(pestana)}
+
+        {/*
+          ⚠️ EL OJO AL CENTRO, EN UN CÍRCULO QUE SOBRESALE. Es la función que
+          más se usa y la que más vende; las otras cuatro son lugares, esta es
+          una acción. En el Ojo, el borde y el destello pasan a `--gold-pale`.
+        */}
+        <Link
+          href="/app/ojo"
+          aria-current={enOjo ? "page" : undefined}
+          className="text-espresso relative flex flex-1 flex-col items-center justify-end gap-1 pb-2.5 font-semibold"
+          style={{ fontSize: 11 }}
+        >
+          <span
+            aria-hidden="true"
+            className={`bg-espresso absolute -top-(--elevacion-ojo) left-1/2 flex size-14.5 -translate-x-1/2 items-center justify-center rounded-full border-4 ${
+              enOjo ? "border-gold-pale text-gold-pale" : "border-cream text-gold-light"
+            }`}
+          >
+            <Sparkle size={22} strokeWidth={1.75} />
+          </span>
+          Ojo Experto
+        </Link>
+
+        {DERECHA.map(pestana)}
       </div>
     </nav>
   );

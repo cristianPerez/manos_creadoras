@@ -38,6 +38,7 @@ export function Reproductor({
   titulo,
   poster = null,
   respaldo = null,
+  arrancar = false,
 }: {
   url: string | null;
   bloqueado: boolean;
@@ -46,11 +47,17 @@ export function Reproductor({
   poster?: string | null;
   /** La portada del bolso, por si Bunny no sirve la miniatura. */
   respaldo?: string | null;
+  /**
+   * Arranca solo, con sonido. SOLO cuando se llega desde un toque suyo en un
+   * paso (`?ver=1`): un video no empieza a sonar porque sí al abrir la página.
+   */
+  arrancar?: boolean;
 }) {
   if (url) {
     return (
       <div className="bg-espresso aspect-video overflow-hidden rounded-[var(--radius-lg)]">
         <ReproductorEnSitio
+          arrancarAlMontar={arrancar}
           url={url}
           poster={poster}
           respaldo={respaldo}

@@ -1,8 +1,17 @@
 "use client";
 
-import { ArrowRight, ArrowUp, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Entrada } from "@/components/home/Entrada";
 import { useEffect, useRef, useState } from "react";
+import {
+  AvatarOjo,
+  BurbujaAlumna,
+  ComposerOjo,
+  Escribiendo,
+  IconoCamara,
+  PildoraSugerencia,
+  claseCamara,
+} from "@/components/app/OjoPiezas";
 import { PagoConPlan } from "@/components/app/PagoConPlan";
 import { TextoDelOjo } from "@/components/app/TextoDelOjo";
 import type { Frecuencia } from "@/lib/planes";
@@ -15,22 +24,19 @@ const SUGERENCIAS = [
 ];
 
 /**
- * Lo que el Ojo sabe hacer, en la columna de la izquierda.
+ * La conversación de ejemplo con la que abre la tarjeta (2026-10-22).
  *
- * ⚠️ CADA LÍNEA TIENE QUE SER VERIFICABLE. Las tres de antes no lo eran del
- * todo —"te lleva al paso exacto del video" NO está construido— y Cristian lo
- * notó: «no estoy seguro si el Ojo Experto puede ayudar con eso». Prometer en
- * la landing una función que no existe se descubre a la primera pregunta.
+ * ⚠️ NO LLAMA A LA API NI GASTA PREGUNTAS: es texto fijo, para que se entienda
+ * de un vistazo qué hace el Ojo sin tener que leer un menú de dudas. En cuanto
+ * la visitante pregunta algo, desaparece y queda su conversación real.
  *
- * Estas tres sí: la foto la analiza el endpoint (`imagenBase64`), los
- * proveedores entran en el área de materiales del prompt —probado el
- * 2026-10-20, contesta con tiendas concretas— y lo de 24/7 es obvio.
+ * ⚠️ LA RESPUESTA ES PROVISIONAL: la sacó la referencia de diseño y la tiene
+ * que validar Elizabeth (pendiente en ESTADO.md).
  */
-const LO_QUE_HACE = [
-  "Mándale una foto de tu tejido y te dice cómo vas y qué mejorar.",
-  "Pregúntale por proveedores de tu zona, sin ponerte a buscar.",
-  "Es tu ayudante 24/7: como preguntarle a Elizabeth a cualquier hora.",
-];
+const EJEMPLO = {
+  q: "¿Por qué se me abomba la base?",
+  r: "Casi siempre son los aumentos. Si la base **se curva hacia arriba**, te faltan; si **se ondula**, te sobran.",
+};
 
 const LIMITE = 2;
 
@@ -121,312 +127,197 @@ export function OjoDemo({
   /*
     ⚠️ LAS SUGERENCIAS YA USADAS DESAPARECEN, y no hace falta estado nuevo: se
     deducen de los mensajes. Repetir una pregunta que acaba de hacerse gasta
-    una de las dos gratis en lo mismo.
+    una de las dos gratis en lo mismo. Mientras se ve el ejemplo, tampoco se
+    ofrece su pregunta: ya está respondida en pantalla.
 
-    Al inicio se enseñan 4; después de la primera, solo 2 — con una pregunta
-    restante, cuatro opciones invitan a elegir mal.
+    Siempre 2 (versión arena, 2026-10-22): con dos preguntas gratis, cuatro
+    opciones invitan a elegir mal.
   */
+  const conEjemplo = mensajes.length === 0;
   const disponibles = SUGERENCIAS.filter(
-    (s) => !mensajes.some((m) => m.rol === "alumna" && m.texto === s.q),
-  ).slice(0, usadas === 0 ? 4 : 2);
+    (s) =>
+      !(conEjemplo && s.q === EJEMPLO.q) &&
+      !mensajes.some((m) => m.rol === "alumna" && m.texto === s.q),
+  ).slice(0, 2);
 
   const reiniciar = () => {
     setMensajes([]);
     setError(null);
   };
 
+  const etiquetaPlan = (
+    <p className="bg-cacao text-gold-pale inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold">
+      <Sparkles size={14} aria-hidden="true" />
+      Ilimitado con tu plan
+    </p>
+  );
+
   return (
     /*
-      ⚠️ v4: FONDO ESPRESSO SÓLIDO Y NADA DE ALTURA FIJA.
-      La versión anterior metía el chat en una caja de 520px con scroll propio
-      (`h-130` + `overflow-y-auto`). En un teléfono eso era una ventanita
-      dentro de la página: dos scrolls peleando, y la respuesta del Ojo —lo
-      único que hay que leer— asomando por una rendija. Ahora la sección crece
-      con su contenido y se scrollea la página, como todo lo demás.
+      ⚠️ VERSIÓN ARENA (2026-10-22, `design-ref/home-ojo-claude-code`): fondo
+      arena, plano, sin grano ni degradados. Sustituye al bloque espresso de la
+      v4. Ojo: debajo va la sección de Elizabeth, que también es arena — los
+      dos bloques quedan pegados del mismo color (avisado a Cristian, no se
+      cambió la otra sección).
     */
-    /*
-      ⚠️ SIN `mb` DESDE LA V3 (2026-10-20). Antes debajo venía la tarjeta
-      "¿Sin preguntas?", que solo tenía padding inferior y hacía falta un
-      margen aquí para que no quedara pegada. Ahora debajo va la sección de
-      Elizabeth, con su propio fondo arena: el oscuro y el arena se tocan,
-      como en la referencia, y un margen dejaría una franja crema entre medias.
-
-      Y el padding vertical baja de 104px a 64 en escritorio (pedido de
-      Cristian): con la columna de texto tan alta, 104 arriba y abajo dejaban
-      la sección flotando.
-    */
-    <section id="ojo" className="bg-espresso sobre-oscuro grain-oscuro px-4 py-10 md:px-5 md:py-16">
+    <section id="ojo" className="bg-sand px-4 py-12 md:px-5 lg:py-22">
       <Entrada className="mx-auto max-w-[1240px]">
-        <div className="grid gap-8 md:grid-cols-12 md:gap-12">
-          {/* ── Columna de la izquierda ─────────────────────────────── */}
-          <div className="md:col-span-5">
-            <p className="text-gold-light flex items-center gap-2.5 text-xs font-bold tracking-[0.14em] uppercase">
-              {/* Cuadrito, no punto: en v4 no hay círculos en el Ojo. */}
-              <span aria-hidden="true" className="bg-gold-pale block size-2" />
-              {/* ⚠️ "MINI" SE CAYÓ A PROPÓSITO: empequeñecía justo lo que hay
-                  que vender. Y el eyebrow deja de decir "gratis" para decir
-                  qué se lleva con el plan — la parte gratis ya la dice la
-                  bajada y el contador. */}
-              Ojo Experto · Ilimitado con tu plan
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-16">
+          {/* ── Columna de texto ───────────────────────────────────── */}
+          <div className="flex flex-col gap-4 lg:w-2/5 lg:shrink-0 lg:gap-5">
+            <p className="flex items-center gap-3">
+              <span aria-hidden="true" className="bg-gold block h-px w-6 lg:w-8" />
+              <span className="eyebrow">Pruébalo ahora</span>
             </p>
 
             <h2
-              className="font-display mt-4 text-balance text-white"
-              style={{ fontWeight: 500, fontSize: "clamp(38px, 4.6vw, 66px)", lineHeight: 1.04 }}
+              className="font-display text-espresso demo-ojo-titulo max-lg:text-balance"
+              style={{ fontWeight: 500 }}
             >
-              ¿Te atascaste?{" "}
-              <em className="text-gold-pale italic" style={{ fontWeight: 400 }}>
-                Pregúntale.
-              </em>
+              ¿Te atascaste? <em className="clave">Pregúntale</em> al Ojo.
             </h2>
 
-            <p className="text-on-dark-muted mt-4 max-w-md text-balance">
-              Toca una duda y te responde al instante, sin crear cuenta. Responde con las fichas y
-              el método de Elizabeth.
+            <p className="text-ink-body demo-ojo-bajada max-w-110">
+              Tensión, materiales, proveedores y fotos.
+              <span className="max-md:hidden"> Si quieres, con una foto de tu tejido.</span>
             </p>
 
-            {/* El contador: dos cuadritos y su texto. */}
-            <p className="mt-6 flex items-center gap-3 font-semibold text-white">
-              <span className="flex gap-1.5" aria-hidden="true">
-                {Array.from({ length: LIMITE }).map((_, n) => (
-                  <span
-                    key={n}
-                    className={`block size-2.5 ${
-                      n < quedan ? "bg-gold-pale" : "border-on-dark-muted/50 border"
-                    }`}
-                  />
-                ))}
-              </span>
-              <span>
-                {quedan === 0
-                  ? "Sin preguntas gratis"
-                  : quedan === 1
-                    ? "Te queda 1 pregunta"
-                    : `${LIMITE} preguntas gratis`}
-              </span>
-            </p>
-
-            {/* ⚠️ Solo en escritorio: en móvil la tarjeta del chat tiene que
-                quedar lo más arriba posible, y esta lista la empujaría fuera
-                de la primera pantalla. */}
-            <ol className="border-espresso-line mt-10 hidden border-t md:block">
-              {LO_QUE_HACE.map((t, i) => (
-                <li
-                  key={t}
-                  className="border-espresso-line text-on-dark-muted flex gap-4 border-b py-4"
-                >
-                  <span className="text-gold-light shrink-0 text-sm" style={{ fontWeight: 800 }}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  {t}
-                </li>
-              ))}
-            </ol>
+            <div className="max-lg:hidden">{etiquetaPlan}</div>
           </div>
 
-          {/* ── El panel del chat ───────────────────────────────────── */}
-          <div className="md:col-span-7">
-            <div className="bg-cream flex flex-col overflow-hidden rounded-[14px] md:min-h-[540px] md:rounded-2xl">
-              {/* Cabecera en arena */}
-              <div className="bg-sand flex items-center gap-3 px-5 py-4">
-                <span
-                  aria-hidden="true"
-                  className="bg-cacao text-gold-pale flex size-9 shrink-0 items-center justify-center rounded-(--radius-sm)"
-                >
-                  <Sparkles size={18} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="font-display text-espresso block text-xl" style={{ fontWeight: 500 }}>
-                    El Ojo Experto
-                  </span>
-                  <span className="text-ink-muted block text-sm">Responde al momento</span>
-                </span>
-                {mensajes.length > 0 && !agotado && (
-                  <button
-                    type="button"
-                    onClick={reiniciar}
-                    className="text-cacao shrink-0 text-sm font-semibold max-md:hidden"
-                  >
-                    Empezar de nuevo
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-1 flex-col gap-5 px-4 py-5 md:px-5 md:py-6">
-                {mensajes.length === 0 && (
-                  <p className="text-ink-body">
-                    Hola, soy el Ojo Experto. Elige una duda o escribe la tuya.
-                  </p>
+          {/* ── La tarjeta del chat ─────────────────────────────────── */}
+          <div className="min-w-0 lg:flex-1">
+            <div className="bg-ivory border-line flex flex-col gap-4 rounded-(--radius-demo) border px-4 py-4.5 lg:gap-5 lg:p-7">
+              {/* Alto máximo y scroll interno: una respuesta larga no empuja el
+                  composer fuera de la vista. */}
+              <div className="flex max-h-80 flex-col gap-4 overflow-y-auto lg:max-h-90 lg:gap-5">
+                {conEjemplo ? (
+                  <>
+                    <BurbujaAlumna className="demo-ojo-texto">{EJEMPLO.q}</BurbujaAlumna>
+                    <RespuestaDemo texto={EJEMPLO.r} />
+                  </>
+                ) : (
+                  mensajes.map((m) =>
+                    m.rol === "alumna" ? (
+                      <BurbujaAlumna key={m.id} className="demo-ojo-texto">
+                        {m.texto}
+                      </BurbujaAlumna>
+                    ) : (
+                      <RespuestaDemo key={m.id} texto={m.texto} />
+                    ),
+                  )
                 )}
 
-                {mensajes.map((m) =>
-                  m.rol === "alumna" ? (
-                    /* Pregunta: burbuja cacao, con la esquina de cola en 4px. */
-                    <p
-                      key={m.id}
-                      className="bg-cacao text-cream ml-auto max-w-[85%] rounded-xl rounded-br-[4px] px-4 py-3"
-                    >
-                      {m.texto}
-                    </p>
-                  ) : (
-                    /* Respuesta: SIN burbuja, con el tile a la izquierda. */
-                    <div key={m.id} className="flex gap-3">
-                      <span
-                        aria-hidden="true"
-                        className="bg-gold-pale text-cacao flex size-7 shrink-0 items-center justify-center rounded-(--radius-sm)"
-                      >
-                        <Sparkles size={15} />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <TextoDelOjo texto={m.texto} />
-                      </div>
-                    </div>
-                  ),
-                )}
-
-                {enviando && (
-                  <div className="flex gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="bg-gold-pale text-cacao flex size-7 shrink-0 items-center justify-center rounded-(--radius-sm)"
-                    >
-                      <Sparkles size={15} />
-                    </span>
-                    <div className="flex items-center gap-1.5 pt-2" role="status" aria-label="Escribiendo">
-                      {[0, 1, 2].map((n) => (
-                        <span
-                          key={n}
-                          className="bg-cacao/40 size-1.5 animate-bounce"
-                          style={{ animationDelay: `${n * 120}ms` }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Las sugerencias se van cuando se agota: su sitio lo ocupa
-                    la tarjeta de límite. */}
-                {!agotado && disponibles.length > 0 && (
-                  <div className="mt-1">
-                    <p className="text-gold text-xs font-bold tracking-[0.14em] uppercase">
-                      {usadas === 0 ? "Elige una duda" : "Te queda 1 pregunta"}
-                    </p>
-                    <ul className="mt-3 flex flex-col gap-2.5 md:grid md:grid-cols-2">
-                      {disponibles.map((s) => (
-                        <li key={s.q}>
-                          <button
-                            type="button"
-                            onClick={() => preguntar(s.q)}
-                            disabled={enviando}
-                            className="bg-sand hover:bg-sand-hover focus-visible:outline-gold flex min-h-[60px] w-full items-center gap-3 rounded-(--radius-md) px-4 py-3 text-left transition-colors duration-150 focus-visible:outline-2 disabled:opacity-50"
-                          >
-                            <span className="min-w-0 flex-1">
-                              <span className="text-espresso block font-semibold text-balance">
-                                {s.q}
-                              </span>
-                              <span className="text-ink-muted mt-1 block text-sm">{s.pie}</span>
-                            </span>
-                            <ArrowRight size={18} className="text-gold shrink-0" aria-hidden="true" />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {agotado && (
-                  <div className="bg-gold-pale rounded-xl p-5">
-                    <p className="font-display text-espresso text-2xl" style={{ fontWeight: 500 }}>
-                      Usaste tus {LIMITE} preguntas gratis
-                    </p>
-                    {/* ⚠️ Decía "40 preguntas y 8 fotos al mes": los topes de los
-                        planes viejos (hoy son 600 y 60, y viven en la base). Sin
-                        cifras aquí para que no vuelvan a quedar desfasadas. */}
-                    <p className="text-espresso/80 mt-2">
-                      Con el plan, el Ojo Experto te responde todo el mes y revisa las fotos
-                      de tu tejido.
-                    </p>
-                    {/* Antes "Crear cuenta gratis" → /entrar. Desde el 2026-10-21
-                        lleva a pagar, anual por defecto (pedido de Cristian). */}
-                    <div className="mt-5 md:max-w-sm">
-                      <PagoConPlan enlaces={enlaces} origen="ojo_agotado" />
-                    </div>
-                  </div>
-                )}
+                {enviando && <Escribiendo tamano="grande" />}
 
                 <div ref={fin} />
               </div>
 
+              {/* Fuera del área con scroll: dentro, el botón de pagar quedaba
+                  escondido bajo el alto máximo de la conversación. */}
+              {agotado && (
+                <div className="bg-sand rounded-lg p-5">
+                  <p className="font-display text-espresso text-2xl" style={{ fontWeight: 500 }}>
+                    Usaste tus {LIMITE} preguntas gratis
+                  </p>
+                  {/* ⚠️ Sin cifras de topes: viven en la base y cambian. */}
+                  <p className="text-ink-body mt-2">
+                    Con el plan, el Ojo Experto te responde todo el mes y revisa las fotos
+                    de tu tejido.
+                  </p>
+                  {/* Lleva a pagar, anual por defecto (2026-10-21). */}
+                  <div className="mt-5 md:max-w-sm">
+                    <PagoConPlan enlaces={enlaces} origen="ojo_agotado" />
+                  </div>
+                </div>
+              )}
+
+
+              {/* Las dudas sugeridas: en móvil una fila con scroll lateral que
+                  llega a los bordes de la tarjeta; en escritorio, sangradas
+                  para alinearse con el texto del Ojo (avatar 40 + 14 de hueco). */}
+              {!agotado && disponibles.length > 0 && (
+                <div className="sin-barra -mx-4 flex gap-2.5 overflow-x-auto px-4 lg:mx-0 lg:ml-13.5 lg:flex-wrap lg:overflow-visible lg:px-0">
+                  {disponibles.map((s) => (
+                    <PildoraSugerencia key={s.q} onClick={() => preguntar(s.q)} disabled={enviando}>
+                      {s.q}
+                    </PildoraSugerencia>
+                  ))}
+                </div>
+              )}
+
               {/* El composer desaparece al agotarse: su trabajo lo hace el
-                  botón de crear cuenta. */}
+                  botón de pagar. */}
               {!agotado && (
-                <div className="px-4 pb-4 md:px-5 md:pb-5">
+                <div>
                   {error && (
-                    <p role="alert" className="text-gold mb-3 text-center text-sm font-semibold">
+                    <p role="alert" className="text-gold mb-3 text-sm font-semibold">
                       {error}
                     </p>
                   )}
-
-                  <div className="bg-ivory border-line-strong flex items-end gap-2 rounded-xl border p-2">
-                    <textarea
-                      value={texto}
-                      onChange={(e) => setTexto(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          preguntar(texto);
-                        }
-                      }}
-                      rows={1}
-                      aria-label="Tu pregunta"
-                      placeholder="O escribe la tuya…"
-                      /* 16px en móvil: por debajo, iOS hace zoom al enfocar. */
-                      className="text-espresso placeholder:text-ink-muted max-h-32 min-h-11 flex-1 resize-none bg-transparent px-3 py-2.5 text-base outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => preguntar(texto)}
-                      disabled={enviando || texto.trim().length < 3}
-                      aria-label="Enviar"
-                      className="bg-espresso text-gold-pale flex size-11 shrink-0 items-center justify-center rounded-(--radius-sm) transition-opacity disabled:opacity-40"
-                    >
-                      <ArrowUp size={19} />
-                    </button>
-                  </div>
-
+                  <ComposerOjo
+                    fondo="cream"
+                    texto={texto}
+                    setTexto={setTexto}
+                    enviando={enviando}
+                    onEnviar={() => preguntar(texto)}
+                    placeholder="Escribe tu duda…"
+                    /* ⚠️ LA DEMO NO SUBE FOTOS (la ruta solo las acepta con
+                       plan), así que la cámara no abre nada: lleva al precio,
+                       que es donde se consigue. Un ícono que no hiciera nada
+                       rompería la confianza en todo lo demás. */
+                    camara={
+                      <a
+                        href="#precio"
+                        aria-label="Revisar una foto de tu tejido: viene con el plan"
+                        className={claseCamara()}
+                      >
+                        <IconoCamara />
+                      </a>
+                    }
+                  />
                   {/*
-                    ⚠️ AQUÍ DECÍA "puede equivocarse" Y SE CAMBIÓ (pedido de
-                    Cristian, 2026-10-20). Era un aviso que sembraba la duda
-                    justo donde hay que dar confianza, y además DUPLICADO: el
-                    descargo legal vive en los Términos
-                    (`components/legal/Terminos.tsx`), que es donde tiene valor.
-
-                    ⚠️ Lo que NO se puede decir es que esté "entrenado con la
-                    experiencia de Elizabeth": no lo está — es un modelo
-                    general al que se le inyecta la ficha del bolso en cada
-                    consulta. Esto de abajo sí es literal.
+                    ⚠️ Ni "puede equivocarse" (el descargo vive en los Términos)
+                    ni "entrenado con Elizabeth" (no lo está: se le inyecta la
+                    ficha del bolso). "Con el método de Elizabeth" sí es literal.
                   */}
-                  <p className="text-ink-muted mt-3 text-center text-xs">
-                    Responde con las fichas y el método de Elizabeth.
+                  <p className="text-ink-muted ojo-nota mt-3 flex flex-wrap items-center gap-x-1 px-2">
+                    <span className="cifra">
+                      {quedan === 1 ? "1 pregunta gratis" : `${quedan} preguntas gratis`}, sin crear
+                      cuenta
+                    </span>
+                    <span className="max-lg:hidden">· Con el método de Elizabeth</span>
+                    {mensajes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={reiniciar}
+                        className="text-gold ml-auto min-h-11 font-semibold underline underline-offset-4"
+                      >
+                        Empezar de nuevo
+                      </button>
+                    )}
                   </p>
                 </div>
               )}
             </div>
 
-            {/* En móvil, "Empezar de nuevo" va BAJO la tarjeta. Dentro de la
-                cabecera competía con el título en 375px. */}
-            {mensajes.length > 0 && (
-              <button
-                type="button"
-                onClick={reiniciar}
-                className="text-gold-pale mx-auto mt-5 block text-sm font-semibold underline underline-offset-4 md:hidden"
-              >
-                Empezar de nuevo
-              </button>
-            )}
+            {/* En móvil, la etiqueta va debajo de la tarjeta. */}
+            <div className="mt-6 lg:hidden">{etiquetaPlan}</div>
           </div>
         </div>
       </Entrada>
     </section>
+  );
+}
+
+/** La respuesta del Ojo: sin burbuja, con el avatar a la izquierda. */
+function RespuestaDemo({ texto }: { texto: string }) {
+  return (
+    <div className="flex gap-3 lg:gap-3.5">
+      <AvatarOjo tamano="grande" />
+      <div className="min-w-0 flex-1 pt-1">
+        <TextoDelOjo texto={texto} variante="demo" />
+      </div>
+    </div>
   );
 }
