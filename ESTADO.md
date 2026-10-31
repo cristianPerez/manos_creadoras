@@ -55,22 +55,35 @@ su precio. No se borran sin decisión de Cristian.
 
 ## 💳 El circuito de pago, verificado de punta a punta (2026-10-17)
 
-⚠️ **EL WEBHOOK SE REHÍZO EL 2026-10-31.** El `ab3b6206` de abajo vivía en la
-empresa que ahora es "El Charcu" y los webhooks NO se comparten entre empresas:
-desde la mudanza de la 0028 los pagos no avisaban a nadie. El vigente es
-**`7b4d702e` · "QA · Manos Creadoras"** → `https://qa.manoscreadoras.co/api/webhooks/onepay`,
-**activo**, con los 5 eventos que el código entiende (pagada · cancelada · no
-pagada · vencida · finalizada; "creada" se deja fuera a propósito — una
-suscripción creada todavía no se cobró). Su Secreto y su Header **solo se
-enseñan una vez**: están en `.env.local` y en Vercel **Preview** (creados ese
-día; antes no existía ninguna variable ONEPAY en Vercel). Probado en local: un
-pago firmado entra con 200 y abre la membresía; con un correo desconocido queda
-como huérfano, que es lo correcto.
-🔴 **PRODUCCIÓN NO TIENE WEBHOOK.** Este es solo el de QA. Antes de vender hay
-que crear el suyo apuntando a `https://manoscreadoras.co/api/webhooks/onepay` y
-poner SUS claves (distintas) en Vercel **Production**.
+⚠️ **EL PANEL DE ONEPAY TIENE DOS MUNDOS Y SE CONFUNDEN CON FACILIDAD**
+(descubierto por las malas el 2026-10-31). Arriba del panel hay una barra
+naranja «Estás en modo de pruebas»: **cada modo tiene SUS planes y SUS
+webhooks, y no se ven entre ellos**. Entrar al panel sin mirar esa barra y
+concluir que "no hay nada creado" es el error que se cometió ese día: se dio
+por muerto el webhook `ab3b6206` —que estaba vivo en modo pruebas— y se
+pisaron sus claves en Vercel con las de otro. QA dejó de aceptar pagos hasta
+que se repusieron. **Antes de tocar nada en OnePay: mira en qué modo estás.**
 
-Webhook ANTERIOR `ab3b6206` (muerto, en la empresa equivocada) →
+**MODO PRUEBAS → es lo que usa QA.** Webhook `ab3b6206` · "Manos Creadoras QA
+(pruebas)" → `https://qa.manoscreadoras.co/api/webhooks/onepay`, activo; sus
+claves son las de `.env.local` y las de Vercel **Preview**. Sus planes al
+precio nuevo: `01a193ae-cdcc…` (Mensual US$19,70) y `01a193af-4e14…` (Anual
+US$167). El checkout de prueba trae tarjetas que simulan cada caso (Visa 4242
+aprueba; hay otras para vencida, sin fondos y rechazo del banco).
+
+**MODO REAL → es lo de producción.** Planes `01a192d6-6925…` (Mensual) y
+`01a192d6-d124…` (Anual), los que fija la migración 0037. Webhook `7b4d702e`,
+creado ese día con los 5 eventos que el código entiende (pagada · cancelada ·
+no pagada · vencida · finalizada; "creada" se deja fuera a propósito — una
+suscripción creada todavía no se cobró).
+
+⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
+(y así debe ser: los enlaces son configuración de cada entorno, no esquema —
+ver `supabase/migrations/README.md`). La 0037 deja los enlaces REALES, que son
+los correctos para producción; en QA se sobrescriben a mano. Si algún día QA
+vuelve a enseñar los enlaces reales, es que alguien reaplicó la 0037 allí.
+
+Webhook ANTERIOR `ab3b6206` →
 `https://qa.manoscreadoras.co/api/webhooks/onepay`, 9
 eventos, claves en `.env.local` y en Vercel **Preview**. Probado contra QA: sin
 firma → 401 · pago → membresía activa + correo de bienvenida (visto en Resend) ·
