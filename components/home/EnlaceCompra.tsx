@@ -10,6 +10,9 @@ export type OrigenCompra =
   | "header"
   | "banner_precio"
   | "banda_1de16"
+  // El panel navideño (2026-10-31): su botón del pie y cada una de las 4 fotos.
+  | "navidad"
+  | "navidad_pieza"
   | "precio"
   | "cierre"
   | "barra_movil"

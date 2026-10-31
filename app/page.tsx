@@ -10,6 +10,7 @@ import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
 import { Elizabeth } from "@/components/home/Elizabeth";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { HeroSlider, type FotoHero } from "@/components/home/HeroSlider";
+import { Navidad } from "@/components/home/Navidad";
 import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
 import { PreguntasFrecuentes } from "@/components/home/PreguntasFrecuentes";
@@ -159,6 +160,10 @@ export default async function Home() {
         <div id="banner">
           <HeroSlider fotos={fotos} totalBolsos={totalBolsos} />
         </div>
+        {/* Entre el banner y las cápsulas (2026-10-31, pedido de Cristian).
+            Va en tarjeta café sobre crema para no pegar dos bloques oscuros:
+            ver la cabecera de `Navidad.tsx`. */}
+        <Navidad />
         <Capsulas />
         <div>
           {gratis && (
