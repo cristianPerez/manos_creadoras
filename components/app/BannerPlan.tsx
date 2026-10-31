@@ -31,7 +31,7 @@ export function BannerPlan({
   /** Solo bolsos, sin llaveros. */
   bolsos: number;
   llaveros: number;
-  /** "US$7,49": el precio al mes, ya formateado en el servidor. */
+  /** "US$13,92": el precio al mes, ya formateado en el servidor. */
   desde: string;
   enlaces: Record<Frecuencia, string | null>;
   origen: OrigenCompra;

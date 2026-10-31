@@ -23,7 +23,7 @@ import {
  * El precio, en el home.
  *
  * ⚠️ EL PRECIO SE ENSEÑA SIEMPRE POR MES, pague como pague. Es lo único que se
- * puede comparar de un vistazo: "US$89,90 al año" frente a "US$9,99 al mes"
+ * puede comparar de un vistazo: "US$167 al año" frente a "US$19,70 al mes"
  * obliga a dividir mentalmente, y quien tiene que hacer cuentas para entender
  * una oferta normalmente no la acepta. El cobro real va justo debajo, dicho con
  * todas las palabras.

@@ -27,7 +27,7 @@ export function PrecioQueCuenta({ hasta, quieto }: { hasta: number; quieto: bool
    * vuelve a montar los efectos— el siguiente arranque creía que ya estaba en
    * el destino y no movía nada. El número se quedaba clavado en el valor del
    * ciclo ANTERIOR: el toggle decía "Anual" y el precio seguía marcando los
-   * US$9,99 del mensual.
+   * US$19,70 del mensual.
    *
    * Apuntando el valor real en cada fotograma, una animación cortada se
    * retoma desde donde se quedó y siempre acaba en `hasta`.
