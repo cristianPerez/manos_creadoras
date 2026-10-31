@@ -529,6 +529,14 @@ toca reintentar en el servidor.
   Los **tres** sitios con video —cápsulas, curso gratis y lecciones de `/app`—
   comparten el mismo reproductor y la misma lógica: intentan sonar y, si no
   les dejan, se remontan mudos. El peor caso es un video mudo, nunca parado.
+  ✅ **2026-10-31: el botón "Activar sonido" ya no es una trampa.** Desaparecía
+  en cuanto lo tocabas, y Safari de iPhone ignora el `unmute` hacia un iframe
+  de otro dominio EN SILENCIO → botón fuera, video mudo, sin forma de
+  insistir. Ahora se pregunta `getMuted` 400 ms después y el botón solo se
+  retira con la confirmación; si sigue mudo pasa a "Toca el video para el
+  volumen". La confirmación va en un estado APARTE de `mudo`, que es la `key`
+  del iframe (tocarla remontaría el video desde cero). Probado simulando los
+  mensajes de Bunny, las tres ramas. **No sustituye a oírlo en un iPhone.**
   Falta **oírlo en un celular**; desde el navegador no se puede.
   ⚠️ **NO reabrir el tema sin leer los comentarios de `ReproductorEnSitio` y
   `VideoDeHistoria`**: están probadas y descartadas las tres vías obvias
