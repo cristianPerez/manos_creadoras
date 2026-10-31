@@ -72,10 +72,28 @@ US$167). El checkout de prueba trae tarjetas que simulan cada caso (Visa 4242
 aprueba; hay otras para vencida, sin fondos y rechazo del banco).
 
 **MODO REAL → es lo de producción.** Planes `01a192d6-6925…` (Mensual) y
-`01a192d6-d124…` (Anual), los que fija la migración 0037. Webhook `7b4d702e`,
-creado ese día con los 5 eventos que el código entiende (pagada · cancelada ·
+`01a192d6-d124…` (Anual), los que fija la migración 0037. Webhook `7b4d702e`
+· "Producción · Manos Creadoras" → `https://manoscreadoras.co/api/webhooks/onepay`,
+activo, con los 5 eventos que el código entiende (pagada · cancelada ·
 no pagada · vencida · finalizada; "creada" se deja fuera a propósito — una
-suscripción creada todavía no se cobró).
+suscripción creada todavía no se cobró). Sus claves están en `.env.prod` y en
+Vercel **Production**. ⚠️ `.env.prod` tenía las claves del webhook de PRUEBAS
+hasta el 2026-10-31: el archivo mentía y se corrigió ese día.
+
+🟢 **LA VENTA EN PRODUCCIÓN SE ENCENDIÓ EL 2026-10-31.** Verificado de punta a
+punta ese día: `manoscreadoras.co` anuncia US$13,92/US$167 · el botón lleva a
+los planes reales de OnePay · el webhook rechaza con 401 lo que no viene
+firmado · y un evento firmado de verdad entró con **200** y quedó guardado en
+la base de producción (traza `2c86e1fe`, 1,26 s — muy lejos del corte de 10 s),
+como huérfano porque el correo era inventado, que es lo correcto. Fue el PRIMER
+evento que registra esa base: antes de ese día nunca llegó ninguno.
+
+🔴 **FALTA `ONEPAY_API_KEY` EN PRODUCCIÓN** (ni en `.env.prod` ni en Vercel
+Production; la de `.env.local` es `sk_test_`, de pruebas, y **no sirve**).
+Consecuencia concreta ahora que se vende: cuando una alumna pulse "cancelar mi
+membresía", la app la cancelará en nuestra base y mandará el aviso `ACCIÓN:`
+para hacerlo a mano, pero **NO detendrá el cobro en OnePay**. Hace falta la
+`sk_live_` del panel en modo real.
 
 ⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
 (y así debe ser: los enlaces son configuración de cada entorno, no esquema —
