@@ -609,9 +609,32 @@ toca reintentar en el servidor.
 - 🟡 **Falta confirmar `x-vercel-ip-country` en QA.** En local no existe: la
   detección de país se verificó inyectando la cabecera a mano, y de ella depende
   qué enlace de pago ve cada quien.
-- 🟡 **El token del enlace mágico llega como `pkce_…`**, que ata el enlace al
-  navegador donde se pidió. Probar pidiéndolo en uno y abriéndolo en otro; si
-  falla, se quita PKCE en `lib/supabase/client.ts`, **no se toca la plantilla**.
+- ~~🟡 **El token del enlace mágico llega como `pkce_…`**~~ ✅ **RESUELTO DE RAÍZ
+  EL 2026-10-31: YA NO SE ENTRA CON ENLACE, SE ENTRA CON UN CÓDIGO DE 6 DÍGITOS.**
+  Era exactamente el problema que se temía aquí, y El Charcu lo midió antes que
+  nosotros: de 8 personas que tocaron su enlace mágico en una semana, **7 no
+  consiguieron entrar** (enlace abierto en otro navegador, y filtros de
+  Outlook/Hotmail que lo gastan al comprobarlo).
+  · El correo lleva el código y **ningún enlace**: comparten el mismo token de
+    un solo uso, así que juntos el filtro gasta el código (El Charcu lo probó
+    con los dos y falló así). No reponer el botón en las plantillas.
+  · Una sola casilla, no seis: el celular pega el código entero.
+  · Lo verifica el NAVEGADOR (`verificarCodigo` en `lib/auth.ts`), porque el
+    límite de intentos de Supabase va por IP y desde el servidor todas
+    compartirían la de Vercel.
+  · `/auth/callback` sigue vivo para los correos ya enviados y para los enlaces
+    de `npm run alumna:crear`.
+  · En los DOS paneles (QA y producción) están las plantillas nuevas y
+    «Email OTP length» en **6**. Al tocar esto, el orden importa: **primero la
+    plantilla, después el código**; al revés, la alumna recibe un enlace y la
+    pantalla le pide un número.
+  · ⚠️ Al pegar en el panel, exportar con `LC_ALL=en_US.UTF-8 pbcopy`: sin eso
+    los acentos llegan rotos («cv≥digo») y así se guardó la primera vez.
+  **Probado entrando de verdad en los dos sitios** (2026-10-31): correo recibido
+  con su código de 6, código equivocado → mensaje claro, código bueno → sesión
+  abierta y `?entrada=`. En producción salió la plantilla de «Confirma tu
+  correo» porque ese correo no tenía cuenta allí, así que las dos quedaron
+  verificadas.
 - **Los precios por token de `lib/costo-ia.ts` no están verificados** contra la
   lista de Google (los tokens sí). Contrastar un mes de `ai_spend` con la factura.
 - **Eventos de Mixpanel sin verificar en vivo**: los del Ojo Experto,
@@ -654,7 +677,7 @@ toca reintentar en el servidor.
 
 **Técnicas**
 - **Next.js App Router** · **Gemini** (`AI_MODEL`, hoy `gemini-3.6-flash`) vía
-  BFF · **Supabase Auth** con enlace mágico, sin contraseñas.
+  BFF · **Supabase Auth** con código de 6 dígitos al correo, sin contraseñas.
 - **La puerta vive en la BASE, no en la pantalla.** `middleware.ts` tiene la
   lista de rutas privadas **vacía a propósito**: quién ve qué lo decide el RLS.
 - **Las migraciones se aplican con `supabase db push`** y se comprueban con
@@ -713,7 +736,8 @@ de Nácar Soñado, webhook sin firma → 401. Bunny ya permite `manoscreadoras.c
 - **Gemini puede fallar por "alta demanda"** (pasó en la primera prueba en vivo:
   503 de Google). La pregunta se devuelve, pero la alumna ve un error. Conviene un
   reintento corto o un modelo de respaldo.
-- El correo de acceso (enlace mágico) en producción no se probó con un envío real.
+- ~~El correo de acceso en producción no se probó con un envío real.~~ ✅ Probado
+  el 2026-10-31 entrando de verdad con el código de 6 dígitos.
 - Mixpanel comparte proyecto con QA (datos mezclados).
 - Identificación legal (Ley 1581) y permiso de las alumnas de los testimonios.
 
