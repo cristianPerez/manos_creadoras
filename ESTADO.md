@@ -99,6 +99,28 @@ venta acaba de abrir y todavía no hay nadie que pueda cancelar. Hace falta la
 ⚠️ Deja de ser aplazable en cuanto haya la primera compradora: a partir de
 ahí, una cancelación que no se atienda a mano es dinero cobrado de más.
 
+✅ **PAGO DE VERDAD PROBADO EN QA (2026-10-31), NO SIMULADO.** Se pagó el plan
+mensual en el checkout de modo prueba con la Visa 4242: «Transacción
+Aprobada» (ticket `bf69-48beada58eb9`) y, sin tocar nada más, la alumna quedó
+con **membresía `completo` activa** y su correo de bienvenida enviado. En la
+tabla: `d8210668` = `subscription.created`, ignorado a propósito, y
+`44289d2d` = `suscripcion.pagada`, procesado en 2,6 s. Es la primera vez que
+se verifica el camino entero —checkout real → webhook → acceso abierto— y no
+solo un evento firmado a mano.
+Para repetirlo: el cliente del checkout de prueba es **`hola@onepay.ai`**, así
+que esa es la cuenta que hay que tener creada en QA (`npm run alumna:crear --
+hola@onepay.ai`). Cambiar el correo del comprador desde el checkout NO se
+puede: su sesión caduca y devuelve 401 al editar.
+
+🟡 **EL WEBHOOK NO GUARDA EL CICLO NI LA FECHA DE VENCIMIENTO.** En ese pago la
+membresía quedó con `ciclo = null` y `vence_el = null`. No corta el acceso
+—`finDelCicloEnCurso` (`lib/ciclo.ts`) lo contempla— pero **sin ciclo cae al
+respaldo de 30 días**. Para quien pague MENSUAL acierta; para quien pague
+**ANUAL, "Mi plan" le enseñará una fecha de renovación a un mes en vez de a un
+año**, y al cancelar el `coalesce(…, now())` puede recortarle el acceso que se
+le prometió. Pendiente de decidir con Cristian: el evento de OnePay sí trae el
+plan, así que se puede deducir el ciclo al activarla.
+
 ⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
 (y así debe ser: los enlaces son configuración de cada entorno, no esquema —
 ver `supabase/migrations/README.md`). La 0037 deja los enlaces REALES, que son
