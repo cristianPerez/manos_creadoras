@@ -88,12 +88,16 @@ la base de producción (traza `2c86e1fe`, 1,26 s — muy lejos del corte de 10 s
 como huérfano porque el correo era inventado, que es lo correcto. Fue el PRIMER
 evento que registra esa base: antes de ese día nunca llegó ninguno.
 
-🔴 **FALTA `ONEPAY_API_KEY` EN PRODUCCIÓN** (ni en `.env.prod` ni en Vercel
-Production; la de `.env.local` es `sk_test_`, de pruebas, y **no sirve**).
-Consecuencia concreta ahora que se vende: cuando una alumna pulse "cancelar mi
-membresía", la app la cancelará en nuestra base y mandará el aviso `ACCIÓN:`
-para hacerlo a mano, pero **NO detendrá el cobro en OnePay**. Hace falta la
+🟡 **FALTA `ONEPAY_API_KEY` EN PRODUCCIÓN — APLAZADO A PROPÓSITO** (ni en
+`.env.prod` ni en Vercel Production; la de `.env.local` es `sk_test_`, de
+pruebas, y **no sirve**). Consecuencia concreta: cuando una alumna pulse
+"cancelar mi membresía", la app la cancelará en nuestra base y mandará el
+aviso `ACCIÓN:` para hacerlo a mano, pero **NO detendrá el cobro en OnePay**.
+Decisión de Cristian el 2026-10-31: **se deja para estos días**, porque la
+venta acaba de abrir y todavía no hay nadie que pueda cancelar. Hace falta la
 `sk_live_` del panel en modo real.
+⚠️ Deja de ser aplazable en cuanto haya la primera compradora: a partir de
+ahí, una cancelación que no se atienda a mano es dinero cobrado de más.
 
 ⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
 (y así debe ser: los enlaces son configuración de cada entorno, no esquema —
