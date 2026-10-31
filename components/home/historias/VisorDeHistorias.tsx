@@ -85,6 +85,14 @@ export function VisorDeHistorias({
   const [detenido, setDetenido] = useState(false);
   const [mudo, setMudo] = useState(false);
   const [pedirSonido, setPedirSonido] = useState(0);
+  /*
+   * ⚠️ "SONÓ DE VERDAD", NO "SE LO PEDÍ" (2026-10-31). Hasta hoy el botón se
+   * escondía con `pedirSonido === 0`, o sea en cuanto lo tocabas. Safari de
+   * iPhone ignora el `unmute` hacia un iframe de otro dominio SIN avisar, así
+   * que el botón se iba, el video seguía mudo y no quedaba forma de insistir.
+   * Ahora solo se va cuando Bunny confirma que el mudo se levantó.
+   */
+  const [sonidoConfirmado, setSonidoConfirmado] = useState(false);
   const reanudar = useCallback(() => setDetenido(false), []);
 
   /*
@@ -107,6 +115,9 @@ export function VisorDeHistorias({
     setDetenido(false);
     setMudo(false);
     setPedirSonido(0);
+    /* La confirmación es de ESE iframe: la cápsula siguiente monta uno nuevo
+       y vuelve a jugarse el sonido desde cero. */
+    setSonidoConfirmado(false);
   }
 
   const avanzar = useCallback(() => {
@@ -295,6 +306,7 @@ export function VisorDeHistorias({
               detenido={detenido}
               alReanudar={reanudar}
               alCambiarMudo={setMudo}
+              alConfirmarSonido={setSonidoConfirmado}
               pedirSonido={pedirSonido}
             />
           )}
@@ -367,16 +379,25 @@ export function VisorDeHistorias({
           )}
         </div>
 
-        {/* Arrancó mudo porque el navegador no dejó con sonido: se ofrece. Si
-            ni así suena, tocar el video lo detiene y enseña el volumen de Bunny. */}
-        {mudo && !detenido && pedirSonido === 0 && (
+        {/*
+          Arrancó mudo porque el navegador no dejó con sonido: se ofrece, y se
+          mantiene hasta que Bunny confirme que suena.
+
+          Si el primer intento no se confirmó, el botón cambia de texto y
+          apunta al único camino que funciona en todos los teléfonos: tocar el
+          video, que lo detiene y destapa los controles de Bunny —volumen
+          incluido— DENTRO del iframe, donde el toque sí cuenta como suyo.
+        */}
+        {mudo && !detenido && !sonidoConfirmado && (
           <button
             type="button"
             onClick={() => setPedirSonido((n) => n + 1)}
-            className="bg-cream text-espresso absolute top-24 right-4 z-10 flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold [touch-action:manipulation]"
+            className="bg-cream text-espresso absolute top-24 right-4 z-10 flex h-11 max-w-[70%] items-center gap-2 rounded-full px-4 text-sm font-semibold [touch-action:manipulation]"
           >
-            <VolumeX size={16} aria-hidden="true" />
-            Activar sonido
+            <VolumeX size={16} aria-hidden="true" className="shrink-0" />
+            <span className="truncate">
+              {pedirSonido === 0 ? "Activar sonido" : "Toca el video para el volumen"}
+            </span>
           </button>
         )}
 

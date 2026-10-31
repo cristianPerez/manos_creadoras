@@ -31,6 +31,7 @@ export function VideoDeHistoria({
   detenido = false,
   alReanudar,
   alCambiarMudo,
+  alConfirmarSonido,
   pedirSonido = 0,
 }: {
   url: string;
@@ -49,6 +50,12 @@ export function VideoDeHistoria({
   alReanudar?: () => void;
   /** Avisa si tuvo que arrancar mudo, para ofrecer "Activar sonido". */
   alCambiarMudo?: (mudo: boolean) => void;
+  /**
+   * Dice si Bunny CONFIRMÓ que el sonido quedó activo tras pedírselo. Es lo
+   * que decide si el botón "Activar sonido" ya sobra — no basta con haberlo
+   * tocado: Safari de iPhone ignora el `unmute` sin avisar.
+   */
+  alConfirmarSonido?: (activo: boolean) => void;
   /** Sube en cada toque a "Activar sonido": se le pide a Bunny el volumen. */
   pedirSonido?: number;
 }) {
@@ -68,10 +75,27 @@ export function VideoDeHistoria({
     if (detenido) pedirAlReproductor("pause");
   }, [detenido]);
 
+  /*
+   * ⚠️ PEDIR SONIDO NO ES CONSEGUIRLO, Y ANTES SE DABA POR HECHO.
+   *
+   * Hasta el 2026-10-31 el botón "Activar sonido" se escondía en cuanto lo
+   * tocabas. Pero `unmute` viaja a un iframe de OTRO dominio
+   * (`mediadelivery.net`) y Safari de iPhone lo ignora EN SILENCIO: no
+   * contesta que no, simplemente no hace nada. Resultado: el botón
+   * desaparecía, el video seguía mudo y ya no había forma de volver a pedirlo.
+   *
+   * Ahora se le PREGUNTA a Bunny si de verdad se quitó el mudo (`getMuted`) y
+   * el botón solo se va con esa confirmación. Sin respuesta, se queda — que es
+   * el lado seguro: un botón de más molesta; uno de menos deja sin audio.
+   */
   useEffect(() => {
     if (pedirSonido === 0) return;
     pedirAlReproductor("unmute");
     pedirAlReproductor("setVolume", 100);
+    /* 400ms: lo justo para que Bunny procese el `unmute` antes de que le
+       preguntemos. Preguntar en el mismo tic devuelve el estado viejo. */
+    const t = setTimeout(() => pedirAlReproductor("getMuted"), 400);
+    return () => clearTimeout(t);
   }, [pedirSonido]);
 
   /*
@@ -189,6 +213,22 @@ export function VideoDeHistoria({
         return;
       }
 
+      /*
+       * La respuesta a `getMuted`. Se aceptan las dos formas en que player.js
+       * contesta según la versión (`event` o `method`) porque no controlamos
+       * cuál sirve Bunny, y equivocarse aquí significa dejar el botón puesto
+       * para siempre.
+       *
+       * ⚠️ NO se toca `mudo`: ese estado es la `key` del iframe y cambiarlo
+       * REMONTARÍA el video desde el segundo cero. El sonido confirmado es un
+       * dato aparte, solo para que el botón sepa si ya sobra.
+       */
+      const metodo = (d as { method?: string } | null)?.method;
+      if (d?.event === "getMuted" || metodo === "getMuted") {
+        alConfirmarSonido?.(d?.value === false);
+        return;
+      }
+
       if (d?.event === "play" || d?.event === "timeupdate") arranco.current = true;
       /* Detenido por un toque y ella le dio a reproducir en Bunny: sigue. El
          ref se suelta YA, sin esperar al render, para que el `timeupdate` que
@@ -220,7 +260,7 @@ export function VideoDeHistoria({
 
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
-  }, [alSaberDuracion, alTerminar, alReanudar, mudo]);
+  }, [alSaberDuracion, alTerminar, alReanudar, alConfirmarSonido, mudo]);
 
   useEffect(() => {
     alCambiarMudo?.(mudo);

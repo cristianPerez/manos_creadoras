@@ -67,8 +67,16 @@ export function ReproductorEnSitio({
    * es un video mudo, nunca uno parado.
    */
   const [mudo, setMudo] = useState(false);
-  /* Tocó "Activar sonido": el botón se va (si no sonó, quedan los controles). */
-  const [sonidoPedido, setSonidoPedido] = useState(false);
+  /*
+   * ⚠️ "SONÓ", NO "SE LO PEDÍ" (2026-10-31). Antes el botón se escondía en
+   * cuanto lo tocabas (`sonidoPedido`). Pero `unmute` viaja a un iframe de
+   * OTRO dominio y Safari de iPhone lo ignora EN SILENCIO: el botón se iba, el
+   * video seguía mudo y no quedaba forma de insistir. Ahora se le pregunta a
+   * Bunny (`getMuted`) y el botón solo se va con la confirmación. Sin
+   * respuesta se queda, que es el lado seguro.
+   */
+  const [vecesPedido, setVecesPedido] = useState(0);
+  const [sonidoConfirmado, setSonidoConfirmado] = useState(false);
   const arranco = useRef(false);
   const relojPlanB = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -168,11 +176,26 @@ export function ReproductorEnSitio({
     const alMensaje = (e: MessageEvent) => {
       // Solo de Bunny: cualquier pestaña puede mandar `postMessage` a esta página.
       if (!e.origin.endsWith("mediadelivery.net")) return;
-      let d: { event?: string } | null = null;
+      let d: { event?: string; method?: string; value?: unknown } | null = null;
       try {
         d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
       } catch {
         return; // un mensaje que no es JSON no nos incumbe
+      }
+
+      /*
+       * La respuesta a `getMuted`, que pide el botón "Activar sonido". Se
+       * aceptan las dos formas en que player.js contesta según la versión
+       * (`event` o `method`): no controlamos cuál sirve Bunny, y fallar aquí
+       * dejaría el botón puesto para siempre.
+       *
+       * ⚠️ NO se toca `mudo`: ese estado es la `key` del iframe y cambiarlo
+       * REMONTARÍA el video desde el segundo cero, justo cuando acaba de
+       * conseguir sonido.
+       */
+      if (d?.event === "getMuted" || d?.method === "getMuted") {
+        if (d?.value === false) setSonidoConfirmado(true);
+        return;
       }
 
       /*
@@ -263,7 +286,7 @@ export function ReproductorEnSitio({
           Bunny que active el sonido; si ese navegador tampoco lo deja, tocar
           el video lo pausa y enseña los controles de Bunny, con su volumen.
         */}
-        {mudo && (
+        {mudo && !sonidoConfirmado && (
           <button
             type="button"
             onClick={() => {
@@ -274,14 +297,18 @@ export function ReproductorEnSitio({
                 );
               pedir("unmute");
               pedir("setVolume", 100);
-              setSonidoPedido(true);
+              /* 400ms: lo justo para que Bunny procese el `unmute` antes de
+                 que le preguntemos. En el mismo tic devuelve el estado viejo.
+                 La respuesta la recoge el efecto de mensajes de arriba. */
+              setTimeout(() => pedir("getMuted"), 400);
+              setVecesPedido((n) => n + 1);
             }}
-            className={`bg-espresso text-cream absolute top-4 right-4 flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-opacity ${
-              sonidoPedido ? "pointer-events-none opacity-0" : "opacity-100"
-            }`}
+            className="bg-espresso text-cream absolute top-4 right-4 flex h-11 max-w-[70%] items-center gap-2 rounded-full px-4 text-sm font-semibold [touch-action:manipulation]"
           >
-            <VolumeX size={16} aria-hidden="true" />
-            Activar sonido
+            <VolumeX size={16} aria-hidden="true" className="shrink-0" />
+            <span className="truncate">
+              {vecesPedido === 0 ? "Activar sonido" : "Toca el video para el volumen"}
+            </span>
           </button>
         )}
       </div>
