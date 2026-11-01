@@ -149,7 +149,17 @@ export const CHECKOUT: Record<Frecuencia, string> = {
   mensual: process.env.NEXT_PUBLIC_ONEPAY_URL_MENSUAL ?? "",
 };
 
-export const FRECUENCIA_POR_DEFECTO: Frecuencia = "anual";
+/*
+ * ⚠️ MENSUAL, NO ANUAL (2026-11-01, decisión de Cristian). Hasta hoy todo
+ * arrancaba en el plan anual —el de US$167 de un pago—, que es el que deja más
+ * dinero por venta pero también el que más asusta al primer vistazo. Con la
+ * membresía vendiéndose como "clases nuevas cada semana", la puerta de entrada
+ * natural es la mensualidad.
+ *
+ * Esta constante la usan TODOS los botones de compra del home (banner, banda,
+ * cabecera, barra móvil, navidad), así que cambiarla aquí los cambia todos.
+ */
+export const FRECUENCIA_POR_DEFECTO: Frecuencia = "mensual";
 
 /*
  * ⚠️ ANTES DECÍA "Compra con OnePay · Garantía de 7 días" y tenía dos fallos
@@ -201,7 +211,15 @@ export function notaDelCobro(frecuencia: Frecuencia): string {
     : `Se cobra ${precioDelCobro("mensual")} cada mes · cancelas cuando quieras`;
 }
 
-/** "desde US$13,92 al mes" — el gancho corto que usan varias pantallas. */
+/**
+ * "US$19,70 al mes" — el gancho corto que usan varias pantallas.
+ *
+ * ⚠️ DABA EL PRECIO DEL ANUAL REPARTIDO POR MESES (US$13,92) y ahora da el
+ * mensual de verdad. Enseñar el del anual era correcto mientras el anual era
+ * lo que se ofrecía por defecto; con el mensual por delante, decir "desde
+ * US$13,92" y cobrar US$19,70 al tocar el botón es la clase de desajuste que
+ * se nota justo en la pantalla de pago.
+ */
 export function precioDesde(): string {
-  return precioPorMes("anual");
+  return precioPorMes(FRECUENCIA_POR_DEFECTO);
 }
