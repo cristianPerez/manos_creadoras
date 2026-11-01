@@ -181,6 +181,18 @@ dónde se atascan. Ahora hay `seccion_vista` (11 secciones con `data-seccion`),
 último copiado de El Charcu—. ⚠️ **Cada cosa se mide UNA vez por visita**: sin
 eso, subir y bajar daría porcentajes por encima del 100%.
 
+**EL EMBUDO DE VENTA, DE PUNTA A PUNTA** (para armarlo en Mixpanel):
+`pagina_ventas_vista` → `seccion_vista` (seccion=precio) → `cta_inscribirme_click`
+→ `checkout_abierto` → `pago_confirmado`.
+· `cta_inscribirme_click` lleva `origen` (header, banner_precio, banda_1de16,
+  navidad, precio, cierre, barra_movil…) y `plan`: dice QUÉ botón la movió.
+· `checkout_abierto` solo salta cuando el botón abre OnePay de verdad, no
+  cuando lleva al ancla del precio. Esa distinción ya existía.
+· ⚠️ `pago_confirmado` LO MANDA EL SERVIDOR desde el webhook
+  (`lib/analitica/mixpanel-servidor.ts`), porque el pago ocurre en OnePay y el
+  navegador no lo ve. Se ata con el `user_id` de Supabase, el mismo del
+  `identify`. Sin él, el salto más caro del negocio era invisible.
+
 🟡 **GRABACIÓN DE SESIÓN ENCENDIDA, Y CON CONDICIONES QUE NO SON OPCIONALES.**
 Estuvo apagada a propósito; Cristian pidió encenderla. Se hizo así:
 · **La política de privacidad se cambió PRIMERO.** Decía literalmente "ni
