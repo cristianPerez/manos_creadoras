@@ -383,6 +383,25 @@ html {
   scroll-behavior: smooth;
   /* La altura del header pegajoso (h-11 + padding) con un respiro. */
   scroll-padding-top: 80px;
+
+  /*
+   * ⚠️ ESTO QUITA EL "DOBLE SCROLL" DEL IPHONE (2026-10-31, Cristian lo grabó).
+   *
+   * Qué pasaba, visto en el video: estando arriba del todo, al arrastrar hacia
+   * abajo Safari no movía la página — se llevaba la PÁGINA ENTERA hacia abajo
+   * y sacaba su panel de recarga (el "Reload" con + y ×), dejando una franja
+   * negra arriba. Se ven dos cosas moviéndose a la vez: el navegador y el
+   * contenido. De ahí la sensación de dos scrolls peleando.
+   *
+   * En Android no se notaba, y por eso costó encontrarlo: el gesto de recargar
+   * tirando hacia abajo es mucho más sensible en Safari, y aquí se dispara
+   * nada más cargar, que es cuando el dedo está en lo alto de la pantalla.
+   *
+   * `contain` mantiene el rebote elástico de iOS —que es parte de cómo se
+   * siente el sistema— pero impide que el gesto se le pase al navegador. La
+   * alumna puede recargar como siempre desde la barra de Safari.
+   */
+  overscroll-behavior-y: contain;
 }
 
 body {
