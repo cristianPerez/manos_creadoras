@@ -132,8 +132,19 @@ export function ContenidoPrivacidad() {
               <strong className="text-espresso">
                 No recibe tu correo, ni tu nombre, ni tus fotos, ni tus preguntas
               </strong>
-              : solo un código interno que no dice quién eres, qué pantallas abres y tu tipo de
-              dispositivo. Tampoco guardamos tu dirección IP ni grabamos lo que haces en pantalla.
+              : solo un código interno que no dice quién eres, qué pantallas abres, desde qué país
+              entras y tu tipo de dispositivo. No guardamos tu dirección IP.
+              <br />
+              <span className="mt-2 block">
+                Para entender dónde se traba la gente, Mixpanel también{" "}
+                <strong className="text-espresso">graba cómo te mueves por la app</strong>: los
+                toques, el desplazamiento y las pantallas por las que pasas.{" "}
+                <strong className="text-espresso">
+                  Lo que escribes y las fotos que subes salen tapados en esa grabación
+                </strong>{" "}
+                — ni tus preguntas al Ojo Experto ni tus imágenes quedan registradas. Las
+                grabaciones se usan solo para arreglar la app y se borran solas al mes.
+              </span>
             </li>
           </ul>
         </section>

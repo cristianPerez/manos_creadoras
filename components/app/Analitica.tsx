@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { EVENTOS } from "@/lib/analitica/eventos";
-import { identificar, iniciarMixpanel, medir } from "@/lib/analitica/mixpanel";
+import { identificar, iniciarMixpanel, medir, registrarContexto } from "@/lib/analitica/mixpanel";
 
 /**
  * Enciende la analítica una sola vez, en toda la app.
@@ -11,11 +11,32 @@ import { identificar, iniciarMixpanel, medir } from "@/lib/analitica/mixpanel";
  * Sin esto, `medir()` no manda nada — es a propósito: así ningún componente
  * puede empezar a mandar eventos por su cuenta sin pasar por aquí.
  */
-export function Analitica({ userId }: { userId: string | null }) {
+export function Analitica({
+  userId,
+  pais,
+  region,
+  fuentePais,
+}: {
+  userId: string | null;
+  /** "CO", "MX"… lo da Vercel desde la conexión. Ver `lib/pais.ts`. */
+  pais?: string;
+  /** "colombia" | "internacional": de qué pasarela cobra ese país. */
+  region?: string;
+  /** De dónde salió el país: "vercel" (fiable), "idioma" o "defecto". */
+  fuentePais?: string;
+}) {
   useEffect(() => {
     iniciarMixpanel();
+    /*
+     * ⚠️ EL ORDEN IMPORTA: primero encender, luego registrar el contexto y
+     * solo después identificar. `registrarContexto` no hace nada si Mixpanel
+     * no está listo, y los eventos en cola salen al identificar — si el
+     * contexto llegara después, esos primeros eventos irían sin país, que es
+     * justo lo que se venía a arreglar.
+     */
+    registrarContexto({ pais, region, fuente_pais: fuentePais });
     if (userId) identificar(userId);
-  }, [userId]);
+  }, [userId, pais, region, fuentePais]);
 
   return null;
 }

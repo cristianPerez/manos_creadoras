@@ -57,20 +57,37 @@ export function iniciarMixpanel(): void {
     track_pageview: true,
 
     /*
-      ⚠️ GRABACIÓN DE SESIÓN APAGADA, a diferencia de El Charcu, que graba el
-      100%. Aquí no se activa y no es un olvido:
+      ⚠️ GRABACIÓN DE SESIÓN ENCENDIDA EL 2026-11-01, Y CON CONDICIONES.
 
-        · Lo que se grabaría son mujeres subiendo FOTOS de su trabajo y
-          escribiendo dudas sobre lo que están haciendo en su casa. Es material
-          personal de una forma que un sitio de recetas no lo es.
-        · La política de privacidad de la app no menciona ninguna grabación. Si
-          se enciende, hay que actualizarla ANTES, no después.
+      Estuvo apagada a propósito mientras El Charcu grababa el 100%, porque
+      aquí lo que se graba son mujeres subiendo FOTOS de su trabajo y
+      escribiendo dudas sobre lo que hacen en su casa: material personal de una
+      forma que un sitio de recetas no lo es. Cristian pidió encenderla para
+      entender dónde se traba la gente antes de pagar.
 
-      Si algún día hace falta para depurar un embudo concreto, se enciende a
-      propósito, por un tiempo acotado y con el aviso legal puesto — no por
-      defecto y para siempre.
+      Se enciende CON LAS DOS CONDICIONES QUE LA HACEN ACEPTABLE, y ninguna es
+      opcional:
+
+        1. LA POLÍTICA DE PRIVACIDAD SE CAMBIÓ PRIMERO. Decía literalmente "ni
+           grabamos lo que haces en pantalla" — encenderla sin tocar esa frase
+           no habría sido una omisión, habría sido desmentir por escrito algo
+           que la app promete. Ahora dice qué se graba, qué se tapa y cuánto
+           dura. Ver `components/legal/Privacidad.tsx`.
+        2. TODO LO QUE ELLA ESCRIBE O SUBE VA TAPADO. `record_mask_text_selector:
+           "*"` tapa TODOS los textos de la pantalla y `record_block_selector`
+           las imágenes y videos. Se graba por dónde se mueve, no lo que dice.
+
+      ⚠️ SI ALGUIEN AFLOJA EL ENMASCARADO para "ver mejor qué escribió", rompe
+      la promesa de la política y convierte esto en un problema legal. El valor
+      está en ver DÓNDE se traba, y para eso no hace falta leerla.
     */
-    record_sessions_percent: 0,
+    record_sessions_percent: 100,
+    /* `*` = todos los textos. Mixpanel por defecto solo tapa los campos de
+       formulario, y aquí las preguntas al Ojo Experto se ven en pantalla como
+       texto normal, no dentro de un input. */
+    record_mask_text_selector: "*",
+    /* Las fotos que sube y los videos del curso: fuera de la grabación. */
+    record_block_selector: "img,video,canvas,[data-privado]",
 
     // Sin esto, Mixpanel guarda la IP completa. La IP es dato personal y para
     // este embudo no aporta nada: el país lo da igual la agregación.
@@ -127,5 +144,40 @@ export function identificar(userId: string): void {
     mixpanel.identify(userId);
   } catch {
     // idem
+  }
+}
+
+/**
+ * Propiedades que se pegan SOLAS a todos los eventos, también a los futuros.
+ *
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ POR QUÉ EL PAÍS NO ESTABA EN NINGÚN EVENTO (arreglado el 2026-11-01)
+ * ════════════════════════════════════════════════════════════════════════════
+ * El país se calcula en el SERVIDOR —Vercel lo saca de la conexión y
+ * `detectarPais()` lo lee— y Mixpanel vive en el NAVEGADOR. Nadie había hecho
+ * el puente entre los dos, así que el dato existía, se guardaba en
+ * `sesiones_pais`… y no llegaba al panel. Cristian lo notó al preguntar por qué
+ * no podía segmentar por país.
+ *
+ * Se registran como SUPER PROPIEDADES y no se pasan evento por evento: así van
+ * en todo lo que se mida de ahora en adelante sin que nadie tenga que
+ * acordarse. Mixpanel las guarda en el navegador de la persona y las repite en
+ * cada envío.
+ *
+ * ⚠️ NO ARREGLA EL PASADO. Los eventos que ya se mandaron no tienen país y no
+ * se les puede añadir; esto empieza a contar desde que se despliega.
+ *
+ * ⚠️ NADA DE DATOS PERSONALES AQUÍ. País y región son agregados; el `user_id`
+ * va por `identify`, no por aquí, y el correo no sale nunca de casa.
+ */
+export function registrarContexto(props: Propiedades): void {
+  if (!listo) return;
+  try {
+    const limpias = Object.fromEntries(
+      Object.entries(props).filter(([, v]) => v !== undefined && v !== ""),
+    );
+    mixpanel.register(limpias);
+  } catch {
+    // Igual que el resto: la analítica nunca interrumpe a quien está usando la app.
   }
 }

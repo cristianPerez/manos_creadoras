@@ -4,6 +4,7 @@ import { Analitica } from "@/components/app/Analitica";
 import { MotionProvider } from "@/components/app/MotionProvider";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
 import { COLOR_FONDO_SISTEMA } from "@/lib/marca";
+import { detectarPais, regionDe } from "@/lib/pais";
 import { supabaseServer } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -70,6 +71,15 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  /*
+    El país viaja al navegador PARA LA ANALÍTICA. Se calcula aquí porque solo
+    el servidor ve la cabecera de Vercel; sin este puente, el dato existía en
+    la base pero no llegaba a Mixpanel y no se podía segmentar por país.
+    `detectarPais` está cacheada por petición, así que esto no cuesta nada
+    aunque la página ya lo haya pedido para resolver el enlace de pago.
+  */
+  const { pais, fuente } = await detectarPais();
+
   return (
     <html
       lang="es"
@@ -78,7 +88,12 @@ export default async function RootLayout({
       <body className="min-h-dvh flex flex-col bg-surface-base text-text-primary font-body">
         <MotionProvider>{children}</MotionProvider>
         <RegistrarSW />
-        <Analitica userId={user?.id ?? null} />
+        <Analitica
+          userId={user?.id ?? null}
+          pais={pais}
+          region={regionDe(pais)}
+          fuentePais={fuente}
+        />
       </body>
     </html>
   );
