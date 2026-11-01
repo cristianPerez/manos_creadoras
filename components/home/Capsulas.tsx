@@ -40,14 +40,24 @@ function useCapsulas(): ContextoCapsulas {
 
 /**
  * ════════════════════════════════════════════════════════════════════════════
- * ⚠️ DOS PRESENTACIONES, UN SOLO ESTADO (2026-10-23)
+ * ⚠️ UNA PRESENTACIÓN POR PANTALLA, UN SOLO ESTADO
  * ════════════════════════════════════════════════════════════════════════════
- * En móvil las cápsulas salen DOS veces (pedido de Cristian): como historias
- * en círculos arriba del todo (`HistoriasCapsulas`) y como tarjetas debajo del
- * banner (`Capsulas`). Entre las dos va el banner, así que no pueden ser un
- * solo componente — pero sí compartir el estado: lo que ya vio, y el visor.
- * Una cápsula vista desde un círculo sale como "Vista" en su tarjeta, y hay
- * un solo visor abierto, no dos.
+ * Hay dos componentes y cada uno manda en su tamaño:
+ *
+ *   · MÓVIL → `HistoriasCapsulas`: los círculos de arriba, que se leen como
+ *     historias de Instagram. Es lo único que sale.
+ *   · ESCRITORIO → `Capsulas`: las tarjetas bajo el banner. Los círculos están
+ *     ocultos ahí.
+ *
+ * ⚠️ HASTA EL 2026-10-31 EN MÓVIL SALÍAN LAS DOS, una encima y otra debajo del
+ * banner. Era el mismo contenido repetido en la misma pantalla; Cristian pidió
+ * quitar las de abajo. Si alguien vuelve a enseñar las dos en móvil, está
+ * reponiendo eso.
+ *
+ * Entre las dos va el banner, así que no pueden ser un solo componente — pero
+ * sí comparten el estado: lo que ya vio, y el visor. Eso sigue importando
+ * porque en el salto de móvil a escritorio (o al girar el teléfono) la persona
+ * pasa de una presentación a la otra y no debe perder lo que llevaba visto.
  */
 export function ProveedorCapsulas({
   capsulas,
@@ -164,16 +174,28 @@ export function HistoriasCapsulas() {
   );
 }
 
-/** Las tarjetas, debajo del banner (todas las pantallas). */
+/**
+ * Las tarjetas, debajo del banner. **Solo de escritorio.**
+ *
+ * ⚠️ EN MÓVIL NO SALEN (2026-10-31, decisión de Cristian). Hasta hoy las
+ * cápsulas aparecían DOS veces en un móvil: los círculos de arriba, que se
+ * leen como historias de Instagram, y otra vez estas tarjetas bajo el banner.
+ * Era el mismo contenido dos veces en la misma pantalla: la segunda no añade
+ * nada y alarga el camino al precio. En escritorio sí se quedan, porque allí
+ * los círculos no existen (`HistoriasCapsulas` es `md:hidden`) y sin ellas el
+ * home no enseñaría las cápsulas en ningún sitio.
+ */
 export function Capsulas() {
   const { capsulas, vistas, abrir } = useCapsulas();
   if (capsulas.length === 0) return null;
 
   return (
     /*
-      El ancla va en el envoltorio: `id="capsulas"` es a donde lleva el menú.
+      El ancla `id="capsulas"` vive aquí. Hoy no la enlaza nadie; si algún día
+      el menú la usa, ojo: en móvil este bloque está oculto y el ancla llevaría
+      a algo que no se ve — ahí tendría que apuntar a las historias.
     */
-    <div id="capsulas">
+    <div id="capsulas" className="hidden md:block">
       {/*
         ── Home a color (2026-10-22): UNA sola presentación, sobre espresso ──
         Hasta hoy en móvil eran historias circulares; la referencia nueva pide
@@ -288,10 +310,21 @@ export function Capsulas() {
  * cinco círculos se verían negros mientras se desarrolla — y el día que
  * alguien toque esa lista, también en producción.
  *
- * Al fallar se cae a `portada_url`, que es nuestra y siempre está. Mismo
- * patrón que `ReproductorEnSitio`, por el mismo motivo.
+ * ⚠️ MANDA LA FOTO DEL BOLSO, NO EL FOTOGRAMA DEL VIDEO (2026-10-31, decisión
+ * de Cristian). Hasta hoy era al revés: se pedía a Bunny un fotograma del
+ * propio video y la foto quedaba de respaldo. Dos razones para darle la vuelta:
  *
- * `unoptimized` en la miniatura: viene de fuera de nuestro dominio y así no
+ *   · Se veía peor. Un fotograma es un instante cualquiera de una grabación de
+ *     manos trabajando —encuadre partido, mano borrosa, luz a medias—, y las
+ *     fotos de los bolsos están hechas para enseñarse.
+ *   · Se veía DISTINTO en cada sitio. El fotograma depende de una variable que
+ *     QA no tenía, así que producción enseñaba una cosa y QA otra. Con la foto
+ *     primero, las dos enseñan lo mismo siempre: es un archivo nuestro.
+ *
+ * El fotograma se conserva como alternativa por si algún día una cápsula se
+ * queda sin foto; mientras haya foto, no se pide.
+ *
+ * `unoptimized` en el fotograma: viene de fuera de nuestro dominio y así no
  * hay que declarar el hostname de Bunny en la configuración de Next.
  */
 function ImagenDeCapsula({
@@ -300,13 +333,20 @@ function ImagenDeCapsula({
   sizes,
   className,
 }: {
+  /** El fotograma del video (Bunny). Solo se usa si no hay foto. */
   miniatura: string | null;
+  /** La foto del bolso. Es la que manda. */
   respaldo: string | null;
   sizes: string;
   className: string;
 }) {
   const [fallo, setFallo] = useState(false);
-  const usarMiniatura = Boolean(miniatura) && !fallo;
+  /*
+   * Se usa el fotograma SOLO si no hay foto, o si la foto no cargó. `fallo`
+   * cubre las dos direcciones: sea cual sea la que esté puesta, si da error se
+   * intenta la otra antes de dejar un hueco.
+   */
+  const usarMiniatura = (!respaldo || fallo) && Boolean(miniatura);
   const src = usarMiniatura ? miniatura : respaldo;
 
   if (!src) return null;

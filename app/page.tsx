@@ -150,8 +150,9 @@ export default async function Home() {
         un toque en todo el recorrido: header, banner, banda, precio, cierre y,
         en móvil, la barra fija.
       */}
-      {/* Las cápsulas salen dos veces en móvil (historias arriba y tarjetas
-          bajo el banner) y comparten estado: lo que ya vio y el visor. */}
+      {/* Las cápsulas se presentan distinto según la pantalla —círculos en
+          móvil, tarjetas en escritorio— y comparten estado: lo que ya vio y el
+          visor. Cada una se oculta sola en el tamaño que no le toca. */}
       <ProveedorCapsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas}>
       <main className="flex flex-col">
         <HistoriasCapsulas />
