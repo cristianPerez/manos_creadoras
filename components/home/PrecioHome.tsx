@@ -40,10 +40,18 @@ export function PrecioHome({
   enlaces,
   bolsos,
   videos,
+  porWhatsApp = false,
 }: {
   enlaces: Record<Frecuencia, string | null>;
   bolsos: number;
   videos: number;
+  /**
+   * Colombia paga por WhatsApp y no por la pasarela (migración 0038). Cambia
+   * lo que PROMETE el botón, no a dónde va: el enlace ya viene resuelto por
+   * región desde la base. Prometer "Pago seguro con OnePay" y abrir un chat
+   * sería mentir justo en el momento de dar el dinero.
+   */
+  porWhatsApp?: boolean;
 }) {
   // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
   const frecuencia = useFrecuenciaElegida();
@@ -124,7 +132,9 @@ export function PrecioHome({
               abrePago={Boolean(enlace)}
               className="bg-gold-pale text-espresso mt-6 flex h-13.5 items-center justify-center rounded-full text-base font-semibold transition-transform active:scale-[0.98]"
             >
-              Inscribirme con el plan {frecuencia}
+              {porWhatsApp
+                ? "Inscribirme por WhatsApp"
+                : `Inscribirme con el plan ${frecuencia}`}
             </EnlaceCompra>
 
             {/*
@@ -134,17 +144,22 @@ export function PrecioHome({
             <div className="border-espresso-line mt-6 border-t pt-4 md:mt-auto">
               {enlace ? (
                 <ul className="text-on-dark-muted flex flex-col gap-2.5 text-sm md:flex-row md:flex-wrap md:gap-x-5">
+                  {/* Cada lista describe lo que de verdad va a pasar al tocar
+                      el botón: en Colombia se abre un chat y el pago se
+                      acuerda ahí; fuera, se abre la pasarela. */}
                   <li className="flex items-center gap-2">
                     <Lock size={15} className="text-gold-light shrink-0" aria-hidden="true" />
-                    Pago seguro con OnePay
+                    {porWhatsApp ? "Te atiende Elizabeth" : "Pago seguro con OnePay"}
                   </li>
                   <li className="flex items-center gap-2">
                     <CreditCard size={15} className="text-gold-light shrink-0" aria-hidden="true" />
-                    Tarjeta de crédito o débito
+                    {porWhatsApp
+                      ? "Acordamos cómo pagar por chat"
+                      : "Tarjeta de crédito o débito"}
                   </li>
                   <li className="flex items-center gap-2">
                     <Mail size={15} className="text-gold-light shrink-0" aria-hidden="true" />
-                    Acceso inmediato por correo
+                    {porWhatsApp ? "Acceso apenas confirmes" : "Acceso inmediato por correo"}
                   </li>
                 </ul>
               ) : (

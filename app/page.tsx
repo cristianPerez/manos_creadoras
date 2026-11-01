@@ -182,7 +182,14 @@ export default async function Home() {
 
           <Elizabeth bolsos={totalBolsos} videos={totalVideos} />
 
-          <PrecioHome enlaces={cobro.url} bolsos={totalBolsos} videos={totalVideos} />
+          {/* Colombia paga por WhatsApp (migración 0038): el enlace ya viene
+              resuelto por región, esto solo ajusta lo que promete el botón. */}
+          <PrecioHome
+            enlaces={cobro.url}
+            bolsos={totalBolsos}
+            videos={totalVideos}
+            porWhatsApp={cobro.region === "colombia"}
+          />
 
           <PreguntasFrecuentes />
 
@@ -213,7 +220,9 @@ export default async function Home() {
                 abrePago={Boolean(cobro.url.anual)}
                 className="bg-cream text-espresso flex h-13.5 shrink-0 items-center justify-center rounded-full px-10 font-semibold transition-transform active:scale-[0.98] max-md:w-full"
               >
-                Inscribirme por {precioDesde()}/mes
+                {cobro.region === "colombia"
+                  ? "Inscribirme por WhatsApp"
+                  : `Inscribirme por ${precioDesde()}/mes`}
               </EnlaceCompra>
             </div>
           </section>
