@@ -161,6 +161,38 @@ endpoint**; la 0025 añadió `duracion_ms` y el log marca `lento` a los 8s.
 
 ---
 
+## 📊 ANALÍTICA: QUÉ SE MIDE Y QUÉ NO (2026-11-01)
+
+**El país ya va en TODOS los eventos.** No iba porque se calcula en el
+SERVIDOR (Vercel, `lib/pais.ts`) y Mixpanel vive en el NAVEGADOR: el dato
+estaba en `sesiones_pais` y nadie había hecho el puente. Ahora el layout raíz
+se lo pasa a `<Analitica>` y se registra como SUPER PROPIEDAD (`pais`,
+`region`, `fuente_pais`), así que se pega solo a todo lo que se mida, también
+a los eventos que se añadan después. ⚠️ **No arregla el pasado.**
+
+**El embudo de dentro del home** (`components/home/MedirHome.tsx`): entre
+"abrió la página" y "tocó pagar" no había NADA, así que no se podía responder
+dónde se atascan. Ahora hay `seccion_vista` (11 secciones con `data-seccion`),
+`scroll_profundidad` (25/50/75/100) y `boton_click` con texto y sección —este
+último copiado de El Charcu—. ⚠️ **Cada cosa se mide UNA vez por visita**: sin
+eso, subir y bajar daría porcentajes por encima del 100%.
+
+🟡 **GRABACIÓN DE SESIÓN ENCENDIDA, Y CON CONDICIONES QUE NO SON OPCIONALES.**
+Estuvo apagada a propósito; Cristian pidió encenderla. Se hizo así:
+· **La política de privacidad se cambió PRIMERO.** Decía literalmente "ni
+  grabamos lo que haces en pantalla": encenderla sin tocar esa frase habría
+  sido desmentir por escrito lo que la app promete, no una omisión.
+· **Todo lo que ella escribe o sube va TAPADO** (`record_mask_text_selector:"*"`
+  + bloqueo de `img,video,canvas,[data-privado]`). Aquí se suben fotos del
+  trabajo y dudas personales, no recetas.
+⚠️ **Aflojar el enmascarado rompe la promesa de la política.** El valor está en
+ver DÓNDE se traba, y para eso no hace falta leer lo que escribió.
+
+⚠️ **Mixpanel: un proyecto por entorno** — producción `337702b9…` (id 4064037),
+QA `4af968e2…` (id 4064035). Ver el aviso de más arriba sobre el token cruzado.
+
+---
+
 ## 🔴 Bloqueos para vender
 
 - [x] ~~**BOTÓN "CANCELAR MI MEMBRESÍA"**~~ ✅ **CONSTRUIDO el 2026-10-19**, en
