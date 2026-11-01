@@ -44,6 +44,17 @@ export const EVENTOS = {
    */
   botonClick: "boton_click",
 
+  /**
+   * EL PAGO ENTRÓ. Lo manda el SERVIDOR desde el webhook, no el navegador.
+   *
+   * ⚠️ ES EL ÚLTIMO PASO DEL EMBUDO Y EL ÚNICO QUE EL NAVEGADOR NO PUEDE VER:
+   * la alumna paga en OnePay, en otro dominio, y muchas veces cierra la
+   * pestaña al terminar. Sin esto el embudo moría en "abrió el pago", y el
+   * salto más caro del negocio —de abrir la pasarela a pagar de verdad— era
+   * invisible. Ver `lib/analitica/mixpanel-servidor.ts`.
+   */
+  pagoConfirmado: "pago_confirmado",
+
   // ── El regalo: los 3 tutoriales ───────────────────────────────────────
   /**
    * Entró a la app SIN cuenta y vio los tutoriales de cortesía.

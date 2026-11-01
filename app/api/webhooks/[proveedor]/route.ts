@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { medirPagoConfirmado } from "@/lib/analitica/mixpanel-servidor";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { enviarCorreo } from "@/lib/correo";
 import { correoDeBienvenida } from "@/lib/correos/bienvenida";
@@ -377,6 +378,21 @@ async function aplicar(
     );
     rastro.paso("membresia activada", { vence_el: evento.venceEl ?? "sin cambio" });
     await cerrar("procesado");
+    /*
+     * ⚠️ CIERRA EL EMBUDO, Y ESTE ES EL ÚNICO SITIO DESDE DONDE SE PUEDE. La
+     * alumna paga en OnePay, en otro dominio: el navegador solo vio que se
+     * iba. Sin este evento no se sabe cuántas de las que abren la pasarela
+     * acaban pagando, que es el salto donde más gente se pierde.
+     * Va DESPUÉS de cerrar el evento y no bloquea nada: si Mixpanel falla, se
+     * traga el error (ver el módulo) y la membresía ya quedó activa igual.
+     */
+    /* Sin `ciclo`: el evento de la pasarela no dice si es mensual o anual, y
+       no se inventa. Para separarlos en el panel está `checkout_abierto`, que
+       sí lleva el plan que tocó la alumna. */
+    await medirPagoConfirmado(userId, {
+      proveedor,
+      suscripcion: evento.recursoId ?? undefined,
+    });
     await darLaBienvenida(db, userId, origen, rastro);
     return;
   }
