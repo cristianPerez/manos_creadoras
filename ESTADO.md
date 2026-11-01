@@ -192,6 +192,13 @@ Estuvo apagada a propósito; Cristian pidió encenderla. Se hizo así:
 ⚠️ **Aflojar el enmascarado rompe la promesa de la política.** El valor está en
 ver DÓNDE se traba, y para eso no hace falta leer lo que escribió.
 
+⚠️ **LAS COLUMNAS "City" Y "Country" DE MIXPANEL SALEN VACÍAS Y ES CORRECTO.**
+Mixpanel las calcula desde la IP, y le mandamos `ip: false` a propósito: es
+dato personal y la política promete no guardarla. Hay que mirar NUESTRAS
+propiedades `pais`, `ciudad` y `region`, que van en todos los eventos desde el
+2026-11-01 (la ciudad sale de `x-vercel-ip-city`). Si alguien "arregla" esto
+poniendo `ip: true`, rellena esas columnas pero contradice la política.
+
 ⚠️ **Mixpanel: un proyecto por entorno** — producción `337702b9…` (id 4064037),
 QA `4af968e2…` (id 4064035). Ver el aviso de más arriba sobre el token cruzado.
 
