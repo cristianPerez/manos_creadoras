@@ -28,6 +28,10 @@ revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 Fuente única: `lib/planes.ts` → `PRECIOS`. **Ningún precio escrito en otro sitio.**
 
 **US$19,70 al mes · US$167 al año** (= US$13,92/mes · ahorra US$69, 29%).
+⚠️ **EL PLAN POR DEFECTO ES EL MENSUAL desde el 2026-11-01** (antes el anual).
+Lo decide `FRECUENCIA_POR_DEFECTO` en `lib/planes.ts` y de ahí salen todos los
+botones del home, el selector y `precioDesde()`. El anual sigue a un toque con
+su "Ahorra 29%".
 Antes eran US$9,99 / US$89,90; Cristian los subió el 2026-10-31.
 Son EXACTAMENTE los planes de OnePay: si un día no coinciden, manda OnePay —es
 quien cobra— y la constante miente. Se cambian los dos sitios a la vez.
