@@ -121,6 +121,19 @@ año**, y al cancelar el `coalesce(…, now())` puede recortarle el acceso que s
 le prometió. Pendiente de decidir con Cristian: el evento de OnePay sí trae el
 plan, así que se puede deducir el ciclo al activarla.
 
+🇨🇴 **COLOMBIA PAGA POR WHATSAPP; EL RESTO, POR ONEPAY** (migración 0038,
+2026-11-01, decisión de Cristian). El enlace de las filas `colombia` apunta a
+`wa.me/573154940311` con el plan escrito en el mensaje, y el botón cambia lo
+que promete ("Inscribirme por WhatsApp", "Te atiende Elizabeth") porque
+ofrecer "Pago seguro con OnePay" y abrir un chat sería mentir. No hizo falta
+código para el enlace: la tabla ya separaba las regiones desde la 0018.
+⚠️ **Cobrar así es cobrar a mano**: a esas alumnas hay que activarlas tú.
+⚠️ **No se pudo probar el camino internacional desde fuera**: Vercel ignora la
+cabecera de país que se le mande y usa la IP real, y la de aquí es colombiana.
+Verificado en local con las dos cabeceras. Falta que alguien de fuera confirme.
+📊 De 190 visitas en producción: US 30%, **CO 27%**, VE 8%, MX 5%, resto
+repartido. O sea que esto afecta a 1 de cada 4 visitantes.
+
 ⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
 (y así debe ser: los enlaces son configuración de cada entorno, no esquema —
 ver `supabase/migrations/README.md`). La 0037 deja los enlaces REALES, que son
@@ -637,6 +650,16 @@ toca reintentar en el servidor.
   verificadas.
 - **Los precios por token de `lib/costo-ia.ts` no están verificados** contra la
   lista de Google (los tokens sí). Contrastar un mes de `ai_spend` con la factura.
+- 🔴 **PRODUCCIÓN ESTUVO MANDANDO SUS EVENTOS AL PROYECTO DE QA** hasta el
+  2026-11-01. La variable `NEXT_PUBLIC_MIXPANEL_TOKEN` de Vercel **Production**
+  tenía el token de «manos creadoras qa» (`4af968e2…`), así que el proyecto
+  «Manos creadoras» (`337702b9…`, id 4064037) estaba vacío y todo caía mezclado
+  con las pruebas. Corregido y verificado: producción sirve el token de
+  producción, QA el suyo, y en el panel ya entran `pagina_ventas_vista`,
+  `plan_toggle` y los automáticos.
+  ⚠️ Lo de ANTES de esa fecha se queda en el proyecto de QA —no se puede
+  mover—, así que el de producción empieza desde cero y lo que se veía en QA
+  no era solo QA.
 - **Eventos de Mixpanel sin verificar en vivo**: los del Ojo Experto,
   `correo_enviado`, `checkout_abierto`, `cuenta_creada`/`cuenta_iniciada`.
 - **Correo distinto al de la compra**: falta el aviso en la landing y
