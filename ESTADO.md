@@ -121,18 +121,21 @@ año**, y al cancelar el `coalesce(…, now())` puede recortarle el acceso que s
 le prometió. Pendiente de decidir con Cristian: el evento de OnePay sí trae el
 plan, así que se puede deducir el ciclo al activarla.
 
-🇨🇴 **COLOMBIA PAGA POR WHATSAPP; EL RESTO, POR ONEPAY** (migración 0038,
-2026-11-01, decisión de Cristian). El enlace de las filas `colombia` apunta a
-`wa.me/573154940311` con el plan escrito en el mensaje, y el botón cambia lo
-que promete ("Inscribirme por WhatsApp", "Te atiende Elizabeth") porque
-ofrecer "Pago seguro con OnePay" y abrir un chat sería mentir. No hizo falta
-código para el enlace: la tabla ya separaba las regiones desde la 0018.
-⚠️ **Cobrar así es cobrar a mano**: a esas alumnas hay que activarlas tú.
-⚠️ **No se pudo probar el camino internacional desde fuera**: Vercel ignora la
-cabecera de país que se le mande y usa la IP real, y la de aquí es colombiana.
-Verificado en local con las dos cabeceras. Falta que alguien de fuera confirme.
-📊 De 190 visitas en producción: US 30%, **CO 27%**, VE 8%, MX 5%, resto
-repartido. O sea que esto afecta a 1 de cada 4 visitantes.
+🇨🇴 **SE PROBÓ COBRAR A COLOMBIA POR WHATSAPP Y SE DESHIZO EL MISMO DÍA**
+(migraciones 0038 y 0039, 2026-11-01). Durante unas horas quien entraba desde
+Colombia iba a `wa.me` en vez de a la pasarela, con el botón diciendo
+"Inscribirme por WhatsApp". Cristian lo revirtió: hoy **todos los países van a
+OnePay**, con los textos de siempre.
+Lo que queda aprendido, por si se repite la idea:
+· **La estructura de dos regiones sigue viva** (`plan_checkout`, desde la
+  0018). Cambiar el destino de Colombia son DOS FILAS, no código.
+· **El texto del botón sí es código**: prometer "Pago seguro con OnePay" y
+  abrir un chat es mentir justo cuando la alumna va a pagar.
+· **Al revertir, el enlace se COPIA de la fila `internacional` del mismo
+  entorno** y no se escribe: producción tiene los planes reales y QA los de
+  modo prueba; una URL a mano cruza los dos entornos.
+· **No se puede probar otro país desde aquí**: Vercel ignora la cabecera que
+  se le mande y usa la IP real.
 
 ⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
 (y así debe ser: los enlaces son configuración de cada entorno, no esquema —
