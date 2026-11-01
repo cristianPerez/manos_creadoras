@@ -27,6 +27,17 @@ export type PaisDetectado = {
   fuente: FuenteDelPais;
   /** En qué navega. Se guarda como dato de dispositivo, NO como país. */
   userAgent: string | null;
+  /**
+   * La ciudad, cuando Vercel la sabe ("Bogota", "Medellin"…).
+   *
+   * ⚠️ VIENE DE AQUÍ Y NO DE MIXPANEL, Y ESA ES LA GRACIA. Las columnas
+   * "City" y "Country" del panel de Mixpanel salen de la IP, y nosotros le
+   * mandamos `ip: false` a propósito para no entregarle un dato personal que
+   * además la política de privacidad promete no guardar. Resultado: esas dos
+   * columnas salen siempre vacías. Pasando ciudad y país por nuestra cuenta se
+   * tiene el dato sin mandar la IP a ningún sitio.
+   */
+  ciudad: string | null;
 };
 
 /** El país que se asume cuando no se puede saber. Ver `regionDe`. */
@@ -37,9 +48,20 @@ export async function detectarPais(): Promise<PaisDetectado> {
   const userAgent = h.get("user-agent");
 
   // 1. Vercel. Es el bueno: sale de la IP y lo pone la plataforma.
+  /* Vercel la manda codificada (los acentos viajan como %XX). */
+  const crudaCiudad = h.get("x-vercel-ip-city");
+  let ciudad: string | null = null;
+  if (crudaCiudad) {
+    try {
+      ciudad = decodeURIComponent(crudaCiudad);
+    } catch {
+      ciudad = crudaCiudad;
+    }
+  }
+
   const deVercel = h.get("x-vercel-ip-country");
   if (deVercel && deVercel.length === 2) {
-    return { pais: deVercel.toUpperCase(), fuente: "vercel", userAgent };
+    return { pais: deVercel.toUpperCase(), fuente: "vercel", userAgent, ciudad };
   }
 
   /*
@@ -52,10 +74,10 @@ export async function detectarPais(): Promise<PaisDetectado> {
   const idioma = h.get("accept-language");
   const conPais = idioma?.match(/[a-z]{2}-([A-Z]{2})/);
   if (conPais) {
-    return { pais: conPais[1].toUpperCase(), fuente: "idioma", userAgent };
+    return { pais: conPais[1].toUpperCase(), fuente: "idioma", userAgent, ciudad };
   }
 
-  return { pais: PAIS_POR_DEFECTO, fuente: "defecto", userAgent };
+  return { pais: PAIS_POR_DEFECTO, fuente: "defecto", userAgent, ciudad };
 }
 
 /**

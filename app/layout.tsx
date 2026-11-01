@@ -78,7 +78,7 @@ export default async function RootLayout({
     `detectarPais` está cacheada por petición, así que esto no cuesta nada
     aunque la página ya lo haya pedido para resolver el enlace de pago.
   */
-  const { pais, fuente } = await detectarPais();
+  const { pais, fuente, ciudad } = await detectarPais();
 
   return (
     <html
@@ -93,6 +93,7 @@ export default async function RootLayout({
           pais={pais}
           region={regionDe(pais)}
           fuentePais={fuente}
+          ciudad={ciudad}
         />
       </body>
     </html>
