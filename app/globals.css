@@ -554,6 +554,18 @@ body {
    con el dedo, sin la barra gris que en escritorio aparece debajo. */
 .sin-barra {
   scrollbar-width: none;
+  /*
+   * ⚠️ `contain` CORTA EL "DOBLE SCROLL" (2026-10-31, lo reportó Cristian).
+   * Sin esto, al arrastrar sobre una de estas filas el gesto NO se queda en
+   * ella: al llegar a su final se lo pasa al documento, así que la fila se
+   * mueve y la página se mueve detrás — se siente como si hubiera dos scrolls
+   * peleando. Se nota sobre todo en la fila de cápsulas, que está en lo
+   * primero que se ve al cargar y es donde cae el dedo.
+   * Solo contiene el eje horizontal: el gesto vertical sigue pasando a la
+   * página, que es lo que la persona espera al deslizar hacia abajo sobre
+   * ellas.
+   */
+  overscroll-behavior-x: contain;
 }
 .sin-barra::-webkit-scrollbar {
   display: none;
