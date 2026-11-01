@@ -132,7 +132,29 @@ export function HistoriasCapsulas() {
 
   return (
     <section aria-label="Cápsulas gratis, en historias" className="md:hidden">
-      <ul className="sin-barra flex gap-4 overflow-x-auto px-5 pt-4 pb-2">
+      {/*
+        ⚠️ ESTA LÍNEA ES OBLIGATORIA DESDE QUE LAS TARJETAS NO SALEN EN MÓVIL
+        (2026-10-31). Todo lo que explicaba qué son las cápsulas —"gratis",
+        "sin crear cuenta", cuántas llevas vistas— vivía SOLO en las tarjetas
+        de abajo. Al quitarlas, los círculos se quedaron mudos: una fila de
+        fotos sin decir qué es ni que se puede tocar sin pagar. Lo señaló el
+        revisor visual. Si algún día vuelven las tarjetas a móvil, esta línea
+        sobra; mientras no estén, es lo único que lo cuenta.
+      */}
+      {/* Una sola línea: el eyebrow va en versalitas con tracking ancho, y con
+          "· sin crear cuenta" dentro se partía en dos renglones a 375px. La
+          promesa de que no hay que registrarse se va a la derecha, en texto
+          normal, donde cabe junto al contador. */}
+      <div className="flex items-baseline justify-between gap-3 px-5 pt-5">
+        <p className="eyebrow">Cápsulas gratis</p>
+        <p className="text-ink-muted text-xs font-semibold whitespace-nowrap">
+          <span className="cifra">
+            {vistas.length} de {capsulas.length}
+          </span>{" "}
+          · sin cuenta
+        </p>
+      </div>
+      <ul className="sin-barra flex gap-4 overflow-x-auto px-5 pt-3 pb-2">
         {capsulas.map((c, i) => {
           const vista = vistas.includes(c.id);
           return (
