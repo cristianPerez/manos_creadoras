@@ -32,7 +32,18 @@ export default async function Legal({ params }: Props) {
     <main className="px-5 py-12">
       <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[220px_minmax(0,1fr)]">
         {/* El selector: barra lateral en escritorio, píldoras con scroll en móvil. */}
-        <nav aria-label="Documentos legales" className="lg:sticky lg:top-8 lg:h-fit">
+        {/*
+          ⚠️ `min-w-0` NO ES DECORATIVO: SIN ÉL LA PÁGINA NO CABE EN UN MÓVIL
+          (2026-11-01). Los hijos de un grid no se encogen por debajo de su
+          contenido salvo que se les diga, y la fila de pestañas lleva
+          `whitespace-nowrap`: los cuatro botones medían 733px, estiraban la
+          columna, y con ella TODO el artículo. El resultado era el texto legal
+          cortado por la derecha en cada párrafo, en todos los dispositivos
+          estrechos. El `overflow-x-auto` del `ul` no bastaba: deslizaba la
+          fila, pero el padre ya se había estirado.
+          El `article` de abajo ya lo tenía; al `nav` se le había olvidado.
+        */}
+        <nav aria-label="Documentos legales" className="min-w-0 lg:sticky lg:top-8 lg:h-fit">
           <ul className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-2 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
             {Object.entries(DOCUMENTOS).map(([clave, d]) => {
               const activo = clave === documento;
