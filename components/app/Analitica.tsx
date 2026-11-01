@@ -16,6 +16,7 @@ export function Analitica({
   pais,
   region,
   fuentePais,
+  ciudad,
 }: {
   userId: string | null;
   /** "CO", "MX"… lo da Vercel desde la conexión. Ver `lib/pais.ts`. */
@@ -24,6 +25,15 @@ export function Analitica({
   region?: string;
   /** De dónde salió el país: "vercel" (fiable), "idioma" o "defecto". */
   fuentePais?: string;
+  /**
+   * La ciudad, cuando Vercel la sabe.
+   *
+   * ⚠️ SE MANDA DESDE AQUÍ PORQUE LA COLUMNA "City" DE MIXPANEL SALE VACÍA, y
+   * no es un fallo suyo: la calcula desde la IP, y nosotros no se la damos
+   * (`ip: false`) porque es dato personal y la política promete no guardarla.
+   * Así se tiene la ciudad sin entregar la IP.
+   */
+  ciudad?: string | null;
 }) {
   useEffect(() => {
     iniciarMixpanel();
@@ -34,9 +44,9 @@ export function Analitica({
      * contexto llegara después, esos primeros eventos irían sin país, que es
      * justo lo que se venía a arreglar.
      */
-    registrarContexto({ pais, region, fuente_pais: fuentePais });
+    registrarContexto({ pais, region, fuente_pais: fuentePais, ciudad: ciudad ?? undefined });
     if (userId) identificar(userId);
-  }, [userId, pais, region, fuentePais]);
+  }, [userId, pais, region, fuentePais, ciudad]);
 
   return null;
 }
