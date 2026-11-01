@@ -13,7 +13,7 @@ import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida
 import { WHATSAPP_URL } from "@/lib/landing";
 import {
   GARANTIA,
-  incluyeCon,
+  INCLUYE,
   notaDelCobro,
   precioPorMesDe,
   type Frecuencia,
@@ -36,15 +36,7 @@ import {
  *
  * Las cifras salen de `lib/planes.ts` y del catálogo: ni una escrita en el JSX.
  */
-export function PrecioHome({
-  enlaces,
-  bolsos,
-  videos,
-}: {
-  enlaces: Record<Frecuencia, string | null>;
-  bolsos: number;
-  videos: number;
-}) {
+export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | null> }) {
   // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
   const frecuencia = useFrecuenciaElegida();
   const quieto = useReducedMotion();
@@ -85,7 +77,7 @@ export function PrecioHome({
               className="font-display text-cream mt-2 text-balance"
               style={{ fontWeight: 500, fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.15 }}
             >
-              Curso completo de bolsos de perlas
+              Membresía Manos Creadoras
             </h3>
 
             <p className="mt-4 flex items-baseline gap-2">
@@ -136,7 +128,7 @@ export function PrecioHome({
                 <ul className="text-on-dark-muted flex flex-col gap-2.5 text-sm md:flex-row md:flex-wrap md:gap-x-5">
                   <li className="flex items-center gap-2">
                     <Lock size={15} className="text-gold-light shrink-0" aria-hidden="true" />
-                    Pago seguro con OnePay
+                    Pago seguro
                   </li>
                   <li className="flex items-center gap-2">
                     <CreditCard size={15} className="text-gold-light shrink-0" aria-hidden="true" />
@@ -145,6 +137,12 @@ export function PrecioHome({
                   <li className="flex items-center gap-2">
                     <Mail size={15} className="text-gold-light shrink-0" aria-hidden="true" />
                     Acceso inmediato por correo
+                  </li>
+                  {/* La objeción nº1 de cualquier suscripción. Faltaba en toda
+                      la tarjeta y lo marcó el revisor. */}
+                  <li className="flex items-center gap-2">
+                    <Lock size={15} className="text-gold-light shrink-0" aria-hidden="true" />
+                    Cancelas cuando quieras
                   </li>
                 </ul>
               ) : (
@@ -160,7 +158,7 @@ export function PrecioHome({
           <div className="bg-ivory flex flex-col px-5.5 py-6 md:p-11">
             <p className="eyebrow">Incluye</p>
             <ul className="mt-4 flex flex-col gap-3.5">
-              {incluyeCon({ bolsos, videos }).map((b) => (
+              {INCLUYE.map((b) => (
                 <li key={b} className="text-espresso flex items-start gap-3 text-base">
                   <Check
                     size={17}

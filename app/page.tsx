@@ -159,7 +159,7 @@ export default async function Home() {
         {/* `id="banner"`: la barra fija de compra lo observa para no aparecer
             mientras el banner —que ya trae su botón— está a la vista. */}
         <div id="banner">
-          <HeroSlider fotos={fotos} totalBolsos={totalBolsos} />
+          <HeroSlider fotos={fotos} />
         </div>
         {/* Entre el banner y las cápsulas (2026-10-31, pedido de Cristian).
             Va en tarjeta café sobre crema para no pegar dos bloques oscuros:
@@ -176,13 +176,13 @@ export default async function Home() {
             />
           )}
 
-          <BandaUnoDe16 bolsos={totalBolsos} videos={totalVideos} />
+          <BandaUnoDe16 bolsos={totalBolsos} />
 
           <OjoDemo bolsoGratis={gratis?.slug ?? null} enlaces={cobro.url} />
 
-          <Elizabeth bolsos={totalBolsos} videos={totalVideos} />
+          <Elizabeth videos={totalVideos} />
 
-          <PrecioHome enlaces={cobro.url} bolsos={totalBolsos} videos={totalVideos} />
+          <PrecioHome enlaces={cobro.url} />
 
           <PreguntasFrecuentes />
 
@@ -200,7 +200,7 @@ export default async function Home() {
                   className="font-display text-cream text-balance"
                   style={{ fontWeight: 500, fontSize: "clamp(32px, 4vw, 52px)", lineHeight: 1.08 }}
                 >
-                  ¿Te gustó? Hay <em className="clave">{totalBolsos} bolsos</em> esperándote.
+                  ¿Te gustó? Esto <em className="clave">apenas empieza</em>.
                 </h2>
                 <p className="text-sand mt-3">
                   Plan anual: un pago de {precioDelCobro("anual")} al año · garantía de 7 días.

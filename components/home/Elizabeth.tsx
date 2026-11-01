@@ -14,9 +14,17 @@ import { PROFESORA, TESTIMONIOS } from "@/lib/landing";
  * Los testimonios NO se pintan mientras `TESTIMONIOS` esté vacía. Ver la nota en
  * `lib/landing.ts`: no se inventan.
  */
-export function Elizabeth({ bolsos, videos }: { bolsos: number; videos: number }) {
+export function Elizabeth({ videos }: { videos: number }) {
+  /*
+   * ⚠️ AQUÍ ESTABA EL NÚMERO DE BOLSOS Y SE QUITÓ (2026-11-01). Contar los
+   * bolsos del catálogo le ponía techo a una suscripción que promete clases
+   * nuevas cada semana: la cifra decía "esto es lo que hay", justo lo
+   * contrario de lo que se quiere contar.
+   *
+   * Los videos SÍ se quedan, y además crecen solos cada semana: esa cifra
+   * juega a favor. La acompaña la cadencia, que es la razón de seguir pagando.
+   */
   const cifras = [
-    { valor: bolsos, pie: "bolsos", pieCorto: "bolsos" },
     { valor: videos, pie: "videos paso a paso", pieCorto: "videos" },
     { valor: 7, pie: "días de garantía", pieCorto: "días de garantía" },
   ];
