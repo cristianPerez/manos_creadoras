@@ -10,7 +10,7 @@ import { alumnaActual } from "@/lib/alumna";
 import { esLlavero, listarBolsos } from "@/lib/bolsos";
 import { fechaLarga, finDelCicloEnCurso } from "@/lib/ciclo";
 import { enlacesDeCobro } from "@/lib/checkout";
-import { INCLUYE } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO, INCLUYE } from "@/lib/planes";
 
 export const metadata: Metadata = {
   title: "Mi plan — Manos Creadoras",
@@ -116,7 +116,12 @@ export default async function MiPlan({
             <Entrada retraso={0.07}>
               <SelectorDePago
                 enlaces={cobro.url}
-                frecuenciaInicial={ciclo === "mensual" ? "mensual" : "anual"}
+                frecuenciaInicial={
+                  /* ⚠️ `ciclo` viene de la URL: es texto de fuera y hay que
+                     validarlo, no confiar en él. Cualquier cosa que no sea un
+                     ciclo conocido cae al plan por defecto. */
+                  ciclo === "mensual" || ciclo === "anual" ? ciclo : FRECUENCIA_POR_DEFECTO
+                }
                 correo={alumna?.email ?? null}
               />
             </Entrada>

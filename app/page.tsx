@@ -16,7 +16,7 @@ import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
 import { PreguntasFrecuentes } from "@/components/home/PreguntasFrecuentes";
 import { faqJsonLd } from "@/lib/landing";
-import { precioDelCobro, precioDesde } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO, precioDelCobro, precioDesde } from "@/lib/planes";
 import { listarCapsulas } from "@/lib/capsulas";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
 import { esLlavero } from "@/lib/bolsos-logica";
@@ -222,15 +222,20 @@ export default async function Home() {
                 >
                   ¿Te gustó? Esto <em className="clave">apenas empieza</em>.
                 </h2>
+                {/* El cierre sigue al plan por defecto como el resto de la
+                    página: si aquí dijera "anual" mientras los demás botones
+                    abren el mensual, serían dos ofertas distintas en la misma
+                    pantalla. */}
                 <p className="text-sand mt-3">
-                  Plan anual: un pago de {precioDelCobro("anual")} al año · garantía de 7 días.
+                  Plan mensual: {precioDelCobro(FRECUENCIA_POR_DEFECTO)} al mes · cancelas cuando
+                  quieras · garantía de 7 días.
                 </p>
               </div>
               <EnlaceCompra
-                href={cobro.url.anual ?? "/pagar?ciclo=anual"}
+                href={cobro.url[FRECUENCIA_POR_DEFECTO] ?? `/pagar?ciclo=${FRECUENCIA_POR_DEFECTO}`}
                 origen="cierre"
-                plan="anual"
-                abrePago={Boolean(cobro.url.anual)}
+                plan={FRECUENCIA_POR_DEFECTO}
+                abrePago={Boolean(cobro.url[FRECUENCIA_POR_DEFECTO])}
                 className="bg-cream text-espresso flex h-13.5 shrink-0 items-center justify-center rounded-full px-10 font-semibold transition-transform active:scale-[0.98] max-md:w-full"
               >
                 Inscribirme por {precioDesde()}/mes

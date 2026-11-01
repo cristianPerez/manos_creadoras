@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { Frecuencia } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO, type Frecuencia } from "@/lib/planes";
 
 /**
  * Mensual o anual: UNA sola elección para toda la página.
@@ -31,11 +31,14 @@ import type { Frecuencia } from "@/lib/planes";
  */
 
 /*
- * ⚠️ ARRANCA EN "anual" Y ESO LO FIJA EL SERVIDOR TAMBIÉN. Si el valor inicial
- * del servidor y el del navegador no coinciden, React avisa de un error de
- * hidratación en lo primero que se ve de la página.
+ * ⚠️ ARRANCA EN "mensual" Y ESO LO FIJA EL SERVIDOR TAMBIÉN. Si el valor
+ * inicial del servidor y el del navegador no coinciden, React avisa de un
+ * error de hidratación en lo primero que se ve de la página.
+ *
+ * Era "anual" hasta el 2026-11-01; lo cambió Cristian. Sale de
+ * `FRECUENCIA_POR_DEFECTO` para que no haya dos sitios que puedan discrepar.
  */
-let elegida: Frecuencia = "anual";
+let elegida: Frecuencia = FRECUENCIA_POR_DEFECTO;
 const oyentes = new Set<() => void>();
 
 function suscribir(avisar: () => void) {
