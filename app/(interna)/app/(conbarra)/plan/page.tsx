@@ -92,7 +92,7 @@ export default async function MiPlan({
               <header className="text-center">
                 <EyebrowLinea centrado>Tu plan</EyebrowLinea>
                 <h1 className="titulo-seccion mt-3 text-balance">
-                  Desbloquea los <em className="clave">{totalBolsos} bolsos</em>
+                  Desbloquea <em className="clave">todos los bolsos</em>
                 </h1>
                 {/*
                   ⚠️ ANCLADO AL DOLOR Nº4 DE LA FICHA DE AVATAR: "ya gasté plata
@@ -106,8 +106,9 @@ export default async function MiPlan({
                   favor: ya se gastó eso, y sin que le quedara el bolso.
                 */}
                 <p className="text-ink-body mx-auto mt-3 max-w-2xl text-balance max-md:hidden">
-                  Un bolso que no queda bien cuesta más que esto en cuentas y herrajes. Aquí tienes
-                  el paso a paso de los {totalBolsos}, y el Ojo Experto revisando el tuyo.
+                  Un bolso que no queda bien cuesta más que esto en cuentas y herrajes. Aquí
+                  tienes el paso a paso de todos, clases nuevas cada semana y el Ojo Experto
+                  revisando el tuyo.
                 </p>
               </header>
             </Entrada>

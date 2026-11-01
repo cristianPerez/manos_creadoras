@@ -18,10 +18,18 @@ export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: s
  * mueve cuando ella quiere: flecha, puntito, dedo o teclado.
  */
 /** El párrafo del banner. Uno solo para los dos anchos, que solo cambian de sitio. */
+/*
+ * ⚠️ AQUÍ ENTRA LA COMUNIDAD (2026-11-01). El titular sigue prometiendo bolsos
+ * —es lo que busca quien llega desde Instagram, y lo concreto es lo que
+ * convence—, pero el párrafo ya cuenta que esto no se acaba en los bolsos:
+ * cada semana entra una clase y vienen las velas. Es la respuesta a la
+ * pregunta que decide una suscripción: "¿por qué sigo pagando el mes que
+ * viene?".
+ */
 const PARRAFO =
-  "Aprende desde cero con Elizabeth Valencia: mira las cápsulas, teje tu primer bolso gratis y pregúntale al Ojo Experto cuando algo no te salga.";
+  "Aprende desde cero con Elizabeth Valencia: teje tu primer bolso gratis y pregúntale al Ojo Experto cuando algo no te salga. Cada semana hay clase nueva, y pronto velas y más talleres.";
 
-export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBolsos: number }) {
+export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
   const [i, setI] = useState(0);
   const tocado = useRef<number | null>(null);
 
@@ -239,7 +247,7 @@ export function HeroSlider({ fotos, totalBolsos }: { fotos: FotoHero[]; totalBol
               href="/app"
               className="border-line text-espresso flex h-14 items-center justify-center rounded-full border px-8 font-semibold max-md:h-12 max-md:rounded-md"
             >
-              Ver los {totalBolsos} bolsos
+              Ver los bolsos
             </Link>
           </div>
 

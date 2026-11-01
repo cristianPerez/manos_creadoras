@@ -58,7 +58,7 @@ export function BannerPlan({
               {/* ⚠️ Decía "se abren los 23, uno nuevo cada mes": contaba los
                   llaveros como bolsos y prometía un bolso nuevo al mes, que no
                   existe (corregido el 2026-10-21). */}
-              Con el plan se abren los {bolsos} bolsos
+              Con el plan se abren todos los bolsos
               {llaveros > 0 ? ` y ${llaveros} llaveros` : ""}, el directorio de proveedores y el Ojo
               Experto · garantía de 7 días.
             </p>

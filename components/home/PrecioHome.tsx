@@ -13,7 +13,7 @@ import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida
 import { WHATSAPP_URL } from "@/lib/landing";
 import {
   GARANTIA,
-  incluyeCon,
+  INCLUYE,
   notaDelCobro,
   precioPorMesDe,
   type Frecuencia,
@@ -36,15 +36,7 @@ import {
  *
  * Las cifras salen de `lib/planes.ts` y del catálogo: ni una escrita en el JSX.
  */
-export function PrecioHome({
-  enlaces,
-  bolsos,
-  videos,
-}: {
-  enlaces: Record<Frecuencia, string | null>;
-  bolsos: number;
-  videos: number;
-}) {
+export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | null> }) {
   // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
   const frecuencia = useFrecuenciaElegida();
   const quieto = useReducedMotion();
@@ -160,7 +152,7 @@ export function PrecioHome({
           <div className="bg-ivory flex flex-col px-5.5 py-6 md:p-11">
             <p className="eyebrow">Incluye</p>
             <ul className="mt-4 flex flex-col gap-3.5">
-              {incluyeCon({ bolsos, videos }).map((b) => (
+              {INCLUYE.map((b) => (
                 <li key={b} className="text-espresso flex items-start gap-3 text-base">
                   <Check
                     size={17}

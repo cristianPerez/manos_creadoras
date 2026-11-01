@@ -23,7 +23,7 @@ const MUESTRAS = [
   { src: "/images/bolso-nacar-sonado.webp", alt: "Bolso Nácar Soñado" },
 ];
 
-export function BandaUnoDe16({ bolsos, videos }: { bolsos: number; videos: number }) {
+export function BandaUnoDe16({ bolsos }: { bolsos: number }) {
   return (
     /*
       ⚠️ HOME A COLOR (2026-10-22): FRANJA CAFÉ A TODO EL ANCHO, no una tarjeta
@@ -57,12 +57,12 @@ export function BandaUnoDe16({ bolsos, videos }: { bolsos: number; videos: numbe
             className="font-display text-cream text-balance"
             style={{ fontWeight: 500, fontSize: "clamp(28px, 3vw, 40px)", lineHeight: 1.12 }}
           >
-            Este es 1 de {bolsos} bolsos.{" "}
-            <em className="clave">Llévate los otros {bolsos - 1}.</em>
+            Este es solo uno.{" "}
+            <em className="clave">Llévate todos los demás.</em>
           </h2>
           <p className="text-sand mt-2">
-            {videos} videos paso a paso, la ficha de materiales de cada bolso y el Ojo Experto
-            para tus dudas.
+            Todos los bolsos paso a paso, con su ficha de materiales, clases nuevas cada
+            semana y el Ojo Experto para tus dudas.
           </p>
         </div>
 

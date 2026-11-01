@@ -109,22 +109,32 @@ export function ahorroAnualDe(): { dolares: number; pct: number } {
  * —ficha de materiales, directorio— en vez de "mini bolsos y llaveros", que no
  * hay. La comparten el home, Mi plan y el selector de pago: cambia en los tres.
  *
- * La primera línea no lleva cifras porque esta constante no sabe cuántos bolsos
- * hay; quien sí lo sabe (el home, que lee el catálogo) usa `incluyeCon`.
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ SE QUITÓ EL NÚMERO DE BOLSOS DE TODA LA PÁGINA (2026-11-01)
+ * ════════════════════════════════════════════════════════════════════════════
+ * Antes decía "20 bolsos" y había una función `incluyeCon` que metía la cifra
+ * del catálogo. Cristian la quitó, y la razón es de negocio, no de estilo:
+ *
+ *   · Una cifra cerrada es un TECHO. "20 bolsos" invita a la pregunta que
+ *     mata una suscripción: "¿por qué sigo pagando si ya los vi todos?".
+ *   · Manos Creadoras deja de ser un curso y pasa a ser una comunidad donde
+ *     entran clases nuevas cada semana, y pronto velas y otros talleres. Un
+ *     número fijo contradice eso y además envejece solo.
+ *
+ * Lo que sustituye a la cifra es la razón de seguir pagando: que cada semana
+ * hay algo nuevo. Si esa promesa deja de cumplirse, esta lista miente — es lo
+ * primero que hay que cambiar aquí.
  */
 export const INCLUYE = [
   "Todos los bolsos paso a paso, en video",
-  "Ficha de materiales de cada bolso",
+  "Clases nuevas cada semana",
+  "Velas y más talleres en camino, sin pagar de nuevo",
+  "Ficha de materiales de cada proyecto",
   "Directorio de proveedores",
-  "Estrategias para vender tus bolsos",
+  "Estrategias para vender tus creaciones",
   "El Ojo Experto para tus dudas",
   "Certificado al terminar",
 ] as const;
-
-/** `INCLUYE` con las cifras reales del catálogo en la primera línea. */
-export function incluyeCon({ bolsos, videos }: { bolsos: number; videos: number }): string[] {
-  return [`${bolsos} bolsos paso a paso, en ${videos} videos`, ...INCLUYE.slice(1)];
-}
 
 /**
  * El enlace de pago de OnePay, por ciclo.
