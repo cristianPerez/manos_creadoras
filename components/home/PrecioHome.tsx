@@ -77,7 +77,7 @@ export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | n
               className="font-display text-cream mt-2 text-balance"
               style={{ fontWeight: 500, fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.15 }}
             >
-              Curso completo de bolsos de perlas
+              Membresía Manos Creadoras
             </h3>
 
             <p className="mt-4 flex items-baseline gap-2">
@@ -128,7 +128,7 @@ export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | n
                 <ul className="text-on-dark-muted flex flex-col gap-2.5 text-sm md:flex-row md:flex-wrap md:gap-x-5">
                   <li className="flex items-center gap-2">
                     <Lock size={15} className="text-gold-light shrink-0" aria-hidden="true" />
-                    Pago seguro con OnePay
+                    Pago seguro
                   </li>
                   <li className="flex items-center gap-2">
                     <CreditCard size={15} className="text-gold-light shrink-0" aria-hidden="true" />
@@ -137,6 +137,12 @@ export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | n
                   <li className="flex items-center gap-2">
                     <Mail size={15} className="text-gold-light shrink-0" aria-hidden="true" />
                     Acceso inmediato por correo
+                  </li>
+                  {/* La objeción nº1 de cualquier suscripción. Faltaba en toda
+                      la tarjeta y lo marcó el revisor. */}
+                  <li className="flex items-center gap-2">
+                    <Lock size={15} className="text-gold-light shrink-0" aria-hidden="true" />
+                    Cancelas cuando quieras
                   </li>
                 </ul>
               ) : (

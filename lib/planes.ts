@@ -126,14 +126,14 @@ export function ahorroAnualDe(): { dolares: number; pct: number } {
  * primero que hay que cambiar aquí.
  */
 export const INCLUYE = [
-  "Todos los bolsos paso a paso, en video",
   "Clases nuevas cada semana",
   "Velas y más talleres en camino, sin pagar de nuevo",
+  "La biblioteca completa de bolsos en video, paso a paso",
   "Ficha de materiales de cada proyecto",
   "Directorio de proveedores",
   "Estrategias para vender tus creaciones",
   "El Ojo Experto para tus dudas",
-  "Certificado al terminar",
+  "Certificado por cada taller que termines",
 ] as const;
 
 /**
@@ -168,7 +168,7 @@ export const NOTA_PAGO = "Pago seguro · Cancelas cuando quieras";
 
 export const GARANTIA = {
   titulo: "Garantía de 7 días",
-  texto: "Si el curso no es para ti, pides tu reembolso dentro de los primeros 7 días.",
+  texto: "Si no es para ti, pides tu reembolso dentro de los primeros 7 días.",
 } as const;
 
 /** "US$19,70" — en dólares, con coma decimal porque la audiencia es LATAM:
