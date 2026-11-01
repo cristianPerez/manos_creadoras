@@ -21,6 +21,29 @@ export const EVENTOS = {
   /** Tocó un botón de compra. Lleva qué plan (mensual/anual). */
   checkoutAbierto: "checkout_abierto",
 
+  /*
+   * ── El embudo DENTRO del home (2026-11-01) ───────────────────────────
+   *
+   * ⚠️ POR QUÉ HICIERON FALTA. Hasta hoy entre "abrió la página" y "tocó
+   * pagar" no había NADA: se veía que alguien entraba y que alguien pagaba,
+   * pero no por dónde se perdían los demás. Cristian preguntó exactamente eso
+   * —dónde se atascan antes del pago— y no se podía responder.
+   *
+   * Con estos tres se puede: qué secciones llegó a ver, hasta dónde bajó y
+   * qué botones tocó por el camino.
+   */
+  /** Una sección del home entró en pantalla. Lleva `seccion`. */
+  seccionVista: "seccion_vista",
+  /** Hasta dónde bajó: 25, 50, 75 o 100. Un evento por hito, una vez cada uno. */
+  scrollProfundidad: "scroll_profundidad",
+  /**
+   * Cualquier botón o enlace tocado, con su texto y su sección.
+   *
+   * Es la red de seguridad: un botón que nadie instrumentó igual aparece aquí.
+   * Lo copiamos de El Charcu, donde ya evitó más de un punto ciego.
+   */
+  botonClick: "boton_click",
+
   // ── El regalo: los 3 tutoriales ───────────────────────────────────────
   /**
    * Entró a la app SIN cuenta y vio los tutoriales de cortesía.

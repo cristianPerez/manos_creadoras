@@ -10,6 +10,7 @@ import { CursoGratis, type PasoGratis } from "@/components/home/CursoGratis";
 import { Elizabeth } from "@/components/home/Elizabeth";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { HeroSlider, type FotoHero } from "@/components/home/HeroSlider";
+import { MedirHome } from "@/components/home/MedirHome";
 import { Navidad } from "@/components/home/Navidad";
 import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
@@ -155,36 +156,55 @@ export default async function Home() {
           visor. Cada una se oculta sola en el tamaño que no le toca. */}
       <ProveedorCapsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas}>
       <main className="flex flex-col">
-        <HistoriasCapsulas />
+        <MedirHome />
+        <div data-seccion="historias">
+          <HistoriasCapsulas />
+        </div>
         {/* `id="banner"`: la barra fija de compra lo observa para no aparecer
             mientras el banner —que ya trae su botón— está a la vista. */}
-        <div id="banner">
+        <div id="banner" data-seccion="banner">
           <HeroSlider fotos={fotos} />
         </div>
         {/* Entre el banner y las cápsulas (2026-10-31, pedido de Cristian).
             Va en tarjeta café sobre crema para no pegar dos bloques oscuros:
             ver la cabecera de `Navidad.tsx`. */}
-        <Navidad />
-        <Capsulas />
+        <div data-seccion="navidad">
+          <Navidad />
+        </div>
+        <div data-seccion="capsulas">
+          <Capsulas />
+        </div>
         <div>
           {gratis && (
-            <CursoGratis
-              slug={gratis.slug}
-              nombre={gratis.nombre}
-              pasos={pasos}
-              portadaUrl={gratis.portadaUrl}
-            />
+            <div data-seccion="gratis">
+              <CursoGratis
+                slug={gratis.slug}
+                nombre={gratis.nombre}
+                pasos={pasos}
+                portadaUrl={gratis.portadaUrl}
+              />
+            </div>
           )}
 
-          <BandaUnoDe16 bolsos={totalBolsos} />
+          <div data-seccion="banda">
+            <BandaUnoDe16 bolsos={totalBolsos} />
+          </div>
 
-          <OjoDemo bolsoGratis={gratis?.slug ?? null} enlaces={cobro.url} />
+          <div data-seccion="ojo">
+            <OjoDemo bolsoGratis={gratis?.slug ?? null} enlaces={cobro.url} />
+          </div>
 
-          <Elizabeth videos={totalVideos} />
+          <div data-seccion="elizabeth">
+            <Elizabeth videos={totalVideos} />
+          </div>
 
-          <PrecioHome enlaces={cobro.url} />
+          <div data-seccion="precio">
+            <PrecioHome enlaces={cobro.url} />
+          </div>
 
-          <PreguntasFrecuentes />
+          <div data-seccion="faq">
+            <PreguntasFrecuentes />
+          </div>
 
           {/*
             El cierre. ⚠️ ABRE EL PAGO ANUAL DIRECTAMENTE: quien llega hasta
@@ -193,7 +213,7 @@ export default async function Home() {
           */}
           {/* Home a color (2026-10-22): franja café a todo el ancho y
               centrada, no una tarjeta espresso dentro de la crema. */}
-          <section className="bg-cacao sobre-oscuro grain-oscuro px-5 py-12 text-center md:py-18">
+          <section data-seccion="cierre" className="bg-cacao sobre-oscuro grain-oscuro px-5 py-12 text-center md:py-18">
             <div className="mx-auto flex max-w-3xl flex-col items-center gap-5">
               <div>
                 <h2
