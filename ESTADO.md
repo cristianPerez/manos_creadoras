@@ -14,7 +14,7 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
 🔗 **DIRECTORIO: UN ENLACE GRATIS PARA TODAS, EL RESTO CON MEMBRESÍA
-(2026-11-02, migraciones 0041 + 0042, decisión de Cristian).** «Cuentas de 10 mm»
+(2026-11-02, migraciones 0041 + 0042, decisión de Cristian). En QA y PRODUCCIÓN.** «Cuentas de 10 mm»
 (`directorio_items.gratis`, se usa en 8 bolsos) lo abre cualquiera, con cuenta o
 sin ella, y va primero; los otros 12 enlaces muestran "Desbloquear" y el aviso de
 la membresía. Cambiar cuál es el gratis = mover `gratis` de fila.
@@ -25,6 +25,12 @@ la membresía. Cambiar cuál es el gratis = mover `gratis` de fila.
   `tiene_acceso_de()` y redirige. Verificado en QA: sin sesión el gratis abre y
   el resto da `bloqueado`; `select=url` → permiso denegado; con membresía abren
   los 13; 0 URLs de Temu en el HTML de las 16 fichas.
+· ⚠️ **CÓMO SE APLICÓ A PRODUCCIÓN (la contraseña de `.env.prod` no entra,
+  ni después de 2 resets):** `supabase link --project-ref icbhtsdalysatlizjlys`
+  SIN contraseña, desde una carpeta temporal (para no desenlazar QA), y
+  `supabase db push --linked --yes`: el CLI crea un rol de acceso temporal con
+  la sesión de la cuenta. La app NO usa `SUPABASE_DB_PASSWORD` (Vercel no la
+  necesita). Historial de producción: 42/42, sin descuadre.
 · `directorio_clics` apunta qué abre cada alumna con sesión (para saber qué
   material se busca). El seed ya NO manda `url`: re-sembrar no borra enlaces.
 · **Sin fotos, el directorio es una LISTA de filas** (ícono, nombre, botón; 2

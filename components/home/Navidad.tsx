@@ -86,6 +86,23 @@ export function Navidad() {
       className="bg-cacao sobre-oscuro grain-oscuro border-y border-[color-mix(in_srgb,var(--gold-light)_25%,transparent)] px-5 py-18 md:py-20"
     >
       <Entrada className="mx-auto max-w-[1240px]">
+        {/*
+          ⚠️ EL TÍTULO VA ARRIBA Y CENTRADO, ENCIMA DE LA FOTO (2026-11-02,
+          pedido de Cristian). Vivía en la columna del texto: en móvil la foto
+          caía primero y se veía una bandeja sin título, sin saber de qué era
+          la sección hasta bajar. Ahora el badge y el título abren la sección
+          en los dos tamaños, y la foto y el texto van debajo.
+        */}
+        <div className="mb-8 flex flex-col items-center text-center md:mb-12">
+          <p className="eyebrow text-gold-pale inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--gold-pale)_40%,transparent)] px-4 py-2">
+            <Gift aria-hidden="true" size={15} />
+            <span>Edición navideña</span>
+          </p>
+          <h2 id="navidad-titulo" className="titulo-seccion mt-5 text-balance">
+            Accesorios <em className="clave">navideños</em> en cuentas
+          </h2>
+        </div>
+
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
           {/* ── La foto. Primera en el DOM a propósito: ver la cabecera. ── */}
           <Image
@@ -127,16 +144,6 @@ export function Navidad() {
                 sobre cacao se queda en 4,4:1 — justo por debajo del 4,5 que
                 necesita un texto de 12px en versalitas. Pale sube a 5,5:1 y
                 sigue siendo dorado. */}
-            <Entrada retraso={0.07}>
-              <p className="eyebrow text-gold-pale inline-flex items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--gold-pale)_40%,transparent)] px-4 py-2">
-                <Gift aria-hidden="true" size={15} />
-                <span>Edición navideña</span>
-              </p>
-              <h2 id="navidad-titulo" className="titulo-seccion mt-5 text-balance">
-                Accesorios <em className="clave">navideños</em> en cuentas
-              </h2>
-            </Entrada>
-
             {/* El subtítulo del original era catálogo puro ("esferas, coronas,
                 bastones…"). El revisor lo bajó a 10/20 de copy: cero deseo. La
                 segunda frase ancla en el deseo #1 y #4 de la ficha de avatar —
@@ -160,8 +167,8 @@ export function Navidad() {
                 ⚠️ EN CUANTO LOS VIDEOS ESTÉN ARRIBA, ESTA FRASE SE CAMBIA. Si
                 se quedara después de publicarlos, estaría mandando a la gente a
                 esperar algo que ya puede ver. */}
-            <Entrada retraso={0.14}>
-              <p className="text-on-dark-muted mt-3 text-balance">
+            <Entrada retraso={0.07}>
+              <p className="text-on-dark-muted text-balance">
                 12 piezas en perla y cristal, incluidas en tu membresía: los
                 videos paso a paso{" "}
                 <span className="text-gold-pale">se publican en diciembre</span>.
@@ -191,7 +198,7 @@ export function Navidad() {
               tokens justo para esto, un bloque dentro de un fondo oscuro.
             */}
             <Entrada
-              retraso={0.21}
+              retraso={0.14}
               className="bg-espresso-2 mt-6 rounded-(--radius-capsula) border border-[color-mix(in_srgb,var(--gold-pale)_20%,transparent)] px-4 pt-4 pb-1.5"
             >
               {/* El rótulo del bloque (revisor, 2026-11-02): sin él, los 12
@@ -230,7 +237,7 @@ export function Navidad() {
               precio, y mandarlo a OnePay sería pedirle la tarjeta antes de
               decirle cuánto cuesta.
             */}
-            <Entrada retraso={0.28} className="mt-8">
+            <Entrada retraso={0.21} className="mt-8">
               <EnlaceCompra
                 href="#precio"
                 origen="navidad"
