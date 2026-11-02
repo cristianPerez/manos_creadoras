@@ -154,8 +154,13 @@ con la Visa 4242 → «Transacción Aprobada» (ticket `8200-ba4285fbd111`) →
 webhook `0a9eb542` procesado en 2,3 s → membresía `completo` activa. En
 producción se comprobó que la web anuncia US$117 y que el checkout real abre a
 US$117, **sin pagar**: ahí cualquier pago es dinero de verdad.
-· ⚠️ **El anual ahora sale a US$9,75/mes, la MITAD del mensual de US$19,70, y
-  el ahorro saltó del 29% al 51% (US$119).** Es un descuento muy agresivo: hace
+· ✅ **LA BRECHA ENTRE LOS DOS PLANES ES A PROPÓSITO, NO UN DESCUIDO.** Se le
+  planteó a Cristian el mismo 2026-11-02 —con los números delante— y confirmó
+  el precio: «Déjalo en 117». **No se re-pregunta ni se "corrige" subiéndolo.**
+  Si algún día hay que moverlo, es con `/precios` y protegiendo a quien ya
+  compró (grandfathering), no editando la constante a secas.
+· ⚠️ **El anual sale a US$9,75/mes, la MITAD del mensual de US$19,70, y el
+  ahorro saltó del 29% al 51% (US$119).** Es un descuento muy agresivo: hace
   que pagar mes a mes sea mal negocio para la alumna, así que es de esperar que
   casi todo el mundo elija el anual. Entra más dinero por venta y se cobra por
   adelantado, pero el ingreso mensual recurrente se vuelve un pago al año.
