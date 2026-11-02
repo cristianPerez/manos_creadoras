@@ -65,6 +65,7 @@ export function Directorio({
 
   const conEnlace = useMemo(() => items.filter((i) => i.tieneEnlace).length, [items]);
   const gratis = items.find((i) => i.gratis && i.tieneEnlace);
+  const conFotos = useMemo(() => items.some((i) => i.imagenUrl), [items]);
 
   const cerrarAviso = () => {
     setAviso(null);
@@ -165,74 +166,85 @@ export function Directorio({
             .
           </p>
         ) : (
-          /* Lista en móvil (fila con el botón a la derecha), cuatro columnas
-             de tarjeta en escritorio. */
-          <ul className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-4 lg:gap-4">
-            {visibles.map((item, n) => (
-              <li
-                key={item.id}
-                /* Entrada escalonada solo en las primeras: más abajo nadie la ve. */
-                style={{ "--reveal-delay": `${Math.min(n, 8) * 50}ms` } as CSSProperties}
-                className="reveal motion-reduce:animate-none bg-ivory border-line flex items-center gap-3.5 rounded-lg border p-3 pr-3.5 lg:flex-col lg:items-stretch lg:gap-0 lg:overflow-hidden lg:p-0"
-              >
-                <Miniatura item={item} />
-                <div className="min-w-0 flex-1 lg:px-6 lg:pt-5">
-                  <p className="eyebrow">{item.categoria}</p>
-                  <h3
-                    className="font-display text-espresso mt-1 text-[21px] lining-nums leading-[1.15] lg:mt-1.5 lg:text-2xl"
-                    style={{ fontWeight: 500 }}
+          /*
+            ⚠️ TARJETA SOLO SI HAY FOTO (pedido de Cristian, 2026-11-02). Una
+            tarjeta con un ícono suelto en vez de foto es una caja vacía: a
+            cuatro columnas en escritorio se veía como un catálogo sin cargar.
+            Sin fotos, el directorio es una LISTA de filas (ícono pequeño,
+            nombre, botón), que es lo que de verdad es. En cuanto haya fotos en
+            `imagen_url`, vuelve la cuadrícula de tarjetas.
+          */
+          conFotos ? (
+            <ul className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-4 lg:gap-4">
+              {visibles.map((item, n) => (
+                <li
+                  key={item.id}
+                  style={{ "--reveal-delay": `${Math.min(n, 8) * 50}ms` } as CSSProperties}
+                  className="reveal motion-reduce:animate-none bg-ivory border-line flex items-center gap-3.5 rounded-lg border p-3 pr-3.5 lg:flex-col lg:items-stretch lg:gap-0 lg:overflow-hidden lg:p-0"
+                >
+                  <Miniatura item={item} />
+                  <div className="min-w-0 flex-1 lg:px-6 lg:pt-5">
+                    <p className="eyebrow">{item.categoria}</p>
+                    <h3
+                      className="font-display text-espresso mt-1 text-[21px] leading-[1.15] lining-nums lg:mt-1.5 lg:text-2xl"
+                      style={{ fontWeight: 500 }}
+                    >
+                      {item.nombre}
+                    </h3>
+                    <p className="text-ink-muted mt-1 text-sm">
+                      Se usa en {item.bolsos} {item.bolsos === 1 ? "bolso" : "bolsos"}
+                    </p>
+                  </div>
+                  <div className="shrink-0 lg:mt-auto lg:px-6 lg:pt-5 lg:pb-6">
+                    <BotonCompra item={item} conAcceso={acceso.conAcceso} onBloqueado={() => setAviso("membresia")} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            /* Una sola superficie con filas separadas por una línea fina; en
+               escritorio, dos columnas para que la fila no mida 1200px. */
+            <ul className="bg-ivory border-line mt-6 overflow-hidden rounded-lg border lg:grid lg:grid-cols-2 [&>li:last-child]:border-b-0 lg:[&>li:nth-last-child(2):nth-child(odd)]:border-b-0">
+              {visibles.map((item, n) => {
+                const Icono = ICONO_CATEGORIA[item.categoriaId] ?? Package;
+                return (
+                  <li
+                    key={item.id}
+                    style={{ "--reveal-delay": `${Math.min(n, 10) * 40}ms` } as CSSProperties}
+                    className="reveal motion-reduce:animate-none border-line flex min-h-18 items-center gap-3.5 border-b px-4 py-3 lg:px-6 lg:odd:border-r"
                   >
-                    {item.nombre}
-                  </h3>
-                  <p className="text-ink-muted mt-1 text-sm">
-                    Se usa en {item.bolsos} {item.bolsos === 1 ? "bolso" : "bolsos"}
-                  </p>
-                </div>
-
-                {/*
-                  ⚠️ SIN ENLACE, EL BOTÓN SE VE PERO NO MIENTE. Esconderlo dejaría
-                  la tarjeta coja y sin explicar por qué; un botón activo que no
-                  lleva a ningún sitio es peor. "Enlace pronto" con borde
-                  punteado cuenta la verdad: el producto existe, el enlace llega
-                  después.
-                */}
-                <div className="shrink-0 lg:mt-auto lg:px-6 lg:pt-5 lg:pb-6">
-                  {!item.tieneEnlace ? (
                     <span
-                      aria-disabled="true"
-                      className="border-line-strong text-ink-body flex h-11 cursor-not-allowed items-center justify-center rounded-full border border-dashed px-4 text-sm font-semibold"
+                      aria-hidden="true"
+                      className={`flex size-11 shrink-0 items-center justify-center rounded-full ${
+                        item.gratis && !acceso.conAcceso ? "bg-gold-pale text-cacao" : "bg-sand text-cacao/80"
+                      }`}
                     >
-                      <span className="lg:hidden">Pronto</span>
-                      <span className="max-lg:hidden">Enlace pronto</span>
+                      <Icono size={20} strokeWidth={1.6} />
                     </span>
-                  ) : acceso.conAcceso || item.gratis ? (
-                    <a
-                      href={rutaCompra(item.id)}
-                      target="_blank"
-                      /* `sponsored`: pueden ser de afiliado y decirlo es lo
-                         correcto. `noopener`: la pestaña nueva no toca la nuestra. */
-                      rel="sponsored noopener"
-                      className="bg-cacao text-ivory flex h-11 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-transform duration-100 [touch-action:manipulation] active:scale-[0.97]"
-                    >
-                      {/* Sin membresía, el abierto se dice: es la muestra gratis. */}
-                      {acceso.conAcceso ? "Comprar" : "Gratis"}
-                      <ArrowUpRight size={16} aria-hidden="true" />
-                    </a>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setAviso("membresia")}
-                      aria-haspopup="dialog"
-                      className="border-cacao text-cacao hover:bg-sand flex h-11 items-center lg:w-full justify-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-[background-color,transform] duration-100 [touch-action:manipulation] active:scale-[0.97]"
-                    >
-                      <LockKeyhole size={15} aria-hidden="true" />
-                      Desbloquear
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+                    <div className="min-w-0 flex-1">
+                      <h3
+                        className="font-display text-espresso text-[19px] leading-tight lining-nums lg:text-xl"
+                        style={{ fontWeight: 500 }}
+                      >
+                        {item.nombre}
+                      </h3>
+                      <p className="text-ink-muted mt-0.5 truncate text-[13px]">
+                        {item.categoria} · {item.bolsos} {item.bolsos === 1 ? "bolso" : "bolsos"}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <BotonCompra
+                        item={item}
+                        conAcceso={acceso.conAcceso}
+                        onBloqueado={() => setAviso("membresia")}
+                        compacto
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )
         )}
 
         <p className="text-ink-muted mt-8 text-xs">
@@ -243,6 +255,71 @@ export function Directorio({
 
       <AvisoDirectorio aviso={aviso} conEnlace={conEnlace} onCerrar={cerrarAviso} />
     </div>
+  );
+}
+
+/**
+ * El botón de cada producto: comprar (con membresía o si es el gratis),
+ * desbloquear (abre el aviso) o "Pronto" si aún no hay enlace.
+ *
+ * ⚠️ SIN ENLACE, EL BOTÓN SE VE PERO NO MIENTE. Esconderlo dejaría la fila coja
+ * y sin explicar por qué; un botón activo que no lleva a ningún sitio es peor.
+ */
+function BotonCompra({
+  item,
+  conAcceso,
+  onBloqueado,
+  compacto = false,
+}: {
+  item: ItemDirectorio;
+  conAcceso: boolean;
+  onBloqueado: () => void;
+  compacto?: boolean;
+}) {
+  const alto = compacto ? "h-10 px-3.5" : "h-11 px-4";
+  if (!item.tieneEnlace) {
+    return (
+      <span
+        aria-disabled="true"
+        className={`border-line-strong text-ink-muted flex ${alto} cursor-not-allowed items-center justify-center rounded-full border border-dashed text-sm font-semibold`}
+      >
+        <span className={compacto ? "" : "lg:hidden"}>Pronto</span>
+        {!compacto && <span className="max-lg:hidden">Enlace pronto</span>}
+      </span>
+    );
+  }
+  if (conAcceso || item.gratis) {
+    return (
+      <a
+        href={rutaCompra(item.id)}
+        target="_blank"
+        /* `sponsored`: pueden ser de afiliado y decirlo es lo correcto.
+           `noopener`: la pestaña nueva no toca la nuestra. */
+        rel="sponsored noopener"
+        className={`bg-cacao text-ivory flex ${alto} items-center justify-center gap-1.5 rounded-full text-sm font-semibold transition-transform duration-100 [touch-action:manipulation] active:scale-[0.97]`}
+      >
+        {/* Sin membresía, el abierto se dice: es la muestra gratis. */}
+        {conAcceso ? "Comprar" : "Gratis"}
+        <ArrowUpRight size={16} aria-hidden="true" />
+      </a>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onBloqueado}
+      aria-haspopup="dialog"
+      aria-label={`Desbloquear el enlace de ${item.nombre}`}
+      /* En la fila de móvil, solo el candado (44px): la palabra entera le
+         quitaba al nombre del producto el ancho que necesita para leerse. La
+         franja de arriba ya explica qué abre la membresía. */
+      className={`border-cacao text-cacao hover:bg-sand flex items-center justify-center gap-1.5 rounded-full border text-sm font-semibold transition-[background-color,transform] duration-100 [touch-action:manipulation] active:scale-[0.97] ${
+        compacto ? "size-11 lg:h-10 lg:w-auto lg:px-3.5" : "h-11 px-4 lg:w-full"
+      }`}
+    >
+      <LockKeyhole size={compacto ? 17 : 15} aria-hidden="true" />
+      <span className={compacto ? "max-lg:hidden" : ""}>Desbloquear</span>
+    </button>
   );
 }
 

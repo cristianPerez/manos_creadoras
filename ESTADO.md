@@ -27,8 +27,12 @@ la membresía. Cambiar cuál es el gratis = mover `gratis` de fila.
   los 13; 0 URLs de Temu en el HTML de las 16 fichas.
 · `directorio_clics` apunta qué abre cada alumna con sesión (para saber qué
   material se busca). El seed ya NO manda `url`: re-sembrar no borra enlaces.
-· Revisor visual (2ª ronda): 28/40 · 11/20 · copy 14/20 — **no lista** por
-  craft. Pendiente: fotos de producto, grano/sombra en la card gratis, modal con
+· **Sin fotos, el directorio es una LISTA de filas** (ícono, nombre, botón; 2
+  columnas en escritorio; en móvil el bloqueado es solo un candado de 44px).
+  Las tarjetas vuelven solas en cuanto algún producto tenga `imagen_url`
+  (pedido de Cristian: una tarjeta con un ícono suelto era una caja vacía).
+· Revisor visual (2ª ronda, aún con tarjetas): 28/40 · 11/20 · copy 14/20 —
+  **no lista** por craft. Pendiente: fotos de producto, modal con
   desplazamiento además de fundido, y la cabecera compartida (avatar "AD"
   cortado a 375px con sesión = 2px de scroll horizontal en toda `/app`).
 
