@@ -1,6 +1,6 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-10-21.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-11-02.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
 mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
@@ -12,6 +12,25 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > Quedan ~353 líneas y la regla del SO son 200. No se recorta más a costa de
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
+
+🔗 **DIRECTORIO: UN ENLACE GRATIS PARA TODAS, EL RESTO CON MEMBRESÍA
+(2026-11-02, migraciones 0041 + 0042, decisión de Cristian).** «Cuentas de 10 mm»
+(`directorio_items.gratis`, se usa en 8 bolsos) lo abre cualquiera, con cuenta o
+sin ella, y va primero; los otros 12 enlaces muestran "Desbloquear" y el aviso de
+la membresía. Cambiar cuál es el gratis = mover `gratis` de fila.
+· ⚠️ **LA URL DE TEMU NUNCA LLEGA AL NAVEGADOR.** La columna `url` ya no es
+  legible con la clave pública (permiso por columna, 0041; antes "la leía
+  cualquiera" y el muro habría sido decorativo). Todo salto pasa por
+  `/app/directorio/ir/<id>` → `abrir_enlace_directorio()`, que comprueba con
+  `tiene_acceso_de()` y redirige. Verificado en QA: sin sesión el gratis abre y
+  el resto da `bloqueado`; `select=url` → permiso denegado; con membresía abren
+  los 13; 0 URLs de Temu en el HTML de las 16 fichas.
+· `directorio_clics` apunta qué abre cada alumna con sesión (para saber qué
+  material se busca). El seed ya NO manda `url`: re-sembrar no borra enlaces.
+· Revisor visual (2ª ronda): 28/40 · 11/20 · copy 14/20 — **no lista** por
+  craft. Pendiente: fotos de producto, grano/sombra en la card gratis, modal con
+  desplazamiento además de fundido, y la cabecera compartida (avatar "AD"
+  cortado a 375px con sesión = 2px de scroll horizontal en toda `/app`).
 
 ---
 
@@ -290,7 +309,14 @@ QA `4af968e2…` (id 4064035). Ver el aviso de más arriba sobre el token cruzad
       Cálido recibió la suya el 2026-10-21). Las de los 4 bolsos nuevos y los 3 llaveros entraron el
       2026-10-21, asignadas por forma y materiales; **Icono y Perla Clásica son las
       menos seguras**, que Elizabeth las confirme. Formato: WebP 720×720, calidad 65.
-- [ ] **Los 33 enlaces de AliExpress** (el botón dice "Enlace pronto").
+- [ ] **Faltan 20 enlaces del directorio** (hay 13 de Temu, migración 0041; los
+      demás dicen "Pronto"). Tres enlaces que pasó Cristian NO se usaron a
+      propósito (segundo terciopelo, cuentas "con patrones", cierre magnético UK):
+      ver la cabecera de la 0041. ⚠️ El de **terciopelo**: al abrirlo, Temu titula
+      la página "tela elástica cuadros material vellón" — que alguien lo confirme.
+- [ ] **Fotos de los productos del directorio.** Temu bloquea la lectura
+      automática con CAPTCHA. La pantalla ya las pinta si se llena
+      `directorio_items.imagen_url` (URL de la foto); mientras, ícono por categoría.
 
 ---
 

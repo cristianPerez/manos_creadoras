@@ -41,7 +41,7 @@ export type Material = {
   id: string;
   texto: string;
   /** Productos del directorio con los que se compra. Puede venir vacío. */
-  compras: { id: string; nombre: string; url: string | null }[];
+  compras: { id: string; nombre: string; tieneEnlace: boolean }[];
   tengo: boolean;
 };
 
@@ -216,10 +216,33 @@ export function estadoDe(bolso: Bolso): "terminado" | "en-curso" | "nuevo" {
 export type ItemDirectorio = {
   id: string;
   nombre: string;
-  url: string | null;
+  /**
+   * Si el producto tiene enlace de compra. ⚠️ La URL NO viaja al navegador: el
+   * salto pasa por `/app/directorio/ir/<id>`, que comprueba el derecho (0041).
+   */
+  tieneEnlace: boolean;
+  /** El enlace abierto para todo el mundo, con cuenta o sin ella (0042). */
+  gratis: boolean;
+  /** Foto del producto. Puede faltar: la tarjeta pinta el ícono de la categoría. */
+  imagenUrl: string | null;
   precioReferencia: string | null;
+  categoriaId: string;
   categoria: string;
   /** En cuántos bolsos se usa. Sale de la tabla puente, no se escribe a mano. */
   bolsos: number;
 };
 
+
+/** A dónde lleva el botón "Comprar": la ruta que comprueba y redirige a Temu. */
+export function rutaCompra(itemId: string): string {
+  return `/app/directorio/ir/${encodeURIComponent(itemId)}`;
+}
+
+/**
+ * Lo que la pantalla del directorio necesita saber de quien mira: si tiene la
+ * membresía (abre todo) o no (abre solo el producto `gratis`, 0042).
+ */
+export type AccesoDirectorio = {
+  sesion: boolean;
+  conAcceso: boolean;
+};

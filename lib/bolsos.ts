@@ -1,9 +1,11 @@
 import { cache } from "react";
+import { alumnaActual } from "@/lib/alumna";
 import { supabaseServer } from "@/lib/supabase/server";
 import {
   agruparEnPasos,
   type Bolso,
   type BolsoConDetalle,
+  type AccesoDirectorio,
   type ItemDirectorio,
   type Material,
 } from "@/lib/bolsos-logica";
@@ -143,7 +145,7 @@ export const obtenerBolso = cache(async (slug: string): Promise<BolsoConDetalle 
   const [{ data: mats }, { data: marcados }] = await Promise.all([
     supabase
       .from("materiales")
-      .select("id, orden, texto, material_directorio(directorio_items(id, nombre, url))")
+      .select("id, orden, texto, material_directorio(directorio_items(id, nombre, tiene_enlace))")
       .eq("bolso_id", bolso.id)
       .order("orden"),
     supabase.from("checklist_materiales").select("material_id, tengo"),
@@ -153,13 +155,17 @@ export const obtenerBolso = cache(async (slug: string): Promise<BolsoConDetalle 
     (marcados ?? []).map((m: { material_id: string; tengo: boolean }) => [m.material_id, m.tengo]),
   );
 
-  type ItemCompra = { id: string; nombre: string; url: string | null };
+  type ItemCompra = { id: string; nombre: string; tiene_enlace: boolean };
 
   const materiales: Material[] = (mats ?? []).map((m) => ({
     id: m.id,
     texto: m.texto,
     compras: comoLista(m.material_directorio).flatMap((md) =>
-      comoLista<ItemCompra>(md.directorio_items),
+      comoLista<ItemCompra>(md.directorio_items).map((c) => ({
+        id: c.id,
+        nombre: c.nombre,
+        tieneEnlace: c.tiene_enlace,
+      })),
     ),
     tengo: tengo.get(m.id) ?? false,
   }));
@@ -175,7 +181,7 @@ export const listarDirectorio = cache(
 
     const [{ data: cats }, { data: items }, { data: usos }] = await Promise.all([
       supabase.from("directorio_categorias").select("id, nombre").order("orden"),
-      supabase.from("directorio_items").select("id, nombre, url, precio_referencia, categoria_id"),
+      supabase.from("directorio_items").select("id, nombre, tiene_enlace, gratis, imagen_url, precio_referencia, categoria_id"),
       supabase.from("material_directorio").select("item_id, materiales(bolso_id)"),
     ]);
 
@@ -197,11 +203,30 @@ export const listarDirectorio = cache(
       items: (items ?? []).map((i) => ({
         id: i.id,
         nombre: i.nombre,
-        url: i.url,
+        tieneEnlace: i.tiene_enlace,
+        gratis: i.gratis,
+        imagenUrl: i.imagen_url,
         precioReferencia: i.precio_referencia,
+        categoriaId: i.categoria_id,
         categoria: nombreCat.get(i.categoria_id) ?? "",
         bolsos: porItem.get(i.id)?.size ?? 0,
-      })),
+      }))
+        /* El gratis va primero (es "el primer enlace", el que cualquiera abre),
+           luego los que tienen enlace, y al final los "Pronto": si se
+           mezclaran, diluirían lo que sí se puede comprar. */
+        .sort(
+          (a, b) =>
+            Number(b.gratis) - Number(a.gratis) || Number(b.tieneEnlace) - Number(a.tieneEnlace),
+        ),
     };
   },
 );
+
+/**
+ * ¿Qué puede abrir quien mira el directorio? La misma idea de "acceso" que el
+ * resto de la app: la de `alumnaActual()` (que sale de `tiene_acceso`).
+ */
+export const accesoDirectorio = cache(async (): Promise<AccesoDirectorio> => {
+  const alumna = await alumnaActual();
+  return { sesion: Boolean(alumna), conAcceso: alumna?.tieneAcceso === true };
+});

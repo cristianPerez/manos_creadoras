@@ -3,7 +3,7 @@
 import { Check } from "lucide-react";
 import { useOptimistic, useTransition } from "react";
 import { marcarMaterial } from "@/app/(interna)/app/acciones";
-import type { Material } from "@/lib/bolsos-logica";
+import { rutaCompra, type Material } from "@/lib/bolsos-logica";
 
 /**
  * "Lo que necesitas": la lista de materiales de un bolso y sus medidas.
@@ -52,7 +52,7 @@ export function MaterialesDelBolso({
         const { nombre, cantidad, opcional } = partir(m.texto);
         /* Solo si hay enlace de verdad: un "Comprar" que no lleva a ningún
            sitio gasta la confianza justo antes de gastar dinero. */
-        const compra = m.compras.find((c) => c.url);
+        const compra = m.compras.find((c) => c.tieneEnlace);
         return (
           <li key={m.id} className="border-line flex items-center gap-3 border-b">
             <button
@@ -87,7 +87,9 @@ export function MaterialesDelBolso({
             </button>
             {compra && (
               <a
-                href={compra.url ?? undefined}
+                /* Pasa por la ruta que comprueba el derecho (0041): sin
+                   membresía y sin regalo, vuelve al directorio con el aviso. */
+                href={rutaCompra(compra.id)}
                 target="_blank"
                 /* `sponsored`: son enlaces de afiliado y decirlo es lo correcto.
                    `noopener` evita que la pestaña nueva toque la nuestra. */
