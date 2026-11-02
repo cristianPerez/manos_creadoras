@@ -42,11 +42,44 @@ la membresía. Cambiar cuál es el gratis = mover `gratis` de fila.
   desplazamiento además de fundido, y la cabecera compartida (avatar "AD"
   cortado a 375px con sesión = 2px de scroll horizontal en toda `/app`).
 
+🧵 **PROYECTOS, NO SOLO BOLSOS (2026-11-02, pedido de Cristian).** Todo el copy
+que vende la membresía dice "proyectos" (bolsos, accesorios, adornos navideños
+y, en diciembre, velas): banner del home ("Crea piezas de perlas…", botón "Ver
+los proyectos"), banda café, Mi plan, `BannerPlan`, selector de pago,
+`INCLUYE`, preguntas frecuentes, metadata/manifest, aviso del directorio (decía
+"los 16 bolsos"), correo de bienvenida e instrucciones del Ojo Experto. "Curso
+completo" → **"Membresía completa"** (banner, barra fija, Mi plan, Cuenta,
+correo). El menú dice **"Mis proyectos"** (las URLs `/app/bolsos/…` NO cambian).
+El encabezado del catálogo decía "20 bolsos y 3 llaveros": ahora "23 proyectos ·
+N videos", calculado de la tabla. En la venta sigue SIN cifra (techo, 1-nov).
+· **CURSOS BLOQUEADOS "SE ABRE EN DICIEMBRE"** al pie del catálogo, desde
+  `lib/proximamente.ts` (no en la tabla `bolsos`: sin videos rompería la ficha).
+  Adornos navideños (foto de la sección Navidad, "12 piezas") y **Velas: SIN
+  FOTO todavía** — sin foto NO sale tarjeta (parecía rota), solo se nombra en
+  el subtítulo. ⚠️ Cuando Cristian mande las imágenes: archivo a
+  `public/images/` y su ruta en `imagen` → la tarjeta aparece sola (con 1
+  tarjeta va horizontal a todo el ancho; con 2+, rejilla). Cuando se publiquen
+  los videos, el curso entra a `bolsos` y SE BORRA de esa lista.
+· Banda café del home: miniaturas = bolso + llavero Ónix + adornos navideños.
+· Revisor visual (2 pasadas): banda 32→34/40 · 15/20 · copy 13→15/20;
+  "Se abre en diciembre" 27→30/40 · 11→13/20; catálogo 29→30/40 · 15/20 —
+  **NO LISTA formalmente.** Pendiente que pidió y no entró: intercalar un
+  accesorio entre las primeras 5 tarjetas del catálogo (hoy solo carteras
+  arriba), botón "Avísame cuando abra", y lo de antes (texto del banner del
+  home bajo el precio en móvil, interruptor de Mi plan, filtros "En curso 0"
+  para invitada, cabecera Entrar/Inscribirme, la ficha dice Jost y se usa
+  Manrope).
+· ⚠️ `app/(publicas)/contacto` dice que el bolso gratis es Cristal Brillante
+  (es Nácar Soñado) y `/bienvenida` recomienda empezar por Cristal Brillante.
+· ⚠️ El Ojo Experto todavía marca "otras manualidades" como fuera de tema: al
+  abrir velas hay que añadirlas a sus instrucciones (`app/api/ojo-experto`).
+
 ---
 
 ## Qué es esta app
 
-Escuela de bolsos tejidos de Elizabeth Valencia. 16 bolsos en video, un
+Escuela de manualidades de Elizabeth Valencia: **proyectos** en video (hoy
+20 bolsos + 3 llaveros = 23; en diciembre adornos navideños y velas), un
 directorio de materiales y el **Ojo Experto** (mentor de IA que responde dudas y
 revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 

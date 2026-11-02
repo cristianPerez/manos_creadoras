@@ -46,7 +46,7 @@ export function FormularioContacto() {
       nombre: String(datos.get("nombre") ?? ""),
       correo: String(datos.get("correo") ?? ""),
       motivo,
-      planInteres: preguntarPlan ? `Curso completo · ${ciclo}` : undefined,
+      planInteres: preguntarPlan ? `Membresía completa · ${ciclo}` : undefined,
       mensaje: String(datos.get("mensaje") ?? "") || undefined,
     });
 

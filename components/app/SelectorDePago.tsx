@@ -64,7 +64,7 @@ export function SelectorDePago({
             className="font-display text-cream mt-2 text-balance max-md:hidden"
             style={{ fontWeight: 500, fontSize: "clamp(26px, 2.6vw, 34px)", lineHeight: 1.15 }}
           >
-            Curso completo de bolsos de perlas
+            Todos los proyectos, paso a paso
           </h2>
           <p className="mt-4 flex items-baseline gap-2">
             <span

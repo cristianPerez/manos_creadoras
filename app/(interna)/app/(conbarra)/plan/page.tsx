@@ -7,7 +7,6 @@ import { SelectorDePago } from "@/components/app/SelectorDePago";
 import { Entrada } from "@/components/home/Entrada";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual } from "@/lib/alumna";
-import { esLlavero, listarBolsos } from "@/lib/bolsos";
 import { fechaLarga, finDelCicloEnCurso } from "@/lib/ciclo";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { FRECUENCIA_POR_DEFECTO, INCLUYE } from "@/lib/planes";
@@ -44,14 +43,7 @@ export default async function MiPlan({
   searchParams: Promise<{ ciclo?: string }>;
 }) {
   const { ciclo } = await searchParams;
-  const [alumna, cobro, bolsos] = await Promise.all([
-    alumnaActual(),
-    enlacesDeCobro(),
-    listarBolsos(),
-  ]);
-  // Del catálogo, no a mano: el día que entre el bolso 17 esta frase no miente.
-  // Solo bolsos: los llaveros también están en el catálogo pero no lo son.
-  const totalBolsos = bolsos.filter((b) => !esLlavero(b)).length;
+  const [alumna, cobro] = await Promise.all([alumnaActual(), enlacesDeCobro()]);
 
   /*
    * ⚠️ SIN SESIÓN YA NO SE MANDA A ENTRAR (2026-10-21, pedido de Cristian). Antes
@@ -92,7 +84,7 @@ export default async function MiPlan({
               <header className="text-center">
                 <EyebrowLinea centrado>Tu plan</EyebrowLinea>
                 <h1 className="titulo-seccion mt-3 text-balance">
-                  Desbloquea <em className="clave">todos los bolsos</em>
+                  Desbloquea <em className="clave">todos los proyectos</em>
                 </h1>
                 {/*
                   ⚠️ ANCLADO AL DOLOR Nº4 DE LA FICHA DE AVATAR: "ya gasté plata
@@ -106,9 +98,9 @@ export default async function MiPlan({
                   favor: ya se gastó eso, y sin que le quedara el bolso.
                 */}
                 <p className="text-ink-body mx-auto mt-3 max-w-2xl text-balance max-md:hidden">
-                  Un bolso que no queda bien cuesta más que esto en cuentas y herrajes. Aquí
-                  tienes el paso a paso de todos, clases nuevas cada semana y el Ojo Experto
-                  revisando el tuyo.
+                  Una pieza que no queda bien cuesta más que esto en cuentas y herrajes. Aquí
+                  tienes bolsos, accesorios y adornos paso a paso, clases nuevas cada semana,
+                  velas en diciembre y el Ojo Experto revisando lo que tejes.
                 </p>
               </header>
             </Entrada>
@@ -196,7 +188,7 @@ function YaTienePlan({
         </span>
 
         <p className="font-display mt-5 text-2xl" style={{ fontWeight: 500 }}>
-          Curso completo{ciclo ? `, plan ${ciclo}` : ""}
+          Membresía completa{ciclo ? `, plan ${ciclo}` : ""}
         </p>
 
         {/* 85% y no 70%: sobre el marrón de la tarjeta, el 70% se quedaba
@@ -221,7 +213,7 @@ function YaTienePlan({
           href="/app"
           className="bg-cacao text-ivory flex h-12 items-center rounded-full px-7 font-semibold transition-transform active:scale-[0.98]"
         >
-          Ir a mis bolsos
+          Ir a mis proyectos
         </Link>
         <Link
           href="/app/cuenta"

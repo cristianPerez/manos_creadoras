@@ -4,7 +4,7 @@ import { Entrada } from "@/components/home/Entrada";
 import { FRECUENCIA_POR_DEFECTO, precioDesde } from "@/lib/planes";
 
 /**
- * "Este es 1 de 16 bolsos. Llévate los otros 15." — justo después del bolso gratis.
+ * "Este es solo uno. Llévate todos los demás." — justo después del bolso gratis.
  *
  * ⚠️ VA AQUÍ PORQUE ES EL PUNTO DE MÁS DESEO DEL HOME. Acaba de ver un bolso
  * entero, gratis y completo, y la pregunta que se hace sola es "¿y los demás?".
@@ -14,16 +14,19 @@ import { FRECUENCIA_POR_DEFECTO, precioDesde } from "@/lib/planes";
  * idea, pero ahora con el precio en el botón — quien llega aquí ya quiere
  * saberlo, y "Ver los planes" a secas obligaba a bajar para enterarse.
  *
- * Las cifras se calculan con el catálogo: si entra un bolso, la frase lo sigue.
+ * El "+N" se calcula con el catálogo ENTERO (bolsos y accesorios): la
+ * membresía son proyectos, no solo bolsos (pedido de Cristian, 2026-11-02).
  */
-/** Tres portadas del catálogo para la fila de círculos (ya están en `public/images`). */
+/* Un bolso, un accesorio y un adorno (revisor visual, 2026-11-02): tres bolsos
+   contradecían un texto que promete proyectos. El Ónix y no el Mora: el morado
+   era el único color frío del home. */
 const MUESTRAS = [
   { src: "/images/bolso-cristal-brillante.webp", alt: "Bolso Cristal Brillante" },
-  { src: "/images/bolso-marfil-elegante.webp", alt: "Bolso Marfil Elegante" },
-  { src: "/images/bolso-nacar-sonado.webp", alt: "Bolso Nácar Soñado" },
+  { src: "/images/bolso-llavero-onix.webp", alt: "Llavero Ónix" },
+  { src: "/images/navidad-accesorios.webp", alt: "Adornos navideños en perlas" },
 ];
 
-export function BandaUnoDe16({ bolsos }: { bolsos: number }) {
+export function BandaUnoDe16({ proyectos }: { proyectos: number }) {
   return (
     /*
       ⚠️ HOME A COLOR (2026-10-22): FRANJA CAFÉ A TODO EL ANCHO, no una tarjeta
@@ -32,7 +35,7 @@ export function BandaUnoDe16({ bolsos }: { bolsos: number }) {
     */
     <section className="bg-cacao sobre-oscuro grain-oscuro px-5 py-12 md:py-18">
       <Entrada className="mx-auto flex max-w-[1240px] flex-col gap-6 md:flex-row md:items-center md:gap-10">
-        {/* Tres bolsos de verdad y "+N": el "1 de 20" se ve, no solo se lee. */}
+        {/* Tres piezas de verdad y "+N": que hay muchas más se ve, no solo se lee. */}
         <div className="flex shrink-0 items-center" aria-hidden="true">
           {MUESTRAS.map((m, i) => (
             <span
@@ -48,7 +51,7 @@ export function BandaUnoDe16({ bolsos }: { bolsos: number }) {
             className="bg-gold-pale border-cacao text-espresso font-display -ml-5 flex size-18 items-center justify-center rounded-full border-3 md:-ml-6 md:size-22"
             style={{ fontWeight: 500, fontSize: 28 }}
           >
-            +{Math.max(0, bolsos - MUESTRAS.length)}
+            +{Math.max(0, proyectos - MUESTRAS.length)}
           </span>
         </div>
 
@@ -61,8 +64,8 @@ export function BandaUnoDe16({ bolsos }: { bolsos: number }) {
             <em className="clave">Llévate todos los demás.</em>
           </h2>
           <p className="text-sand mt-2">
-            Todos los bolsos paso a paso, con su ficha de materiales, clases nuevas cada
-            semana y el Ojo Experto para tus dudas.
+            Bolsos, accesorios y adornos paso a paso, y el Ojo Experto para que te queden
+            de boutique.
           </p>
         </div>
 

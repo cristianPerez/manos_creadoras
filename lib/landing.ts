@@ -38,7 +38,7 @@ export const PROFESORA = {
   foto: "/images/mentora-elizabeth.webp",
   alt: "Elizabeth Valencia, profesora de Manos Creadoras",
   texto:
-    "Te enseño a tejer bolsos de perlas paso a paso, con las mismas fichas y el mismo método que uso en cada bolso. Y si algo no te sale, el Ojo Experto te responde con mis fichas.",
+    "Te enseño a tejer bolsos, accesorios y adornos de perlas paso a paso, con las mismas fichas y el mismo método que uso en cada pieza. Y si algo no te sale, el Ojo Experto te responde con mis fichas.",
 } as const;
 
 /* ── Testimonios ─────────────────────────────────────────────────────── */
@@ -125,11 +125,11 @@ export const TESTIMONIOS: Testimonio[] = [
 export const PREGUNTAS_FRECUENTES = [
   {
     q: "¿Necesito experiencia?",
-    a: "No. El curso empieza desde cero: las cápsulas te enseñan las técnicas base y cada bolso va paso a paso.",
+    a: "No. El curso empieza desde cero: las cápsulas te enseñan las técnicas base y cada proyecto va paso a paso.",
   },
   {
     q: "¿Cuánto cuestan los materiales?",
-    a: "Depende del bolso. Cada ficha trae la lista exacta de materiales y el directorio te lleva a los proveedores. Puedes ver la ficha de cada bolso gratis antes de pagar.",
+    a: "Depende del proyecto. Cada ficha trae la lista exacta de materiales y el directorio te lleva a los proveedores. Puedes ver la ficha de cada proyecto gratis antes de pagar.",
   },
   {
     q: "¿Por cuánto tiempo tengo acceso?",

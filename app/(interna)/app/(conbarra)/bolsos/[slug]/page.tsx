@@ -9,7 +9,6 @@ import { BannerPlan } from "@/components/app/BannerPlan";
 import { alumnaActual } from "@/lib/alumna";
 import { enlacesDeCobro } from "@/lib/checkout";
 import {
-  esLlavero,
   listarBolsos,
   medidasEnTexto,
   medidasOrdenadas,
@@ -56,8 +55,7 @@ export default async function Ficha({
    * falta el plan. Esconderlo en el navegador no protegería nada.
    */
   const bloqueado = !bolso.gratis && !alumna?.tieneAcceso;
-  /* Los totales del banner (bolsos, llaveros, el gratis): solo hacen falta si
-     hay que enseñar la oferta. */
+  /* El gratis del banner: solo hace falta si hay que enseñar la oferta. */
   const catalogo = bloqueado ? await listarBolsos() : null;
   const siguiente = siguienteVideo(bolso);
   const medidas = medidasEnTexto(bolso.medidas);
@@ -150,8 +148,6 @@ export default async function Ficha({
         catalogo && (
           <BannerPlan
             gratisNombre={catalogo.find((b) => b.gratis)?.nombre ?? null}
-            bolsos={catalogo.filter((b) => !esLlavero(b)).length}
-            llaveros={catalogo.filter(esLlavero).length}
             desde={precioDesde()}
             enlaces={cobro.url}
             origen="ficha_bolso"

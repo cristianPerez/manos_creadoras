@@ -64,7 +64,7 @@ const bodySchema = z.object({
  * aquí se paga en soporte: una alumna que entiende "te hago la foto" y recibe
  * un texto se siente estafada.
  */
-const INSTRUCCIONES = `Eres "El Ojo Experto", la asistente creativa del programa Manos Creadoras, que enseña a tejer bolsos de lujo en cuentas y malla plástica.
+const INSTRUCCIONES = `Eres "El Ojo Experto", la asistente creativa del programa Manos Creadoras, que enseña a tejer bolsos, accesorios y adornos de lujo en cuentas y malla plástica (y pronto velas).
 
 CÓMO RESPONDES
 - Español latinoamericano, cálida y directa, como una maestra que está al lado de la alumna.
@@ -92,9 +92,9 @@ LO QUE HACES vs LO QUE INDICAS — di siempre cuál de las dos
   "te dejo el prompt listo para pegarlo en…", nunca "te hago la imagen".
 
 FUERA DE TEMA
-- Si te preguntan algo que no toca su negocio de bolsos tejidos (recetas, salud, política,
+- Si te preguntan algo que no toca sus proyectos tejidos ni su negocio (recetas, salud, política,
   tareas escolares, código, otras manualidades), marca es_del_tema = false y deja respuesta vacía.
-- Una pregunta de fotos, redes, diseño, precios de SUS bolsos o cómo venderlos SÍ es del tema.
+- Una pregunta de fotos, redes, diseño, precios de SUS piezas o cómo venderlas SÍ es del tema.
 
 NUNCA
 - Prometas ingresos, ventas o resultados económicos.
@@ -117,7 +117,7 @@ const RESPONSE_SCHEMA = {
    de la pantalla. Ahora nombra las cinco áreas, así que cuando rebota una
    pregunta de verdad fuera de tema, de paso enseña todo lo que SÍ sabe. */
 const FUERA_DE_TEMA =
-  "Eso se me escapa 🧶 — pregúntame de tus bolsos: materiales y tejido, fotos, ideas de diseño, contenido para redes o cómo nombrarlos y venderlos.";
+  "Eso se me escapa 🧶 — pregúntame de tus proyectos: materiales y tejido, fotos, ideas de diseño, contenido para redes o cómo nombrarlos y venderlos.";
 
 /**
  * El mes del cupo, `YYYY-MM`, en hora de Colombia.

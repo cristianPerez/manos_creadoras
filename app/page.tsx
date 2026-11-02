@@ -19,15 +19,14 @@ import { faqJsonLd } from "@/lib/landing";
 import { FRECUENCIA_POR_DEFECTO, precioDelCobro, precioDesde } from "@/lib/planes";
 import { listarCapsulas } from "@/lib/capsulas";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
-import { esLlavero } from "@/lib/bolsos-logica";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { RegistrarPais } from "@/components/app/RegistrarPais";
 
 export const metadata: Metadata = {
-  title: "Manos Creadoras — Crea bolsos de lujo en cuentas desde casa",
+  title: "Manos Creadoras — Crea bolsos, accesorios y adornos de lujo en cuentas",
   description:
-    "Aprende a tejer bolsos de perlas desde cero con Elizabeth Valencia. 5 cápsulas y un bolso completo gratis, sin tarjeta.",
+    "Aprende desde cero con Elizabeth Valencia: bolsos, accesorios y adornos de perlas paso a paso, y pronto velas. 5 cápsulas y un bolso completo gratis, sin tarjeta.",
 };
 
 /**
@@ -68,8 +67,8 @@ export default async function Home() {
   /* Las dos cifras del curso, calculadas UNA vez y pasadas a todas las
      secciones que las dicen (banda, Elizabeth, precio, cierre). Antes cada
      una sumaba por su cuenta, y así es como una dice 14 y otra 16. */
-  // Solo bolsos: los llaveros están en el catálogo pero no son "bolsos".
-  const totalBolsos = bolsos.filter((b) => !esLlavero(b)).length;
+  // Todo el catálogo cuenta: la membresía son proyectos, no solo bolsos.
+  const totalProyectos = bolsos.length;
   const totalVideos = bolsos.reduce((s, b) => s + b.videos, 0);
 
   const porSlug = new Map(bolsos.map((b) => [b.slug, b]));
@@ -187,7 +186,7 @@ export default async function Home() {
           )}
 
           <div data-seccion="banda">
-            <BandaUnoDe16 bolsos={totalBolsos} />
+            <BandaUnoDe16 proyectos={totalProyectos} />
           </div>
 
           <div data-seccion="ojo">

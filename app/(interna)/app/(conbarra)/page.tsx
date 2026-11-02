@@ -3,11 +3,11 @@ import { Catalogo } from "@/components/app/Catalogo";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual, nombreCorto } from "@/lib/alumna";
 import { enlacesDeCobro } from "@/lib/checkout";
-import { continuarDonde, esLlavero, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
+import { continuarDonde, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
 import { precioDesde } from "@/lib/planes";
 
 export const metadata: Metadata = {
-  title: "Mis bolsos — Manos Creadoras",
+  title: "Mis proyectos — Manos Creadoras",
 };
 
 export default async function MisBolsos() {
@@ -22,7 +22,7 @@ export default async function MisBolsos() {
    * solo enseñaba el bolso gratis. Era un callejón sin salida —no había cómo
    * volver— y partía la app en dos sitios que había que mantener iguales.
    *
-   * Ahora quien llega sin cuenta ve EL CATÁLOGO ENTERO: todos los bolsos, el
+   * Ahora quien llega sin cuenta ve EL CATÁLOGO ENTERO: todos los proyectos, el
    * gratis primero y el resto con candado. Puede mirarlos, leer sus pasos y
    * sus materiales; lo único que no puede es reproducir el video. Enseñar lo
    * que hay dentro es lo que hace que valga la pena pagar — esconderlo solo
@@ -65,14 +65,14 @@ export default async function MisBolsos() {
           {/* El resumen se CALCULA de los datos: el día que entre el bolso 15,
               este número cambia solo. */}
           <p className="text-ink-muted text-sm">
-            {/* Bolsos y llaveros por separado (2026-10-20): "23 bolsos" contaba
-                los 3 llaveros como si fueran bolsos. */}
+            {/* ⚠️ PROYECTOS, NO "20 BOLSOS Y 3 LLAVEROS" (2026-11-02, pedido de
+                Cristian): la membresía son proyectos —bolsos, accesorios y lo
+                que viene—, no solo bolsos. Contar por tipo envejecía con cada
+                pieza nueva de otra clase (adornos, velas). */}
             <strong className="text-espresso font-semibold">
-              {bolsos.filter((b) => !esLlavero(b)).length} bolsos
-              {bolsos.some(esLlavero) && ` y ${bolsos.filter(esLlavero).length} llaveros`}
+              {bolsos.length} {bolsos.length === 1 ? "proyecto" : "proyectos"}
             </strong>{" "}
-            ·{" "}
-            {totalVideos} videos paso a paso
+            · {totalVideos} videos paso a paso
           </p>
         </header>
 

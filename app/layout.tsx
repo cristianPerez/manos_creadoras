@@ -32,9 +32,9 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Manos Creadoras — Crea bolsos de lujo en cuentas desde casa",
+  title: "Manos Creadoras — Crea bolsos, accesorios y adornos de lujo en cuentas",
   description:
-    "El programa completo para tejer bolsos en cuentas y malla plástica con acabados de boutique, con mentoría real y un asistente de IA que revisa fotos de tu bolso.",
+    "La escuela de manualidades de Elizabeth Valencia: bolsos, accesorios y adornos en cuentas con acabados de boutique, y pronto velas. Con mentoría real y un asistente de IA que revisa fotos de tu trabajo.",
   // iPhone ignora el manifiesto para estas dos cosas: necesita sus propias etiquetas
   // para abrirse sin barra del navegador y para mostrar el icono correcto.
   appleWebApp: {

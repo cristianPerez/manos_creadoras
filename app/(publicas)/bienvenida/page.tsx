@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 const PASOS = [
   { Icono: Mail, titulo: "Revisa tu correo", texto: "Te mandamos el enlace de acceso al correo con el que pagaste." },
   { Icono: MousePointerClick, titulo: "Abre el enlace", texto: "Con eso entras. No hay contraseña que recordar." },
-  { Icono: ShoppingBag, titulo: "Elige tu primer bolso", texto: "Te recomendamos empezar por Cristal Brillante." },
+  { Icono: ShoppingBag, titulo: "Elige tu primer proyecto", texto: "Te recomendamos empezar por Cristal Brillante." },
 ];
 
 export default function Bienvenida() {
