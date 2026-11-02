@@ -82,9 +82,9 @@ async function cargarDirectorio() {
       id: i.id,
       categoria_id: c.id,
       nombre: i.nombre,
-      // ⚠️ `url` entra tal cual, y hoy es null en los 33. Es a propósito: la
-      // pantalla enseña "Enlace pronto" en vez de un botón que no lleva a nada.
-      url: i.url,
+      // ⚠️ `url` NO se manda. Los enlaces de Temu viven en la migración 0041
+      // (y las que vengan): si el seed los mandara —null en el JSON—, volver a
+      // sembrar borraría todos los enlaces sin que nadie lo notara.
       precio_referencia: i.precio_referencia,
       imagen_url: i.imagen_url ?? null,
     })),
