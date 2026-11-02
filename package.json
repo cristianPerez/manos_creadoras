@@ -18,7 +18,9 @@
     "seed:capsulas": "node scripts/seed-capsulas.mjs",
     "correo:copiar": "bash scripts/copiar-correo.sh",
     "webhook:probar": "node scripts/webhook-probar.mjs",
-    "webhook:ver": "node scripts/webhook-ver.mjs"
+    "webhook:ver": "node scripts/webhook-ver.mjs",
+    "checkout:ver": "node scripts/checkout-enlace.mjs ver",
+    "checkout:fijar": "node scripts/checkout-enlace.mjs fijar"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",
