@@ -83,7 +83,7 @@ export type Precios = { mensual: number; anual: number };
  * de OnePay dice otra, manda OnePay —es quien cobra— y esta constante está
  * mintiendo. Al cambiar un precio se cambian LOS DOS SITIOS, en el mismo rato.
  */
-export const PRECIOS: Precios = { mensual: 19.7, anual: 167 };
+export const PRECIOS: Precios = { mensual: 19.7, anual: 117 };
 
 /**
  * Lo que cuesta cada mes según cómo se pague.
@@ -151,7 +151,7 @@ export const CHECKOUT: Record<Frecuencia, string> = {
 
 /*
  * ⚠️ MENSUAL, NO ANUAL (2026-11-01, decisión de Cristian). Hasta hoy todo
- * arrancaba en el plan anual —el de US$167 de un pago—, que es el que deja más
+ * arrancaba en el plan anual —el de un pago al año—, que es el que deja más
  * dinero por venta pero también el que más asusta al primer vistazo. Con la
  * membresía vendiéndose como "clases nuevas cada semana", la puerta de entrada
  * natural es la mensualidad.
