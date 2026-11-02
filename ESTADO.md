@@ -390,12 +390,80 @@ también en Mi plan y en el selector de pago.
   espresso de las cápsulas). Consecuencia aceptada: café toca espresso sin nada
   en medio, y el home pasa a tener dos oscuros seguidos.
   Badge en píldora con ícono de regalo, titular serif con
-  *navideños* en `--gold-pale`, 4 fotos verticales (fila con scroll en móvil,
-  rejilla de 4 en escritorio). Es informativa: no lleva CTA propio.
-  · Las 4 fotos vienen de la referencia, reescaladas a 720×1000 WebP q70
-    (`public/images/navidad-{esferas,coronas,baston,regalo}.webp`, 30-60 KB).
+  *navideños* en `--gold-pale`.
   · El badge dice "Edición navideña" y no "Bono 4" como el original: aquí no
     hay bonos numerados.
+  - **UNA SOLA FOTO EN DOS COLUMNAS (2026-11-02, pedido de Cristian).** Las 4
+    fotos en rejilla 2×2 se cambiaron por la bandeja completa
+    (`public/images/navidad-accesorios.webp`, 900×994 WebP q74, 159 KB) —
+    enseña las ~20 piezas de golpe y pesa MENOS que las cuatro juntas (159 KB
+    frente a 220 KB). Las 4 viejas (`navidad-{esferas,coronas,baston,regalo}`)
+    están borradas.
+    · Layout: `md:grid-cols-2` con la foto **primera en el DOM**. De ahí sale
+      todo el responsive sin un solo `order-*`: en móvil cae arriba (foto →
+      texto → CTA, como pidió Cristian) y en escritorio queda a la izquierda.
+    · El texto ahora NOMBRA las piezas (lista `PIEZAS`, 11 nombres en dos
+      columnas): la foto enseña cuentas, la lista dice que ahí hay un reno, una
+      luna y un bastón de caramelo. En `text-cream`, no `on-dark-muted`: es
+      información que se lee ítem por ítem.
+    · Se perdió el enlace por pieza (origen `navidad_pieza` en Mixpanel): con
+      una sola foto solo queda el CTA al pie, origen `navidad`.
+    · ⚠️ La URL del archivo del bolso marfil y de la foto navideña NO cambió de
+      nombre. Quien ya tenía la vieja en caché puede verla un rato hasta que el
+      navegador revalide; se confirmó que el servidor ya devuelve la nueva.
+      Pasó en la propia verificación: el navegador seguía pintando la foto
+      vieja del hero mientras `curl` al mismo `/_next/image` ya devolvía la
+      nueva. Si vuelve a pasar, NO es el código: es caché del cliente.
+    · Corregido tras el revisor (2026-11-02): **12 piezas, par y en `columns-2`**
+      (con 11 en rejilla el último quedaba huérfano, y la rejilla ordena por
+      filas → se leía en zigzag); **stagger de 70ms** con una `Entrada` por
+      bloque de texto (antes entraba todo a la vez); y el subtítulo dice **"12
+      piezas … e incluidas en tu membresía"** (sin el número y sin el
+      "incluidas", la sección dejaba sin responder cuántas son y si se pagan
+      aparte).
+    · ⚠️ **El número 12 del subtítulo está atado a `PIEZAS`**: si se añade o se
+      quita una pieza, hay que cambiar el texto y mantener el total PAR. Y cada
+      nombre tiene que caber en UNA línea a 375px (por eso son "Campanas" y no
+      "Campanas doradas": con los nombres largos, 5 de los 12 partían en dos).
+    · **Tres niveles de profundidad DENTRO de la franja plana** (revisor, 3ª
+      pasada): foto ELEVADA con el halo dorado de la ficha
+      (`0 20px 60px -20px`, gold 40%), franja cacao de BASE y la lista en
+      superficie HUNDIDA (`--espresso-2`, radio 22, hairline dorado 20%). Era la
+      forma de darle los 3 niveles sin devolverle el borde crema ni el radio que
+      Cristian le quitó.
+    · **El CTA sigue crema** (es lo único que destaca sobre el cacao) pero con
+      hairline dorado 45% + el mismo halo: en plano se leía como un botón
+      secundario. En escritorio ya no ocupa toda la columna (`md:w-fit`).
+    · **Micro-línea bajo el botón**: "Ver planes y precio · garantía de 7 días"
+      (cream, con la garantía en gold-pale) y un chevron-down dentro del botón:
+      dicen adónde lleva sin tocar la palabra "Inscribirme", que es cosa juzgada.
+      También se añadió el hairline dorado ARRIBA (`border-y`): el cacao chocaba
+      en seco con el crema del header y la costura se leía como un fallo.
+    · **La foto va CUADRADA y recortada** (2026-11-02, segundo pedido de
+      Cristian): `aspect-square object-cover`. A su alto real (900×994) se veía
+      alargada, sobre todo en escritorio, donde estiraba la columna muy por
+      debajo del texto. El recorte se come 94px repartidos arriba y abajo y la
+      bandeja está centrada, así que no se pierde ninguna pieza.
+    - **Revisor visual, 4 pasadas: 28 → 29 → 34 → 33/40 · 17/20 craft · 16/20
+      copy.** Craft y copy PASAN el gate (≥16); usabilidad NO llega a 36 y la
+      pantalla queda formalmente **NO LISTA**. Lo que le falta son las dos
+      decisiones de Cristian que no se re-discuten: los tres "Inscribirme"
+      simultáneos con tres apariencias (cabecera, sección, barra fija) y la
+      franja oscura a sangre dentro de un home crema (= los 2 fallos de
+      fidelidad). Todo lo demás que pidió el revisor está hecho.
+  - 🟡 **LA SECCIÓN ANUNCIA LOS VIDEOS PARA DICIEMBRE (2026-11-02, decisión de
+    Cristian).** El subtítulo decía "en video paso a paso e incluidas en tu
+    membresía" en presente, y los videos navideños NO están cargados: quien
+    pagaba por esta sección entraba y no encontraba nada. Ahora dice "incluidas
+    en tu membresía: los videos paso a paso **se publican en diciembre**", con
+    el plazo en `--gold-pale` dentro de la misma frase —no en una nota al pie—
+    y el rótulo del bloque dice "Lo que vas a tejer · 12 videos".
+    ⚠️ **DOS COSAS QUE HAY QUE HACER EN DICIEMBRE, O ESTO SE CONVIERTE EN UNA
+    MENTIRA AL REVÉS:** (1) subir los 12 videos al catálogo con la forma de los
+    llaveros (ver el punto de abajo), y (2) **quitar "se publican en diciembre"
+    del subtítulo** — si se queda después de publicarlos, manda a esperar algo
+    que ya se puede ver. La fecha no se puso en el rótulo porque con ella parte
+    en dos líneas a 375px.
   - Revisor visual: 28/40 → **31/40 · 15/20 craft · 13/20 copy · FIEL (0
     desvíos de 6)**. Corregido tras su nota: rejilla 2×2 en móvil (la fila con
     scroll escondía 2 de las 4 piezas y no tenía dots ni flechas), subtítulo
@@ -410,16 +478,6 @@ también en Mi plan y en el selector de pago.
     panel y barra fija) con destinos distintos, y proponía "Ver los planes",
     que es lo que ya dice la banda "1 de 20" cuando manda al mismo `#precio`.
     Se planteó y Cristian prefirió "Inscribirme". Riesgo aceptado.
-  - **Las 4 fotos son ENLACES A `#precio`** (2026-10-31, pedido de Cristian),
-    origen `navidad_pieza` en Mixpanel, con zoom de la imagen al pasar el
-    cursor (`group-hover:scale-105`, 500ms). Nacieron como `figure` inertes y
-    eso rompía la regla UX 11. **No llevan a sus videos**: esos todavía no
-    están en el catálogo.
-    · El zoom va en la `<Image>`, no en el enlace: escalar la tarjeta movería
-      el título y el degradado, y el texto escalado se ve borroso.
-    · Sin `motion-safe:`, que además NO generaba la clase: `globals.css` ya
-      corta todas las transiciones con `prefers-reduced-motion`, y Tailwind
-      envuelve `group-hover` en `@media (hover: hover)` solo.
   - 🟡 **Los videos navideños NO están en el catálogo.** Cuando se carguen:
     van con la forma de los llaveros (un video completo por pieza, sin
     lecciones) y entran en el plan de pago. Faltan sus IDs de Bunny — no se
