@@ -10,8 +10,13 @@ export type OrigenCompra =
   | "header"
   | "banner_precio"
   | "banda_1de16"
-  // El panel navideño (2026-10-31): su botón del pie y cada una de las 4 fotos.
+  // El panel navideño (2026-10-31): su botón del pie.
   | "navidad"
+  /* ⚠️ YA NO LO USA NADIE (2026-11-02): eran las 4 fotos en rejilla, cada una
+     enlazada a `#precio`, y ahora el panel tiene una sola foto sin enlace. Se
+     deja declarado A PROPÓSITO: Mixpanel guarda meses de eventos con este
+     origen, y quitarlo del tipo no los borra — solo hace que el día que
+     alguien mire el embudo viejo no encuentre de dónde salió. */
   | "navidad_pieza"
   | "precio"
   | "cierre"
