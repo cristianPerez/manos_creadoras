@@ -426,7 +426,7 @@ function AvisoDirectorio({
 
         <p className="text-ink-body mt-3 text-[15px] leading-relaxed">
           Sin dar vueltas entre mil tiendas: cada material del curso, con su enlace directo. La
-          membresía abre los {conEnlace} enlaces de compra, los 16 bolsos y el Ojo Experto.
+          membresía abre los {conEnlace} enlaces de compra, todos los proyectos y el Ojo Experto.
         </p>
 
         <p className="text-ink-muted mt-3 text-sm">

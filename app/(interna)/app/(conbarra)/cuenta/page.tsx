@@ -70,7 +70,7 @@ export default async function MiCuenta() {
               {alumna.tieneAcceso ? "Membresía activa" : "Sin plan"}
             </p>
             <h2 className="font-display mt-2 text-2xl" style={{ fontWeight: 500 }}>
-              {alumna.tieneAcceso ? "Curso completo" : "Cuenta gratuita"}
+              {alumna.tieneAcceso ? "Membresía completa" : "Cuenta gratuita"}
               {alumna.tieneAcceso && alumna.ciclo ? ` · ${alumna.ciclo}` : ""}
             </h2>
             {/* ⚠️ El precio sale de `lib/planes.ts`. Aquí vivían los precios

@@ -26,7 +26,7 @@ type Destino = { href: string; texto: string; Icono: typeof ShoppingBag };
 
 /** Las píldoras de escritorio, en el orden de la referencia. */
 const DESTINOS_ESCRITORIO: Destino[] = [
-  { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag },
+  { href: "/app", texto: "Mis proyectos", Icono: ShoppingBag },
   { href: "/app/ojo", texto: "Ojo Experto", Icono: Sparkle },
   { href: "/app/directorio", texto: "Directorio", Icono: Store },
   { href: "/app/plan", texto: "Mi plan", Icono: Tag },
@@ -34,7 +34,7 @@ const DESTINOS_ESCRITORIO: Destino[] = [
 
 /** Las pestañas de móvil: el Ojo en el medio (va aparte, en su círculo). */
 const IZQUIERDA: Destino[] = [
-  { href: "/app", texto: "Mis bolsos", Icono: ShoppingBag },
+  { href: "/app", texto: "Mis proyectos", Icono: ShoppingBag },
   { href: "/app/directorio", texto: "Directorio", Icono: Store },
 ];
 const DERECHA: Destino[] = [

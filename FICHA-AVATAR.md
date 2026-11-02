@@ -1,5 +1,12 @@
 # FICHA DE AVATAR — Manos Creadoras App
 
+> ⚠️ **LA OFERTA SON PROYECTOS, NO SOLO BOLSOS (2026-11-02, decisión de Cristian).**
+> «Son proyectos, no solo bolsos, porque Manos Creadoras se está expandiendo a
+> muchas manualidades; por eso las personas van a poder pagar la membresía.»
+> El avatar no cambia (entra por los bolsos, que es lo que ve en Reels), pero el
+> copy que VENDE la membresía nombra proyectos: bolsos, accesorios, adornos
+> navideños y velas (diciembre). El regalo sigue siendo un bolso.
+
 ## El avatar (cliente ideal — UNA persona concreta)
 - Nombre/arquetipo: "Marcela" · Edad: 28-45 · Situación: mujer LATAM, quiere un ingreso extra o un hobby serio con las manos · País(es): México, Colombia, Perú, Chile (mayoría de audiencia IG en español)
 - Poder adquisitivo: medio/medio-bajo — $25 es una compra que piensa 1-2 días, no impulsiva · Dispositivo: Android gama media

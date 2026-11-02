@@ -1,18 +1,21 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { Lock, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { BannerPlan } from "@/components/app/BannerPlan";
+import { Entrada } from "@/components/home/Entrada";
 import { TarjetaBolso } from "@/components/app/TarjetaBolso";
-import { esLlavero, estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
+import { estadoDe, siguienteVideo, type Bolso } from "@/lib/bolsos-logica";
 import type { Frecuencia } from "@/lib/planes";
+import { CURSOS_PROXIMOS, type CursoProximo } from "@/lib/proximamente";
 
 type Filtro = "todos" | "en-curso" | "terminados";
 
 /**
- * La rejilla de bolsos con sus filtros.
+ * La rejilla de proyectos (bolsos y accesorios) con sus filtros, y debajo los
+ * cursos que se abren pronto.
  *
  * Es de cliente solo por los filtros. Todo lo demás —los datos, el avance, qué
  * está bloqueado— se calcula en el servidor y llega resuelto: así la primera
@@ -61,7 +64,7 @@ export function Catalogo({
 
       <div
         role="group"
-        aria-label="Filtrar bolsos"
+        aria-label="Filtrar proyectos"
         className="sin-barra -mx-4 mt-6 flex gap-2.5 overflow-x-auto px-4 lg:mx-0 lg:mt-8 lg:flex-wrap lg:px-0"
       >
         {(
@@ -97,7 +100,7 @@ export function Catalogo({
           se dice qué pasa y se ofrece la salida, que es volver a "Todos".
         */
         <p className="text-ink-muted mt-10 text-sm">
-          Todavía no tienes bolsos aquí.{" "}
+          Todavía no tienes proyectos aquí.{" "}
           <button
             type="button"
             onClick={() => setFiltro("todos")}
@@ -118,13 +121,115 @@ export function Catalogo({
           ))}
         </ul>
       )}
+
+      {/* Solo en "Todos": en "En curso" o "Terminados" un curso que aún no
+          existe no pinta nada. */}
+      {filtro === "todos" && CON_FOTO.length > 0 && <Proximamente invitada={invitada} />}
     </>
+  );
+}
+
+/*
+ * Solo los cursos que ya tienen foto (revisor visual, 2026-11-02): una tarjeta
+ * espresso con un ícono junto a una foto real se leía como una imagen que no
+ * cargó. El de velas sale solo en cuanto tenga `imagen` en `lib/proximamente.ts`;
+ * mientras, lo nombra el subtítulo.
+ */
+const CON_FOTO = CURSOS_PROXIMOS.filter((c) => c.imagen);
+const SIN_FOTO = CURSOS_PROXIMOS.filter((c) => !c.imagen);
+
+/**
+ * "Se abre en diciembre": los cursos anunciados que aún no tienen videos
+ * (`lib/proximamente.ts`). Es lo que responde "¿por qué sigo pagando?".
+ *
+ * ⚠️ NO SON ENLACES, Y A PROPÓSITO: no hay nada que abrir todavía, y una
+ * tarjeta que parece tocable y no hace nada rompe la confianza. Por eso no
+ * tienen hover ni cursor, y el candado + la fecha dicen por qué.
+ */
+function Proximamente({ invitada }: { invitada: boolean }) {
+  /* Con una sola tarjeta, horizontal a todo el ancho: en la rejilla de 2
+     dejaba media pantalla vacía y se leía como algo a medio hacer. */
+  const sola = CON_FOTO.length === 1;
+  return (
+    <section aria-labelledby="proximamente-titulo" className="mt-12 lg:mt-14">
+      <Entrada>
+        <h2
+          id="proximamente-titulo"
+          className="font-display text-espresso"
+          style={{ fontWeight: 500, fontSize: 26, lineHeight: 1.15 }}
+        >
+          Se abre <em className="clave">en diciembre</em>
+        </h2>
+        <p className="text-ink-body mt-1.5 max-w-2xl text-sm">
+          Adornos para tejer y vender esta Navidad
+          {SIN_FOTO.length > 0 ? ` y, muy pronto, ${SIN_FOTO.map((c) => c.nombre.toLowerCase()).join(" y ")}` : ""}.
+          Entran en tu membresía, sin pagar de nuevo.
+        </p>
+      </Entrada>
+      <ul
+        className={`mt-5 grid gap-x-4 gap-y-6 ${sola ? "grid-cols-1 lg:max-w-3xl" : "grid-cols-2 lg:grid-cols-5"}`}
+      >
+        {CON_FOTO.map((c, i) => (
+          <li key={c.id}>
+            <Entrada retraso={0.07 * (i + 1)}>
+              <TarjetaProxima curso={c} horizontal={sola} />
+            </Entrada>
+          </li>
+        ))}
+      </ul>
+      {/* La salida para quien aún no tiene plan: sin esto la sección era un
+          callejón sin salida (revisor visual, 2026-11-02). */}
+      {invitada && (
+        <Link
+          href="/app/plan"
+          className="text-gold mt-4 inline-flex min-h-11 items-center gap-1 text-sm font-semibold underline underline-offset-4"
+        >
+          Ver el plan que los incluye →
+        </Link>
+      )}
+    </section>
+  );
+}
+
+function TarjetaProxima({ curso, horizontal }: { curso: CursoProximo; horizontal: boolean }) {
+  return (
+    <div className={horizontal ? "flex items-center gap-4 lg:gap-6" : ""}>
+      <div
+        className={`bg-espresso relative overflow-hidden rounded-lg ${
+          horizontal ? "aspect-square w-[44%] shrink-0 lg:w-64" : "aspect-[4/5]"
+        }`}
+      >
+        {curso.imagen && (
+          <>
+            <Image src={curso.imagen} alt="" fill sizes="(min-width: 1024px) 280px, 45vw" className="object-cover" />
+            {/* Velo espresso suave: el candado ya dice "todavía no"; un velo
+                fuerte apagaba la foto que más vende de la sección. */}
+            <span aria-hidden="true" className="bg-espresso/20 absolute inset-0" />
+          </>
+        )}
+        <span className="bg-espresso text-gold-pale absolute top-3 left-3 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase">
+          <Lock size={12} aria-hidden="true" />
+          {curso.abre}
+        </span>
+      </div>
+      <div className="min-w-0">
+        <h3
+          className={`font-display text-espresso ${horizontal ? "" : "mt-3 truncate"}`}
+          style={{ fontWeight: 500, fontSize: horizontal ? 24 : 21, lineHeight: 1.2 }}
+        >
+          {curso.nombre}
+        </h3>
+        <p className="text-ink-muted mt-1 text-sm">
+          {curso.detalle ?? "Por anunciar"} · en tu membresía
+        </p>
+      </div>
+    </div>
   );
 }
 
 /**
  * La oferta, para quien todavía no ha entrado. Va DENTRO del catálogo y no en
- * una pantalla aparte: lo que la convence de pagar es tener los bolsos delante.
+ * una pantalla aparte: lo que la convence de pagar es tener los proyectos delante.
  * La pieza es `BannerPlan`, la misma que usa la ficha de un bolso con plan.
  */
 function Invitacion({
@@ -136,13 +241,10 @@ function Invitacion({
   desde: string;
   enlaces: Record<Frecuencia, string | null>;
 }) {
-  const llaveros = bolsos.filter(esLlavero).length;
   return (
     <div className="mt-8 max-lg:mt-6">
       <BannerPlan
         gratisNombre={bolsos.find((b) => b.gratis)?.nombre ?? null}
-        bolsos={bolsos.length - llaveros}
-        llaveros={llaveros}
         desde={desde}
         enlaces={enlaces}
         origen="catalogo"

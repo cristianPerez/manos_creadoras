@@ -38,13 +38,13 @@ const LINEA = "#E5D6BF";
 
 /** Lo que hay que hacer al entrar. Es lo que evita el "¿y ahora qué?". */
 const PRIMEROS_PASOS = [
-  "Empieza por las cápsulas: son las bases que usan todos los bolsos.",
-  "Elige tu primer bolso y ten a mano los materiales de su lista.",
+  "Empieza por las cápsulas: son las bases que usan todos los proyectos.",
+  "Elige tu primer proyecto y ten a mano los materiales de su lista.",
   "Si te atascas, pregúntale al Ojo Experto desde cualquier pantalla.",
 ] as const;
 
 export function correoDeBienvenida({ para, inicio }: { para: string; inicio: string }): Correo {
-  const asunto = "Ya tienes acceso al curso completo 🤍";
+  const asunto = "Ya tienes tu membresía completa 🤍";
 
   /*
    * El texto plano NO es un resumen del HTML: es el mismo mensaje completo.
@@ -52,7 +52,7 @@ export function correoDeBienvenida({ para, inicio }: { para: string; inicio: str
    * imágenes— tiene que poder entrar igual, así que el enlace va escrito entero.
    */
   const texto = [
-    "Tu pago entró. Ya tienes el curso completo.",
+    "Tu pago entró. Ya tienes tu membresía completa.",
     "",
     `Entra aquí: ${inicio}`,
     `Usa este mismo correo: ${para}`,
@@ -109,8 +109,8 @@ export function correoDeBienvenida({ para, inicio }: { para: string; inicio: str
         <tr><td style="padding:32px 32px 8px 32px;">
           <p style="margin:0 0 22px 0;font-family:Helvetica,Arial,sans-serif;font-size:16px;
                     line-height:1.6;color:${TEXTO};">
-            Tu pago entró y tu acceso al <strong style="color:${ESPRESSO};">curso completo</strong>
-            quedó abierto. Todos los bolsos, todas las cápsulas y el Ojo Experto para tus dudas.
+            Tu pago entró y tu <strong style="color:${ESPRESSO};">membresía completa</strong>
+            quedó abierta. Todos los proyectos, todas las cápsulas y el Ojo Experto para tus dudas.
           </p>
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">

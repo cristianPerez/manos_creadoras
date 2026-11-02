@@ -10,10 +10,10 @@ import { COLOR_FONDO_SISTEMA } from "@/lib/marca";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Manos Creadoras — Bolsos de lujo en cuentas",
+    name: "Manos Creadoras — Manualidades de lujo en cuentas",
     short_name: "Manos Creadoras",
     description:
-      "Tus cursos de tejido y el Ojo Experto, el asistente que revisa fotos de tu bolso y te dice qué ajustar.",
+      "Tus cursos de tejido y el Ojo Experto, el asistente que revisa fotos de tu trabajo y te dice qué ajustar.",
     // Abre directo en sus cursos: quien instala la app ya compró.
     start_url: "/cursos",
     scope: "/",

@@ -171,7 +171,7 @@ export function FichaBolso({
       <div className="border-line bg-cream sticky top-0 z-(--z-sticky) flex h-15 items-center justify-between gap-3 border-b px-3 lg:hidden">
         <Link href="/app" className="text-espresso flex h-11 items-center gap-1.5 px-1 font-medium">
           <ArrowLeft size={20} aria-hidden="true" />
-          Mis bolsos
+          Mis proyectos
         </Link>
         <Link
           href={enlaceOjo}
@@ -187,7 +187,7 @@ export function FichaBolso({
         <header className="mb-6 hidden items-center gap-4 lg:flex">
           <Link
             href="/app"
-            aria-label="Volver a mis bolsos"
+            aria-label="Volver a mis proyectos"
             className="border-line-strong text-espresso flex size-11 shrink-0 items-center justify-center rounded-full border"
           >
             <ArrowLeft size={18} aria-hidden="true" />

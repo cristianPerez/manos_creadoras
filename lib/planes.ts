@@ -128,7 +128,7 @@ export function ahorroAnualDe(): { dolares: number; pct: number } {
 export const INCLUYE = [
   "Clases nuevas cada semana",
   "Velas y más talleres en camino, sin pagar de nuevo",
-  "La biblioteca completa de bolsos en video, paso a paso",
+  "Todos los proyectos en video: bolsos, accesorios y adornos",
   "Ficha de materiales de cada proyecto",
   "Directorio de proveedores",
   "Estrategias para vender tus creaciones",

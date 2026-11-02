@@ -74,14 +74,14 @@ const SUGERENCIAS = [
     Icono: ShoppingBag,
     titulo: "Conseguir materiales",
     pie: "Hilos, herrajes, dónde",
-    texto: "¿Dónde consigo los materiales para hacer mis bolsos?",
+    texto: "¿Dónde consigo los materiales para hacer mis proyectos?",
     conFoto: false,
   },
   {
     Icono: ImageIcon,
     titulo: "Fotos que venden",
     pie: "Con tu celular",
-    texto: "¿Cómo puedo crear fotos profesionales de mis bolsos sin tener una buena cámara?",
+    texto: "¿Cómo puedo crear fotos profesionales de mis piezas sin tener una buena cámara?",
     conFoto: false,
   },
   {

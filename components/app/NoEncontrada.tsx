@@ -14,7 +14,7 @@ export function NoEncontrada({ volver }: { volver: { href: string; texto: string
           Este hilo no lleva a <em className="clave">ningún lado</em>
         </h1>
         <p className="text-ink-body mt-3">
-          La dirección cambió o se escribió mal. Tus bolsos y tu avance siguen donde los dejaste.
+          La dirección cambió o se escribió mal. Tus proyectos y tu avance siguen donde los dejaste.
         </p>
         <Link
           href={volver.href}

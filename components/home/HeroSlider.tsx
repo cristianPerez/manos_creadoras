@@ -11,7 +11,7 @@ import { FRECUENCIA_POR_DEFECTO, GARANTIA, precioDesde } from "@/lib/planes";
 export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: string };
 
 /**
- * El banner del home, con el carrusel de bolsos.
+ * El banner del home, con el carrusel de proyectos.
  *
  * ⚠️ SIN AUTOPLAY, Y ES DELIBERADO. Una foto que se mueve sola mientras alguien
  * lee el titular le roba el ojo justo en la frase que tiene que convencerle. Se
@@ -19,15 +19,16 @@ export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: s
  */
 /** El párrafo del banner. Uno solo para los dos anchos, que solo cambian de sitio. */
 /*
- * ⚠️ AQUÍ ENTRA LA COMUNIDAD (2026-11-01). El titular sigue prometiendo bolsos
- * —es lo que busca quien llega desde Instagram, y lo concreto es lo que
- * convence—, pero el párrafo ya cuenta que esto no se acaba en los bolsos:
- * cada semana entra una clase y vienen las velas. Es la respuesta a la
- * pregunta que decide una suscripción: "¿por qué sigo pagando el mes que
- * viene?".
+ * ⚠️ PROYECTOS, NO SOLO BOLSOS (2026-11-02, pedido de Cristian: «son
+ * proyectos, no solo bolsos, porque Manos Creadoras se está expandiendo a
+ * muchas manualidades»). El titular dice "piezas de perlas" —sigue siendo lo
+ * concreto que busca quien llega de Instagram— y el párrafo nombra qué hay:
+ * bolsos, accesorios, adornos, clase cada semana y las velas de diciembre. Es
+ * la respuesta a "¿por qué sigo pagando el mes que viene?". El regalo sí es un
+ * bolso (Nácar Soñado), y por eso el botón dorado lo sigue diciendo.
  */
 const PARRAFO =
-  "Aprende desde cero con Elizabeth Valencia: teje tu primer bolso gratis y pregúntale al Ojo Experto cuando algo no te salga. Cada semana hay clase nueva, y pronto velas y más talleres.";
+  "Bolsos, accesorios y adornos paso a paso con Elizabeth Valencia, clase nueva cada semana y, en diciembre, velas. Empieza con un bolso gratis y pregúntale al Ojo Experto cuando algo no te salga.";
 
 export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
   const [i, setI] = useState(0);
@@ -201,7 +202,7 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
             ⚠️ EN MÓVIL TODO VA APRETADO, y el listón es medible (home v3): a
             390×844 tienen que verse el titular, el botón dorado y la línea de
             precio sin bajar. Por eso en móvil no va la etiqueta de arriba, el
-            botón "Ver los N bolsos" es más bajo y el párrafo baja debajo del
+            botón "Ver los proyectos" es más bajo y el párrafo baja debajo del
             precio. La barra fija no tapa nada aquí: aparece al salir del banner.
           */}
           {/* En móvil no va: la v3 pone el titular justo bajo los puntos, y
@@ -214,8 +215,8 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
             className="font-display text-espresso text-balance md:mt-5"
             style={{ fontWeight: 500, fontSize: "clamp(36px, 5vw, 62px)", lineHeight: 1.04, letterSpacing: "-0.015em" }}
           >
-            Crea bolsos de <em className="text-gold italic" style={{ fontWeight: 400 }}>perlas</em> de lujo y
-            conviértelos en tu negocio.
+            Crea piezas de <em className="text-gold italic" style={{ fontWeight: 400 }}>perlas</em> de lujo y
+            conviértelas en tu negocio.
           </h1>
 
 
@@ -232,10 +233,9 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
               <Play size={16} fill="currentColor" aria-hidden="true" />
               Empezar mi bolso gratis
             </a>
-            {/* ⚠️ EL NÚMERO SE CALCULA. Estaba escrito a mano ("los 14 bolsos")
-                y al entrar Zafiro Perlado y Nácar Soñado el botón siguió
-                diciendo 14 mientras el cierre de la página ya decía 16. Dos
-                cifras distintas en la misma pantalla para lo mismo. */}
+            {/* ⚠️ Decía "Ver los bolsos" y llevaba a un catálogo que contaba "20
+                bolsos y 3 llaveros" (corregido el 2026-11-02): la membresía
+                son proyectos. Sin cifra: un número cerrado es un techo. */}
             {/*
               ⚠️ VUELVE A MÓVIL (pedido de Cristian, 2026-10-21). La v3 lo había
               quitado para que la línea de precio cupiera sobre la barra fija.
@@ -247,7 +247,7 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
               href="/app"
               className="border-line text-espresso flex h-14 items-center justify-center rounded-full border px-8 font-semibold max-md:h-12 max-md:rounded-md"
             >
-              Ver los bolsos
+              Ver los proyectos
             </Link>
           </div>
 
@@ -265,7 +265,7 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
               className="text-ink-body hover:text-espresso border-line-strong inline-flex min-h-11 items-center border-b text-base transition-colors"
             >
               <span>
-                o el curso completo desde{" "}
+                o la membresía completa desde{" "}
                 <strong className="text-espresso font-bold">{precioDesde()}/mes</strong>
                 <span className="max-md:hidden"> · {GARANTIA.titulo.toLowerCase()}</span> →
               </span>

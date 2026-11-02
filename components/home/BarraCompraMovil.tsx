@@ -81,7 +81,7 @@ export function BarraCompraMovil() {
         >
           <div className="flex h-18 items-center gap-2 px-4">
             <p className="min-w-0 flex-1 leading-tight">
-              <span className="text-on-dark-muted block text-xs">Curso completo</span>
+              <span className="text-on-dark-muted block text-xs">Membresía completa</span>
               <span className="text-gold-pale block text-base font-extrabold">
                 desde {precioDesde()}/mes
               </span>

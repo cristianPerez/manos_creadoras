@@ -5,7 +5,7 @@ import type { OrigenCompra } from "@/components/home/EnlaceCompra";
 import type { Frecuencia } from "@/lib/planes";
 
 /**
- * "¿Y si sigues hasta el bolso terminado?": la tarjeta café con el selector y
+ * "Teje todos los proyectos": la tarjeta café con el selector y
  * el botón de pagar.
  *
  * ⚠️ UN SOLO BANNER PARA LAS DOS PANTALLAS (2026-10-23, pedido de Cristian):
@@ -19,8 +19,6 @@ import type { Frecuencia } from "@/lib/planes";
  */
 export function BannerPlan({
   gratisNombre,
-  bolsos,
-  llaveros,
   desde,
   enlaces,
   origen,
@@ -28,9 +26,6 @@ export function BannerPlan({
 }: {
   /** El bolso que ya es suyo, si hay uno gratis. */
   gratisNombre: string | null;
-  /** Solo bolsos, sin llaveros. */
-  bolsos: number;
-  llaveros: number;
   /** "US$13,92": el precio al mes, ya formateado en el servidor. */
   desde: string;
   enlaces: Record<Frecuencia, string | null>;
@@ -51,16 +46,16 @@ export function BannerPlan({
               className="font-display text-cream text-balance"
               style={{ fontWeight: 500, fontSize: "clamp(26px, 2.4vw, 30px)", lineHeight: 1.15 }}
             >
-              ¿Y si sigues hasta el <em className="clave">bolso terminado</em>?
+              Teje <em className="clave">todos los proyectos</em>
             </h2>
             <p className="text-sand mt-1.5">
               {gratisNombre ? `${gratisNombre} es tuyo ahora mismo. ` : ""}
-              {/* ⚠️ Decía "se abren los 23, uno nuevo cada mes": contaba los
-                  llaveros como bolsos y prometía un bolso nuevo al mes, que no
-                  existe (corregido el 2026-10-21). */}
-              Con el plan se abren todos los bolsos
-              {llaveros > 0 ? ` y ${llaveros} llaveros` : ""}, el directorio de proveedores y el Ojo
-              Experto · garantía de 7 días.
+              {/* ⚠️ SIN CIFRAS Y SIN "SOLO BOLSOS" (2026-11-02, pedido de
+                  Cristian): la membresía son proyectos, no bolsos, y una cifra
+                  cerrada es un techo. Antes decía "todos los bolsos y 3
+                  llaveros". Lo de diciembre sale de `lib/proximamente.ts`. */}
+              Con el plan: bolsos y accesorios, los adornos navideños y las velas de diciembre, el
+              directorio de proveedores y el Ojo Experto · garantía de 7 días.
             </p>
           </div>
           {/* ⚠️ Antes: "Crear mi cuenta gratis" → /entrar. Desde el 2026-10-21
@@ -72,7 +67,7 @@ export function BannerPlan({
       </section>
 
       {/* En Mis bolsos, en móvil se resume en una fila tocable: la tarjeta
-          entera empujaba los bolsos fuera de la primera pantalla. */}
+          entera empujaba los proyectos fuera de la primera pantalla. */}
       {compactoEnMovil && (
         <Link
           href="/app/plan"
@@ -80,9 +75,11 @@ export function BannerPlan({
         >
           <span className="min-w-0 flex-1">
             <span className="font-display text-cream block" style={{ fontWeight: 500, fontSize: 21 }}>
-              ¿Sigues hasta el <em className="clave">bolso terminado</em>?
+              Teje <em className="clave">todos los proyectos</em>
             </span>
-            <span className="text-sand mt-0.5 block text-sm">Desde {desde}/mes · garantía 7 días</span>
+            <span className="text-sand mt-0.5 block text-sm">
+              Bolsos, accesorios, adornos y velas · desde {desde}/mes
+            </span>
           </span>
           <ChevronRight size={22} className="text-cream shrink-0" aria-hidden="true" />
         </Link>

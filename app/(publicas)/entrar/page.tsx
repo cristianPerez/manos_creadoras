@@ -31,7 +31,7 @@ export default async function Entrar() {
           Tu taller te espera donde lo dejaste.
         </h2>
         <p className="mt-4 max-w-sm text-white/60">
-          Tus bolsos, tu avance y tus conversaciones con el Ojo Experto siguen justo como los
+          Tus proyectos, tu avance y tus conversaciones con el Ojo Experto siguen justo como los
           dejaste.
         </p>
       </aside>
