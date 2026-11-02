@@ -71,12 +71,17 @@ que se repusieron. **Antes de tocar nada en OnePay: mira en qué modo estás.**
 **MODO PRUEBAS → es lo que usa QA.** Webhook `ab3b6206` · "Manos Creadoras QA
 (pruebas)" → `https://qa.manoscreadoras.co/api/webhooks/onepay`, activo; sus
 claves son las de `.env.local` y las de Vercel **Preview**. Sus planes al
-precio nuevo: `01a193ae-cdcc…` (Mensual US$19,70) y `01a193af-4e14…` (Anual
-US$167). El checkout de prueba trae tarjetas que simulan cada caso (Visa 4242
+precio nuevo: `01a193ae-cdcc…` (Mensual US$19,70) y **`01a19ca4-e422…` (Anual
+US$117, creado el 2026-11-02)**; el de US$167 (`01a193af-4e14…`) sigue ahí sin
+usarse. El checkout de prueba trae tarjetas que simulan cada caso (Visa 4242
 aprueba; hay otras para vencida, sin fondos y rechazo del banco).
 
-**MODO REAL → es lo de producción.** Planes `01a192d6-6925…` (Mensual) y
-`01a192d6-d124…` (Anual), los que fija la migración 0037. Webhook `7b4d702e`
+**MODO REAL → es lo de producción.** Planes `01a192d6-6925…` (Mensual
+US$19,70, migración 0037) y **`01a19ca5-bda1…` (Anual US$117, migración
+0040)**. El anual viejo de US$167 (`01a192d6-d124…`) quedó **archivado** el
+2026-11-02 —acción que el panel avisa como irreversible— después de que la
+base de producción ya apuntara al nuevo y con 0 suscriptores, así que no
+afectó a ninguna alumna. Webhook `7b4d702e`
 · "Producción · Manos Creadoras" → `https://manoscreadoras.co/api/webhooks/onepay`,
 activo, con los 5 eventos que el código entiende (pagada · cancelada ·
 no pagada · vencida · finalizada; "creada" se deja fuera a propósito — una
@@ -141,11 +146,39 @@ Lo que queda aprendido, por si se repite la idea:
 · **No se puede probar otro país desde aquí**: Vercel ignora la cabecera que
   se le mande y usa la IP real.
 
+💲 **EL PLAN ANUAL BAJÓ A US$117 (2026-11-02, decisión de Cristian).** Antes
+US$167. Hecho de punta a punta ese día: plan nuevo en los dos modos del panel,
+migración 0040, código (`PRECIOS.anual`), QA y producción desplegadas y el plan
+viejo archivado. **Pago de prueba REAL verificado en QA**: checkout de US$117
+con la Visa 4242 → «Transacción Aprobada» (ticket `8200-ba4285fbd111`) →
+webhook `0a9eb542` procesado en 2,3 s → membresía `completo` activa. En
+producción se comprobó que la web anuncia US$117 y que el checkout real abre a
+US$117, **sin pagar**: ahí cualquier pago es dinero de verdad.
+· ⚠️ **El anual ahora sale a US$9,75/mes, la MITAD del mensual de US$19,70, y
+  el ahorro saltó del 29% al 51% (US$119).** Es un descuento muy agresivo: hace
+  que pagar mes a mes sea mal negocio para la alumna, así que es de esperar que
+  casi todo el mundo elija el anual. Entra más dinero por venta y se cobra por
+  adelantado, pero el ingreso mensual recurrente se vuelve un pago al año.
+  Queda dicho por si el reparto entre planes se desvía de lo que se esperaba.
+· ⚠️ **ONEPAY MANDA `cicle_frequency: "monthly"` EN UN PLAN ANUAL.** Visto en
+  el cuerpo del evento de la prueba de QA. Es importante para el pendiente de
+  "deducir el ciclo del evento" (ver el aviso del ciclo más arriba): ese campo
+  NO sirve, mentiría. Lo que sí sirve es `internal_id`, que llegó como
+  `completo-anual-117`.
+
 ⚠️ **QA APUNTA A LOS PLANES DE PRUEBA POR UN UPDATE DE DATOS, NO POR MIGRACIÓN**
 (y así debe ser: los enlaces son configuración de cada entorno, no esquema —
-ver `supabase/migrations/README.md`). La 0037 deja los enlaces REALES, que son
-los correctos para producción; en QA se sobrescriben a mano. Si algún día QA
-vuelve a enseñar los enlaces reales, es que alguien reaplicó la 0037 allí.
+ver `supabase/migrations/README.md`). La 0037 y la 0040 dejan los enlaces
+REALES, que son los correctos para producción; en QA se sobrescriben después.
+Si algún día QA vuelve a enseñar los enlaces reales, es que falta ese paso.
+· ✅ **YA NO SE HACE A MANO: `npm run checkout:ver` y `npm run checkout:fijar`**
+  (`scripts/checkout-enlace.mjs`, creado el 2026-11-02). Por defecto trabajan
+  contra QA; hay que escribir `prod` para tocar producción.
+· ⚠️ **PASÓ DE VERDAD ESE MISMO DÍA**: al aplicar la 0040 en QA, QA quedó
+  apuntando al plan REAL de producción, o sea que el siguiente "pago de prueba"
+  habría sido un cobro auténtico con una tarjeta auténtica. Se detectó con
+  `checkout:ver` y se corrigió en el acto. **Después de CUALQUIER migración que
+  toque enlaces, `npm run checkout:ver` no es opcional.**
 
 Webhook ANTERIOR `ab3b6206` →
 `https://qa.manoscreadoras.co/api/webhooks/onepay`, 9
