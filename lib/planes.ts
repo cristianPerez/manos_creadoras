@@ -83,7 +83,7 @@ export type Precios = { mensual: number; anual: number };
  * de OnePay dice otra, manda OnePay —es quien cobra— y esta constante está
  * mintiendo. Al cambiar un precio se cambian LOS DOS SITIOS, en el mismo rato.
  */
-export const PRECIOS: Precios = { mensual: 19.7, anual: 117 };
+export const PRECIOS: Precios = { mensual: 14.7, anual: 97 };
 
 /**
  * Lo que cuesta cada mes según cómo se pague.
