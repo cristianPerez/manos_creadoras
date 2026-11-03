@@ -109,16 +109,22 @@ revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 
 ---
 
-## 💵 EL PRECIO: UNO SOLO (subido el 2026-10-31)
+## 💵 EL PRECIO: UNO SOLO (bajado el 2026-11-03)
 
 Fuente única: `lib/planes.ts` → `PRECIOS`. **Ningún precio escrito en otro sitio.**
 
-**US$19,70 al mes · US$167 al año** (= US$13,92/mes · ahorra US$69, 29%).
+**US$14,70 al mes · US$97 al año** (= US$8,08/mes · ahorra US$79, 45%).
+Migración 0043. Planes de OnePay en MODO REAL: `01a1a209-8a1b…cc9b4dea`
+(Mensual 14,70) y `01a1a20a-42c5…eb9b1146` (Anual 97), "Membresía Manos
+Creadoras", USD, 0% impuesto. ⚠️ **QA NO se cambió** (decisión de Cristian: no
+crear planes en modo pruebas): QA anuncia 14,70/97 y su checkout de prueba
+cobra 19,70/117. La 0043 solo pisa filas que apuntaban a los planes reales
+viejos, así que en QA no hizo nada. Los planes reales viejos (19,70 y 117) NO
+están archivados: quien ya pagó conserva su precio.
 ⚠️ **EL PLAN POR DEFECTO ES EL MENSUAL desde el 2026-11-01** (antes el anual).
 Lo decide `FRECUENCIA_POR_DEFECTO` en `lib/planes.ts` y de ahí salen todos los
-botones del home, el selector y `precioDesde()`. El anual sigue a un toque con
-su "Ahorra 29%".
-Antes eran US$9,99 / US$89,90; Cristian los subió el 2026-10-31.
+botones del home, el selector y `precioDesde()`.
+Historia: 9,99/89,90 → 19,70/167 (31-oct) → 19,70/117 (2-nov) → 14,70/97 (3-nov).
 Son EXACTAMENTE los planes de OnePay: si un día no coinciden, manda OnePay —es
 quien cobra— y la constante miente. Se cambian los dos sitios a la vez.
 
