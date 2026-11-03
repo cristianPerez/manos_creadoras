@@ -24,6 +24,14 @@ import { reportarAviso } from "@/lib/fallos";
  * ════════════════════════════════════════════════════════════════════════════
  */
 
+/**
+ * Quién recibe los avisos INTERNOS: Cristian y Elizabeth, los dos a propósito
+ * (decisión de Cristian del 2026-10-19): si dependiera de una sola persona de
+ * vacaciones, un aviso de "cancelar a mano" o un "quiero pagar" se quedaría sin
+ * leer. Lo usan la cancelación y el formulario de contacto.
+ */
+export const AVISOS_INTERNOS = ["cperez354@gmail.com", "elizabethvalenciahenao24@gmail.com"];
+
 export type Correo = {
   /**
    * Uno o varios destinatarios.

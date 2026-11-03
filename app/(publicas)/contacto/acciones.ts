@@ -1,18 +1,18 @@
 "use server";
 
 import { z } from "zod";
-import { enviarCorreo } from "@/lib/correo";
+import { AVISOS_INTERNOS, enviarCorreo } from "@/lib/correo";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-/**
- * A dónde llegan los mensajes de contacto.
+/*
+ * A dónde llegan los mensajes de contacto: a Cristian y a Elizabeth
+ * (`AVISOS_INTERNOS`, pedido de Cristian del 2026-11-03).
  *
- * ⚠️ AQUÍ DECÍA `hola@manoscreadoras.COM` Y EL DOMINIO ES `.CO`. Detectado el
- * 2026-10-16: todos los mensajes de contacto —incluidos los de gente diciendo
- * "quiero pagar"— se estaban mandando a un dominio que no es nuestro. Cristian
- * tiene que confirmar que este buzón existe y recibe.
+ * ⚠️ ANTES IBAN A `hola@manoscreadoras.co`, un buzón que nadie confirmó que
+ * existiera (y hasta el 2026-10-16 ni siquiera era nuestro dominio: decía
+ * `.com`). Un "quiero pagar" que cae en un buzón que no se lee es una venta
+ * perdida. Los mensajes siguen guardándose primero en `contactos`.
  */
-const BUZON_INTERNO = "hola@manoscreadoras.co";
 
 /** Para que un "<" en el mensaje de alguien no rompa el HTML del correo. */
 function escapar(t: string): string {
@@ -73,7 +73,7 @@ export async function enviarContacto(datos: unknown): Promise<ResultadoContacto>
    * resultado se ignora a conciencia: ver el comentario de arriba.
    */
   await enviarCorreo({
-    para: BUZON_INTERNO,
+    para: AVISOS_INTERNOS,
     responderA: v.data.correo,
     asunto: `Contacto: ${v.data.motivo} — ${v.data.nombre}`,
     texto: cuerpo,
