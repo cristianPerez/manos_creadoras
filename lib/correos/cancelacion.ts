@@ -1,4 +1,4 @@
-import type { Correo } from "@/lib/correo";
+import { AVISOS_INTERNOS, type Correo } from "@/lib/correo";
 
 /**
  * El aviso INTERNO de que una alumna se dio de baja. No lo lee ella.
@@ -77,7 +77,7 @@ export function correoDeCancelacion(d: DatosCancelacion): Correo {
   const texto = lineas.join("\n");
 
   return {
-    para: DESTINATARIOS,
+    para: AVISOS_INTERNOS,
     asunto: hayQueHacerAlgo
       ? `ACCIÓN: cancelar a mano en OnePay — ${d.correoAlumna}`
       : `Cancelación: ${d.correoAlumna}`,
@@ -90,13 +90,6 @@ export function correoDeCancelacion(d: DatosCancelacion): Correo {
     html: `<pre style="font:14px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;">${escapar(texto)}</pre>`,
   };
 }
-
-/**
- * Quién se entera. Los dos, a propósito (decisión de Cristian del 2026-10-19):
- * si dependiera de una sola persona de vacaciones, el aviso de "cancelar a
- * mano" se quedaría sin leer y la alumna acabaría con un cobro de más.
- */
-const DESTINATARIOS = ["cperez354@gmail.com", "elizabethvalenciahenao24@gmail.com"];
 
 /** Para que un "<" en un correo raro no rompa el HTML. */
 function escapar(t: string): string {

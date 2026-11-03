@@ -66,3 +66,5 @@ supabase/.temp/
 graphify-out/
 
 /public/images/Claude outputs/
+# reportes diarios de producción (scripts/reporte-diario.mjs): datos, no código
+/reportes/

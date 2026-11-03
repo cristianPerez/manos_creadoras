@@ -69,8 +69,32 @@ N videos", calculado de la tabla. En la venta sigue SIN cifra (techo, 1-nov).
   home bajo el precio en móvil, interruptor de Mi plan, filtros "En curso 0"
   para invitada, cabecera Entrar/Inscribirme, la ficha dice Jost y se usa
   Manrope).
-· ⚠️ `app/(publicas)/contacto` dice que el bolso gratis es Cristal Brillante
-  (es Nácar Soñado) y `/bienvenida` recomienda empezar por Cristal Brillante.
+· ✅ Contacto (2026-11-02): el recuadro ya no dice "te enviamos el enlace de
+  pago, lo hacemos a mano" (era de antes de OnePay) → "¿Ya quieres entrar?" +
+  botón a Mi plan; el gratis sale de la base (decía Cristal Brillante, es Nácar
+  Soñado); el selector arranca en mensual. `/bienvenida` ya no recomienda
+  Cristal Brillante. **Desde el 2026-11-03 los mensajes de contacto llegan a
+  Cristian y a Elizabeth** (`AVISOS_INTERNOS` en `lib/correo.ts`, la misma
+  lista de los avisos de cancelación), no a `hola@manoscreadoras.co`, que
+  nadie confirmó que existiera. Siguen guardándose primero en `contactos`.
+
+📈 **REPORTE DIARIO DE PRODUCCIÓN (2026-11-03).** `npm run reporte:diario`
+(`scripts/reporte-diario.mjs`, solo lee `.env.prod`) → visitantes nuevos,
+países con %, dispositivos, quiénes volvieron, cuentas, pagos y contactos del
+día anterior (hora de Bogotá); queda en `reportes/` (fuera de git). Skill
+`.claude/skills/reporte-diario` + tarea programada de la app a las 7 am
+(`reporte-diario-manos-creadoras`; corre solo con la app abierta).
+· "Visitantes" = navegadores (`sesiones_pais` es UNA fila por cookie de 30
+  días), NO sesiones: el número real de visitas no se guarda en Supabase.
+· ⚠️ **MIXPANEL NO ESTÁ CONECTADO AL REPORTE**: el token de la app solo
+  ESCRIBE eventos. Falta una cuenta de servicio de solo lectura en `.env.prod`
+  (`MIXPANEL_SA_USUARIO`, `MIXPANEL_SA_SECRETO`, `MIXPANEL_PROYECTO_ID=4064037`,
+  y `MIXPANEL_REGION=eu` si el proyecto está en Europa). Con eso el script
+  añade solo el embudo y los países de Mixpanel.
+· Foto al 2026-11-03: 614 visitantes reales en 40 países desde el 21-oct (casi
+  todo desde el 31-oct): CO 34% · MX 9% · US 8% · VE 8% · CL 4%; 59% Android,
+  36% iPhone; ~36% entra desde el navegador de Instagram. 4 cuentas gratis,
+  0 pagos.
 · ⚠️ El Ojo Experto todavía marca "otras manualidades" como fuera de tema: al
   abrir velas hay que añadirlas a sus instrucciones (`app/api/ojo-experto`).
 
