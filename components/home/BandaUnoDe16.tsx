@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { Entrada } from "@/components/home/Entrada";
-import { FRECUENCIA_POR_DEFECTO, precioDesde } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
 
 /**
  * "Este es solo uno. Llévate todos los demás." — justo después del bolso gratis.
@@ -26,7 +26,8 @@ const MUESTRAS = [
   { src: "/images/navidad-accesorios.webp", alt: "Adornos navideños en perlas" },
 ];
 
-export function BandaUnoDe16({ proyectos }: { proyectos: number }) {
+/** `desde`: "US$14,70", de la base (`lib/precios.ts`), ya formateado por la página. */
+export function BandaUnoDe16({ proyectos, desde }: { proyectos: number; desde: string }) {
   return (
     /*
       ⚠️ HOME A COLOR (2026-10-22): FRANJA CAFÉ A TODO EL ANCHO, no una tarjeta
@@ -75,7 +76,7 @@ export function BandaUnoDe16({ proyectos }: { proyectos: number }) {
           plan={FRECUENCIA_POR_DEFECTO}
           className="bg-cream text-espresso flex h-13.5 shrink-0 items-center justify-center rounded-full px-8 font-semibold transition-transform active:scale-[0.98] max-md:w-full"
         >
-          Ver el plan · desde {precioDesde()}/mes
+          Ver el plan · desde {desde}/mes
         </EnlaceCompra>
       </Entrada>
     </section>

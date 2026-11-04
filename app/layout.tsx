@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { Analitica } from "@/components/app/Analitica";
+import { PreciosProvider } from "@/components/app/Precios";
+import { preciosDeLaPagina } from "@/lib/precios";
 import { MotionProvider } from "@/components/app/MotionProvider";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
 import { COLOR_FONDO_SISTEMA } from "@/lib/marca";
@@ -79,6 +81,9 @@ export default async function RootLayout({
     aunque la página ya lo haya pedido para resolver el enlace de pago.
   */
   const { pais, fuente, ciudad } = await detectarPais();
+  /* El precio de la base (misma fila que el enlace de pago) para todos los
+     componentes de navegador: ver `components/app/Precios.tsx`. */
+  const { precios } = await preciosDeLaPagina();
 
   return (
     <html
@@ -86,7 +91,9 @@ export default async function RootLayout({
       className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-dvh flex flex-col bg-surface-base text-text-primary font-body">
-        <MotionProvider>{children}</MotionProvider>
+        <PreciosProvider precios={precios}>
+          <MotionProvider>{children}</MotionProvider>
+        </PreciosProvider>
         <RegistrarSW />
         <Analitica
           userId={user?.id ?? null}

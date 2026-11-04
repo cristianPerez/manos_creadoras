@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FormularioContacto } from "@/components/app/FormularioContacto";
 import { listarBolsos } from "@/lib/bolsos";
-import { GARANTIA, precioDesde } from "@/lib/planes";
+import { GARANTIA } from "@/lib/planes";
+import { preciosDeLaPagina } from "@/lib/precios";
 
 export const metadata: Metadata = { title: "Contacto — Manos Creadoras" };
 
 export default async function Contacto() {
+  const pr = await preciosDeLaPagina();
   /* El gratis sale de la BASE: aquí decía "Cristal Brillante" a mano cuando el
      regalo ya era Nácar Soñado (corregido el 2026-11-02). */
   const gratis = (await listarBolsos()).find((b) => b.gratis) ?? null;
@@ -41,7 +43,7 @@ export default async function Contacto() {
           </h2>
           <p className="mt-3 text-sm text-white/75">
             No hace falta escribirnos: eliges tu plan, pagas con tarjeta y entras al momento. Desde{" "}
-            {precioDesde()}/mes · {GARANTIA.titulo.toLowerCase()}.
+            {pr.desde}/mes · {GARANTIA.titulo.toLowerCase()}.
           </p>
           <Link
             href="/app/plan"

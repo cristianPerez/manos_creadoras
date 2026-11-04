@@ -1,9 +1,10 @@
 "use client";
 
+import { usePrecios } from "@/components/app/Precios";
 import { Check, Loader2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { enviarContacto } from "@/app/(publicas)/contacto/acciones";
-import { FRECUENCIA_POR_DEFECTO, precioPorMes, type Frecuencia } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO, type Frecuencia } from "@/lib/planes";
 
 const MOTIVOS = [
   "Quiero unirme a un plan",
@@ -19,6 +20,7 @@ const CICLOS: { id: Frecuencia; texto: string }[] = [
 ];
 
 export function FormularioContacto() {
+  const pr = usePrecios();
   const [motivo, setMotivo] = useState<string>(MOTIVOS[0]);
   const [ciclo, setCiclo] = useState<Frecuencia>(FRECUENCIA_POR_DEFECTO);
   const [estado, setEstado] = useState<"listo" | "enviando" | "enviado">("listo");
@@ -110,7 +112,7 @@ export function FormularioContacto() {
               >
                 {c.texto}
                 <span className={ciclo === c.id ? "text-white/60" : "text-ink-muted"}>
-                  {precioPorMes(c.id)}/mes
+                  {pr.porMes(c.id)}/mes
                 </span>
               </button>
             ))}

@@ -1,11 +1,12 @@
 "use client";
 
+import { usePrecios } from "@/components/app/Precios";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { EnlaceCompra, EnlaceWhatsApp } from "@/components/home/EnlaceCompra";
 import { IconoWhatsApp } from "@/components/home/IconoWhatsApp";
 import { WHATSAPP_URL } from "@/lib/landing";
-import { FRECUENCIA_POR_DEFECTO, precioDesde } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
 
 /**
  * La barra fija de compra, solo en móvil (home v3).
@@ -27,6 +28,7 @@ import { FRECUENCIA_POR_DEFECTO, precioDesde } from "@/lib/planes";
  * `--barra-compra`, para que no tape el copyright.
  */
 export function BarraCompraMovil() {
+  const pr = usePrecios();
   const [bannerVisible, setBannerVisible] = useState(true);
   const [tapadoVisible, setTapadoVisible] = useState(false);
   const quieto = useReducedMotion();
@@ -83,7 +85,7 @@ export function BarraCompraMovil() {
             <p className="min-w-0 flex-1 leading-tight">
               <span className="text-on-dark-muted block text-xs">Membresía completa</span>
               <span className="text-gold-pale block text-base font-extrabold">
-                desde {precioDesde()}/mes
+                desde {pr.desde}/mes
               </span>
             </p>
 

@@ -1,12 +1,13 @@
 "use client";
 
+import { usePrecios } from "@/components/app/Precios";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { NumeroQueCuenta } from "@/components/home/NumeroQueCuenta";
-import { FRECUENCIA_POR_DEFECTO, GARANTIA, precioDesde } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO, GARANTIA } from "@/lib/planes";
 
 export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: string };
 
@@ -31,6 +32,7 @@ const PARRAFO =
   "Bolsos, accesorios y adornos paso a paso con Elizabeth Valencia, clase nueva cada semana y, en diciembre, velas. Empieza con un bolso gratis y pregúntale al Ojo Experto cuando algo no te salga.";
 
 export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
+  const pr = usePrecios();
   const [i, setI] = useState(0);
   const tocado = useRef<number | null>(null);
 
@@ -266,7 +268,7 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
             >
               <span>
                 o la membresía completa desde{" "}
-                <strong className="text-espresso font-bold">{precioDesde()}/mes</strong>
+                <strong className="text-espresso font-bold">{pr.desde}/mes</strong>
                 <span className="max-md:hidden"> · {GARANTIA.titulo.toLowerCase()}</span> →
               </span>
             </EnlaceCompra>

@@ -13,6 +13,7 @@
     "membresia:ver": "node scripts/membresia.mjs ver",
     "push:enviar": "node scripts/enviar-aviso.mjs",
     "reporte:diario": "node scripts/reporte-diario.mjs",
+    "precio:cambiar": "node scripts/precio-cambiar.mjs",
     "seed:bolsos": "node scripts/seed-bolsos.mjs",
     "start": "next start",
     "typecheck": "tsc --noEmit",

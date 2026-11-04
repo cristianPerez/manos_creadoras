@@ -16,7 +16,8 @@ import { OjoDemo } from "@/components/home/OjoDemo";
 import { PrecioHome } from "@/components/home/PrecioHome";
 import { PreguntasFrecuentes } from "@/components/home/PreguntasFrecuentes";
 import { faqJsonLd } from "@/lib/landing";
-import { FRECUENCIA_POR_DEFECTO, precioDelCobro, precioDesde } from "@/lib/planes";
+import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
+import { preciosDeLaPagina } from "@/lib/precios";
 import { listarCapsulas } from "@/lib/capsulas";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
@@ -58,6 +59,7 @@ const SUBTITULOS: Record<string, string> = {
 const ORDEN_CARRUSEL = Object.keys(SUBTITULOS);
 
 export default async function Home() {
+  const pr = await preciosDeLaPagina();
   const [bolsos, capsulas, cobro] = await Promise.all([
     listarBolsos(),
     listarCapsulas(),
@@ -186,7 +188,7 @@ export default async function Home() {
           )}
 
           <div data-seccion="banda">
-            <BandaUnoDe16 proyectos={totalProyectos} />
+            <BandaUnoDe16 proyectos={totalProyectos} desde={pr.desde} />
           </div>
 
           <div data-seccion="ojo">
@@ -226,7 +228,7 @@ export default async function Home() {
                     abren el mensual, serían dos ofertas distintas en la misma
                     pantalla. */}
                 <p className="text-sand mt-3">
-                  Plan mensual: {precioDelCobro(FRECUENCIA_POR_DEFECTO)} al mes · cancelas cuando
+                  Plan mensual: {pr.cobro(FRECUENCIA_POR_DEFECTO)} al mes · cancelas cuando
                   quieras · garantía de 7 días.
                 </p>
               </div>
@@ -237,7 +239,7 @@ export default async function Home() {
                 abrePago={Boolean(cobro.url[FRECUENCIA_POR_DEFECTO])}
                 className="bg-cream text-espresso flex h-13.5 shrink-0 items-center justify-center rounded-full px-10 font-semibold transition-transform active:scale-[0.98] max-md:w-full"
               >
-                Inscribirme por {precioDesde()}/mes
+                Inscribirme por {pr.desde}/mes
               </EnlaceCompra>
             </div>
           </section>
