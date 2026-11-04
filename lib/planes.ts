@@ -77,13 +77,19 @@ export type Frecuencia = "anual" | "mensual";
 export type Precios = { mensual: number; anual: number };
 
 /**
- * EL precio. Uno solo, el mismo para todo el mundo y a todas horas.
+ * EL PRECIO DE RESPALDO. ⚠️ YA NO ES LA FUENTE (2026-11-03, migración 0044).
  *
- * ⚠️ SON EXACTAMENTE LOS PLANES DE ONEPAY. Si aquí dice una cifra y el panel
- * de OnePay dice otra, manda OnePay —es quien cobra— y esta constante está
- * mintiendo. Al cambiar un precio se cambian LOS DOS SITIOS, en el mismo rato.
+ * El precio de verdad vive en la base, en la MISMA fila que su enlace de pago
+ * (`plan_checkout.precio_usd`), y llega a las pantallas por `lib/precios.ts`
+ * (servidor) y `<PreciosProvider>` / `usePrecios()` (navegador). Así el precio
+ * que se enseña y el que se cobra cambian a la vez, sin desplegar:
+ * `npm run precio:cambiar`.
+ *
+ * Esta constante solo se usa si la base no responde o la fila no tiene precio.
+ * Conviene que coincida con producción, pero si un día no coincide, la app
+ * sigue enseñando lo de la base.
  */
-export const PRECIOS: Precios = { mensual: 14.7, anual: 97 };
+export const PRECIOS_RESPALDO: Precios = { mensual: 14.7, anual: 97 };
 
 /**
  * Lo que cuesta cada mes según cómo se pague.
@@ -92,14 +98,14 @@ export const PRECIOS: Precios = { mensual: 14.7, anual: 97 };
  * escribieran los dos, el día que cambie uno el otro se queda mintiendo — y la
  * cifra que miente es siempre la del descuento, que es la que decide la compra.
  */
-export function precioPorMesDe(): Record<Frecuencia, number> {
-  return { mensual: PRECIOS.mensual, anual: PRECIOS.anual / 12 };
+export function precioPorMesDe(p: Precios): Record<Frecuencia, number> {
+  return { mensual: p.mensual, anual: p.anual / 12 };
 }
 
 /** Lo que se ahorra pagando el año de golpe, en dólares y en porcentaje. */
-export function ahorroAnualDe(): { dolares: number; pct: number } {
-  const dolares = Math.round(PRECIOS.mensual * 12 - PRECIOS.anual);
-  return { dolares, pct: Math.round((dolares / (PRECIOS.mensual * 12)) * 100) };
+export function ahorroAnualDe(p: Precios): { dolares: number; pct: number } {
+  const dolares = Math.round(p.mensual * 12 - p.anual);
+  return { dolares, pct: Math.round((dolares / (p.mensual * 12)) * 100) };
 }
 
 /**
@@ -188,18 +194,18 @@ export function dolares(v: number): string {
 }
 
 /** "US$6,67" — siempre por mes, que es como se comparan los dos ciclos. */
-export function precioPorMes(frecuencia: Frecuencia): string {
-  return `US$${precioPorMesDe()[frecuencia].toFixed(2).replace(".", ",")}`;
+export function precioPorMes(p: Precios, frecuencia: Frecuencia): string {
+  return `US$${precioPorMesDe(p)[frecuencia].toFixed(2).replace(".", ",")}`;
 }
 
 /** "US$80" — el cobro de verdad, sin decimales si son redondos. */
-export function precioDelCobro(frecuencia: Frecuencia): string {
-  return dolares(PRECIOS[frecuencia]);
+export function precioDelCobro(p: Precios, frecuencia: Frecuencia): string {
+  return dolares(p[frecuencia]);
 }
 
 /** La línea bajo el precio: qué se cobra y cuándo. */
-export function notaDelCobro(frecuencia: Frecuencia): string {
-  const ahorro = ahorroAnualDe().dolares;
+export function notaDelCobro(p: Precios, frecuencia: Frecuencia): string {
+  const ahorro = ahorroAnualDe(p).dolares;
   /*
    * ⚠️ "UN PAGO AL AÑO", NUNCA "PAGO ÚNICO". El diseño del home v3 decía "pago
    * único de US$89,90", pero el plan anual de OnePay se renueva solo cada 12
@@ -207,8 +213,8 @@ export function notaDelCobro(frecuencia: Frecuencia): string {
    * reclamo — o un reembolso. Decisión de Cristian, 2026-10-20.
    */
   return frecuencia === "anual"
-    ? `Un pago de ${precioDelCobro("anual")} al año · ahorras US$${ahorro}`
-    : `Se cobra ${precioDelCobro("mensual")} cada mes · cancelas cuando quieras`;
+    ? `Un pago de ${precioDelCobro(p, "anual")} al año · ahorras US$${ahorro}`
+    : `Se cobra ${precioDelCobro(p, "mensual")} cada mes · cancelas cuando quieras`;
 }
 
 /**
@@ -220,6 +226,25 @@ export function notaDelCobro(frecuencia: Frecuencia): string {
  * US$13,92" y cobrar US$19,70 al tocar el botón es la clase de desajuste que
  * se nota justo en la pantalla de pago.
  */
-export function precioDesde(): string {
-  return precioPorMes(FRECUENCIA_POR_DEFECTO);
+export function precioDesde(p: Precios): string {
+  return precioPorMes(p, FRECUENCIA_POR_DEFECTO);
 }
+
+/**
+ * Todas las cifras de precio, ya atadas a unos precios concretos. Es lo que
+ * devuelven `preciosDeLaPagina()` (servidor) y `usePrecios()` (navegador), para
+ * que cada pantalla escriba `pr.desde` en vez de pasar los precios a mano.
+ */
+export function conPrecios(p: Precios) {
+  return {
+    precios: p,
+    porMesNumero: precioPorMesDe(p),
+    ahorro: ahorroAnualDe(p),
+    desde: precioDesde(p),
+    porMes: (f: Frecuencia) => precioPorMes(p, f),
+    cobro: (f: Frecuencia) => precioDelCobro(p, f),
+    nota: (f: Frecuencia) => notaDelCobro(p, f),
+  };
+}
+
+export type CifrasDePrecio = ReturnType<typeof conPrecios>;

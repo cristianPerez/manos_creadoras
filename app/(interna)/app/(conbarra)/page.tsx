@@ -4,13 +4,14 @@ import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual, nombreCorto } from "@/lib/alumna";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { continuarDonde, listarBolsos, ordenCatalogo } from "@/lib/bolsos";
-import { precioDesde } from "@/lib/planes";
+import { preciosDeLaPagina } from "@/lib/precios";
 
 export const metadata: Metadata = {
   title: "Mis proyectos — Manos Creadoras",
 };
 
 export default async function MisBolsos() {
+  const pr = await preciosDeLaPagina();
   const [alumna, todos, cobro] = await Promise.all([alumnaActual(), listarBolsos(), enlacesDeCobro()]);
   const bolsos = ordenCatalogo(todos);
   const totalVideos = bolsos.reduce((suma, b) => suma + b.videos, 0);
@@ -77,7 +78,7 @@ export default async function MisBolsos() {
         </header>
 
         <Catalogo
-          desde={precioDesde()}
+          desde={pr.desde}
           bolsos={bolsos}
           continuar={retomar && retomar.vistos > 0 ? retomar : null}
           tieneAcceso={alumna?.tieneAcceso ?? false}

@@ -1,10 +1,10 @@
 /**
- * Mira y cambia los enlaces de pago de `plan_checkout`, por entorno.
+ * Mira los enlaces de pago y sus precios de `plan_checkout`, por entorno.
  *
  *   npm run checkout:ver                       (QA, de .env.local)
  *   npm run checkout:ver -- prod               (producción, de .env.prod)
- *   npm run checkout:fijar -- anual https://pagos.onepay.la/plan/<id>
- *   npm run checkout:fijar -- prod anual https://pagos.onepay.la/plan/<id>
+ *
+ * Para CAMBIAR precio o enlace: `npm run precio:cambiar` (ver ese archivo).
  *
  * ════════════════════════════════════════════════════════════════════════════
  * ⚠️ POR QUÉ EXISTE: QA NO PUEDE APUNTAR A LOS PLANES DE PRODUCCIÓN
@@ -51,7 +51,7 @@ const donde = esProd ? "PRODUCCIÓN" : "QA";
 async function ver() {
   const { data, error } = await admin
     .from("plan_checkout")
-    .select("plan, ciclo, region, url, actualizado_en")
+    .select("plan, ciclo, region, url, precio_usd, actualizado_en")
     .order("ciclo")
     .order("region");
   if (error) {
@@ -60,39 +60,28 @@ async function ver() {
   }
   console.log(`\nEnlaces de pago en ${donde}:\n`);
   for (const f of data) {
-    console.log(`  ${f.ciclo.padEnd(8)} ${f.region.padEnd(14)} ${f.url}`);
+    const precio = f.precio_usd == null ? "sin precio" : `US$${Number(f.precio_usd).toFixed(2).replace(".", ",")}`;
+    console.log(`  ${f.ciclo.padEnd(8)} ${f.region.padEnd(14)} ${precio.padEnd(11)} ${f.url}`);
   }
   console.log();
 }
 
-async function fijar() {
-  const [ciclo, url] = args;
-  if (!["mensual", "anual"].includes(ciclo) || !url?.startsWith("https://pagos.onepay.la/plan/")) {
-    console.error(
-      "Uso:  npm run checkout:fijar -- [prod] <mensual|anual> https://pagos.onepay.la/plan/<id>",
-    );
-    process.exit(1);
-  }
-
-  /* Las dos regiones a la vez: desde la 0037 comparten plan, y la 0039 dejó
-     dicho que si alguna vez se separan, se separan a propósito y a mano. */
-  const { data, error } = await admin
-    .from("plan_checkout")
-    .update({ url, actualizado_en: new Date().toISOString() })
-    .eq("plan", "completo")
-    .eq("ciclo", ciclo)
-    .select("region");
-  if (error) {
-    console.error(`No se pudo escribir en ${donde}:`, error.message);
-    process.exit(1);
-  }
-  console.log(`\n✅ ${donde} · plan ${ciclo} → ${url}`);
-  console.log(`   Filas cambiadas: ${data.length} (${data.map((f) => f.region).join(", ")})`);
-  await ver();
+/*
+ * ⚠️ `fijar` YA NO ESCRIBE (2026-11-03). Cambiaba solo el ENLACE, y desde la
+ * migración 0044 el precio vive en la misma fila: cambiar uno sin el otro es
+ * justo el desajuste "anuncia un precio, cobra otro" que se quería evitar.
+ * Ahora lo hace `precio:cambiar`, que además verifica el plan contra OnePay.
+ */
+function fijar() {
+  console.error(
+    "\n`checkout:fijar` ya no se usa: el precio y el enlace se cambian juntos.\n" +
+      "Usa:  npm run precio:cambiar -- [prod] <mensual|anual> <precio> https://pagos.onepay.la/plan/<id>\n",
+  );
+  process.exit(1);
 }
 
 if (accion === "ver") await ver();
-else if (accion === "fijar") await fijar();
+else if (accion === "fijar") fijar();
 else {
   console.error("Acciones:  ver | fijar");
   process.exit(1);

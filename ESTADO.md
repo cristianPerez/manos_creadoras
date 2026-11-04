@@ -111,7 +111,24 @@ revisa fotos del trabajo). Suscripción mensual o anual, cobrada por **OnePay**.
 
 ## 💵 EL PRECIO: UNO SOLO (bajado el 2026-11-03)
 
-Fuente única: `lib/planes.ts` → `PRECIOS`. **Ningún precio escrito en otro sitio.**
+**Fuente única: la BASE, `plan_checkout.precio_usd`, en la MISMA fila que el
+enlace de OnePay** (migraciones 0044/0045). Precio y enlace se leen juntos en
+cada visita (`lib/checkout.ts` → `lib/precios.ts` en servidor, `usePrecios()`
+de `components/app/Precios.tsx` en navegador). `PRECIOS_RESPALDO` en
+`lib/planes.ts` solo se usa si la base falla. **Ningún precio escrito en otro sitio.**
+
+🔧 **CÓMO SE CAMBIA UN PRECIO (desde el 2026-11-03), sin publicar código:**
+1. Crear el plan nuevo en el panel de OnePay (modo REAL para producción, modo
+   PRUEBAS para QA). Ojo: el campo Valor lee "14.70" como 1.470 → escribir "14,70".
+2. `npm run precio:cambiar -- prod mensual 14,70 https://pagos.onepay.la/plan/<id>`
+   (sin `prod` = QA). Lee la página del plan y se NIEGA si el monto, la moneda
+   (USD), el impuesto (0%), la frecuencia o el modo (real/prueba) no cuadran.
+   Sin `--si` solo simula; con `--si` escribe precio + enlace en un solo update.
+3. Actualizar `PRECIOS_RESPALDO` cuando convenga (no es urgente).
+Cada cambio queda en `plan_checkout_historial` (trigger: quién, cuándo, de
+qué a qué; `service_role` = el comando, `postgres` = a mano en el panel).
+`checkout:ver` enseña precio y enlace; `checkout:fijar` ya no escribe.
+⚠️ QA enseña lo que COBRA su plan de prueba: hoy 19,70 / 117, no 14,70 / 97.
 
 **US$14,70 al mes · US$97 al año** (= US$8,08/mes · ahorra US$79, 45%).
 Migración 0043. Planes de OnePay en MODO REAL: `01a1a209-8a1b…cc9b4dea`

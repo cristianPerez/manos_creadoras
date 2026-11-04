@@ -15,7 +15,7 @@ import {
   obtenerBolso,
   siguienteVideo,
 } from "@/lib/bolsos";
-import { precioDesde } from "@/lib/planes";
+import { preciosDeLaPagina } from "@/lib/precios";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 
 export async function generateMetadata({
@@ -39,6 +39,7 @@ export default async function Ficha({
       retomar o la dirección vieja de cada paso), que arranca solo. */
   searchParams: Promise<{ video?: string; ver?: string }>;
 }) {
+  const pr = await preciosDeLaPagina();
   const { slug } = await params;
   const { video, ver } = await searchParams;
   const [bolso, alumna, cobro] = await Promise.all([
@@ -148,7 +149,7 @@ export default async function Ficha({
         catalogo && (
           <BannerPlan
             gratisNombre={catalogo.find((b) => b.gratis)?.nombre ?? null}
-            desde={precioDesde()}
+            desde={pr.desde}
             enlaces={cobro.url}
             origen="ficha_bolso"
           />

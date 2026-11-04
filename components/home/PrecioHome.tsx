@@ -1,5 +1,6 @@
 "use client";
 
+import { usePrecios } from "@/components/app/Precios";
 import { Check, CreditCard, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { InterruptorPlan } from "@/components/app/InterruptorPlan";
@@ -14,8 +15,6 @@ import { WHATSAPP_URL } from "@/lib/landing";
 import {
   GARANTIA,
   INCLUYE,
-  notaDelCobro,
-  precioPorMesDe,
   type Frecuencia,
 } from "@/lib/planes";
 
@@ -37,6 +36,7 @@ import {
  * Las cifras salen de `lib/planes.ts` y del catálogo: ni una escrita en el JSX.
  */
 export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | null> }) {
+  const pr = usePrecios();
   // Compartida con el otro toggle de la página: ver `lib/frecuencia-elegida.ts`.
   const frecuencia = useFrecuenciaElegida();
   const quieto = useReducedMotion();
@@ -98,11 +98,11 @@ export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | n
                   — lo que cambia es el ciclo. Con el otro, al cambiar se quedaba
                   en US$0,00, que en un precio es lo más parecido a un error.
                 */}
-                <PrecioQueCuenta hasta={precioPorMesDe()[frecuencia]} quieto={Boolean(quieto)} />
+                <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} quieto={Boolean(quieto)} />
               </span>
               <span className="text-on-dark-muted text-lg">/mes</span>
             </p>
-            <p className="text-on-dark-muted mt-2 text-base text-balance">{notaDelCobro(frecuencia)}</p>
+            <p className="text-on-dark-muted mt-2 text-base text-balance">{pr.nota(frecuencia)}</p>
 
             {/*
               ⚠️ SIN EL "o mensual por… / o anual por…" DE DEBAJO (planes,

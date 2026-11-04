@@ -1,11 +1,12 @@
 "use client";
 
+import { usePrecios } from "@/components/app/Precios";
 import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { EnlaceCompra, type OrigenCompra } from "@/components/home/EnlaceCompra";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida";
-import { notaDelCobro, precioPorMes, type Frecuencia } from "@/lib/planes";
+import type { Frecuencia } from "@/lib/planes";
 
 /**
  * El botón de pagar con su selector anual / mensual (2026-10-21).
@@ -40,6 +41,7 @@ export function PagoConPlan({
    */
   disposicion?: "columna" | "fila";
 }) {
+  const pr = usePrecios();
   const frecuencia = useFrecuenciaElegida();
   const enlace = enlaces[frecuencia];
   const oscuro = tono === "oscuro";
@@ -61,7 +63,7 @@ export function PagoConPlan({
           abrePago={Boolean(enlace)}
           className="bg-cream text-espresso flex h-13 grow items-center justify-center rounded-full px-8 font-semibold whitespace-nowrap transition-transform active:scale-[0.98]"
         >
-          Inscribirme · {precioPorMes(frecuencia)}/mes
+          Inscribirme · {pr.porMes(frecuencia)}/mes
         </EnlaceCompra>
       </div>
     );
@@ -86,7 +88,7 @@ export function PagoConPlan({
       </EnlaceCompra>
 
       <p className={`text-center text-xs ${oscuro ? "text-on-dark-muted" : "text-ink-muted"}`}>
-        {precioPorMes(frecuencia)}/mes · {notaDelCobro(frecuencia).split(" · ")[0]}
+        {pr.porMes(frecuencia)}/mes · {pr.nota(frecuencia).split(" · ")[0]}
       </p>
     </div>
   );

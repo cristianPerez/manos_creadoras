@@ -1,6 +1,7 @@
 "use client";
 
-import { ahorroAnualDe, type Frecuencia } from "@/lib/planes";
+import { usePrecios } from "@/components/app/Precios";
+import type { Frecuencia } from "@/lib/planes";
 
 /**
  * El interruptor "Mensual ⟷ Anual". UNO SOLO para toda la app (2026-10-21).
@@ -29,6 +30,7 @@ export function InterruptorPlan({
   /** "grande" para la sección de precios, donde es la decisión principal. */
   tamano?: "normal" | "grande";
 }) {
+  const pr = usePrecios();
   const oscuro = tono === "oscuro";
   const grande = tamano === "grande";
   const anual = valor === "anual";
@@ -97,7 +99,7 @@ export function InterruptorPlan({
             oscuro ? "bg-gold-pale text-espresso" : "bg-espresso text-gold-pale"
           }`}
         >
-          {grande ? `Ahorra ${ahorroAnualDe().pct}%` : `−${ahorroAnualDe().pct}%`}
+          {grande ? `Ahorra ${pr.ahorro.pct}%` : `−${pr.ahorro.pct}%`}
         </span>
       </button>
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePrecios } from "@/components/app/Precios";
 import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { Check, ShieldCheck } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -10,8 +11,6 @@ import {
   GARANTIA,
   INCLUYE,
   NOTA_PAGO,
-  precioPorMesDe,
-  notaDelCobro,
   type Frecuencia,
 } from "@/lib/planes";
 
@@ -41,6 +40,7 @@ export function SelectorDePago({
    * decide el PRECIO — tenerlo en dos sitios es tener dos precios.
    */
 }) {
+  const pr = usePrecios();
   const [frecuencia, setFrecuencia] = useState<Frecuencia>(frecuenciaInicial);
   const url = enlaces[frecuencia];
   const quieto = useReducedMotion();
@@ -75,7 +75,7 @@ export function SelectorDePago({
                 ⚠️ EL PRECIO CUENTA, no aparece de golpe: al pasar de mensual a
                 anual, ver el número BAJAR es la demostración del descuento.
               */}
-              <PrecioQueCuenta hasta={precioPorMesDe()[frecuencia]} quieto={Boolean(quieto)} />
+              <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} quieto={Boolean(quieto)} />
             </span>
             <span className="text-on-dark-muted text-lg">/mes</span>
           </p>
@@ -92,7 +92,7 @@ export function SelectorDePago({
                 exit={quieto ? undefined : { opacity: 0, y: -4 }}
                 transition={{ duration: 0.2 }}
               >
-                {notaDelCobro(frecuencia)}
+                {pr.nota(frecuencia)}
               </motion.p>
             </AnimatePresence>
           </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePrecios } from "@/components/app/Precios";
 import {
   ArrowUpRight,
   Gem,
@@ -18,7 +19,7 @@ import Link from "next/link";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { rutaCompra, type AccesoDirectorio, type ItemDirectorio } from "@/lib/bolsos-logica";
-import { GARANTIA, precioDesde } from "@/lib/planes";
+import { GARANTIA } from "@/lib/planes";
 
 /** Qué aviso está abierto: ninguno o "esto es de la membresía". */
 type Aviso = null | "membresia";
@@ -382,6 +383,7 @@ function AvisoDirectorio({
   conEnlace: number;
   onCerrar: () => void;
 }) {
+  const pr = usePrecios();
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -430,7 +432,7 @@ function AvisoDirectorio({
         </p>
 
         <p className="text-ink-muted mt-3 text-sm">
-          {precioDesde()} al mes · {GARANTIA.titulo}
+          {pr.desde} al mes · {GARANTIA.titulo}
         </p>
 
         <div className="mt-6 flex flex-col gap-2">
