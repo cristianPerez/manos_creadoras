@@ -1,3 +1,4 @@
+import { prepararIngreso } from "@/lib/acciones/ingreso";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export type MagicLinkResult = { ok: true } | { ok: false; error: string };
@@ -57,6 +58,14 @@ export async function requestMagicLink(email: string): Promise<MagicLinkResult> 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(limpio)) {
     return { ok: false, error: "Ese correo no parece válido." };
   }
+
+  /*
+   * ⚠️ ANTES DEL CÓDIGO: si este correo es nuevo y ya había PAGADO (pago
+   * huérfano), el servidor le crea la cuenta y le activa la membresía ahora,
+   * para que entre ya con su plan (2026-11-04, ver `lib/pagos-huerfanos.ts`).
+   * No dice nada al navegador y nunca falla hacia fuera.
+   */
+  await prepararIngreso(limpio);
 
   const { error } = await supabaseBrowser().auth.signInWithOtp({
     email: limpio,
