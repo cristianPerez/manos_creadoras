@@ -118,17 +118,29 @@ de `components/app/Precios.tsx` en navegador). `PRECIOS_RESPALDO` en
 `lib/planes.ts` solo se usa si la base falla. **Ningún precio escrito en otro sitio.**
 
 🔧 **CÓMO SE CAMBIA UN PRECIO (desde el 2026-11-03), sin publicar código:**
-1. Crear el plan nuevo en el panel de OnePay (modo REAL para producción, modo
-   PRUEBAS para QA). Ojo: el campo Valor lee "14.70" como 1.470 → escribir "14,70".
-2. `npm run precio:cambiar -- prod mensual 14,70 https://pagos.onepay.la/plan/<id>`
-   (sin `prod` = QA). Lee la página del plan y se NIEGA si el monto, la moneda
-   (USD), el impuesto (0%), la frecuencia o el modo (real/prueba) no cuadran.
-   Sin `--si` solo simula; con `--si` escribe precio + enlace en un solo update.
-3. Actualizar `PRECIOS_RESPALDO` cuando convenga (no es urgente).
+**`npm run plan:onepay -- [prod] <mensual|anual> <precio>`** (sin `--si` simula;
+con `--si` lo hace). Por la API de OnePay (`ONEPAY_API_KEY` de `.env.local` =
+modo prueba / `.env.prod` = modo real): 1) crea el plan, 2) verifica su página
+(monto, USD, 0% impuesto, frecuencia, modo) y si no cuadra lo borra y para,
+3) apunta `plan_checkout` (precio + enlace, las dos regiones), 4) borra el plan
+viejo SOLO si no lo usa otro ciclo y tiene 0 suscripciones vivas (si alguien lo
+paga, se conserva con su precio; `--conservar-viejo` lo conserva siempre).
+· Lo que dice el plan en OnePay sale de `lib/membresia.json` (la misma lista
+  "incluye" de la web) + los cupos reales del Ojo de `plan_cupos` (600
+  preguntas / 60 fotos al mes; NO "ilimitadas" ni "100").
+· El ANUAL en OnePay es `monthly × 12` (así salen todos, también los del
+  panel); el mensual `monthly × 1`.
+· La API IGNORA `?plan_id=` en `/subscriptions`: el script recorre todas.
+· Camino a mano (plan creado en el panel): `npm run precio:cambiar -- [prod]
+  <ciclo> <precio> <url>`, con la misma verificación.
+· Probado en QA el 2026-11-03: QA quedó en 14,70 / 97 con planes de prueba
+  nuevos; los viejos de 19,70 / 117 se conservaron (tenían 1 suscripción de
+  prueba cada uno). En producción todavía NO se ha usado: sus planes de 14,70 /
+  97 se crearon a mano en el panel.
 Cada cambio queda en `plan_checkout_historial` (trigger: quién, cuándo, de
-qué a qué; `service_role` = el comando, `postgres` = a mano en el panel).
+qué a qué; `service_role` = script, `postgres` = a mano en el panel).
 `checkout:ver` enseña precio y enlace; `checkout:fijar` ya no escribe.
-⚠️ QA enseña lo que COBRA su plan de prueba: hoy 19,70 / 117, no 14,70 / 97.
+QA enseña lo que COBRA su plan de prueba: desde el 2026-11-03, 14,70 / 97.
 
 **US$14,70 al mes · US$97 al año** (= US$8,08/mes · ahorra US$79, 45%).
 Migración 0043. Planes de OnePay en MODO REAL: `01a1a209-8a1b…cc9b4dea`

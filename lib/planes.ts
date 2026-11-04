@@ -1,3 +1,5 @@
+import membresia from "@/lib/membresia.json";
+
 /**
  * EL PLAN. Uno solo, con dos formas de pagarlo.
  *
@@ -111,6 +113,10 @@ export function ahorroAnualDe(p: Precios): { dolares: number; pct: number } {
 /**
  * Lo que incluye. Es la misma lista para los dos ciclos: cambia el cobro, no el curso.
  *
+ * ⚠️ VIVE EN `lib/membresia.json` (2026-11-03): la misma lista la usa el
+ * script que crea los planes en OnePay, para que su página de pago diga lo
+ * mismo que la nuestra. Se edita allí.
+ *
  * ⚠️ HOME V3 (2026-10-20): la lista pasó a nombrar cosas que existen en la app
  * —ficha de materiales, directorio— en vez de "mini bolsos y llaveros", que no
  * hay. La comparten el home, Mi plan y el selector de pago: cambia en los tres.
@@ -131,16 +137,7 @@ export function ahorroAnualDe(p: Precios): { dolares: number; pct: number } {
  * hay algo nuevo. Si esa promesa deja de cumplirse, esta lista miente — es lo
  * primero que hay que cambiar aquí.
  */
-export const INCLUYE = [
-  "Clases nuevas cada semana",
-  "Velas y más talleres en camino, sin pagar de nuevo",
-  "Todos los proyectos en video: bolsos, accesorios y adornos",
-  "Ficha de materiales de cada proyecto",
-  "Directorio de proveedores",
-  "Estrategias para vender tus creaciones",
-  "El Ojo Experto para tus dudas",
-  "Certificado por cada taller que termines",
-] as const;
+export const INCLUYE: readonly string[] = membresia.incluye;
 
 /**
  * El enlace de pago de OnePay, por ciclo.
