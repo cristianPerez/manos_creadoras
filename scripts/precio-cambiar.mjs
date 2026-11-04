@@ -5,8 +5,9 @@
  *   npm run precio:cambiar -- prod anual 97 https://pagos.onepay.la/plan/<id>          (producción, simulación)
  *   npm run precio:cambiar -- prod anual 97 https://pagos.onepay.la/plan/<id> --si     (producción, de verdad)
  *
- * Antes, crear el plan en el panel de OnePay (en un plan no se edita el precio:
- * se crea uno nuevo). Este comando hace TODO lo demás. No hace falta publicar
+ * Es el camino A MANO: el plan ya existe (creado en el panel de OnePay) y solo
+ * hay que apuntar la tabla a él. Para hacerlo todo por la API —crear el plan,
+ * apuntar la tabla y borrar el viejo— está `npm run plan:onepay`. No hace falta publicar
  * código: la app lee precio y enlace de `plan_checkout` en cada visita.
  *
  * ════════════════════════════════════════════════════════════════════════════
@@ -27,7 +28,7 @@
  * ⚠️ NO archiva el plan viejo en OnePay: quien ya pagó sigue en él con su
  * precio. Archivar es irreversible y se decide aparte.
  */
-import { readFileSync } from "node:fs";
+import { cargarEntorno, describir, dinero, verificarPlan } from "./lib/onepay.mjs";
 
 const args = process.argv.slice(2);
 const confirmar = args.includes("--si");
@@ -53,51 +54,11 @@ if (!/^https:\/\/pagos\.onepay\.la\/plan\/[0-9a-f-]{36}$/.test(url ?? "")) {
   parar(`El enlace tiene que ser https://pagos.onepay.la/plan/<id>.\n${USO}`);
 }
 
-const archivo = esProd ? ".env.prod" : ".env.local";
-for (const linea of readFileSync(archivo, "utf8").split("\n")) {
-  const m = linea.match(/^([A-Z_]+)=(.*)$/);
-  if (m) process.env[m[1]] = m[2].split("#")[0].trim();
-}
-const donde = esProd ? "PRODUCCIÓN" : "QA";
-const dinero = (v) => (v == null ? "—" : `US$${Number(v).toFixed(2).replace(".", ",")}`);
+const donde = cargarEntorno(esProd);
 
 /* ── 1. Lo que cobra el plan de verdad, leído de su página en OnePay ─────── */
-const pagina = await fetch(url, { redirect: "follow" }).then((r) => (r.ok ? r.text() : null));
-if (!pagina) parar(`OnePay no devolvió la página del plan (${url}). ¿Está bien copiado el enlace?`);
-
-/* Los datos van en un JSON dentro de la página: "currency":"USD",
-   "unitAmountInCents":1470… Se lee el primer valor de cada campo. */
-const campo = (nombre) => {
-  const m = pagina.match(new RegExp(`"${nombre}":(?:"((?:[^"\\\\]|\\\\.)*)"|([^,}\\]]+))`));
-  return m ? (m[1] ?? m[2]) : undefined;
-};
-const leido = {
-  esPrueba: campo("isTest") === "true",
-  moneda: campo("currency"),
-  centavos: Number(campo("unitAmountInCents")),
-  impuesto: Number(campo("taxRatePercent")),
-  frecuencia: JSON.parse(`"${campo("frequencyShort") ?? ""}"`),
-};
-if (!Number.isFinite(leido.centavos)) {
-  parar("No se pudo leer el monto en la página de OnePay. Puede que hayan cambiado su página: revisa a mano.");
-}
-
-const problemas = [];
-if (leido.centavos !== Math.round(precio * 100)) {
-  problemas.push(`El plan cobra ${dinero(leido.centavos / 100)}, no ${dinero(precio)}.`);
-}
-if (leido.moneda !== "USD") problemas.push(`El plan está en ${leido.moneda}, no en USD.`);
-if (leido.impuesto !== 0) problemas.push(`El plan tiene ${leido.impuesto}% de impuesto: cobraría más de lo que dice la página.`);
-const frecuenciaEsperada = ciclo === "mensual" ? "mes" : "año";
-if (leido.frecuencia !== frecuenciaEsperada) {
-  problemas.push(`El plan se cobra cada "${leido.frecuencia}", y el ciclo ${ciclo} es cada "${frecuenciaEsperada}".`);
-}
-if (esProd && leido.esPrueba) problemas.push("Es un plan de MODO PRUEBA: en producción no cobraría nada de verdad.");
-if (!esProd && !leido.esPrueba) {
-  problemas.push("Es un plan REAL: en QA se cobraría de verdad. Para QA crea el plan en modo pruebas.");
-}
-
-console.log(`\nPlan de OnePay: ${dinero(leido.centavos / 100)} ${leido.moneda} cada ${leido.frecuencia} · impuesto ${leido.impuesto}% · ${leido.esPrueba ? "modo prueba" : "modo real"}`);
+const { leido, problemas } = await verificarPlan(url, { ciclo, precio, esProd });
+if (leido) console.log(`\nPlan de OnePay: ${describir(leido)}`);
 if (problemas.length) parar(`No se cambia nada:\n   · ${problemas.join("\n   · ")}`);
 console.log("✅ Coincide con lo que pediste.");
 
@@ -129,7 +90,12 @@ if (!confirmar) {
 /* ── 3. Escribir precio y enlace en el MISMO update ──────────────────────── */
 const { data: cambiadas, error: errorEscribir } = await admin
   .from("plan_checkout")
-  .update({ url, precio_usd: precio, actualizado_en: new Date().toISOString() })
+  .update({
+    url,
+    precio_usd: precio,
+    onepay_plan_id: url.match(/\/plan\/([0-9a-f-]{36})$/)[1],
+    actualizado_en: new Date().toISOString(),
+  })
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
   .select("region");

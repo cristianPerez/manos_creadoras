@@ -1,0 +1,29 @@
+{
+  "_leeme": "Lo que incluye la membresía. Lo usan la web (INCLUYE en lib/planes.ts) y el script que crea los planes en OnePay (scripts/plan-onepay.mjs), para que la página de pago prometa lo mismo que la nuestra. Los cupos del Ojo Experto NO van aquí: el script los lee de plan_cupos.",
+  "incluye": [
+    "Clases nuevas cada semana",
+    "Velas y más talleres en camino, sin pagar de nuevo",
+    "Todos los proyectos en video: bolsos, accesorios y adornos",
+    "Ficha de materiales de cada proyecto",
+    "Directorio de proveedores",
+    "Estrategias para vender tus creaciones",
+    "El Ojo Experto para tus dudas",
+    "Certificado por cada taller que termines"
+  ],
+  "onepay": {
+    "nombre": "Membresía Manos Creadoras",
+    "descripcion": "Todos los proyectos paso a paso en video —bolsos, accesorios y adornos, y pronto velas—, ficha de materiales, directorio de proveedores, estrategias de venta, el Ojo Experto y certificado por cada taller. Cancelas cuando quieras.",
+    "allows": {
+      "cards": true,
+      "accounts": true,
+      "card_extra": false,
+      "realtime": true,
+      "pse": true,
+      "full_extra": false,
+      "pse_debit": true,
+      "wallets": true,
+      "breb": true,
+      "direct_account": true
+    }
+  }
+}
