@@ -98,6 +98,27 @@ día anterior (hora de Bogotá); queda en `reportes/` (fuera de git). Skill
 · ⚠️ El Ojo Experto todavía marca "otras manualidades" como fuera de tema: al
   abrir velas hay que añadirlas a sus instrucciones (`app/api/ojo-experto`).
 
+🚨 **PAGO HUÉRFANO RESUELTO A MANO (2026-11-04) — Y EL HUECO SIGUE ABIERTO.**
+Primera venta real: `diliar010805@gmail.com`, US$14,60 mensual, suscripción
+OnePay `01a1a7d3-a466…`. **Pagó (18:30 UTC) ANTES de crear su cuenta (18:32
+UTC), con el mismo correo.** El webhook busca a la dueña UNA sola vez, al
+llegar el pago; sin cuenta → "huérfano", y nada lo reintenta cuando la cuenta
+aparece. Se activó a mano: membresía completo/mensual con
+`suscripcion_externa_id` (su próxima renovación se reconoce sola), evento
+marcado "procesado" con nota, bienvenida enviada (Resend `01a1a812…`),
+`tiene_acceso_de` = true. Reenviar el aviso al webhook NO sirve (lo descarta
+como repetido por la huella).
+✅ **HUECO CERRADO (2026-11-04, en develop/QA):** al pedir el código de ingreso,
+`prepararIngreso()` (`lib/acciones/ingreso.ts`, llamado desde
+`requestMagicLink`) mira si el correo es NUEVO; si lo es y hay eventos
+'huerfano' con ese correo, `lib/pagos-huerfanos.ts` crea la cuenta y los pasa
+por `aplicar()` (`lib/webhooks/aplicar.ts`, el MISMO camino del webhook):
+membresía + suscripción + bienvenida. Cuenta existente → no hace nada. No
+devuelve nada al navegador (anti-enumeración). Probado en QA de punta a punta.
+⚠️ Hueco que queda: quien YA tenía cuenta antes de este arreglo y pague con
+otro correo distinto → sigue huérfano (webhook:ver -- --malos).
+También faltó su `pago_confirmado` en Mixpanel (lo manda el webhook).
+
 ---
 
 ## Qué es esta app
