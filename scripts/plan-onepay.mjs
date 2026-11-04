@@ -20,9 +20,10 @@
  *    recién creado se borra (no queda basura en el panel).
  * 3. ACTUALIZA `plan_checkout` (precio + enlace en un solo update, las dos
  *    regiones). Desde aquí la página ya cobra el plan nuevo.
- * 4. BORRA el plan viejo, SOLO si nadie más lo usa en la tabla y NO tiene
- *    suscripciones vivas. Si una alumna está pagando ese plan, se queda: su
- *    suscripción sigue con su precio. Borrar en OnePay es irreversible.
+ * 4. BORRA el plan viejo DIRECTAMENTE con su id guardado en la tabla
+ *    (`onepay_plan_id`, migración 0046), sin recorrer suscripciones (decisión
+ *    de Cristian, 2026-11-04). Solo se salta si otro ciclo de la tabla usa el
+ *    mismo plan, o con `--conservar-viejo`. Borrar en OnePay es irreversible.
  *
  * Qué dice el plan en OnePay sale de `lib/membresia.json` (lo mismo que enseña
  * la web) y los cupos del Ojo Experto de `plan_cupos` (lo que la app permite de
@@ -37,7 +38,6 @@ import {
   dinero,
   idDelEnlace,
   onepay,
-  suscripcionesVivasDe,
   verificarPlan,
 } from "./lib/onepay.mjs";
 
@@ -72,7 +72,7 @@ const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KE
 /* ── Lo que hay hoy ──────────────────────────────────────────────────────── */
 const { data: filas, error: errorFilas } = await db
   .from("plan_checkout")
-  .select("ciclo, region, url, precio_usd")
+  .select("ciclo, region, url, precio_usd, onepay_plan_id")
   .eq("plan", "completo");
 if (errorFilas) parar(`No se pudo leer ${donde}: ${errorFilas.message}`);
 const delCiclo = filas.filter((f) => f.ciclo === ciclo);
@@ -122,11 +122,12 @@ console.log(`\n${donde} · plan ${ciclo}`);
 for (const f of delCiclo) console.log(`  hoy  ${f.region.padEnd(14)} ${dinero(f.precio_usd).padEnd(10)} ${f.url}`);
 console.log(`  nuevo: "${plan.name}" · ${dinero(precio)} cada ${ciclo === "mensual" ? "mes" : "año"} · USD · ${plan.features.length} características`);
 
-const viejos = [...new Set(delCiclo.map((f) => idDelEnlace(f.url)).filter(Boolean))];
+/* El id guardado manda; la URL solo como respaldo para una fila sin id. */
+const idDe = (f) => f.onepay_plan_id ?? idDelEnlace(f.url);
+const viejos = [...new Set(delCiclo.map(idDe).filter(Boolean))];
 if (!confirmar) {
   for (const id of viejos) {
-    const vivas = await suscripcionesVivasDe(id);
-    console.log(`  plan viejo ${id}: ${vivas} suscripciones vivas → ${conservarViejo ? "se conserva (--conservar-viejo)" : vivas ? "se conservará" : "se borrará"}`);
+    console.log(`  plan viejo ${id} → ${conservarViejo ? "se conserva (--conservar-viejo)" : "se borrará"}`);
   }
   console.log("\nSimulación: no se creó ni se cambió nada. Para hacerlo, repite el comando con --si al final.\n");
   process.exit(0);
@@ -155,7 +156,12 @@ console.log(`✅ 2/4 Verificado en su página: ${describir(leido)}`);
 /* ── 3. Apuntar la tabla al plan nuevo ───────────────────────────────────── */
 const { data: cambiadas, error: errorEscribir } = await db
   .from("plan_checkout")
-  .update({ url: nuevoEnlace, precio_usd: precio, actualizado_en: new Date().toISOString() })
+  .update({
+    url: nuevoEnlace,
+    precio_usd: precio,
+    onepay_plan_id: nuevoId,
+    actualizado_en: new Date().toISOString(),
+  })
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
   .select("region");
@@ -165,9 +171,7 @@ if (errorEscribir) {
 console.log(`✅ 3/4 ${donde}: plan ${ciclo} a ${dinero(precio)} en ${cambiadas.length} regiones. La página ya lo enseña.`);
 
 /* ── 4. Borrar el plan viejo (si nadie lo usa) ───────────────────────────── */
-const enUsoAun = new Set(
-  filas.filter((f) => f.ciclo !== ciclo).map((f) => idDelEnlace(f.url)),
-);
+const enUsoAun = new Set(filas.filter((f) => f.ciclo !== ciclo).map(idDe));
 for (const id of viejos.filter((v) => v !== nuevoId)) {
   if (conservarViejo) {
     console.log(`·   4/4 Plan viejo ${id}: se conserva (--conservar-viejo).`);
@@ -177,15 +181,10 @@ for (const id of viejos.filter((v) => v !== nuevoId)) {
     console.log(`·   4/4 Plan viejo ${id}: lo usa otro ciclo de la tabla, se conserva.`);
     continue;
   }
-  const vivas = await suscripcionesVivasDe(id);
-  if (vivas > 0) {
-    console.log(`·   4/4 Plan viejo ${id}: tiene ${vivas} suscripciones vivas, se conserva (esas alumnas siguen con su precio).`);
-    continue;
-  }
   const borrado = await onepay("DELETE", `/plans/${id}`);
   console.log(
     borrado.ok
-      ? `✅ 4/4 Plan viejo ${id} borrado de OnePay (0 suscripciones).`
+      ? `✅ 4/4 Plan viejo ${id} borrado de OnePay.`
       : `⚠️ 4/4 No se pudo borrar el plan viejo ${id} (${borrado.status}): ${JSON.stringify(borrado.datos).slice(0, 200)}`,
   );
 }

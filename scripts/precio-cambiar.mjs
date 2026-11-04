@@ -90,7 +90,12 @@ if (!confirmar) {
 /* ── 3. Escribir precio y enlace en el MISMO update ──────────────────────── */
 const { data: cambiadas, error: errorEscribir } = await admin
   .from("plan_checkout")
-  .update({ url, precio_usd: precio, actualizado_en: new Date().toISOString() })
+  .update({
+    url,
+    precio_usd: precio,
+    onepay_plan_id: url.match(/\/plan\/([0-9a-f-]{36})$/)[1],
+    actualizado_en: new Date().toISOString(),
+  })
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
   .select("region");

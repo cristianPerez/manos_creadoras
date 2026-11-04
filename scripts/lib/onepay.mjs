@@ -48,26 +48,6 @@ export async function onepay(metodo, ruta, cuerpo, extra = {}) {
   return { ok: r.ok, status: r.status, datos };
 }
 
-/**
- * Cuántas suscripciones VIVAS tiene un plan. La API no filtra por plan (se
- * probó `?plan_id=` y la ignora), así que se recorren todas las páginas.
- * "Viva" = cualquier estado que no sea de fin: si un plan tiene una alumna
- * pagando, no se borra.
- */
-const ESTADOS_DE_FIN = new Set(["canceled", "cancelled", "finished", "expired", "ended", "deleted"]);
-export async function suscripcionesVivasDe(planId) {
-  let vivas = 0;
-  for (let pagina = 1; pagina < 200; pagina++) {
-    const r = await onepay("GET", `/subscriptions?page=${pagina}`);
-    if (!r.ok) throw new Error(`No se pudieron leer las suscripciones (${r.status}).`);
-    for (const s of r.datos?.data ?? []) {
-      if (s.plan_id === planId && !ESTADOS_DE_FIN.has(String(s.status).toLowerCase())) vivas++;
-    }
-    if (!r.datos?.last_page || pagina >= r.datos.last_page) break;
-  }
-  return vivas;
-}
-
 export const idDelEnlace = (url) => url?.match(/\/plan\/([0-9a-f-]{36})$/)?.[1] ?? null;
 
 /* ── La verificación contra la página pública del plan ───────────────────── */
