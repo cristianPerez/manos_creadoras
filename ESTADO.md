@@ -123,12 +123,11 @@ con `--si` lo hace). Por la API de OnePay (`ONEPAY_API_KEY` de `.env.local` =
 modo prueba / `.env.prod` = modo real): 1) crea el plan, 2) verifica su página
 (monto, USD, 0% impuesto, frecuencia, modo) y si no cuadra lo borra y para,
 3) apunta `plan_checkout` (precio + enlace + `onepay_plan_id`, las dos
-regiones), 4) borra el plan viejo DIRECTAMENTE por su `onepay_plan_id`
-guardado (migración 0046), SIN recorrer suscripciones (decisión de Cristian,
-2026-11-04); solo lo salta si otro ciclo usa el mismo plan o con
-`--conservar-viejo`. Tarda ~3 s. ⚠️ Si un plan viejo tiene alumnas pagando,
-OnePay decide qué pasa con ellas al borrarlo: usar `--conservar-viejo` cuando
-haya suscriptoras.
+regiones). **El plan viejo NO se borra** (decisión de Cristian, 2026-11-04):
+quien ya lo paga sigue con su precio y no sabemos qué hace OnePay con una
+suscripción activa si se borra su plan. Su id queda en
+`plan_checkout_historial.onepay_plan_id_anterior` por si se limpia a mano. Solo
+se borra un plan recién creado que no pasó la verificación. Tarda ~3 s.
 · Lo que dice el plan en OnePay sale de `lib/membresia.json` (la misma lista
   "incluye" de la web) + los cupos reales del Ojo de `plan_cupos` (600
   preguntas / 60 fotos al mes; NO "ilimitadas" ni "100").
@@ -136,6 +135,7 @@ haya suscriptoras.
   panel); el mensual `monthly × 1`.
 · Camino a mano (plan creado en el panel): `npm run precio:cambiar -- [prod]
   <ciclo> <precio> <url>`, con la misma verificación.
+· Producción en **14,60 / 96** desde el 2026-11-04 (planes creados con el script).
 · Probado en QA (2026-11-03/04): QA está en **9,50 / 86** (Cristian pidió
   6,5 / 86, pero así el anual salía más caro que 12 meses; eligió 9,50).
   Los viejos de 19,70 / 117 de QA siguen (tenían 1 suscripción de prueba). En producción todavía NO se ha usado: sus planes de 14,70 /
