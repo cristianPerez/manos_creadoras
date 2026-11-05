@@ -143,6 +143,9 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
     $FLAGSMITH_SERVER_KEY" https://edge.api.flagsmith.com/api/v1/
     environment-document/` y mirar
     `multivariate_feature_state_values[].multivariate_feature_option.value`.
+  — En el repo NO hay token de administración de Flagsmith (solo la clave de
+    servidor, que es de SOLO LECTURA): cualquier cambio en el panel lo tiene
+    que hacer Cristian a mano.
   — **Cómo medir el reparto DE VERDAD:** desde el navegador NO se puede —
     `mc_vid` es HttpOnly y no se rota con JavaScript, así que todas las cargas
     son la misma persona (dio 19 de 20, que no es el 50%, es una sola
