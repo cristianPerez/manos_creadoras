@@ -52,11 +52,20 @@ function estaActivo(href: string, ruta: string): boolean {
   return href === "/app" ? ruta === "/app" || ruta.startsWith("/app/bolsos") : ruta.startsWith(href);
 }
 
-/** El logo del home: la "M" en Cormorant cursiva dentro del círculo espresso. */
+/**
+ * El logo del home: la "M" en Cormorant cursiva dentro del círculo espresso.
+ *
+ * ⚠️ LLEVA A LA PÁGINA DE VENTAS (`/`), NO A `/app` (Cristian, 2026-11-05).
+ * Antes apuntaba a `/app`, así que desde dentro de la app el logo no hacía
+ * nada visible —ya estabas ahí— y no había forma de volver a la página
+ * principal sin escribir la dirección. El logo de una web siempre es "llévame
+ * al principio", y el principio es lo que se vende; para moverse DENTRO de la
+ * app ya está la barra de navegación, donde "Mis proyectos" es `/app`.
+ */
 function Logo({ tamano }: { tamano: "chico" | "grande" }) {
   const grande = tamano === "grande";
   return (
-    <Link href="/app" className="flex shrink-0 items-center gap-3">
+    <Link href="/" className="flex shrink-0 items-center gap-3">
       <span
         aria-hidden="true"
         className={`bg-espresso flex shrink-0 items-center justify-center rounded-full ${
