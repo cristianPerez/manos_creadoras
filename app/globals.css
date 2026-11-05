@@ -1029,6 +1029,23 @@ body {
   to   { opacity: 1; }
 }
 
+/* El radio del modal de entrar: hoja (solo arriba) en el celular, las cuatro
+   esquinas desde 768. 24px con la paleta de siempre; la B es "menos redonda"
+   (FICHA-ARTE: tarjetas 12, precio 16) y baja a 16. */
+.hoja-entrar { border-radius: 24px 24px 0 0; }
+@media (min-width: 768px) { .hoja-entrar { border-radius: 24px; } }
+html[data-paleta="b"] .hoja-entrar { border-radius: 16px 16px 0 0; }
+@media (min-width: 768px) { html[data-paleta="b"] .hoja-entrar { border-radius: 16px; } }
+
+/* La hoja de entrar subiendo desde abajo en el celular (`ModalEntrar`). */
+@keyframes hoja-sube {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog[open] { animation: none !important; }
+}
+
 /*
  * La rayita de las historias, llenándose de izquierda a derecha.
  *

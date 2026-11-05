@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
+import { BotonEntrar } from "@/components/app/ModalEntrar";
 
 /**
  * La cabecera del home B.
@@ -74,12 +75,10 @@ export function CabeceraB() {
         <div className="flex shrink-0 items-center gap-1 md:gap-3.5">
           {/* "Entrar" es para quien ya paga: nunca puede desaparecer de la
               cabecera. Sin caja — lo oscuro se reserva para comprar. */}
-          <Link
-            href="/entrar"
+          <BotonEntrar
+            origen="header"
             className="text-espresso flex h-11 items-center px-1.5 text-sm font-semibold max-[374px]:px-1 lg:text-[15px]"
-          >
-            Entrar
-          </Link>
+          />
 
           {/*
             ⚠️ CONTORNO Y "VER PLANES", NO PÍLDORA OSCURA "INSCRIBIRME"

@@ -1,64 +1,18 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { FormularioAcceso } from "@/components/app/FormularioAcceso";
-import { preciosDeLaPagina } from "@/lib/precios";
-
-export const metadata: Metadata = {
-  title: "Entrar — Manos Creadoras",
-  robots: { index: false },
-};
+import { redirect } from "next/navigation";
 
 /**
- * La puerta. Sustituye a `/login`.
+ * `/entrar` YA NO ES UNA PANTALLA (2026-11-05, pedido de Cristian).
  *
- * En escritorio va partida en dos: un panel oscuro a la izquierda que recuerda
- * a qué vuelves, y el formulario a la derecha. En móvil el panel desaparece —
- * ahí lo único que importa es el campo del correo, y un bloque decorativo
- * empujándolo hacia abajo sería trabajo extra para quien solo quiere entrar.
+ * "Entrar" es ahora un modal —hoja desde abajo en el celular, centrado en
+ * escritorio— que se abre encima de la página donde se esté (ver
+ * `components/app/ModalEntrar.tsx`). Esta ruta se queda SOLO para que sigan
+ * sirviendo los enlaces que ya existen: el "Pedir otro enlace" de
+ * `/auth/completar`, correos viejos, favoritos y la redirección de `/login`.
+ *
+ * Manda a `/app` —el catálogo, que es a donde va una alumna que entra— con
+ * `?entrar=1`, y el proveedor del modal lo abre al ver el parámetro (y lo
+ * borra de la dirección). `desde=enlace_entrar` es el origen en la medición.
  */
-export default async function Entrar() {
-  const pr = await preciosDeLaPagina();
-
-  return (
-    <main className="grid min-h-dvh lg:grid-cols-2">
-      <aside className="bg-espresso grain relative hidden flex-col justify-end p-12 lg:flex">
-        <p className="text-gold-light text-xs font-bold tracking-[0.18em] uppercase">
-          Manos Creadoras
-        </p>
-        <h2
-          className="font-display mt-4 text-4xl text-balance text-white"
-          style={{ fontWeight: 500, lineHeight: 1.1 }}
-        >
-          Tu taller te espera donde lo dejaste.
-        </h2>
-        <p className="mt-4 max-w-sm text-white/60">
-          Tus proyectos, tu avance y tus conversaciones con el Ojo Experto siguen justo como los
-          dejaste.
-        </p>
-      </aside>
-
-      <div className="flex items-center justify-center px-5 py-12">
-        <div className="w-full max-w-md">
-          <FormularioAcceso lugar="entrar" />
-
-          <p className="text-ink-muted mt-8 text-center text-sm">
-            ¿Todavía no tienes plan?{" "}
-            {/* Al HOME, no a `/app/plan`: quien lee esto no ha entrado, y la
-                pantalla interna lo mandaría de vuelta aquí a iniciar sesión —
-                un círculo. En el home ve los planes sin tener que registrarse. */}
-            <Link href="/#precio" className="text-gold font-semibold underline">
-              Míralos desde {pr.desde} al mes
-            </Link>
-          </p>
-          <p className="text-ink-muted mt-2 text-center text-sm">
-            O{" "}
-            <Link href="/app" className="text-gold font-semibold underline">
-              prueba un bolso gratis
-            </Link>{" "}
-            sin crear cuenta.
-          </p>
-        </div>
-      </div>
-    </main>
-  );
+export default function Entrar() {
+  redirect("/app?entrar=1&desde=enlace_entrar");
 }

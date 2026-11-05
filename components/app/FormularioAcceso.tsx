@@ -2,7 +2,7 @@
 
 import { Loader2, Mail, MailCheck } from "lucide-react";
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useEffectEvent, useId, useRef, useState, type FormEvent } from "react";
 import { Eyebrow } from "@/components/app/Eyebrow";
 import { IconChip } from "@/components/app/IconChip";
 import { Reveal } from "@/components/app/Reveal";
@@ -30,14 +30,45 @@ type Estado = "idle" | "loading" | "sent" | "error";
 export function FormularioAcceso({
   avisoDelEnlace = "",
   lugar = "login",
+  enModal = false,
+  alEnviarCorreo,
+  correoInicial = "",
+  pedirAlMontar = false,
 }: {
   /** Mensaje de por qué falló el enlace del correo, si viene de ahí. */
   avisoDelEnlace?: string;
   /** De dónde salió, para la medición. */
   lugar?: string;
+  /**
+   * Dentro del modal de entrar (2026-11-05): el título baja a `h2` —la página
+   * de debajo ya tiene su `h1`— y un poco más chico, porque la hoja del
+   * celular es más baja que una pantalla.
+   */
+  enModal?: boolean;
+  /** Avisa que ya se mandó el código (el modal deja de cerrarse al tocar fuera). */
+  alEnviarCorreo?: () => void;
+  /**
+   * El correo ya escrito (2026-11-05): llega en el botón del correo de
+   * bienvenida (`?email=`), así la alumna no tiene que teclearlo.
+   */
+  correoInicial?: string;
+  /**
+   * Con un `correoInicial` válido, pedir el código EN CUANTO se abre, sin que
+   * toque "Mandarme el código": quien viene del correo de bienvenida ya dijo
+   * que quiere entrar al tocar "Entrar al curso". Si el correo no es válido,
+   * solo se deja escrito para que lo corrija.
+   */
+  pedirAlMontar?: boolean;
 }) {
-  const [email, setEmail] = useState("");
-  const [estado, setEstado] = useState<Estado>("idle");
+  /* Id único: el formulario puede estar dos veces en pantalla (la pestaña
+     Cuenta sin sesión + el modal abierto encima) y dos `id` iguales rompen
+     la etiqueta del campo. */
+  const idCorreo = useId();
+  const [email, setEmail] = useState(correoInicial);
+  const automatico = pedirAlMontar && EMAIL_PATTERN.test(correoInicial);
+  /* Si se pide sola, arranca ya en "Enviando…": así no hay un parpadeo del
+     formulario vacío y no hace falta cambiar el estado dentro del efecto. */
+  const [estado, setEstado] = useState<Estado>(automatico ? "loading" : "idle");
   const [mensajeError, setMensajeError] = useState("");
   /** Error de la casilla del código, aparte del de la casilla del correo. */
   const [errorCodigo, setErrorCodigo] = useState("");
@@ -67,12 +98,8 @@ export function FormularioAcceso({
     window.location.assign(r.destino);
   }
 
-  async function enviar(e: FormEvent) {
-    e.preventDefault();
-    if (estado === "loading") return;
-    setEstado("loading");
-
-    const r = await requestMagicLink(email);
+  async function pedirCodigo(correo: string, solo = false) {
+    const r = await requestMagicLink(correo);
     if (r.ok) {
       /*
         ⚠️ ESTO NO ES "CONTACTO NUEVO", aunque lo parezca. Se dispara igual para
@@ -83,13 +110,39 @@ export function FormularioAcceso({
         Quién es nueva de verdad lo dicen `cuenta_creada` / `cuenta_iniciada`,
         al abrir el enlace.
       */
-      medir(EVENTOS.correoEnviado, { lugar });
+      medir(EVENTOS.correoEnviado, { lugar, automatico: solo });
       setEstado("sent");
+      alEnviarCorreo?.();
     } else {
       setMensajeError(r.error);
       setEstado("error");
     }
   }
+
+
+  async function enviar(e: FormEvent) {
+    e.preventDefault();
+    if (estado === "loading") return;
+    setEstado("loading");
+    await pedirCodigo(email);
+  }
+
+  /*
+   * Pedirlo solo, una vez, al montarse (ver `pedirAlMontar`). La ref evita el
+   * segundo envío del modo estricto de React en desarrollo, que monta dos
+   * veces: dos códigos seguidos invalidan el primero y confunden.
+   * `useEffectEvent`: el efecto es "al llegar", no una reacción a que cambie
+   * `pedirCodigo` (que se recrea en cada render).
+   */
+  const yaPedido = useRef(false);
+  const alLlegar = useEffectEvent(() => {
+    if (!automatico || yaPedido.current) return;
+    yaPedido.current = true;
+    void pedirCodigo(correoInicial, true);
+  });
+  useEffect(() => {
+    alLlegar();
+  }, []);
 
   if (estado === "sent") {
     return (
@@ -169,9 +222,15 @@ export function FormularioAcceso({
         <p className="eyebrow md:mt-6">Tu cuenta</p>
         {/* Más chico que el titular de sección: va dentro de media tarjeta y,
             a 54px, "correo" se iba solo a una segunda línea. */}
-        <h1 className="titulo-seccion mt-3" style={{ fontSize: "clamp(36px, 3vw, 44px)" }}>
-          Entra con tu <em className="clave">correo</em>
-        </h1>
+        {enModal ? (
+          <h2 className="titulo-seccion mt-2" style={{ fontSize: "clamp(32px, 3vw, 38px)" }}>
+            Entra con tu <em className="clave">correo</em>
+          </h2>
+        ) : (
+          <h1 className="titulo-seccion mt-3" style={{ fontSize: "clamp(36px, 3vw, 44px)" }}>
+            Entra con tu <em className="clave">correo</em>
+          </h1>
+        )}
         <p className="text-ink-body mt-4 text-base">
           Te mandamos un código de 6 números — así guardamos tu avance y tus conversaciones con el
           Ojo Experto, sin que tengas que recordar ninguna contraseña.
@@ -190,11 +249,11 @@ export function FormularioAcceso({
         <form onSubmit={enviar} className="mt-6 flex flex-col gap-3">
           {/* Etiqueta VISIBLE: el placeholder desaparece al escribir y no sirve
               de etiqueta. */}
-          <label htmlFor="correo-acceso" className="text-espresso text-sm font-semibold">
+          <label htmlFor={idCorreo} className="text-espresso text-sm font-semibold">
             Correo
           </label>
           <input
-            id="correo-acceso"
+            id={idCorreo}
             type="email"
             required
             autoComplete="email"
