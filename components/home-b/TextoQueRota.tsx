@@ -173,21 +173,43 @@ export function TextoQueRota({
          */
         style={{ top: "-0.1em", bottom: "-0.1em", paddingTop: "0.1em" }}
       >
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span key={i} className="block whitespace-nowrap">
+        {/*
+          ⚠️ SIN `mode="wait"`: LA PALABRA QUE ENTRA SE CRUZA CON LA QUE SALE.
+          Con "wait" la nueva esperaba a que salieran TODAS las letras de la
+          vieja, y "Crea" quedaba sola ~0,8 s de cada ciclo de 2,2 (lo marcó el
+          revisor visual en la v2). Para poder cruzarse, cada palabra va en
+          absoluto sobre la misma caja: la que sale sube y se recorta arriba
+          mientras la nueva sube desde abajo.
+        */}
+        <AnimatePresence initial={false}>
+          <motion.span
+            key={i}
+            className="absolute inset-x-0 whitespace-nowrap"
+            style={{ top: "0.1em" }}
+          >
             {letras.map((letra, n) => (
               <motion.span
                 key={`${i}-${n}`}
                 className="inline-block"
-                initial={{ y: "115%" }}
-                animate={{ y: "0%" }}
-                exit={{ y: "-115%" }}
-                transition={{
-                  /* Entrar y salir no duran lo mismo: la que se va tiene que
-                     despejar antes de que la nueva termine de llegar, o se
-                     cruzan a media altura y se lee un borrón. */
-                  y: { duration: 0.56, ease: ENTRADA },
-                  delay: n * escalonado,
+                /* 130% y no 115: con el titular v2 a 104px y `line-height: 1`,
+                   las astas de la cursiva ("l", "d") sobresalen de su caja y
+                   con 115 asomaban la punta por debajo, encima de "lujo". */
+                initial={{ y: "130%" }}
+                animate={{ y: "0%", transition: { duration: 0.56, ease: ENTRADA, delay: n * escalonado } }}
+                /* La salida es más corta y con `ease-in` (380 ms, la medida de
+                   la referencia): despeja antes de que la nueva termine de
+                   llegar, así se cruzan sin leerse como un borrón. */
+                /* Y se desvanece en los primeros 150 ms: al cruzarse, sin
+                   esto quedaba a la vista un trozo partido de la palabra
+                   que se va ("as" de "velas") sobre "Crea" (revisor, 2ª
+                   ronda). */
+                exit={{
+                  y: "-130%",
+                  opacity: 0,
+                  transition: {
+                    y: { duration: 0.38, ease: "easeIn", delay: n * 0.015 },
+                    opacity: { duration: 0.15, ease: "easeOut", delay: n * 0.015 },
+                  },
                 }}
               >
                 {letra}
