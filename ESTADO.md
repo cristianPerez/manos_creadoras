@@ -37,6 +37,29 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   barra con `history.replaceState`, así que Mixpanel nunca lo ve en
   `$current_url`. Con sesión abierta, `?entrar=1` no abre nada (solo limpia la
   dirección): quien pagó ya dentro no necesita código.
+· **Tres fallos del modal, arreglados el 2026-11-05 (reportados por Cristian):**
+  (1) **La X no cerraba en escritorio.** No era intermitente: el primer bloque
+  del formulario es un `.reveal` animado a todo el ancho que, al ir después en
+  el DOM, se pintaba ENCIMA del tercio de abajo del icono. Medido con
+  `elementFromPoint`: un clic ahí caía en el `div`. Arreglado con `z-10` en el
+  botón; comprobado que los 5 bordes de la X reciben el clic, en 1280 y en 375.
+  (2) **En el celular ya no sube el teclado solo.** Enfocar la casilla al abrir
+  levantaba el teclado de iOS, que tapaba la hoja y dejaba a la persona sin
+  entender qué hacer. Ahora el foco automático es solo con ratón
+  (`matchMedia("(pointer: fine)")`); en táctil la casilla está a la vista y el
+  teclado sube cuando la tocan.
+  (3) **Un enlace del modal lo cierra y lleva a su sección.** "Ver el programa"
+  (`/#precio`) navegaba por debajo con el modal abierto encima, y como un
+  `<dialog>` modal deja inerte todo lo de detrás, el salto se perdía: la
+  dirección quedaba en `/#precio` con la página arriba del todo. Se captura el
+  clic en el contenedor (así lo hereda cualquier enlace futuro) y el salto va
+  en el efecto que cierra el diálogo. ⚠️ **El evento `close` del `<dialog>` NO
+  sirve: al cerrar desde React no se dispara** (queda `open: false` sin
+  emitirlo) — medido, por si alguien lo intenta otra vez.
+  Verificado a 1280×800 y 375×812: la X cierra, el enlace cierra Y baja al
+  precio (`precioTop` 80, justo bajo la cabecera). El navegador de pruebas
+  ignora el scroll SUAVE programático —el instantáneo y la rueda sí mueven—,
+  así que la comprobación del salto se hizo con `scroll-behavior: auto`.
 · **Instrumentación — 3 bugs arreglados antes del primer tráfico:**
   (1) el sorteo del A/B usaba la CUENTA si había sesión y la cookie si no: al
   iniciar sesión la persona podía saltar de versión. Ahora SIEMPRE `mc_vid`

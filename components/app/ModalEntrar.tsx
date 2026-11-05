@@ -227,6 +227,12 @@ function DialogoEntrar({
    * cerrando, que son gestos que nadie hace sin querer.
    */
   const [codigoEnviado, setCodigoEnviado] = useState(false);
+  /*
+   * El ancla de ESTA página a la que hay que bajar en cuanto el diálogo se
+   * cierre del todo (la deja puesta un clic en un enlace del modal).
+   * Ver `irAlDestino`, abajo, para por qué no se puede hacer antes.
+   */
+  const destinoPendiente = useRef<string | null>(null);
   /* Todo cierre pasa por aquí: así la próxima apertura vuelve a cerrarse con
      un toque fuera hasta que se mande el código. */
   const cerrar = () => {
@@ -234,18 +240,64 @@ function DialogoEntrar({
     alCerrar();
   };
 
+  /*
+   * ⚠️ EL SALTO AL ANCLA VA DESPUÉS DEL CIERRE, NUNCA EN EL CLIC. Un modal
+   * deja inerte todo lo de detrás, scroll incluido, así que mientras está
+   * abierto el navegador no puede saltar a `#precio`: el salto se pierde y la
+   * dirección queda en `/#precio` con la página arriba del todo (medido:
+   * scrollY 0 con el precio a 3.502px).
+   *
+   * Dos intentos que NO funcionaron, por si alguien los vuelve a probar:
+   *   · pedir el scroll en el siguiente frame tras cerrar — el cierre pasa por
+   *     el estado de React y el frame llega antes;
+   *   · colgarlo del evento `close` del `<dialog>` — medido: al cerrar desde
+   *     React ese evento NO se dispara (el diálogo queda `open: false` sin
+   *     emitirlo), así que el salto no corría nunca.
+   * Lo que sí sirve: el efecto que cierra el diálogo, justo después de
+   * `close()`, que es código de React y corre siempre.
+   */
+  const irAlDestino = useCallback(() => {
+    const marca = destinoPendiente.current;
+    if (marca === null) return;
+    destinoPendiente.current = null;
+    /*
+     * Sin `behavior`: manda el `scroll-behavior: smooth` que `globals.css` ya
+     * le pone a la página, que es el que usan todos los demás enlaces de ancla
+     * del sitio. Pedir `behavior: "smooth"` a mano no es equivalente —hay
+     * navegadores que ignoran el suave programático (comprobado aquí mismo: el
+     * instantáneo movía la página y el suave no) y iOS lo ha traído y quitado
+     * varias veces—, y el precio de que lo ignoren es que no pasa nada.
+     */
+    document.querySelector(marca)?.scrollIntoView({ block: "start" });
+  }, []);
+
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
     if (abierto && !d.open) {
       d.showModal();
-      /* El foco al correo, que es lo único que hay que hacer aquí. Va DESPUÉS
-         de `showModal()`: el `autoFocus` de React corre antes y el diálogo,
-         al abrirse, lo mandaba a la X. */
-      d.querySelector<HTMLInputElement>('input[type="email"]')?.focus();
+      /*
+       * El foco al correo, que es lo único que hay que hacer aquí. Va DESPUÉS
+       * de `showModal()`: el `autoFocus` de React corre antes y el diálogo, al
+       * abrirse, lo mandaba a la X.
+       *
+       * ⚠️ SOLO CON RATÓN. En un iPhone, enfocar la casilla levanta el teclado
+       * al instante y el teclado tapa la hoja: se ve media pantalla de teclado
+       * y un trozo de modal sin el botón, así que la persona no entiende qué
+       * tiene que hacer ni cómo salir (2026-11-05, reportado por Cristian).
+       * En el celular la casilla ya está a la vista: se toca cuando se quiere
+       * escribir, y el teclado sube entonces, que es lo que la persona espera.
+       * `pointer: fine` es ratón o lápiz; un táctil es `coarse`.
+       */
+      if (window.matchMedia("(pointer: fine)").matches) {
+        d.querySelector<HTMLInputElement>('input[type="email"]')?.focus();
+      }
     }
     if (!abierto && d.open) d.close();
-  }, [abierto]);
+    /* Ya cerrado: si un enlace del modal pedía bajar a una sección, ahora sí.
+       Ver `irAlDestino` para por qué este es el único momento bueno. */
+    if (!abierto) irAlDestino();
+  }, [abierto, irAlDestino]);
 
   return (
     <dialog
@@ -269,6 +321,36 @@ function DialogoEntrar({
           correo) y no en "revisa tu correo" de la vez anterior. */}
       {abierto && (
         <div
+          /*
+           * ⚠️ UN ENLACE DE DENTRO DEL MODAL TAMBIÉN LO CIERRA (2026-11-05).
+           * "Ver el programa" lleva a `/#precio`, que casi siempre es la MISMA
+           * página: la navegación ocurría por debajo, el modal seguía abierto
+           * encima y, como un `<dialog>` modal bloquea todo lo que hay detrás,
+           * la persona se quedaba mirando el formulario sin poder ver el
+           * programa que acababa de pedir. Se captura aquí, en el contenedor,
+           * y no enlace por enlace: así cualquier enlace que se añada mañana
+           * —contacto, legales— hereda el comportamiento correcto sin que
+           * nadie se acuerde de ponérselo.
+           */
+          onClick={(e) => {
+            const enlace = (e.target as HTMLElement).closest("a[href]");
+            if (!enlace) return;
+            cerrar();
+            /*
+             * ⚠️ Y ADEMÁS HAY QUE LLEVARLA AL SITIO A MANO. Cerrar no bastaba:
+             * el navegador intenta saltar al ancla MIENTRAS el diálogo sigue
+             * abierto —y un modal deja inerte todo lo de detrás, scroll
+             * incluido—, así que el salto se perdía. Medido: la dirección
+             * quedaba en `/#precio` con la página en lo más alto (scrollY 0) y
+             * el precio a 3.502px. O sea: pedía ver el programa, el modal
+             * desaparecía y no pasaba nada más.
+             * Se hace en el siguiente frame, ya cerrado, y solo cuando el
+             * ancla está en ESTA página; para otra ruta navega Next.
+             */
+            const destino = enlace.getAttribute("href") ?? "";
+            /* Solo las anclas de esta misma página; a otra ruta navega Next. */
+            if (destino.startsWith("/#")) destinoPendiente.current = destino.slice(1);
+          }}
           className="relative px-5 pt-3 pb-8 md:px-8 md:pt-8 md:pb-9"
           /* La franja de abajo del iPhone (la barra de gestos) no tapa el
              último enlace de la hoja. */
@@ -283,9 +365,19 @@ function DialogoEntrar({
             type="button"
             onClick={cerrar}
             aria-label="Cerrar"
-            /* `active:` además de `hover:`: en el celular no hay hover, y sin
-               respuesta al toque la X parecía no hacer nada. */
-            className="text-ink-body hover:bg-sand active:bg-sand absolute top-2 right-2 grid size-11 cursor-pointer place-items-center rounded-full transition-[background-color,transform] active:scale-95 md:top-5 md:right-5"
+            /*
+             * `active:` además de `hover:`: en el celular no hay hover, y sin
+             * respuesta al toque la X parecía no hacer nada.
+             *
+             * ⚠️ `z-10` NO ES ADORNO: SIN ESTO LA X NO CERRABA EN ESCRITORIO
+             * (2026-11-05). El primer bloque del formulario es un `.reveal`
+             * animado que ocupa todo el ancho, empieza más arriba que el final
+             * de la X y —al ir después en el DOM— se pintaba ENCIMA. Medido:
+             * un clic en el tercio de abajo del icono caía en el `div`, no en
+             * el botón. Parecía intermitente ("a veces cierra"), que es lo
+             * peor: la persona cree que el modal la tiene atrapada.
+             */
+            className="text-ink-body hover:bg-sand active:bg-sand absolute top-2 right-2 z-10 grid size-11 cursor-pointer place-items-center rounded-full transition-[background-color,transform] active:scale-95 md:top-5 md:right-5"
           >
             <X size={20} aria-hidden="true" />
           </button>
