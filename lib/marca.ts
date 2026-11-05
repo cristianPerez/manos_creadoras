@@ -12,6 +12,15 @@
 export const COLOR_FONDO_SISTEMA = "#090706";
 
 /**
+ * El mismo color, en la paleta B del experimento (2026-11-05).
+ *
+ * Es el `--cream` de `html[data-paleta="b"]` en `globals.css`. Va literal por
+ * la misma razón que el de arriba: la barra del sistema se pinta antes de que
+ * exista CSS. Lo elige `generateViewport()` en `app/layout.tsx` según la rama.
+ */
+export const COLOR_FONDO_SISTEMA_B = "#F7F4FB";
+
+/**
  * El resto de la paleta mínima, para la pantalla de fallo raíz
  * (`app/global-error.tsx`).
  *
