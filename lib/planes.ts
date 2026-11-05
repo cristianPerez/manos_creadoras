@@ -91,7 +91,7 @@ export type Precios = { mensual: number; anual: number };
  * Conviene que coincida con producción, pero si un día no coincide, la app
  * sigue enseñando lo de la base.
  */
-export const PRECIOS_RESPALDO: Precios = { mensual: 14.6, anual: 96 };
+export const PRECIOS_RESPALDO: Precios = { mensual: 14.6, anual: 87.6 };
 
 /**
  * Lo que cuesta cada mes según cómo se pague.
