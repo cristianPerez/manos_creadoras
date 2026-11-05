@@ -74,9 +74,20 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   (`fijarEnFicha`): `pago_confirmado` lo manda el servidor sin super
   propiedades → partir pagos por "User property → experimento_paleta".
   Correo: con sesión va en cada evento (`correo`) y en la ficha (`$email`).
-  **Cómo leer el A/B en Mixpanel:** Breakdown por `experimento_paleta`
-  (`actual` = A, `b` = B), fecha desde el arranque; en funnels, la atribución
-  por defecto (1er paso) basta.
+  **Cómo leer el A/B en Mixpanel:** ya está hecho el embudo **"A/B home:
+  actual vs paleta B — página → vio precio → abrió pago → pagó"** (tablero
+  "Embudo de venta", creado el 2026-11-05): los 4 pasos de siempre
+  (`pagina_ventas_vista → seccion_vista → checkout_abierto → pago_confirmado`)
+  con Breakdown por `experimento_paleta`. ⚠️ **Lleva un filtro
+  `experimento_paleta is actual or b` a propósito:** sin él aparece un grupo
+  "(not set)" con TODO el tráfico anterior al experimento (629 personas contra
+  4 y 2) que aplasta la gráfica y no compara nada. Con el filtro, la fecha ya
+  no hay que acotarla a mano.
+  — En el mismo tablero quedan el **"Embudo principal"** (los 4 pasos sin
+    separar) y el de **scroll**. Se borró "Botón Inscribirme de la cabecera",
+    que era el mismo embudo principal con el clic del botón intercalado.
+  — ⚠️ **El plan de Mixpanel solo permite 5 informes guardados por persona, y
+    están los 5 usados.** Para crear uno nuevo hay que borrar otro antes.
 · **Caché** (`lib/cache-datos.ts`, `lib/supabase/publico.ts`): catálogo,
   materiales, directorio y cápsulas en `unstable_cache` 10 min; precios y
   enlaces de cobro 60 s (el script de precios no puede invalidar: un precio
