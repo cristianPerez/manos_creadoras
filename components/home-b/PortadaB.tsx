@@ -70,12 +70,48 @@ const AVANCE_MS = 3500;
  * entró y pagó, dentro de la app; aquí la vela se enseña como lo que es: otra
  * pieza que se aprende a crear.
  */
-const VELA: FotoHero = {
-  slug: "velas",
-  nombre: "Velas aromáticas",
-  subtitulo: "Aromáticas de lujo",
-  url: "/images/topo/vela-osos-auto.webp",
-};
+/**
+ * ⚠️ EL NOMBRE DE UNA VELA NO PUEDE REPETIR LA PALABRA DEL SUBTÍTULO
+ * (Cristian, 2026-11-05). Las dos líneas de la etiqueta se leen juntas y de un
+ * vistazo, así que "Velas aromáticas · Velas de lujo" sonaba a tartamudeo y
+ * gastaba dos líneas para decir una sola cosa. El subtítulo pone la categoría
+ * ("Velas de lujo") y el nombre dice QUÉ vela es, sin volver a nombrarla.
+ */
+const VELAS: FotoHero[] = [
+  {
+    slug: "velas-girasoles",
+    nombre: "Girasoles de cera",
+    subtitulo: "Velas de lujo",
+    url: "/images/topo/vela-girasoles.webp",
+  },
+  {
+    slug: "velas",
+    nombre: "Carro de ositos",
+    subtitulo: "Velas de lujo",
+    url: "/images/topo/vela-osos-auto.webp",
+  },
+];
+
+/**
+ * Los accesorios: lo que se teje con las mismas cuentas pero no es un bolso.
+ * Entran para que la primera pantalla no prometa solo bolsos — la palabra que
+ * rota ya dice "accesorios" y "adornos", y hasta ahora no había ninguno que
+ * enseñar.
+ */
+const ACCESORIOS: FotoHero[] = [
+  {
+    slug: "baston-navidad",
+    nombre: "Bastón de Navidad",
+    subtitulo: "Cristal rojo y verde",
+    url: "/images/topo/baston-navidad.webp",
+  },
+  {
+    slug: "bolas-navidad",
+    nombre: "Bolas de Navidad",
+    subtitulo: "Perla y cristal",
+    url: "/images/topo/bolas-navidad.webp",
+  },
+];
 
 /**
  * Tres bolsos de alumnas para la prueba social: son las mismas fotos del
@@ -109,22 +145,48 @@ export function PortadaB({
   const alRotar = useCallback((n: number) => setPalabra(n), []);
 
   /*
-   * El orden: el bolso gratis abre (su etiqueta dice "TU PRIMER BOLSO,
-   * GRATIS", igual que el botón de debajo), luego un bolso del catálogo, la
-   * vela TERCERA —cuenta que la membresía no es solo bolsos, pero ya no es lo
-   * segundo que se ve (Cristian, 2026-11-05; el prompt la ponía segunda)— y
-   * detrás el resto. El gratis sale de la BASE, no de un slug escrito aquí.
+   * ════════════════════════════════════════════════════════════════════════
+   * SIETE PIEZAS, INTERCALADAS: BOLSO → ACCESORIO → VELA (Cristian, 2026-11-05)
+   * ════════════════════════════════════════════════════════════════════════
+   * Antes el carrusel era casi todo bolsos con una vela metida en medio, y la
+   * primera pantalla prometía una cosa ("accesorios", "adornos", "velas" en la
+   * palabra que rota) mientras enseñaba otra. Ahora se turnan: tres bolsos,
+   * dos accesorios y dos velas, en este orden —
+   *
+   *   1 bolso gratis · 2 bastón · 3 girasoles ·
+   *   4 bolso · 5 bolas · 6 velas · 7 bolso
+   *
+   * — así que quien mire tres fotos seguidas ve tres cosas distintas, que es
+   * justo lo que vende la membresía.
+   *
+   * El bolso gratis abre, con su etiqueta "TU PRIMER BOLSO, GRATIS" igual que
+   * el botón de debajo, y sale de la BASE, no de un slug escrito aquí.
    */
   const deRegalo: FotoHero[] = gratis?.portadaUrl
     ? [{ slug: gratis.slug, nombre: gratis.nombre, subtitulo: "Tu primer bolso, gratis", url: gratis.portadaUrl }]
     : [];
 
-  /* Las fotos con fondo café se cambian por su versión topo: sobre el lavanda
-     se verían "durazno". Ver `lib/fotos-topo.ts`. */
   const delCatalogo = fotos.filter((f) => f.slug !== gratis?.slug);
-  const visibles = [...deRegalo, ...delCatalogo.slice(0, 1), VELA, ...delCatalogo.slice(1)].map(
-    (f) => ({ ...f, url: fotoTopo(f.url) ?? f.url }),
-  );
+  /* Los bolsos que se enseñan: el de regalo y los dos primeros del catálogo.
+     Tres y no más — a partir de ahí la galería volvía a ser "solo bolsos". */
+  const bolsos = [...deRegalo, ...delCatalogo].slice(0, 3);
+
+  /*
+   * Se turnan tomando uno de cada lista por vuelta. Escrito así y no con la
+   * lista a mano para que no se descuadre el día que entre un cuarto bolso o
+   * una vela nueva: si una lista se queda sin piezas, sigue con las otras.
+   * Las fotos con fondo café se cambian por su versión topo: sobre el lavanda
+   * se verían "durazno" (`lib/fotos-topo.ts`).
+   */
+  const visibles = [bolsos, ACCESORIOS, VELAS]
+    .reduce<FotoHero[]>((orden, _, vuelta, listas) => {
+      listas.forEach((lista) => {
+        const pieza = lista[vuelta];
+        if (pieza) orden.push(pieza);
+      });
+      return orden;
+    }, [])
+    .map((f) => ({ ...f, url: fotoTopo(f.url) ?? f.url }));
   const total = visibles.length;
 
   /* Circular: llegar al final y que la flecha deje de responder se siente como
