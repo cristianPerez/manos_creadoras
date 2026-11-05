@@ -13,58 +13,85 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
-🧪 **EXPERIMENTO DE PALETA "B · LAVANDA EMPOLVADA" (2026-11-05) — EN CÓDIGO,
-SIN COMMITEAR, APAGADO POR DEFECTO.** Cristian eligió la **B** de las tres
-exploradas. Conviven dos homes y dos paletas; lo decide la flag `paleta_b` de
-Flagsmith.
-· **Qué cambia con la flag encendida:** la paleta de TODA la app (el home y
-  `/app`: catálogo, fichas, Ojo, Mi plan) + un home nuevo y más corto. El
-  contenido es el MISMO en las dos ramas (precios, fotos, preguntas, bolso
-  gratis salen de `lib/datos-home.ts`): si cambiara, el A/B mediría dos ofertas
-  en vez de dos diseños.
-· **Cómo se enciende/apaga/reparte** (panel de Flagsmith, proyecto "Manos
-  Creadoras", org Goingtube, id 53390):
-  — Probar en QA: encender `paleta_b` en **Development**.
-  — Lanzar a todas: encenderla en **Production**, sin valor.
-  — A/B 50/50: en Production → `paleta_b` → *Create A/B/n Test* → una variación
-    con valor **`actual`** al 50% (ese es el control); el resto cae en B.
-  — Volver atrás: **apagarla**. ⚠️ Tarda **hasta 60 s** en notarse: la
-    evaluación es local y se refresca cada minuto (es el precio de no hacer una
-    llamada de red por visita). No es que el panel no haya funcionado.
-· **Para mirar a mano, sin tocar el panel:** `?paleta=b` · `?paleta=actual` ·
-  `?paleta=auto` (devuelve el mando a Flagsmith). Dura 7 días en cookie.
-· **🔴 BLOQUEADO PARA QA: falta `FLAGSMITH_SERVER_KEY`.** La clave de servidor
-  (`ser.…`) la copia Cristian del panel (SDK Keys → ojo → copiar) a `.env.local`
-  y a Vercel (**Preview**, marcada *Sensitive*). Sin ella todo el mundo ve el
-  sitio de siempre y no hay error — el fallo es seguro, pero el experimento no
-  corre. Variables declaradas en `.env.example`.
-· **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en TODOS
-  los eventos (`components/app/Analitica.tsx`). ⚠️ **HAY QUE ACTUALIZAR LOS
-  EMBUDOS DE MIXPANEL**: los que ya existen no la llevan en los eventos
-  anteriores al despliegue. Para comparar, en cada embudo hay que añadir un
-  *Breakdown* por `experimento_paleta` y **acotar la fecha al día en que empezó
-  el experimento**; si no, los meses viejos entran en el grupo "actual" e
-  inflan el control.
-· **Dónde vive:** tokens en `app/globals.css` (`html[data-paleta="b"]`),
-  pantallas en `components/home-b/`, interruptor en `lib/flags.ts` +
-  `lib/paleta-servidor.ts` + `middleware.ts` (cookies `mc_vid` y
-  `mc_paleta_forzada`), fotos topo en `public/images/topo/` (las genera
-  `scripts/fotos-topo.mjs`; el café de los fondos se lee "durazno" con lavanda).
-· **Verificado:** `tsc` ✓ · `lint` ✓ · `build` ✓ · render real a 375 y 1440 con
-  `?paleta=b` · `?paleta=actual` devuelve el home de hoy (el JSX movido a
-  `components/home/HomeActual.tsx` es idéntico al de `git HEAD:app/page.tsx`,
-  comprobado con `diff`) · `/app` repintada sin cambios de maquetación.
-· ⚠️ **EL REVISOR VISUAL LO DECLARÓ `FIEL` A LA REFERENCIA (0 de 6 fallos) PERO
-  `NO LISTA` POR RÚBRICA: 28/40 usabilidad · 13/20 craft · 13/20 copy.** Y es
-  importante no confundir las dos cosas: lo implementado reproduce el contrato
-  de `design-ref/paleta-b-claude-code/`; lo que el revisor penaliza es el
-  DISEÑO de ese contrato, no la ejecución. Sus cuatro reparos de fondo:
-  (a) sobre el pliegue a 375px no cabe el titular entero ni el botón —entran
-  cabecera, cápsulas y foto—; (b) el titular habla de producto, no del dolor de
-  la ficha de avatar; (c) no hay precio ni garantía por encima del pliegue;
-  (d) las cápsulas arriba pesan más que el héroe. Son decisiones de la
-  referencia que aprobó Cristian. **Pendiente de su decisión**: dejarlas (el
-  A/B las juzga con ventas reales) o corregirlas antes de encender la flag.
+🧪 **EXPERIMENTO "HOME B v2" (2026-11-05) — EN CÓDIGO, SIN COMMITEAR, rama
+`home-b-v2-vendedor`.** Lo decide la flag `paleta_b` de Flagsmith.
+· ⚠️ **YA NO COMPARA SOLO LA PALETA.** Cristian autorizó reordenar y reescribir
+  el home B para que venda (`design-ref/home-b-v2-claude-code/PROMPT-HOME-B-V2.md`):
+  el A/B mide **home B v2 completo (paleta lavanda + orden + copy nuevos) contra
+  el home de hoy**. Si gana la B se sabrá que el conjunto vende más, no qué
+  pieza. Lo que sigue igual en las dos ramas: precios, catálogo, bolso gratis,
+  preguntas (`lib/datos-home.ts`). La paleta B repinta también `/app`.
+· **CONFIGURACIÓN DEL A/B 50/50 EN FLAGSMITH** (proyecto "Manos Creadoras",
+  feature `paleta_b`, en cada entorno: Development para QA, Production para
+  vender). ⚠️ **La regla del código cambió el 2026-11-05: la página nueva SOLO
+  sale si el valor es exactamente `b`.** Vacío, `actual` o cualquier otro =
+  página de hoy (antes vacío = B, y con los dos valores vacíos que trae el panel
+  por defecto el 100% veía la B).
+  — A/B 50/50: Enabled ✓ · **Control Value = `actual`** (se queda con el 50%
+    que sobra) · **Variant_1 → Variation Value = `b`, peso 50%** · Update.
+  — Todas en B: Enabled, valor `b`, sin variantes. · Volver atrás: apagarla.
+  — El VALOR de una variante vale para TODOS los entornos; el PESO es por
+    entorno. ⚠️ Apagar/cambiar tarda hasta **60 s** (evaluación local).
+  — Pendiente de Cristian: poner en la descripción de la flag "A/B: home B v2
+    completo vs. home actual" (no hay token de administración en el repo).
+· **Para mirar a mano:** `?paleta=b` · `?paleta=actual` · `?paleta=auto`
+  (devuelve el mando a Flagsmith). Dura 7 días en cookie.
+· **🔴 BLOQUEADO PARA QA EN VERCEL: falta `FLAGSMITH_SERVER_KEY` en Vercel**
+  (Preview y Production, marcada *Sensitive*). En `.env.local` ya existe. Sin
+  ella todo el mundo ve el sitio de siempre, sin error.
+· **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en todos
+  los eventos. `boton_click` lleva además `cta` en los cuatro botones gratis
+  de la B: `heroe_gratis`, `cierre_gratis`, `tarjeta_bolso_gratis`,
+  `tarjeta_ojo_gratis` (atributo `data-cta`, lo lee `MedirHome`). ⚠️ En los
+  embudos de Mixpanel: *Breakdown* por `experimento_paleta` y fecha acotada al
+  día de arranque, o los meses viejos inflan el control.
+· **Orden del home B v2:** cabecera → héroe (titular + dolor + botón + "Plan
+  desde … · garantía" + "+1.200") → "Lo que los tutoriales no te enseñan"
+  (nueva) → Compruébalo antes de pagar → Comunidad → Cápsulas (bajaron) →
+  Profesora → Navidad (tarjeta) → Precio (absorbió "Este es solo uno") →
+  Preguntas → Cierre (empuja el bolso gratis, no el pago) → barra fija.
+  Primera pantalla medida: a 375×812 el bloque clave termina en 696px (igual
+  que el contrato); a 360×740 la foto baja a 228 y queda visible.
+· **Ajustes de Cristian (2026-11-05, después del revisor):** el carrusel
+  avanza cada **3,5 s** (no 5) y el segmento activo se llena mientras corre;
+  la vela pasó al **3er lugar** y su etiqueta dice "Aromáticas de lujo" — nada
+  de "próximamente" ni "en camino" en la venta (eso lo ve quien ya pagó, dentro
+  de la app); **entrada escalonada** por sección con `components/home-b/
+  EntradaB.tsx` (el `Entrada.tsx` del control no se tocó; "106" videos cuenta);
+  **selector mensual/anual propio** en el precio (`SelectorCicloB`): dos
+  opciones grandes con el precio por mes dentro, etiqueta "−50%" que salta
+  hasta que se elige el anual y la línea "Con el anual pagas ~~14,60~~ 7,30/mes
+  · cámbiate".
+· ⚠️ **PROVISIONAL:** la foto de velas del carrusel
+  (`public/images/topo/vela-osos-auto.webp`) y su nombre "Velas aromáticas" —
+  esperan el nombre y la foto reales de Cristian.
+· **Dónde vive:** `components/home-b/`, tokens en `app/globals.css`
+  (`html[data-paleta="b"]` + "LOS TRES NIVELES DE PROFUNDIDAD"), interruptor en
+  `lib/flags.ts` + `lib/paleta-servidor.ts` + `middleware.ts`. Capturas de
+  verificación en `design-ref/home-b-v2-claude-code/verificacion/`.
+· **Verificado:** `tsc` ✓ · `lint` ✓ · `build` ✓ · render real 375/360/1440 ·
+  `?paleta=actual` = home de hoy intacto · consola limpia.
+· ⚠️ **REVISOR VISUAL — 3 rondas, siempre FIEL, siempre NO LISTA:**
+  30/40·12/20·copy 14 → 31·14·15 → **29·14·15** (mínimo 36/40 y 16/20).
+  Aplicado con OK de Cristian: cabecera en contorno "Ver planes"; barra fija
+  "Quiero todos"; precio "Quiero todos los proyectos"; "Garantía sin preguntas
+  de 7 días" (NO "Garantía Primer Bolso": insinuaba una condición que la
+  política de `lib/legal-textos.ts` no tiene); ancla "Un mes de intentos
+  fallidos se lleva US$15-20 en materiales" (estimación de FICHA-AVATAR);
+  héroe "Ni pasos saltados ni bolsos deformes: el Ojo Experto revisa la foto
+  del tuyo". Arreglados: palabra que rota sin hueco ni letras partidas, marca
+  en 1 línea a 360, "de boutique" sin corte, cursiva clara en bandas oscuras.
+  **Pendiente — decisión de Cristian:**
+  (1) 🔴 la palabra (cada 2,2 s) y la foto (cada 5 s) van con relojes
+  distintos: sale "Crea adornos" sobre la foto de la vela. Viene del contrato.
+  Opciones: que la palabra siga a la foto, o que la palabra no rote mientras
+  el carrusel avanza.
+  (2) ✅ resuelto: vela 3ª y sin "en camino".
+  (3) unificar el texto de compra (el revisor cambió de opinión entre rondas
+  sobre "Ver planes").
+  ✅ Hechos: escalonado por sección (`EntradaB`) y segmento que se llena.
+  **Pendiente de código:** el ancla del precio en renglón propio sin repetir
+  la cifra.
 
 🎀 **EXPLORACIÓN "PASTEL" DEL HOME (2026-11-04/05, pedido de Cristian) — YA
 RESUELTA: ganó la B, ver el bloque de arriba.** Contexto original: Todo en `design-ref/exploracion-pastel/`: 92
@@ -230,7 +257,19 @@ se borra un plan recién creado que no pasó la verificación. Tarda ~3 s.
   panel); el mensual `monthly × 1`.
 · Camino a mano (plan creado en el panel): `npm run precio:cambiar -- [prod]
   <ciclo> <precio> <url>`, con la misma verificación.
-· Producción en **14,60 / 96** desde el 2026-11-04 (planes creados con el script).
+· 🆕 **ANUAL AL 50% (pedido de Cristian, 2026-11-05):** 14,60 al mes y
+  **87,60 al año = 7,30/mes, exactamente la mitad** (el "Ahorra X%" y el ahorro
+  US$88 se calculan solos con `ahorroAnualDe`).
+  — **QA: HECHO** el 2026-11-05 con el script (modo prueba): mensual
+    `01a1ac5d-ba9a…1c465e` (14,60) y anual `01a1ac5d-dc0b…80426ba3` (87,60),
+    verificados en su página. Los de 9,50 / 86 se conservan.
+  — **PRODUCCIÓN: HECHO** el 2026-11-05 con OK de Cristian (modo real):
+    anual `01a1ac68-e68b-7022-80e8-1ecd680b408a` (87,60), verificado en su
+    página; el mensual ya estaba en 14,60. El anual viejo de 96
+    (`01a1a451-8f01…780ac42`) se conserva: quien lo paga sigue con su precio.
+    manoscreadoras.co ya enseña US$7,30 / US$87,60. `PRECIOS_RESPALDO` en
+    `lib/planes.ts` → `{ mensual: 14.6, anual: 87.6 }` (sin commitear).
+· Producción: 14,60 / 96 desde el 2026-11-04 → **14,60 / 87,60 desde el 2026-11-05**.
 · Probado en QA (2026-11-03/04): QA está en **9,50 / 86** (Cristian pidió
   6,5 / 86, pero así el anual salía más caro que 12 meses; eligió 9,50).
   Los viejos de 19,70 / 117 de QA siguen (tenían 1 suscripción de prueba). En producción todavía NO se ha usado: sus planes de 14,70 /
