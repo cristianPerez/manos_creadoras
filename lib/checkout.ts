@@ -1,6 +1,8 @@
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
+import { ETIQUETA_COBRO, VIDA_COBRO_S } from "@/lib/cache-datos";
 import { detectarPais, regionDe, type Region } from "@/lib/pais";
-import { supabaseServer } from "@/lib/supabase/server";
+import { supabasePublico } from "@/lib/supabase/publico";
 import { PRECIOS_RESPALDO, type Frecuencia, type Precios } from "@/lib/planes";
 
 /**
@@ -25,16 +27,41 @@ export type EnlacesDeCobro = {
   precios: Precios;
 };
 
+type FilaCobro = { ciclo: string; url: string | null; precio_usd: number | string | null };
+
+/**
+ * Las filas de cobro de UNA región, en la caché de datos de Next (2026-11-05).
+ *
+ * ⚠️ 60 SEGUNDOS, EL TIEMPO MÁS CORTO DE TODA LA CACHÉ. El precio se cambia
+ * con `npm run plan:onepay` desde la terminal, que no puede invalidar la caché
+ * de Next: con 60 s, un precio nuevo tarda como mucho un minuto en verse en
+ * la web. Ver `lib/cache-datos.ts`.
+ *
+ * La región entra en la clave (es el argumento): Colombia e internacional se
+ * guardan por separado. El país se sigue detectando en cada visita, fuera de
+ * la caché, porque sale de la conexión de quien mira.
+ */
+const cobroCacheado = unstable_cache(
+  async (region: Region): Promise<FilaCobro[]> => {
+    const { data, error } = await supabasePublico()
+      .from("plan_checkout")
+      .select("ciclo, url, precio_usd")
+      .eq("plan", "completo")
+      .eq("region", region);
+    if (error || !data) throw new Error(`cobro: ${error?.message ?? "sin datos"}`);
+    return data as FilaCobro[];
+  },
+  ["cobro-v1"],
+  { revalidate: VIDA_COBRO_S, tags: [ETIQUETA_COBRO] },
+);
+
 export const enlacesDeCobro = cache(async (): Promise<EnlacesDeCobro> => {
   const { pais } = await detectarPais();
   const region = regionDe(pais);
 
-  const supabase = await supabaseServer();
-  const { data } = await supabase
-    .from("plan_checkout")
-    .select("ciclo, url, precio_usd")
-    .eq("plan", "completo")
-    .eq("region", region);
+  /* Si la base falla, sin filas: el precio cae al respaldo del código y el
+     botón a contacto, igual que antes. Lo fallido no se guarda en caché. */
+  const data = await cobroCacheado(region).catch((): FilaCobro[] => []);
 
   const porCiclo = new Map((data ?? []).map((f) => [f.ciclo, f.url]));
   /* `numeric` llega como texto o número según el cliente: se normaliza, y

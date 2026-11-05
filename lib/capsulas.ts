@@ -1,5 +1,7 @@
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
-import { supabaseServer } from "@/lib/supabase/server";
+import { ETIQUETA_CAPSULAS, VIDA_CAPSULAS_S } from "@/lib/cache-datos";
+import { supabasePublico } from "@/lib/supabase/publico";
 import { urlDeMiniatura } from "@/lib/video";
 
 /**
@@ -38,14 +40,38 @@ export type Capsula = {
  * `cache` de React: el home pide las cápsulas en la sección y otra vez en el
  * visor, y así la consulta se hace UNA vez por render.
  */
-export const listarCapsulas = cache(async (): Promise<Capsula[]> => {
-  const supabase = await supabaseServer();
-  const { data } = await supabase
-    .from("capsulas")
-    .select("id, orden, titulo, etiqueta_corta, subtitulo, video_id, portada_url")
-    .order("orden");
+type FilaCapsula = {
+  id: string;
+  orden: number;
+  titulo: string;
+  etiqueta_corta: string;
+  subtitulo: string;
+  video_id: string | null;
+  portada_url: string | null;
+};
 
-  return (data ?? []).map((c) => ({
+/**
+ * Las cápsulas son IGUALES PARA TODO EL MUNDO: se guardan en la caché de datos
+ * de Next (2026-11-05, ver `lib/cache-datos.ts`) en vez de leerse en cada
+ * visita del home. Si la base falla, lanza: no se cachea una lista vacía.
+ */
+const capsulasCacheadas = unstable_cache(
+  async (): Promise<FilaCapsula[]> => {
+    const { data, error } = await supabasePublico()
+      .from("capsulas")
+      .select("id, orden, titulo, etiqueta_corta, subtitulo, video_id, portada_url")
+      .order("orden");
+    if (error || !data) throw new Error(`capsulas: ${error?.message ?? "sin datos"}`);
+    return data as FilaCapsula[];
+  },
+  ["capsulas-v1"],
+  { revalidate: VIDA_CAPSULAS_S, tags: [ETIQUETA_CAPSULAS] },
+);
+
+export const listarCapsulas = cache(async (): Promise<Capsula[]> => {
+  const data = await capsulasCacheadas().catch((): FilaCapsula[] => []);
+
+  return data.map((c) => ({
     id: c.id,
     orden: c.orden,
     titulo: c.titulo,
