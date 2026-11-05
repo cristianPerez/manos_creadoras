@@ -126,6 +126,14 @@ export const EVENTOS = {
    */
   muroCorreoVisto: "muro_correo_visto",
   /**
+   * Se abrió el modal de entrar (2026-11-05: "Entrar" dejó de ser la página
+   * `/entrar`). Lleva `origen`: "header", "app", "bienvenida", "enlace_entrar"…
+   *
+   * Es el denominador de `correoEnviado` con `lugar = "modal_…"`: cuántos
+   * abrieron la puerta frente a cuántos dejaron el correo.
+   */
+  entrarAbierto: "entrar_abierto",
+  /**
    * Mandó su correo desde el login o el muro.
    *
    * ⚠️ ESTO NO ES "CONTACTO NUEVO", y confundirlo infla la cifra. El muro le

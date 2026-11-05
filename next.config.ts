@@ -60,6 +60,28 @@ const nextConfig: NextConfig = {
   // El badge flotante de Next tapaba el primer ícono de la barra inferior y ensuciaba
   // las capturas de verificación. Solo afecta a desarrollo; en producción no existe.
   devIndicators: false,
+
+  experimental: {
+    /**
+     * Cuánto vale en el NAVEGADOR una página ya cargada antes de volver a
+     * pedirla al servidor (2026-11-05, mismo valor que El Charcu).
+     *
+     * Todas las pantallas de la app son dinámicas (leen la sesión y la
+     * paleta), y para esas Next trae `dynamic: 0` de fábrica: cada toque en la
+     * barra de abajo —Mis proyectos → Directorio → Mis proyectos— era una
+     * petición nueva al servidor aunque se acabara de estar ahí. Con 30 s, ir
+     * y volver entre pestañas es instantáneo y no gasta ni una petición.
+     *
+     * No se queda rancio: todo lo que CAMBIA algo (marcar un video, el
+     * checklist, cancelar el plan) pasa por una acción con `revalidatePath`,
+     * que invalida esto y trae los datos de verdad. 30 y no 300: es el tiempo
+     * de mirar las pestañas, no el de dejar la app abierta con datos viejos.
+     */
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  },
 };
 
 export default nextConfig;

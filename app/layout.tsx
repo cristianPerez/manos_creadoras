@@ -4,6 +4,7 @@ import { Analitica, RegistrarEntrada } from "@/components/app/Analitica";
 import { PreciosProvider } from "@/components/app/Precios";
 import { preciosDeLaPagina } from "@/lib/precios";
 import { MotionProvider } from "@/components/app/MotionProvider";
+import { ProveedorEntrar } from "@/components/app/ModalEntrar";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
 import { COLOR_FONDO_SISTEMA, COLOR_FONDO_SISTEMA_B } from "@/lib/marca";
 import { paletaDeLaVisita } from "@/lib/paleta-servidor";
@@ -113,7 +114,12 @@ export default async function RootLayout({
     >
       <body className="min-h-dvh flex flex-col bg-surface-base text-text-primary font-body">
         <PreciosProvider precios={precios}>
-          <MotionProvider>{children}</MotionProvider>
+          <MotionProvider>
+            {/* El modal de entrar, una sola vez para toda la app (ver
+                `ModalEntrar.tsx`). Dentro de Precios y Motion porque el
+                formulario usa los dos. */}
+            <ProveedorEntrar conSesion={Boolean(user)}>{children}</ProveedorEntrar>
+          </MotionProvider>
         </PreciosProvider>
         <RegistrarSW />
         <Analitica

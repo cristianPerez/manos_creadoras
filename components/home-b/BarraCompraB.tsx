@@ -94,7 +94,10 @@ export function BarraCompraB() {
               plan={FRECUENCIA_POR_DEFECTO}
               className="bg-gold-light text-espresso-2 flex h-12 shrink-0 items-center rounded-full px-5.5 font-bold transition-transform active:scale-[0.98]"
             >
-              Inscribirme
+              {/* Beneficio en primera persona, no trámite (revisor v2). Corto
+                  porque comparte fila con el precio y el WhatsApp a 360px; el
+                  "todos" se entiende con "Membresía completa" al lado. */}
+              Quiero todos
             </EnlaceCompra>
           </div>
         </motion.div>

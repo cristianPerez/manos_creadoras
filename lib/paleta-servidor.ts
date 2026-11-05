@@ -31,17 +31,29 @@ export async function paletaDeLaVisita(): Promise<VariantePaleta> {
   if (esVariante(forzada)) return forzada;
 
   /*
-   * ⚠️ LA IDENTIDAD ES LA CUENTA SI LA HAY, Y SI NO EL `mc_vid`. Con la cuenta,
-   * una alumna ve la misma paleta en el celular y en el computador; con la
-   * cookie, el reparto al menos es estable por navegador. `getUser()` está
-   * cacheada por petición y el layout ya la pide, así que esto no cuesta una
-   * consulta de más.
+   * ⚠️ LA IDENTIDAD ES EL `mc_vid` (LA COOKIE DEL NAVEGADOR), Y SOLO SI NO
+   * EXISTE, LA CUENTA. Cambiado el 2026-11-05, antes del primer día de tráfico.
+   *
+   * Antes era al revés —la cuenta si la había— y eso partía el experimento:
+   * la visitante llegaba sin sesión, Flagsmith la sorteaba con su `mc_vid`
+   * (digamos, B), creaba la cuenta, y desde ese momento se sorteaba con su
+   * `user_id`, que podía caer en A. La misma persona veía las dos versiones en
+   * el mismo embudo y sus eventos quedaban repartidos entre los dos grupos.
+   *
+   * El `mc_vid` lo pone el middleware en la PRIMERA petición (antes de que
+   * nada se pinte) y dura un año, así que es estable de punta a punta en el
+   * mismo navegador, con sesión o sin ella. El precio, aceptado: en otro
+   * dispositivo puede tocarle la otra versión. La cuenta queda de respaldo
+   * por si alguna petición llegara sin la cookie.
    */
+  const visitante = bote.get(COOKIE_VISITANTE)?.value;
+  if (visitante) return obtenerVariantePaleta(visitante);
+
+  /* Solo sin cookie se pregunta por la sesión: es una llamada de red menos
+     en casi todas las visitas. */
   const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const identidad = user?.id ?? bote.get(COOKIE_VISITANTE)?.value ?? "";
-  return obtenerVariantePaleta(identidad);
+  return obtenerVariantePaleta(user?.id ?? "");
 }

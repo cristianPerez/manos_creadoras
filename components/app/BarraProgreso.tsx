@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 export function BarraProgreso({ pct, label }: { pct: number; label: string }) {
   const [ancho, setAncho] = useState(0);
 
+  /*
+   * La barra crece desde 0 en el fotograma siguiente al montarse. El cambio de
+   * estado va SIEMPRE dentro de `requestAnimationFrame` (no directo en el
+   * efecto, que encadena un render extra y lo marca el lint). Con movimiento
+   * reducido no se salta este paso: es la TRANSICIÓN la que se apaga
+   * (`motion-reduce:transition-none`), así que la barra aparece llena sin
+   * animarse, igual que antes.
+   */
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setAncho(pct);
-      return;
-    }
     const id = requestAnimationFrame(() => setAncho(pct));
     return () => cancelAnimationFrame(id);
   }, [pct]);
@@ -24,7 +28,7 @@ export function BarraProgreso({ pct, label }: { pct: number; label: string }) {
       aria-label={label}
     >
       <div
-        className="h-full rounded-full transition-[width] duration-700 ease-out"
+        className="h-full rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none"
         style={{
           width: `${ancho}%`,
           backgroundImage:

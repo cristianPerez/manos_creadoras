@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
+import { BotonEntrar } from "@/components/app/ModalEntrar";
 
 /**
  * La cabecera del home B.
@@ -15,9 +16,10 @@ import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
  * El menú solo desde 1024px: entre 768 y 1023 no cabe junto a "Entrar" e
  * "Inscribirme" (el mismo motivo que en el header de siempre).
  */
+/* v2 (2026-11-05): el menú sigue el orden nuevo de la página. */
 const MENU = [
-  { destino: "#capsulas", texto: "Cápsulas gratis" },
-  { destino: "#navidad", texto: "Navidad" },
+  { destino: "#gratis", texto: "Gratis" },
+  { destino: "#comunidad", texto: "Alumnas" },
   { destino: "#elizabeth", texto: "Elizabeth" },
   { destino: "#precio", texto: "Planes" },
   { destino: "#faq", texto: "Dudas" },
@@ -25,8 +27,12 @@ const MENU = [
 
 export function CabeceraB() {
   return (
-    <header className="bg-cream border-line sticky top-0 z-(--z-sticky) border-b">
-      <div className="contenedor-b flex items-center gap-3 py-3 md:py-4">
+    /* La raya de abajo es una sombra interior y no un `border-b`: el borde
+       suma 1px a la altura y la cabecera pasaba de los 56 del contrato a 57,
+       empujando toda la primera pantalla. */
+    <header className="bg-cream sticky top-0 z-(--z-sticky) shadow-[inset_0_-1px_0_var(--line)]">
+      {/* 56px exactos en el teléfono (el contrato de la primera pantalla). */}
+      <div className="contenedor-b flex h-14 items-center gap-2.5 lg:h-18 lg:gap-7">
         {/*
           ⚠️ `flex-1` + `min-w-0` EN EL LOGO, Y NO `ml-auto` EN LOS BOTONES.
           Con `ml-auto` la cabecera se desbordaba a 375px y "Entrar" salía
@@ -39,56 +45,57 @@ export function CabeceraB() {
           recortar sin perder nada — el logo ya dice la marca, y los otros dos
           son las acciones.
         */}
-        <Link href="/" className="flex min-w-0 flex-1 items-center gap-3">
+        <Link href="/" className="flex min-w-0 flex-1 items-center gap-2.5 max-[374px]:gap-2">
           <Logo />
           {/*
-            ⚠️ EL NOMBRE SE PARTE EN DOS LÍNEAS EN MÓVIL, Y ES LO QUE PIDE LA
-            REFERENCIA (`screenshots/movil-375/01-cabecera.png`): "Manos /
-            Creadoras". A 375px no hay forma de que quepa en una línea junto a
-            "Entrar" y al botón — el intento anterior lo cortaba con puntos
-            suspensivos ("Manos Cread…"), y el nombre de la marca es lo último
-            que puede salir a medias en una página de ventas. La cabecera queda
-            unos píxeles más alta y no pasa nada.
-
-            `leading-tight` para que las dos líneas no la estiren de más.
+            ⚠️ v2: EL NOMBRE VA EN UNA LÍNEA (18px), como pide el contrato de
+            la primera pantalla: la cabecera tiene que medir 56 y dos líneas
+            la estiraban. Nunca con puntos suspensivos: el nombre de la marca
+            no sale a medias. A 360 (Android de gama media) se partía en dos;
+            por debajo de 375 la marca baja a 17px y los rellenos de los
+            botones ceden 2-4px, y así entra en una línea (medido a 360).
           */}
-          <span
-            className="font-display text-espresso leading-tight lg:whitespace-nowrap"
-            style={{ fontWeight: 500, fontSize: 19 }}
-          >
+          <span className="font-display text-espresso text-lg leading-tight font-medium whitespace-nowrap max-[374px]:text-[17px] lg:text-[22px]">
             Manos Creadoras
           </span>
         </Link>
 
-        <nav className="hidden shrink-0 items-center gap-6 lg:flex">
+        <nav className="hidden shrink-0 items-center gap-6.5 lg:flex">
           {MENU.map((e) => (
             <a
               key={e.destino}
               href={e.destino}
-              className="text-ink-body hover:text-espresso text-sm transition-colors"
+              className="text-ink-body hover:text-espresso text-[15px] font-medium transition-colors"
             >
               {e.texto}
             </a>
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-1 md:gap-3">
+        <div className="flex shrink-0 items-center gap-1 md:gap-3.5">
           {/* "Entrar" es para quien ya paga: nunca puede desaparecer de la
               cabecera. Sin caja — lo oscuro se reserva para comprar. */}
-          <Link
-            href="/entrar"
-            className="text-espresso flex h-11 items-center px-2 text-sm font-semibold"
-          >
-            Entrar
-          </Link>
+          <BotonEntrar
+            origen="header"
+            className="text-espresso flex h-11 items-center px-1.5 text-sm font-semibold max-[374px]:px-1 lg:text-[15px]"
+          />
 
+          {/*
+            ⚠️ CONTORNO Y "VER PLANES", NO PÍLDORA OSCURA "INSCRIBIRME"
+            (revisor v2, aprobado por Cristian). Con el relleno oscuro pesaba
+            casi como el botón del héroe y en la primera pantalla había dos
+            acciones distintas peleando: probar gratis y pagar. La de pagar
+            queda visible y a un toque, pero cede el protagonismo; y "Ver
+            planes" dice lo que de verdad hace (baja al precio), "Inscribirme"
+            prometía un registro que no ocurre.
+          */}
           <EnlaceCompra
             href="#precio"
             origen="header"
             plan={FRECUENCIA_POR_DEFECTO}
-            className="bg-espresso-2 text-gold-light flex h-10 shrink-0 items-center rounded-full px-4 text-sm font-bold whitespace-nowrap transition-transform active:scale-[0.98] md:h-11 md:px-6"
+            className="border-espresso-2 text-espresso hover:bg-sand flex h-10 shrink-0 items-center rounded-full border-[1.5px] px-4 text-sm font-bold whitespace-nowrap transition-[transform,background-color] active:scale-[0.98] max-[374px]:px-3 md:h-11 md:px-5.5 lg:text-[15px]"
           >
-            Inscribirme
+            Ver planes
           </EnlaceCompra>
         </div>
       </div>
@@ -106,9 +113,9 @@ function Logo() {
   return (
     <span
       aria-hidden="true"
-      className="bg-espresso-2 text-gold-light rounded-foto-b flex size-9 shrink-0 items-center justify-center"
+      className="bg-espresso-2 text-gold-light rounded-foto-b flex size-8.5 shrink-0 items-center justify-center lg:size-10"
     >
-      <span className="font-display italic" style={{ fontWeight: 500, fontSize: 23, lineHeight: 1 }}>
+      <span className="font-display text-[22px] leading-none font-medium italic lg:text-[25px]">
         M
       </span>
     </span>

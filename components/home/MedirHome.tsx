@@ -94,9 +94,17 @@ export function MedirHome() {
       const etiqueta = texto || control.getAttribute("aria-label") || "(sin texto)";
       const seccion = control.closest("[data-seccion]")?.getAttribute("data-seccion") ?? "otra";
 
+      /* `data-cta`: nombre fijo para los botones que hay que comparar entre sí
+         aunque digan lo mismo (el "Empezar mi bolso gratis" del héroe y el
+         del cierre, las dos tarjetas gratis). El texto puede cambiar con el
+         copy; este nombre no, y así el embudo no se rompe. Solo lo usa hoy el
+         home B; en el control no existe y la propiedad no se manda. */
+      const cta = control.getAttribute("data-cta");
+
       medir(EVENTOS.botonClick, {
         texto: etiqueta,
         seccion,
+        ...(cta ? { cta } : {}),
         destino: control instanceof HTMLAnchorElement ? control.getAttribute("href") ?? "" : "",
       });
     };

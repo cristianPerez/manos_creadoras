@@ -644,7 +644,7 @@ async function guardarYResponder(
     conversacionId: string | null;
   },
 ): Promise<NextResponse> {
-  const { userId, pregunta, respuesta, esFoto, uso, bolsoId, leccionId, conversacionId } = datos;
+  const { userId, pregunta, respuesta, uso, bolsoId, leccionId, conversacionId } = datos;
 
   /*
     ── SEGUNDA BARRERA: se revisa la respuesta antes de que la vea nadie ──
