@@ -2,7 +2,10 @@
 
 import { ArrowLeft, Check, ChevronRight, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { marcarVideo } from "@/app/(interna)/app/acciones";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medir } from "@/lib/analitica/mixpanel";
 import { AccesoMateriales } from "@/components/app/AccesoMateriales";
 import { MaterialesDelBolso } from "@/components/app/MaterialesDelBolso";
 import type { Material } from "@/lib/bolsos-logica";
@@ -60,8 +63,8 @@ export function FichaBolso({
   bolsoId,
   portadaUrl,
   meta,
-  videos,
-  filas,
+  videos: videosDelServidor,
+  filas: filasDelServidor,
   ordenInicial,
   arrancarAlInicio = false,
   totalPasos,
@@ -96,6 +99,43 @@ export function FichaBolso({
   const [arranque, setArranque] = useState(arrancarAlInicio ? 1 : 0);
   const [viendo, setViendo] = useState(false);
 
+  /*
+   * ════════════════════════════════════════════════════════════════════════
+   * ⚠️ "VISTO" SE MARCA SOLO AL 80% (2026-11-04, pedido de Cristian)
+   * ════════════════════════════════════════════════════════════════════════
+   * Hasta hoy un video solo quedaba visto si ella tocaba el botón, y casi
+   * nadie lo toca: la primera alumna de pago recorrió diez bolsos y quedó con
+   * cero vistos. Ahora, cuando Bunny dice que pasó del 80%, se guarda en la
+   * base (la misma acción del botón) y la ficha lo pinta en el acto, sin
+   * esperar a recargar. El botón sigue ahí para marcar o desmarcar a mano.
+   *
+   * Los que se marcan en esta visita viven aquí y se suman a los que trajo el
+   * servidor: así la barra de avance y los checks del paso a paso cambian en
+   * el momento.
+   */
+  const [vistosAhora, setVistosAhora] = useState<ReadonlyMap<string, boolean>>(() => new Map());
+  const cambiarVisto = useCallback((videoId: string, visto: boolean) => {
+    setVistosAhora((prev) => new Map(prev).set(videoId, visto));
+  }, []);
+  const videos = useMemo(
+    () =>
+      videosDelServidor.map((v) => {
+        const ahora = vistosAhora.get(v.videoId);
+        return ahora === undefined ? v : { ...v, visto: ahora };
+      }),
+    [videosDelServidor, vistosAhora],
+  );
+  const filas = useMemo(
+    () =>
+      filasDelServidor.map((f) => ({
+        ...f,
+        completado:
+          f.completado ||
+          f.ordenes.every((o) => videos.find((v) => v.orden === o)?.visto ?? false),
+      })),
+    [filasDelServidor, videos],
+  );
+
   const actual = videos.find((v) => v.orden === orden) ?? videos[0];
   const indice = videos.indexOf(actual);
   const siguiente = videos[indice + 1] ?? null;
@@ -109,8 +149,77 @@ export function FichaBolso({
    * del video, así que sin el scroll se tocaba un paso y no pasaba nada a la
    * vista. `scroll-mt` deja el video justo bajo la barra fija de arriba.
    */
+  /* Lo que acompaña a todo evento de video, para leer el panel por bolso y paso. */
+  const datosDelVideo = useCallback(
+    (v: VideoFicha) => ({
+      bolso: slug,
+      bolso_nombre: nombre,
+      gratis,
+      video_orden: v.orden,
+      paso: v.paso ?? 0,
+      parte: v.parte ?? undefined,
+      video_titulo: v.titulo,
+      ya_visto: v.visto,
+    }),
+    [slug, nombre, gratis],
+  );
+
+  /* Al abrir la ficha: qué bolso, y si lo tiene bloqueado (sin plan). Una vez. */
+  useEffect(() => {
+    medir(EVENTOS.bolsoAbierto, { bolso: slug, bolso_nombre: nombre, gratis, bloqueado });
+  }, [slug, nombre, gratis, bloqueado]);
+
+  /*
+   * El progreso del video que suena. Los hitos se guardan por "reproducción"
+   * (la `key` del reproductor): cambiar de video o volver a elegirlo empieza
+   * una cuenta nueva, y ninguno se manda dos veces en la misma.
+   */
+  const hitos = useRef<{ clave: string; enviados: Set<number> }>({ clave: "", enviados: new Set() });
+  /* El callback lee el video y la reproducción vigentes por ref: así es
+     estable y el reproductor no se resuscribe a cada segundo de video. */
+  const actualRef = useRef(actual);
+  const arranqueRef = useRef(arranque);
+  useEffect(() => {
+    actualRef.current = actual;
+    arranqueRef.current = arranque;
+  }, [actual, arranque]);
+  const claveReproduccion = `${actual.orden}-${arranque}`;
+  const alProgreso = useCallback(
+    (segundos: number, duracion: number) => {
+      const v = actualRef.current;
+      const clave = `${v.orden}-${arranqueRef.current}`;
+      if (hitos.current.clave !== clave) hitos.current = { clave, enviados: new Set() };
+      const enviados = hitos.current.enviados;
+      const pct = Math.min(100, Math.floor((segundos / duracion) * 100));
+      const base = { ...datosDelVideo(v), duracion_seg: Math.round(duracion) };
+
+      if (!enviados.has(0) && segundos > 0) {
+        enviados.add(0);
+        medir(EVENTOS.videoReproducido, base);
+      }
+      for (const h of [25, 50, 75]) {
+        if (pct >= h && !enviados.has(h)) {
+          enviados.add(h);
+          medir(EVENTOS.videoProgreso, { ...base, porcentaje: h });
+        }
+      }
+      if (pct >= 80 && !enviados.has(80)) {
+        enviados.add(80);
+        medir(EVENTOS.videoCompletado, base);
+        /* Ya visto (por el servidor o en esta visita): no se vuelve a escribir. */
+        if (!v.visto && !bloqueado && v.videoId) {
+          cambiarVisto(v.videoId, true);
+          void marcarVideo(bolsoId, v.videoId, true);
+        }
+      }
+    },
+    [datosDelVideo, bloqueado, bolsoId, cambiarVisto],
+  );
+
   const cajaVideo = useRef<HTMLDivElement>(null);
   function ver(o: number) {
+    const elegido = videos.find((v) => v.orden === o);
+    if (elegido) medir(EVENTOS.videoAbierto, datosDelVideo(elegido));
     setOrden(o);
     setViendo(false);
     setArranque((n) => n + 1);
@@ -215,13 +324,14 @@ export function FichaBolso({
               {actual.url ? (
                 <div className="bg-espresso aspect-video">
                   <ReproductorEnSitio
-                    key={`${actual.orden}-${arranque}`}
+                    key={claveReproduccion}
                     url={actual.url}
                     poster={actual.poster}
                     respaldo={portadaUrl}
                     titulo={`${nombre} · ${actual.titulo}`}
                     arrancarAlMontar={arranque > 0}
                     onReproduciendo={setViendo}
+                    onProgreso={alProgreso}
                     className="size-full"
                   />
                 </div>
@@ -282,6 +392,10 @@ export function FichaBolso({
                       bolsoId={bolsoId}
                       videoId={actual.videoId}
                       visto={actual.visto}
+                      onCambio={(visto) => {
+                        cambiarVisto(actual.videoId, visto);
+                        medir(EVENTOS.videoMarcadoManual, { ...datosDelVideo(actual), visto });
+                      }}
                     />
                     <Link
                       href={enlaceOjo}

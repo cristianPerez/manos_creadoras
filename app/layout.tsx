@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
-import { Analitica } from "@/components/app/Analitica";
+import { Analitica, RegistrarEntrada } from "@/components/app/Analitica";
 import { PreciosProvider } from "@/components/app/Precios";
 import { preciosDeLaPagina } from "@/lib/precios";
 import { MotionProvider } from "@/components/app/MotionProvider";
@@ -64,9 +64,9 @@ export default async function RootLayout({
   /*
     Se lee la sesión AQUÍ, en el servidor, para atarle los eventos a su cuenta.
 
-    Se le pasa el ID, nunca el correo: el ID permite cruzar el panel con la base
-    cuando haga falta y no identifica a nadie fuera de aquí. Mandarle el correo
-    a un tercero sería regalar dato personal que no hace falta para medir.
+    Se le pasan el ID y el correo (desde el 2026-11-04, pedido de Cristian):
+    con el correo el panel se lee por persona y un pago que llegó antes de la
+    cuenta se puede reconciliar. La política de privacidad lo dice.
   */
   const supabase = await supabaseServer();
   const {
@@ -80,7 +80,7 @@ export default async function RootLayout({
     `detectarPais` está cacheada por petición, así que esto no cuesta nada
     aunque la página ya lo haya pedido para resolver el enlace de pago.
   */
-  const { pais, fuente, ciudad } = await detectarPais();
+  const { pais, fuente, ciudad, subdivision } = await detectarPais();
   /* El precio de la base (misma fila que el enlace de pago) para todos los
      componentes de navegador: ver `components/app/Precios.tsx`. */
   const { precios } = await preciosDeLaPagina();
@@ -97,11 +97,14 @@ export default async function RootLayout({
         <RegistrarSW />
         <Analitica
           userId={user?.id ?? null}
+          correo={user?.email ?? null}
           pais={pais}
           region={regionDe(pais)}
           fuentePais={fuente}
           ciudad={ciudad}
+          subdivision={subdivision}
         />
+        <RegistrarEntrada />
       </body>
     </html>
   );

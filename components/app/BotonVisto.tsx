@@ -15,10 +15,13 @@ export function BotonVisto({
   bolsoId,
   videoId,
   visto,
+  onCambio,
 }: {
   bolsoId: string;
   videoId: string;
   visto: boolean;
+  /** Avisa a la ficha (barra de avance + medición) en el mismo toque. */
+  onCambio?: (visto: boolean) => void;
 }) {
   const [, empezar] = useTransition();
   const [optimista, cambiar] = useOptimistic(visto, (_: boolean, nuevo: boolean) => nuevo);
@@ -30,6 +33,7 @@ export function BotonVisto({
       onClick={() =>
         empezar(async () => {
           cambiar(!optimista);
+          onCambio?.(!optimista);
           await marcarVideo(bolsoId, videoId, !optimista);
         })
       }

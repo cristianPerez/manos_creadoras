@@ -38,6 +38,8 @@ export type PaisDetectado = {
    * tiene el dato sin mandar la IP a ningún sitio.
    */
   ciudad: string | null;
+  /** El departamento o estado, en código ("DC", "ANT", "CMX"), cuando Vercel lo sabe. */
+  subdivision: string | null;
 };
 
 /** El país que se asume cuando no se puede saber. Ver `regionDe`. */
@@ -59,9 +61,11 @@ export async function detectarPais(): Promise<PaisDetectado> {
     }
   }
 
+  const subdivision = h.get("x-vercel-ip-country-region") || null;
+
   const deVercel = h.get("x-vercel-ip-country");
   if (deVercel && deVercel.length === 2) {
-    return { pais: deVercel.toUpperCase(), fuente: "vercel", userAgent, ciudad };
+    return { pais: deVercel.toUpperCase(), fuente: "vercel", userAgent, ciudad, subdivision };
   }
 
   /*
@@ -74,10 +78,10 @@ export async function detectarPais(): Promise<PaisDetectado> {
   const idioma = h.get("accept-language");
   const conPais = idioma?.match(/[a-z]{2}-([A-Z]{2})/);
   if (conPais) {
-    return { pais: conPais[1].toUpperCase(), fuente: "idioma", userAgent, ciudad };
+    return { pais: conPais[1].toUpperCase(), fuente: "idioma", userAgent, ciudad, subdivision };
   }
 
-  return { pais: PAIS_POR_DEFECTO, fuente: "defecto", userAgent, ciudad };
+  return { pais: PAIS_POR_DEFECTO, fuente: "defecto", userAgent, ciudad, subdivision };
 }
 
 /**

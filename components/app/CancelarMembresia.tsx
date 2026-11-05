@@ -5,6 +5,8 @@ import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cancelarMiMembresia } from "@/app/(interna)/app/(conbarra)/plan/acciones";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medir } from "@/lib/analitica/mixpanel";
 
 /**
  * El botón de darse de baja.
@@ -63,6 +65,7 @@ export function CancelarMembresia({ accesoHasta }: { accesoHasta: string | null 
     setError(null);
 
     const r = await cancelarMiMembresia();
+    medir(EVENTOS.bajaPedida, { ok: r.ok });
 
     if (r.ok) {
       setConfirmada(r.accesoHasta);

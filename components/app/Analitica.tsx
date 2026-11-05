@@ -13,12 +13,16 @@ import { identificar, iniciarMixpanel, medir, registrarContexto } from "@/lib/an
  */
 export function Analitica({
   userId,
+  correo,
   pais,
   region,
   fuentePais,
   ciudad,
+  subdivision,
 }: {
   userId: string | null;
+  /** El correo de la sesión, para identificarla en Mixpanel (ver `identificar`). */
+  correo?: string | null;
   /** "CO", "MX"… lo da Vercel desde la conexión. Ver `lib/pais.ts`. */
   pais?: string;
   /** "colombia" | "internacional": de qué pasarela cobra ese país. */
@@ -34,6 +38,8 @@ export function Analitica({
    * Así se tiene la ciudad sin entregar la IP.
    */
   ciudad?: string | null;
+  /** Departamento o estado en código, de `x-vercel-ip-country-region`. */
+  subdivision?: string | null;
 }) {
   useEffect(() => {
     iniciarMixpanel();
@@ -44,9 +50,25 @@ export function Analitica({
      * contexto llegara después, esos primeros eventos irían sin país, que es
      * justo lo que se venía a arreglar.
      */
-    registrarContexto({ pais, region, fuente_pais: fuentePais, ciudad: ciudad ?? undefined });
-    if (userId) identificar(userId);
-  }, [userId, pais, region, fuentePais, ciudad]);
+    /*
+     * ⚠️ LOS TRES ÚLTIMOS SON LOS NOMBRES RESERVADOS DE MIXPANEL, y por eso
+     * existen además de `pais` y `ciudad`. Con nombres propios el dato llegaba
+     * pero las columnas Country/Region/City del panel seguían vacías: Mixpanel
+     * solo las llena desde la IP (que no le damos) o desde estos nombres. Se
+     * dejan los propios para no romper los reportes que ya los usan.
+     */
+    const conocido = fuentePais === "vercel";
+    registrarContexto({
+      pais,
+      region,
+      fuente_pais: fuentePais,
+      ciudad: ciudad ?? undefined,
+      mp_country_code: conocido ? pais : undefined,
+      $region: subdivision ?? undefined,
+      $city: ciudad ?? undefined,
+    });
+    if (userId) identificar(userId, correo);
+  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision]);
 
   return null;
 }
@@ -69,11 +91,27 @@ export function Analitica({
  * sale a cualquiera sin sesión, así que quien vuelve tras cerrar sesión queda
  * contado ahí igual.
  */
-export function RegistrarEntrada({ entrada }: { entrada: string | null }) {
+export function RegistrarEntrada() {
+  /*
+   * ⚠️ ESTUVO ESCRITO Y SIN MONTAR HASTA EL 2026-11-04: `cuenta_creada` y
+   * `cuenta_iniciada` no llegaron NUNCA a Mixpanel. Ahora vive en el layout
+   * raíz y lee la URL él mismo, así que no depende de que cada página se
+   * acuerde de pasárselo.
+   *
+   * ⚠️ Y BORRA EL PARÁMETRO EN EL ACTO (lección de El Charcu): mientras siga
+   * en la dirección, cada recarga —o cada vez que alguien comparta ese
+   * enlace— contaría otra cuenta nueva que no lo es.
+   */
   useEffect(() => {
+    const url = new URL(window.location.href);
+    const entrada = url.searchParams.get("entrada");
     if (entrada !== "nueva" && entrada !== "vuelve") return;
-    medir(entrada === "nueva" ? EVENTOS.cuentaCreada : EVENTOS.cuentaIniciada);
-  }, [entrada]);
+    medir(entrada === "nueva" ? EVENTOS.cuentaCreada : EVENTOS.cuentaIniciada, {
+      donde: url.pathname,
+    });
+    url.searchParams.delete("entrada");
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
 
   return null;
 }

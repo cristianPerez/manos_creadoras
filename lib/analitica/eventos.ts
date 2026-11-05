@@ -41,6 +41,9 @@ export const EVENTOS = {
    *
    * Es la red de seguridad: un botón que nadie instrumentó igual aparece aquí.
    * Lo copiamos de El Charcu, donde ya evitó más de un punto ciego.
+   *
+   * Desde el 2026-11-04 se mide en TODA la app, no solo en el home: lleva
+   * `texto`, `pagina` y `destino`.
    */
   botonClick: "boton_click",
 
@@ -54,6 +57,46 @@ export const EVENTOS = {
    * invisible. Ver `lib/analitica/mixpanel-servidor.ts`.
    */
   pagoConfirmado: "pago_confirmado",
+  /**
+   * Un pago que llegó ANTES de que existiera la cuenta se reclamó al pedir el
+   * código (`lib/pagos-huerfanos.ts`). Lleva `minutos_sin_acceso`.
+   */
+  pagoReconciliado: "pago_reconciliado",
+  /** La pasarela avisó de una baja (conserva acceso hasta vencer). Servidor. */
+  suscripcionCancelada: "suscripcion_cancelada",
+  /** Rebotó un cobro o venció la suscripción. Servidor. */
+  cobroFallido: "cobro_fallido",
+
+  /*
+   * ── DENTRO DE LA APP: qué hacen las alumnas (2026-11-04) ─────────────
+   *
+   * ⚠️ POR QUÉ. Con la primera venta real se vio que estábamos ciegos: se
+   * sabía qué páginas abrió, pero no qué video vio, cuánto, ni si lo terminó.
+   * "Visto" solo existía si tocaba el botón, y casi nadie lo toca.
+   * Todos llevan `bolso` (slug) y, los de video, `video_orden` y `paso`.
+   */
+  /** Abrió la ficha de un bolso. Lleva si es gratis y si lo tiene bloqueado. */
+  bolsoAbierto: "bolso_abierto",
+  /** Eligió un video de la ficha (materiales o un paso). Aún no le dio play. */
+  videoAbierto: "video_abierto",
+  /** El video empezó a correr de verdad (Bunny avisó). Una vez por video y visita. */
+  videoReproducido: "video_reproducido",
+  /** Llegó al 25, 50 o 75% del video. Lleva `porcentaje`. Una vez por hito. */
+  videoProgreso: "video_progreso",
+  /**
+   * Vio el 80% del video. AQUÍ SE MARCA COMO VISTO SOLO, sin tocar el botón:
+   * los últimos segundos suelen ser el cierre, y exigir el 100% dejaría sin
+   * marcar a quien cierra en cuanto ve el resultado.
+   */
+  videoCompletado: "video_completado",
+  /** Tocó "Marcar como visto" / lo desmarcó a mano. Lleva `visto`. */
+  videoMarcadoManual: "video_marcado_manual",
+  /** Marcó o desmarcó un material de la lista ("ya lo tengo"). */
+  materialMarcado: "material_marcado",
+  /** Tocó un proveedor del directorio. Lleva cuál y de qué categoría. */
+  directorioClic: "directorio_clic",
+  /** Pidió darse de baja desde Mi plan. Lleva si salió bien. */
+  bajaPedida: "baja_pedida",
 
   // ── El regalo: los 3 tutoriales ───────────────────────────────────────
   /**

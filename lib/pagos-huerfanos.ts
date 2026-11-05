@@ -1,3 +1,5 @@
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medirServidor } from "@/lib/analitica/mixpanel-servidor";
 import { reportarAviso } from "@/lib/fallos";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { aplicar } from "@/lib/webhooks/aplicar";
@@ -37,7 +39,7 @@ export async function activarPagosHuerfanos(correo: string, origen: string): Pro
   try {
     const { data: huerfanos, error } = await db
       .from("webhook_eventos")
-      .select("id, proveedor, cuerpo")
+      .select("id, proveedor, cuerpo, recibido_en")
       .eq("estado", "huerfano")
       .order("recibido_en", { ascending: true });
     if (error || !huerfanos?.length) return 0;
@@ -78,6 +80,26 @@ export async function activarPagosHuerfanos(correo: string, origen: string): Pro
         .eq("id", fila.id)
         .eq("estado", "procesado");
       rastro.cerrar("procesado");
+    }
+
+    /*
+     * ⚠️ LA RECONCILIACIÓN, TAMBIÉN EN MIXPANEL (2026-11-04). El webhook dejó
+     * el pago sin dueño y `aplicar()` acaba de mandar `pago_confirmado` con su
+     * `user_id` y su correo. Este evento dice además QUE fue un huérfano
+     * reclamado y cuántos minutos estuvo pagando sin acceso: si esa cifra se
+     * repite, el hueco de "pagar antes de tener cuenta" es un problema de la
+     * página de ventas, no un caso raro.
+     */
+    const { data: perfil } = await db.from("profiles").select("id").eq("email", limpio).maybeSingle();
+    if (perfil?.id) {
+      const primero = suyos[0].fila.recibido_en as string | null;
+      const minutos = primero ? Math.round((Date.now() - new Date(primero).getTime()) / 60000) : undefined;
+      await medirServidor(
+        EVENTOS.pagoReconciliado,
+        perfil.id,
+        { correo: limpio, eventos: suyos.length, minutos_sin_acceso: minutos },
+        `${EVENTOS.pagoReconciliado}:${suyos[0].fila.id}`,
+      );
     }
     return suyos.length;
   } catch (e) {

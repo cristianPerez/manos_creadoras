@@ -3,6 +3,7 @@
 import { Loader2, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { olvidarIdentidad } from "@/lib/analitica/mixpanel";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export function BotonCerrarSesion() {
@@ -17,6 +18,9 @@ export function BotonCerrarSesion() {
     setError(null);
     try {
       await supabaseBrowser().auth.signOut();
+      /* Lo que se mida después en este celular ya no es suyo: sin esto, quien
+         lo use luego quedaría registrada con su correo en Mixpanel. */
+      olvidarIdentidad();
       // ⚠️ A los bolsos y no al formulario de entrar (2026-10-21, pedido de
       // Cristian): quien sale no ha pedido volver a entrar. El formulario vive
       // solo en "Entrar".
