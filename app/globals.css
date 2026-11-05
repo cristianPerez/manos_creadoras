@@ -1217,3 +1217,44 @@ input:disabled,
 [aria-disabled="true"] {
   cursor: not-allowed;
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   EL VELO DE LAS FOTOS — SOLO EN LA PALETA B
+   ════════════════════════════════════════════════════════════════════════════
+   Las fotos del curso están hechas con luz cálida: perlas color nácar, madera,
+   dorados. Sobre la paleta de siempre eso es coherente, pero sobre el lavanda
+   de la B las mismas fotos tiran a amarillo y la página parece dos páginas
+   pegadas (pedido de Cristian, 2026-11-05: "que no se vean tan doradas").
+
+   ⚠️ PRIMERO SE INTENTÓ CON UNA CAPA ENCIMA (`:has(> img)::after`) Y ESTABA
+   MAL. El contenedor directo de una foto no siempre es su marco: medido en el
+   home B, el velo caía sobre la SECCIÓN ENTERA de la profesora, sobre las
+   tarjetas de "Tu primer bolso, gratis" y de navidad y sobre el grupo de
+   avatares — es decir, también sobre su texto, que quedaba apagado. Y marcar
+   las fotos una a una significaba tocar una docena de componentes y que la
+   foto que alguien añada el mes que viene saliera dorada sin que se note.
+
+   Lo que sí distingue la foto del texto es teñir LOS PÍXELES DE LA IMAGEN, que
+   es lo que hace un filtro: no puede alcanzar a nada que no sea la foto.
+   `saturate` baja la fuerza del dorado, `hue-rotate` lo acerca al violeta de
+   la paleta y `brightness` devuelve la luz que quita lo anterior.
+
+   Los iconos y el logo quedan fuera: son marca y señalización, no fotos.
+   ──────────────────────────────────────────────────────────────────────────── */
+html[data-paleta="b"] {
+  /*
+   * El tinte, en un sitio, para poder calibrarlo sin tocar el selector.
+   *
+   * Bajado un 20% el 2026-11-05 (Cristian: "que no las afecte tanto"). Se
+   * rebaja lo que cada filtro SE SEPARA de no hacer nada, que es lo que de
+   * verdad se nota: saturate iba 0,18 por debajo de 1 y ahora va 0,144;
+   * hue-rotate iba a −10° y ahora a −8°; brightness subía 0,03 y ahora 0,024.
+   * Bajar los números a secas (0,82 → 0,66) habría hecho lo contrario: teñir
+   * MÁS.
+   */
+  --tinte-foto-b: saturate(0.856) hue-rotate(-8deg) brightness(1.024);
+}
+
+html[data-paleta="b"] img:not([src$=".svg"]):not(.sin-tinte) {
+  filter: var(--tinte-foto-b);
+}
