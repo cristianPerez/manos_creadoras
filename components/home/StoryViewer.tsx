@@ -122,10 +122,9 @@ export function StoryViewer({
           <span
             aria-hidden="true"
             className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "linear-gradient(to bottom, rgba(42,31,25,.62) 0%, rgba(42,31,25,0) 26%, rgba(42,31,25,0) 52%, rgba(42,31,25,.88) 100%)",
-            }}
+            /* `--velo-historia` (globals.css): sale del espresso de la marca,
+               así que cada paleta lo tiñe sola. Antes iba escrito a mano aquí. */
+            style={{ backgroundImage: "var(--velo-historia)" }}
           />
         </div>
 
