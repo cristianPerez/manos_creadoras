@@ -13,6 +13,74 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
+⚡ **ENTRAR COMO MODAL · INSTRUMENTACIÓN DEL A/B · CACHÉ (2026-11-05, rama
+`home-b-v2-vendedor`, va en el PR #6).**
+· **Entrar es un modal** (`components/app/ModalEntrar.tsx`, patrón de El
+  Charcu): hoja desde abajo <768px, centrado desde 768, `<dialog>` nativo, foco
+  al correo. Lo abren "Entrar" de los dos homes, de la app interna y de
+  `/bienvenida`. `/entrar` ya NO es pantalla: redirige a
+  `/app?entrar=1&desde=enlace_entrar` y el modal se abre solo (enlaces viejos,
+  correos y `/login` siguen sirviendo). Evento nuevo `entrar_abierto`
+  (`origen`); `correo_enviado` desde el modal lleva `lugar = modal_<origen>`.
+· **El correo de bienvenida entra con el correo escrito** (`lib/correos/
+  bienvenida.ts`): el botón "Entrar al curso" y el enlace del texto plano van a
+  `/app?entrar=1&desde=correo_bienvenida&email=<su correo>`. Así el modal se
+  abre solo, con la casilla rellena, y manda el código sin que ella toque nada
+  (`FormularioAcceso` con `correoInicial` + `pedirAlMontar`; el evento
+  `correo_enviado` lo marca con `automatico: true`). En el HTML el `&` del href
+  va como `&amp;`. Con un correo inválido queda escrito y NO se pide solo.
+  ⚠️ **El correo viaja en la dirección, así que queda escrito en los registros
+  de Vercel de esa petición** (no hay forma de evitarlo: el servidor recibe la
+  URL). Lo que sí se evita es que llegue a la analítica:
+  `tomarCorreoDeLaUrl()` corre al CARGAR el módulo `ModalEntrar.tsx` —antes de
+  cualquier efecto, y por tanto antes de `iniciarMixpanel`— y lo borra de la
+  barra con `history.replaceState`, así que Mixpanel nunca lo ve en
+  `$current_url`. Con sesión abierta, `?entrar=1` no abre nada (solo limpia la
+  dirección): quien pagó ya dentro no necesita código.
+· **Instrumentación — 3 bugs arreglados antes del primer tráfico:**
+  (1) el sorteo del A/B usaba la CUENTA si había sesión y la cookie si no: al
+  iniciar sesión la persona podía saltar de versión. Ahora SIEMPRE `mc_vid`
+  (cookie del navegador, 1 año); la cuenta solo de respaldo
+  (`lib/paleta-servidor.ts`). (2) los primeros eventos de cada carga
+  —`$mp_web_page_view` y `pagina_ventas_vista`, el 1er paso del embudo— salían
+  con la variante de la visita anterior o SIN variante (el registro iba después
+  de soltar la cola). Ahora el contexto se registra dentro de
+  `iniciarMixpanel` y la vista de página se manda a mano (autocapture de
+  vistas apagado). Verificado con visitante nueva: 100% de eventos con
+  variante. (3) `experimento_paleta` también en la FICHA de la persona
+  (`fijarEnFicha`): `pago_confirmado` lo manda el servidor sin super
+  propiedades → partir pagos por "User property → experimento_paleta".
+  Correo: con sesión va en cada evento (`correo`) y en la ficha (`$email`).
+  **Cómo leer el A/B en Mixpanel:** Breakdown por `experimento_paleta`
+  (`actual` = A, `b` = B), fecha desde el arranque; en funnels, la atribución
+  por defecto (1er paso) basta.
+· **Caché** (`lib/cache-datos.ts`, `lib/supabase/publico.ts`): catálogo,
+  materiales, directorio y cápsulas en `unstable_cache` 10 min; precios y
+  enlaces de cobro 60 s (el script de precios no puede invalidar: un precio
+  nuevo tarda ≤1 min en verse). Lo personal (avance, checklist, plan, Ojo)
+  sigue fresco, y sin cookie de sesión ni se consulta. `staleTimes` 30 s/180 s
+  en `next.config.ts` (ir y volver entre pestañas sin pedir al servidor).
+  Invalidar a mano: `revalidateTag("catalogo" | "materiales" | "capsulas" |
+  "cobro")` desde una acción del servidor.
+· Revisor visual del modal: **28/40 · 12/20, NO LISTA**. Arreglado: tocar
+  fuera ya no cierra tras mandar el código (se perdía la casilla), la X
+  responde al toque, radio 16px en la B. Pendiente: botón "Mandarme el
+  código" apagado (3,4:1) sin decir por qué, enlace "Ver el programa" en
+  frambuesa y botón en el morado de acción en la B, animación de salida,
+  asa de la hoja que no se arrastra.
+· Lint: los 3 errores y 5 avisos previos (`BarraProgreso`, `home/Capsulas` con
+  `useSyncExternalStore`, `OjoDemo`, `PrecioQueCuenta`, `CursoGratis`,
+  `ojo-experto/route.ts`) están CORREGIDOS de raíz, sin `eslint-disable` ni
+  `@ts-ignore`. **Verificado 2026-11-05: `tsc` ✓ 0 errores · `eslint lib
+  components app next.config.ts` ✓ 0 errores / 0 avisos · `build` ✓.**
+  Probado en el navegador a 375px: `?entrar=1&desde=correo_bienvenida&email=`
+  con correo VÁLIDO → el modal pasa solo a "Revisa tu correo" con el código ya
+  mandado, sin tocar nada, y la dirección queda en `/app`; con correo INVÁLIDO
+  → queda escrito y NO se pide solo. ⚠️ Mixpanel no arranca en local (sin
+  `NEXT_PUBLIC_MIXPANEL_TOKEN`): que ningún evento lleve el correo en
+  `$current_url` está garantizado por el orden de carga, pero conviene
+  confirmarlo en el Preview de Vercel mirando una llamada a `/track`.
+
 🧪 **EXPERIMENTO "HOME B v2" (2026-11-05) — EN CÓDIGO, SIN COMMITEAR, rama
 `home-b-v2-vendedor`.** Lo decide la flag `paleta_b` de Flagsmith.
 · ⚠️ **YA NO COMPARA SOLO LA PALETA.** Cristian autorizó reordenar y reescribir
