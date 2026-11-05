@@ -266,13 +266,21 @@ export function PortadaB({
           ENCOGERSE DE MÁS (ajustado el 2026-11-05 con capturas reales de
           Cristian: iPhone 11 Pro, Galaxy S21 y MacBook Pro de 13").
 
-          MÓVIL. La foto mide `alto de pantalla − 486`, entre 246 y 330. Antes
-          restaba 512 con suelo en 220, y el resultado era que en un iPhone con
-          Safari —donde las barras dejan unos 635 de alto— la cuenta daba 123 y
-          la foto caía al suelo de 220: el bolso, que es lo que vende, se veía
-          más pequeño que en un Android con la misma pantalla. Ahora crece con
-          lo que haya: 248 en ese iPhone, ~270 a 750, 330 a 810 o más. `svh` y
-          no `vh`: no cambia cuando la barra del navegador aparece y desaparece.
+          MÓVIL: LA GALERÍA ES CUADRADA, COMO LAS FOTOS (2026-11-05, Cristian:
+          "que no se vean tan cortadas... ni cortadas en los extremos").
+          Las fotos son cuadradas (720×720). Con una caja más ancha que alta,
+          `cover` se comía arriba y abajo —en un iPhone con las barras de
+          Safari solo quedaba a la vista el 65% del alto, y al bolso se le
+          cortaban el asa y la base— y `contain` dejaba dos franjas de 65px a
+          los lados. Con la caja cuadrada la foto entra ENTERA y llena el ancho
+          completo: ni recorte ni franjas.
+          El techo `100svh − 340` es el que impide que se coma el botón: a
+          812 y a 740 la caja llega a cuadrada (franja 0), y solo en pantallas
+          muy bajas —el iPhone con barras, 635— se achata a 295 y deja 40px a
+          cada lado. Medido: con 300 en vez de 340 la galería crece 40px más,
+          pero "Empezar mi bolso gratis" se sale de la pantalla. El botón
+          manda. `svh` y no `vh`: no cambia cuando la barra del navegador
+          aparece y desaparece.
 
           ESCRITORIO. Dos límites, y manda el más pequeño:
             · la proporción 1:1,08 (antes 5:6, que a 1280 daba 603px de alto
@@ -288,7 +296,7 @@ export function PortadaB({
           bajarle el techo de alto, la foto se iba estrechando (463 en vez de
           los 503 de su columna) y dejaba un hueco al lado.
         */}
-        <div className="bg-sand relative h-[clamp(246px,calc(100svh-486px),330px)] overflow-hidden lg:aspect-[1/1.08] lg:h-auto lg:max-h-[calc(100svh-200px)] lg:w-full lg:rounded-foto-b">
+        <div className="bg-sand relative aspect-square max-h-[calc(100svh-340px)] w-full overflow-hidden lg:aspect-[1/1.08] lg:h-auto lg:max-h-[calc(100svh-200px)] lg:rounded-foto-b">
           <Image
             /* `key` por slug: al cambiar de proyecto React monta una imagen
                nueva y `animate-[aparecer]` funde el cambio en vez de saltar. */
@@ -298,7 +306,19 @@ export function PortadaB({
             fill
             priority={i === 0}
             sizes="(min-width: 1024px) 540px, 100vw"
-            className="animate-[aparecer_.45s_var(--ease-out)] object-cover object-[center_55%] lg:object-center"
+            /*
+             * ⚠️ EN EL CELULAR LA FOTO SE VE ENTERA (`contain`), NO RECORTADA
+             * (Cristian, 2026-11-05: "que no se vean tan cortadas").
+             * La foto es cuadrada y la caja del celular es más ancha que alta,
+             * así que `cover` se comía los bordes de arriba y abajo: medido, en
+             * un iPhone con las barras de Safari solo quedaba a la vista el 65%
+             * del alto — al bolso se le cortaban el asa y la base, que es justo
+             * lo que se está vendiendo. Con `contain` entra completo y el
+             * lavanda del contenedor hace de marco a los lados.
+             * En escritorio sigue `cover`: allí la caja es casi cuadrada
+             * (1:1,08) y el recorte es mínimo.
+             */
+            className="animate-[aparecer_.45s_var(--ease-out)] object-contain lg:object-cover lg:object-center"
           />
 
           {/* ⚠️ RADIO 8 EN LOS TRES CONTROLES, igual que la foto: el reparo

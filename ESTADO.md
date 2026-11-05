@@ -203,6 +203,22 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   Primera pantalla medida: a 375×812 el bloque clave termina en 696px (igual
   que el contrato); a 360×740 la foto baja a 254 y la prueba social queda 11px
   por encima de la barra fija.
+· **La galería del héroe es CUADRADA en el celular** (2026-11-05, segunda
+  vuelta con capturas de Cristian): las fotos son cuadradas, así que con una
+  caja más ancha que alta `cover` se comía arriba y abajo —en un iPhone con
+  barras solo se veía el 65% del alto, al bolso le faltaban el asa y la base—
+  y `contain` dejaba dos franjas de 65px. Con `aspect-square` + `object-contain`
+  la foto entra ENTERA y llena el ancho: ni recorte ni franjas. El techo
+  `max-h-[calc(100svh-340px)]` es lo que impide que se coma el CTA. Medido:
+  **375×812 y 360×740 → cuadrada, franja 0**; **375×635 (iPhone con barras) →
+  295 de alto, franja 40**; con un techo mayor (−300) la galería crece 40px
+  más pero "Empezar mi bolso gratis" se sale de la pantalla. Escritorio
+  intacto (503×543, `cover`). ⚠️ A 360×740 la prueba social queda ~19px por
+  debajo del borde: se ve con un gesto mínimo de scroll, y la barra fija de
+  compra no existe todavía en la primera pantalla.
+  — `vela-osos-auto.webp` se recortó también a 720×720: era la única que no
+    era cuadrada (1000×750) y hacía que el carrusel cambiara de ancho al pasar
+    por ella.
 · **Alto de la galería, ajustado el 2026-11-05 con capturas reales de Cristian**
   (iPhone 11 Pro, Galaxy S21, MacBook Pro 13"): en MÓVIL la foto pasa a
   `clamp(246px, 100svh − 486px, 330px)` — antes restaba 512 con suelo en 220 y
