@@ -1,10 +1,8 @@
 "use client";
 
 import { Play } from "lucide-react";
-import Image from "next/image";
 import { Entrada } from "@/components/home/Entrada";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
-import Link from "next/link";
 import { ReproductorEnSitio } from "@/components/home/ReproductorEnSitio";
 import { useRef, useState } from "react";
 
@@ -28,7 +26,6 @@ export type PasoGratis = {
  * que se sienta un reproductor y no dos bloques puestos al lado.
  */
 export function CursoGratis({
-  slug,
   nombre,
   pasos,
   portadaUrl,
