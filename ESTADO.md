@@ -119,7 +119,20 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   Profesora → Navidad (tarjeta) → Precio (absorbió "Este es solo uno") →
   Preguntas → Cierre (empuja el bolso gratis, no el pago) → barra fija.
   Primera pantalla medida: a 375×812 el bloque clave termina en 696px (igual
-  que el contrato); a 360×740 la foto baja a 228 y queda visible.
+  que el contrato); a 360×740 la foto baja a 254 y la prueba social queda 11px
+  por encima de la barra fija.
+· **Alto de la galería, ajustado el 2026-11-05 con capturas reales de Cristian**
+  (iPhone 11 Pro, Galaxy S21, MacBook Pro 13"): en MÓVIL la foto pasa a
+  `clamp(246px, 100svh − 486px, 330px)` — antes restaba 512 con suelo en 220 y
+  en un iPhone con Safari (≈635 de alto útil) la foto caía al suelo y el bolso
+  se veía más chico que en un Android con la misma pantalla. En ESCRITORIO la
+  proporción baja de 5:6 a 1:1,08 **y** se le pone techo de
+  `100svh − 200px`: a 1280×700 la foto medía 503×**603** contra 475 del copy de
+  al lado y terminaba 19px POR DEBAJO del borde de la pantalla; ahora mide
+  503×**500** y acaba en 616, alineada con el copy y sin scroll. ⚠️ Lleva
+  `lg:w-full` a propósito: la columna usa `items-center`, así que sin ancho
+  propio el techo de alto estrechaba la foto (463 en vez de 503) y dejaba un
+  hueco al lado. Medido a 375×635, 360×650, 360×740, 1280×700 y 1440×900.
 · **Ajustes de Cristian (2026-11-05, después del revisor):** el carrusel
   avanza cada **3,5 s** (no 5) y el segmento activo se llena mientras corre;
   la vela pasó al **3er lugar** y su etiqueta dice "Aromáticas de lujo" — nada

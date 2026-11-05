@@ -200,17 +200,33 @@ export function PortadaB({
         }}
       >
         {/*
-          Móvil: 300px a sangre (era 440). Escritorio: 5:6 con radio 8.
+          ⚠️ EN PANTALLAS BAJAS LA FOTO CEDE, EL TITULAR NO — PERO SIN
+          ENCOGERSE DE MÁS (ajustado el 2026-11-05 con capturas reales de
+          Cristian: iPhone 11 Pro, Galaxy S21 y MacBook Pro de 13").
 
-          ⚠️ EN PANTALLAS BAJAS LA FOTO CEDE, EL TITULAR NO. A 360×740 (Android
-          de gama media) con 300px la prueba social quedaba debajo de la barra
-          fija. Lo que hay debajo de la foto hasta la prueba social más la
-          cabecera mide 396, la barra 76 y se dejan 40 de aire: la foto mide
-          `alto de pantalla − 512`, con techo en 300 (lo que da a 812 exactos)
-          y suelo en 220 para que el bolso se siga leyendo. `svh` y no `vh`:
-          no cambia cuando la barra del navegador aparece y desaparece.
+          MÓVIL. La foto mide `alto de pantalla − 486`, entre 246 y 330. Antes
+          restaba 512 con suelo en 220, y el resultado era que en un iPhone con
+          Safari —donde las barras dejan unos 635 de alto— la cuenta daba 123 y
+          la foto caía al suelo de 220: el bolso, que es lo que vende, se veía
+          más pequeño que en un Android con la misma pantalla. Ahora crece con
+          lo que haya: 248 en ese iPhone, ~270 a 750, 330 a 810 o más. `svh` y
+          no `vh`: no cambia cuando la barra del navegador aparece y desaparece.
+
+          ESCRITORIO. Dos límites, y manda el más pequeño:
+            · la proporción 1:1,08 (antes 5:6, que a 1280 daba 603px de alto
+              contra 475 del texto de al lado — la foto se veía desplomada);
+            · `alto de pantalla − 200`, que es lo que ocupan la cabecera y el
+              aire de arriba y abajo. Sin esto, en un MacBook de 13" la foto
+              terminaba 19px POR DEBAJO del borde de la pantalla: había que
+              hacer scroll para ver un bolso que es lo primero que se mira.
+          Recorta alto, nunca ancho, así que la foto no se deforma: la caja se
+          achata y `object-cover` se queda con el centro. ⚠️ `lg:w-full` es
+          justo lo que hace que recorte el ALTO: la columna usa `items-center`,
+          así que sin un ancho propio el ancho lo decidía la proporción y, al
+          bajarle el techo de alto, la foto se iba estrechando (463 en vez de
+          los 503 de su columna) y dejaba un hueco al lado.
         */}
-        <div className="bg-sand relative h-[clamp(220px,calc(100svh-512px),300px)] overflow-hidden lg:aspect-5/6 lg:h-auto lg:rounded-foto-b">
+        <div className="bg-sand relative h-[clamp(246px,calc(100svh-486px),330px)] overflow-hidden lg:aspect-[1/1.08] lg:h-auto lg:max-h-[calc(100svh-200px)] lg:w-full lg:rounded-foto-b">
           <Image
             /* `key` por slug: al cambiar de proyecto React monta una imagen
                nueva y `animate-[aparecer]` funde el cambio en vez de saltar. */
