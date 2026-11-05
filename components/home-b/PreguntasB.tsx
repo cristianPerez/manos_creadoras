@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import { useId, useState } from "react";
 import { EnlaceWhatsApp } from "@/components/home/EnlaceCompra";
-import { Entrada } from "@/components/home/Entrada";
+import { EntradaB, PiezaB } from "@/components/home-b/EntradaB";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { PREGUNTAS_FRECUENTES, WHATSAPP_URL } from "@/lib/landing";
@@ -29,7 +29,7 @@ export function PreguntasB() {
 
   return (
     <section id="faq" data-seccion="faq" className="py-12 lg:py-20">
-      <Entrada className="contenedor-b lg:flex lg:flex-wrap lg:gap-x-18 lg:gap-y-8">
+      <EntradaB className="contenedor-b lg:flex lg:flex-wrap lg:gap-x-18 lg:gap-y-8">
         <header className="lg:flex-1 lg:min-w-75">
           <p className="eyebrow-b flex items-center gap-3">Dudas</p>
           <h2 className="titulo-seccion-b mt-2.5 text-balance lg:mt-3">
@@ -53,7 +53,7 @@ export function PreguntasB() {
             const abiertaEsta = abierta === i;
             const idRespuesta = `${base}-r${i}`;
             return (
-              <li key={p.q} className="border-line border-b">
+              <PiezaB como="li" key={p.q} className="border-line border-b">
                 <button
                   type="button"
                   aria-expanded={abiertaEsta}
@@ -89,11 +89,11 @@ export function PreguntasB() {
                     {p.a}
                   </p>
                 </motion.div>
-              </li>
+              </PiezaB>
             );
           })}
         </ul>
-      </Entrada>
+      </EntradaB>
     </section>
   );
 }

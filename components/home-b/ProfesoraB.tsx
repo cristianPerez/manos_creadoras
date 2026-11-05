@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Entrada } from "@/components/home/Entrada";
+import { EnteroQueCuentaB, EntradaB, PiezaB } from "@/components/home-b/EntradaB";
 import { PROFESORA } from "@/lib/landing";
 
 /**
@@ -14,11 +14,21 @@ import { PROFESORA } from "@/lib/landing";
  * garantía. ⚠️ NO VA EL NÚMERO DE BOLSOS: contar el catálogo le pone techo a
  * una suscripción que promete clases nuevas — la cifra diría "esto es lo que
  * hay", justo lo contrario de lo que se quiere contar.
+ *
+ * v2 (2026-11-05): el texto es más corto que el de `PROFESORA.texto` (el que
+ * usa el control): la lista "bolsos, accesorios y adornos" ya la dicen el
+ * titular y la palabra que rota, y aquí repetida solo alarga. Va escrito en
+ * este archivo para no cambiar el texto del control.
  */
+const TEXTO =
+  "Te enseño con las mismas fichas y el mismo método que uso en cada pieza, paso a paso. Y si algo no te sale, el Ojo Experto te responde con mis fichas.";
+
 export function ProfesoraB({ videos }: { videos: number }) {
+  /* Números y no textos: cuentan desde 0 al entrar en pantalla (animación
+     base del sistema: un número héroe nunca aparece quieto). */
   const cifras = [
-    { valor: String(videos), pie: "videos" },
-    { valor: "7", pie: "días de garantía" },
+    { valor: videos, pie: "videos" },
+    { valor: 7, pie: "días de garantía" },
   ];
 
   return (
@@ -27,7 +37,7 @@ export function ProfesoraB({ videos }: { videos: number }) {
       data-seccion="elizabeth"
       className="bg-espresso-2 sobre-oscuro grain-oscuro"
     >
-      <Entrada className="contenedor-b py-11 lg:flex lg:items-center lg:gap-18 lg:py-20">
+      <EntradaB className="contenedor-b py-11 lg:flex lg:items-center lg:gap-18 lg:py-20" escalonado={0.08}>
         <Image
           src={PROFESORA.foto}
           alt={PROFESORA.alt}
@@ -46,14 +56,15 @@ export function ProfesoraB({ videos }: { videos: number }) {
           </h2>
 
           <p className="text-on-dark-muted mt-3.5 max-w-130 text-base leading-relaxed lg:mt-5 lg:text-lg">
-            {PROFESORA.texto}
+            {TEXTO}
           </p>
 
           {/* Cajitas de borde, sin relleno: sobre el morado oscuro un bloque
               más claro pesaría más que la foto. La línea basta para agrupar. */}
           <ul className="mt-5.5 grid grid-cols-2 gap-2.5 lg:mt-8 lg:flex lg:gap-3">
             {cifras.map((c) => (
-              <li
+              <PiezaB
+                como="li"
                 key={c.pie}
                 className="border-espresso-line rounded-foto-b border p-4 lg:w-37.5 lg:p-4.5"
               >
@@ -61,14 +72,14 @@ export function ProfesoraB({ videos }: { videos: number }) {
                   className="font-display text-ivory block"
                   style={{ fontWeight: 500, fontSize: "clamp(38px, 3.4vw, 44px)", lineHeight: 1 }}
                 >
-                  {c.valor}
+                  <EnteroQueCuentaB hasta={c.valor} />
                 </span>
                 <span className="text-on-dark-muted mt-1.5 block text-sm">{c.pie}</span>
-              </li>
+              </PiezaB>
             ))}
           </ul>
         </div>
-      </Entrada>
+      </EntradaB>
     </section>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { NAVEGACION } from "@/lib/landing";
 import { FRECUENCIA_POR_DEFECTO } from "@/lib/planes";
+import { BotonEntrar } from "@/components/app/ModalEntrar";
 
 /**
  * La cabecera del home.
@@ -55,21 +56,17 @@ export function Header() {
             alumna no viene a comprar otra vez—. En móvil es el único botón de
             la cabecera, con borde: lo oscuro se reserva para comprar.
           */}
-          <Link
-            href="/entrar"
+          <BotonEntrar
+            origen="header"
             className="text-ink-body hover:text-espresso hidden h-11 items-center px-3 text-sm font-semibold transition-colors md:flex"
-          >
-            Entrar
-          </Link>
+          />
 
           {/* En móvil, "Entrar" sin borde (2026-10-22): con "Inscribirme" al
               lado, dos botones con caja no caben a 375px junto al nombre. */}
-          <Link
-            href="/entrar"
+          <BotonEntrar
+            origen="header"
             className="text-espresso flex h-11 items-center px-2 text-sm font-semibold md:hidden"
-          >
-            Entrar
-          </Link>
+          />
 
           {/*
             ⚠️ EL CTA DEL HEADER DEJÓ DE SER "EMPIEZA GRATIS" (home v3). El gratis

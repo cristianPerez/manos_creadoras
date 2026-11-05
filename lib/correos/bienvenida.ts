@@ -47,6 +47,23 @@ export function correoDeBienvenida({ para, inicio }: { para: string; inicio: str
   const asunto = "Ya tienes tu membresía completa 🤍";
 
   /*
+   * El enlace no va pelado a `/app`: lleva el correo escrito.
+   *
+   * Quien hace clic aquí llega con `?entrar=1` (abre el modal de Entrar solo)
+   * y `?email=` (la casilla del correo ya rellena), así que lo único que tiene
+   * que hacer es copiar el código de 6 cifras del segundo correo. Un paso menos
+   * justo en el momento de más impaciencia.
+   *
+   * ⚠️ El correo viaja en la URL, así que queda escrito en los registros de esa
+   * petición en Vercel. Para que NO acabe además en la analítica, `ModalEntrar`
+   * lo lee y lo BORRA de la barra de direcciones (`history.replaceState`) antes
+   * de que Mixpanel arranque y capture `$current_url`.
+   */
+  const enlace = `${inicio}?entrar=1&desde=correo_bienvenida&email=${encodeURIComponent(para)}`;
+  /* En HTML el `&` de un href se escribe `&amp;` o el validador lo parte. */
+  const enlaceHtml = enlace.replace(/&/g, "&amp;");
+
+  /*
    * El texto plano NO es un resumen del HTML: es el mismo mensaje completo.
    * Quien lea esta versión —por preferencia o porque su cliente no carga
    * imágenes— tiene que poder entrar igual, así que el enlace va escrito entero.
@@ -54,7 +71,7 @@ export function correoDeBienvenida({ para, inicio }: { para: string; inicio: str
   const texto = [
     "Tu pago entró. Ya tienes tu membresía completa.",
     "",
-    `Entra aquí: ${inicio}`,
+    `Entra aquí: ${enlace}`,
     `Usa este mismo correo: ${para}`,
     "",
     "Para empezar:",
@@ -115,7 +132,7 @@ export function correoDeBienvenida({ para, inicio }: { para: string; inicio: str
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center" style="padding:0 0 10px 0;">
-              <a href="${inicio}"
+              <a href="${enlaceHtml}"
                  style="display:inline-block;background:${DORADO};color:#ffffff;text-decoration:none;
                         font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;
                         padding:16px 40px;border-radius:999px;">

@@ -1,6 +1,6 @@
 import { Mail, MousePointerClick, ShoppingBag } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BotonEntrar } from "@/components/app/ModalEntrar";
 
 export const metadata: Metadata = {
   title: "¡Bienvenida! — Manos Creadoras",
@@ -45,9 +45,9 @@ export default function Bienvenida() {
 
         <p className="text-ink-muted mt-8 text-sm">
           ¿No te llegó?{" "}
-          <Link href="/entrar" className="text-gold font-semibold underline">
+          <BotonEntrar origen="bienvenida" className="text-gold font-semibold underline">
             Pide tu acceso de nuevo
-          </Link>
+          </BotonEntrar>
         </p>
       </div>
     </main>

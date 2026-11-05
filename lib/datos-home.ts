@@ -53,6 +53,20 @@ const SUBTITULOS: Record<string, string> = {
 /** El orden del carrusel: lo manda el diseño, no el catálogo. */
 const ORDEN_CARRUSEL = Object.keys(SUBTITULOS);
 
+/**
+ * El carrusel del home B v2 (Claude Design, "Home B v2 · vendedor"): detrás del
+ * bolso gratis y de la vela van estos cuatro, en este orden. Boho no está en el
+ * de siempre; su subtítulo sigue la misma regla (lo que lo distingue en una
+ * línea) y sale de su ficha de materiales.
+ */
+const SUBTITULOS_B: Record<string, string> = {
+  "anillos-de-seda": SUBTITULOS["anillos-de-seda"],
+  boho: "Cuentas de 10 mm",
+  "gota-de-rocio": SUBTITULOS["gota-de-rocio"],
+  "marfil-elegante": SUBTITULOS["marfil-elegante"],
+};
+const ORDEN_CARRUSEL_B = Object.keys(SUBTITULOS_B);
+
 export type DatosHome = Awaited<ReturnType<typeof cargarDatosHome>>;
 
 export async function cargarDatosHome() {
@@ -75,6 +89,19 @@ export async function cargarDatosHome() {
     const b = porSlug.get(slug);
     if (!b?.portadaUrl) return [];
     return [{ slug, nombre: b.nombre, subtitulo: SUBTITULOS[slug], url: b.portadaUrl }];
+  });
+
+  /*
+   * ⚠️ LAS FOTOS DEL CARRUSEL DEL HOME B v2, APARTE DE `fotos`. La B pide otro
+   * orden y un bolso que el carrusel de siempre no tiene (Boho). Si se tocara
+   * `fotos`, cambiaría también el banner del CONTROL, y el control tiene que
+   * quedarse idéntico mientras dure el experimento. El bolso gratis y la vela
+   * (que no es un bolso de la base) los pone `PortadaB` delante.
+   */
+  const fotosB: FotoHero[] = ORDEN_CARRUSEL_B.flatMap((slug) => {
+    const b = porSlug.get(slug);
+    if (!b?.portadaUrl) return [];
+    return [{ slug, nombre: b.nombre, subtitulo: SUBTITULOS_B[slug], url: b.portadaUrl }];
   });
 
   /* El bolso gratis sale de la BASE (`gratis = true`), no de un slug escrito
@@ -133,6 +160,7 @@ export async function cargarDatosHome() {
     totalProyectos,
     totalVideos,
     fotos,
+    fotosB,
     gratis,
     urlsDeCapsulas,
     pasos,

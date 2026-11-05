@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { EVENTOS } from "@/lib/analitica/eventos";
-import { identificar, iniciarMixpanel, medir, registrarContexto } from "@/lib/analitica/mixpanel";
+import {
+  fijarEnFicha,
+  identificar,
+  iniciarMixpanel,
+  medir,
+  medirVistaDePagina,
+  registrarContexto,
+} from "@/lib/analitica/mixpanel";
 
 /**
  * Enciende la analítica una sola vez, en toda la app.
@@ -58,7 +66,6 @@ export function Analitica({
   experimentoPaleta?: string;
 }) {
   useEffect(() => {
-    iniciarMixpanel();
     /*
      * ⚠️ EL ORDEN IMPORTA: primero encender, luego registrar el contexto y
      * solo después identificar. `registrarContexto` no hace nada si Mixpanel
@@ -74,7 +81,7 @@ export function Analitica({
      * dejan los propios para no romper los reportes que ya los usan.
      */
     const conocido = fuentePais === "vercel";
-    registrarContexto({
+    const contexto = {
       pais,
       region,
       fuente_pais: fuentePais,
@@ -83,9 +90,37 @@ export function Analitica({
       $region: subdivision ?? undefined,
       $city: ciudad ?? undefined,
       experimento_paleta: experimentoPaleta,
-    });
-    if (userId) identificar(userId, correo);
+    };
+    /* El contexto va DENTRO del encendido: así los eventos que ya esperaban
+       en cola (la vista del home, que se dispara antes que este efecto) salen
+       con la variante. Ver la nota en `iniciarMixpanel`. Si Mixpanel ya
+       estaba encendido (navegación dentro de la app), `registrarContexto`
+       actualiza lo que haya cambiado. */
+    iniciarMixpanel(contexto);
+    registrarContexto(contexto);
+    if (userId) {
+      identificar(userId, correo);
+      /* La variante también en la ficha: ver `fijarEnFicha` (los pagos los
+         manda el servidor y no llevan las super propiedades). */
+      fijarEnFicha({ experimento_paleta: experimentoPaleta });
+    }
   }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPaleta]);
+
+  /*
+   * La vista de página en cada navegación dentro de la app. La de la carga la
+   * manda el encendido (con el contexto ya puesto); aquí solo las siguientes.
+   * Va DESPUÉS del efecto de arriba: en la misma pasada, React corre los
+   * efectos de un componente en el orden en que están escritos.
+   */
+  const ruta = usePathname();
+  const primera = useRef(true);
+  useEffect(() => {
+    if (primera.current) {
+      primera.current = false;
+      return;
+    }
+    medirVistaDePagina();
+  }, [ruta]);
 
   return null;
 }

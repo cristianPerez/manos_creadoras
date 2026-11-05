@@ -4,6 +4,7 @@ import { ShoppingBag, Sparkle, Store, Tag, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSesion } from "@/components/app/SesionContexto";
+import { BotonEntrar } from "@/components/app/ModalEntrar";
 
 /**
  * ════════════════════════════════════════════════════════════════════════════
@@ -51,11 +52,20 @@ function estaActivo(href: string, ruta: string): boolean {
   return href === "/app" ? ruta === "/app" || ruta.startsWith("/app/bolsos") : ruta.startsWith(href);
 }
 
-/** El logo del home: la "M" en Cormorant cursiva dentro del círculo espresso. */
+/**
+ * El logo del home: la "M" en Cormorant cursiva dentro del círculo espresso.
+ *
+ * ⚠️ LLEVA A LA PÁGINA DE VENTAS (`/`), NO A `/app` (Cristian, 2026-11-05).
+ * Antes apuntaba a `/app`, así que desde dentro de la app el logo no hacía
+ * nada visible —ya estabas ahí— y no había forma de volver a la página
+ * principal sin escribir la dirección. El logo de una web siempre es "llévame
+ * al principio", y el principio es lo que se vende; para moverse DENTRO de la
+ * app ya está la barra de navegación, donde "Mis proyectos" es `/app`.
+ */
 function Logo({ tamano }: { tamano: "chico" | "grande" }) {
   const grande = tamano === "grande";
   return (
-    <Link href="/app" className="flex shrink-0 items-center gap-3">
+    <Link href="/" className="flex shrink-0 items-center gap-3">
       <span
         aria-hidden="true"
         className={`bg-espresso flex shrink-0 items-center justify-center rounded-full ${
@@ -155,15 +165,14 @@ export function CabeceraApp() {
             </>
           ) : (
             <>
-              <Link
-                href="/app/cuenta"
-                aria-current={enCuenta ? "page" : undefined}
+              {/* Abre el modal de entrar encima de donde está (2026-11-05);
+                  antes llevaba a la pestaña Cuenta. */}
+              <BotonEntrar
+                origen="app"
                 className={`text-espresso flex h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors ${
                   enCuenta ? "bg-sand" : "hover:bg-sand"
                 }`}
-              >
-                Entrar
-              </Link>
+              />
               <Inscribirme />
             </>
           )}
@@ -181,12 +190,10 @@ export function CabeceraApp() {
             </div>
           ) : enPlan ? (
             /* En Mi plan el plan ya está a la vista: arriba, "Entrar". */
-            <Link
-              href="/app/cuenta"
+            <BotonEntrar
+              origen="app_plan"
               className="text-espresso flex h-11 items-center px-2 text-base font-semibold"
-            >
-              Entrar
-            </Link>
+            />
           ) : (
             <Inscribirme />
           )}

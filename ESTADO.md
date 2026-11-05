@@ -13,58 +13,257 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
-🧪 **EXPERIMENTO DE PALETA "B · LAVANDA EMPOLVADA" (2026-11-05) — EN CÓDIGO,
-SIN COMMITEAR, APAGADO POR DEFECTO.** Cristian eligió la **B** de las tres
-exploradas. Conviven dos homes y dos paletas; lo decide la flag `paleta_b` de
-Flagsmith.
-· **Qué cambia con la flag encendida:** la paleta de TODA la app (el home y
-  `/app`: catálogo, fichas, Ojo, Mi plan) + un home nuevo y más corto. El
-  contenido es el MISMO en las dos ramas (precios, fotos, preguntas, bolso
-  gratis salen de `lib/datos-home.ts`): si cambiara, el A/B mediría dos ofertas
-  en vez de dos diseños.
-· **Cómo se enciende/apaga/reparte** (panel de Flagsmith, proyecto "Manos
-  Creadoras", org Goingtube, id 53390):
-  — Probar en QA: encender `paleta_b` en **Development**.
-  — Lanzar a todas: encenderla en **Production**, sin valor.
-  — A/B 50/50: en Production → `paleta_b` → *Create A/B/n Test* → una variación
-    con valor **`actual`** al 50% (ese es el control); el resto cae en B.
-  — Volver atrás: **apagarla**. ⚠️ Tarda **hasta 60 s** en notarse: la
-    evaluación es local y se refresca cada minuto (es el precio de no hacer una
-    llamada de red por visita). No es que el panel no haya funcionado.
-· **Para mirar a mano, sin tocar el panel:** `?paleta=b` · `?paleta=actual` ·
-  `?paleta=auto` (devuelve el mando a Flagsmith). Dura 7 días en cookie.
-· **🔴 BLOQUEADO PARA QA: falta `FLAGSMITH_SERVER_KEY`.** La clave de servidor
-  (`ser.…`) la copia Cristian del panel (SDK Keys → ojo → copiar) a `.env.local`
-  y a Vercel (**Preview**, marcada *Sensitive*). Sin ella todo el mundo ve el
-  sitio de siempre y no hay error — el fallo es seguro, pero el experimento no
-  corre. Variables declaradas en `.env.example`.
-· **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en TODOS
-  los eventos (`components/app/Analitica.tsx`). ⚠️ **HAY QUE ACTUALIZAR LOS
-  EMBUDOS DE MIXPANEL**: los que ya existen no la llevan en los eventos
-  anteriores al despliegue. Para comparar, en cada embudo hay que añadir un
-  *Breakdown* por `experimento_paleta` y **acotar la fecha al día en que empezó
-  el experimento**; si no, los meses viejos entran en el grupo "actual" e
-  inflan el control.
-· **Dónde vive:** tokens en `app/globals.css` (`html[data-paleta="b"]`),
-  pantallas en `components/home-b/`, interruptor en `lib/flags.ts` +
-  `lib/paleta-servidor.ts` + `middleware.ts` (cookies `mc_vid` y
-  `mc_paleta_forzada`), fotos topo en `public/images/topo/` (las genera
-  `scripts/fotos-topo.mjs`; el café de los fondos se lee "durazno" con lavanda).
-· **Verificado:** `tsc` ✓ · `lint` ✓ · `build` ✓ · render real a 375 y 1440 con
-  `?paleta=b` · `?paleta=actual` devuelve el home de hoy (el JSX movido a
-  `components/home/HomeActual.tsx` es idéntico al de `git HEAD:app/page.tsx`,
-  comprobado con `diff`) · `/app` repintada sin cambios de maquetación.
-· ⚠️ **EL REVISOR VISUAL LO DECLARÓ `FIEL` A LA REFERENCIA (0 de 6 fallos) PERO
-  `NO LISTA` POR RÚBRICA: 28/40 usabilidad · 13/20 craft · 13/20 copy.** Y es
-  importante no confundir las dos cosas: lo implementado reproduce el contrato
-  de `design-ref/paleta-b-claude-code/`; lo que el revisor penaliza es el
-  DISEÑO de ese contrato, no la ejecución. Sus cuatro reparos de fondo:
-  (a) sobre el pliegue a 375px no cabe el titular entero ni el botón —entran
-  cabecera, cápsulas y foto—; (b) el titular habla de producto, no del dolor de
-  la ficha de avatar; (c) no hay precio ni garantía por encima del pliegue;
-  (d) las cápsulas arriba pesan más que el héroe. Son decisiones de la
-  referencia que aprobó Cristian. **Pendiente de su decisión**: dejarlas (el
-  A/B las juzga con ventas reales) o corregirlas antes de encender la flag.
+⚡ **ENTRAR COMO MODAL · INSTRUMENTACIÓN DEL A/B · CACHÉ (2026-11-05, rama
+`home-b-v2-vendedor`, va en el PR #6).**
+· **Entrar es un modal** (`components/app/ModalEntrar.tsx`, patrón de El
+  Charcu): hoja desde abajo <768px, centrado desde 768, `<dialog>` nativo, foco
+  al correo. Lo abren "Entrar" de los dos homes, de la app interna y de
+  `/bienvenida`. `/entrar` ya NO es pantalla: redirige a
+  `/app?entrar=1&desde=enlace_entrar` y el modal se abre solo (enlaces viejos,
+  correos y `/login` siguen sirviendo). Evento nuevo `entrar_abierto`
+  (`origen`); `correo_enviado` desde el modal lleva `lugar = modal_<origen>`.
+· **El correo de bienvenida entra con el correo escrito** (`lib/correos/
+  bienvenida.ts`): el botón "Entrar al curso" y el enlace del texto plano van a
+  `/app?entrar=1&desde=correo_bienvenida&email=<su correo>`. Así el modal se
+  abre solo, con la casilla rellena, y manda el código sin que ella toque nada
+  (`FormularioAcceso` con `correoInicial` + `pedirAlMontar`; el evento
+  `correo_enviado` lo marca con `automatico: true`). En el HTML el `&` del href
+  va como `&amp;`. Con un correo inválido queda escrito y NO se pide solo.
+  ⚠️ **El correo viaja en la dirección, así que queda escrito en los registros
+  de Vercel de esa petición** (no hay forma de evitarlo: el servidor recibe la
+  URL). Lo que sí se evita es que llegue a la analítica:
+  `tomarCorreoDeLaUrl()` corre al CARGAR el módulo `ModalEntrar.tsx` —antes de
+  cualquier efecto, y por tanto antes de `iniciarMixpanel`— y lo borra de la
+  barra con `history.replaceState`, así que Mixpanel nunca lo ve en
+  `$current_url`. Con sesión abierta, `?entrar=1` no abre nada (solo limpia la
+  dirección): quien pagó ya dentro no necesita código.
+· **Tres fallos del modal, arreglados el 2026-11-05 (reportados por Cristian):**
+  (1) **La X no cerraba en escritorio.** No era intermitente: el primer bloque
+  del formulario es un `.reveal` animado a todo el ancho que, al ir después en
+  el DOM, se pintaba ENCIMA del tercio de abajo del icono. Medido con
+  `elementFromPoint`: un clic ahí caía en el `div`. Arreglado con `z-10` en el
+  botón; comprobado que los 5 bordes de la X reciben el clic, en 1280 y en 375.
+  (2) **En el celular ya no sube el teclado solo.** Enfocar la casilla al abrir
+  levantaba el teclado de iOS, que tapaba la hoja y dejaba a la persona sin
+  entender qué hacer. Ahora el foco automático es solo con ratón
+  (`matchMedia("(pointer: fine)")`); en táctil la casilla está a la vista y el
+  teclado sube cuando la tocan.
+  (3) **Un enlace del modal lo cierra y lleva a su sección.** "Ver el programa"
+  (`/#precio`) navegaba por debajo con el modal abierto encima, y como un
+  `<dialog>` modal deja inerte todo lo de detrás, el salto se perdía: la
+  dirección quedaba en `/#precio` con la página arriba del todo. Se captura el
+  clic en el contenedor (así lo hereda cualquier enlace futuro) y el salto va
+  en el efecto que cierra el diálogo. ⚠️ **El evento `close` del `<dialog>` NO
+  sirve: al cerrar desde React no se dispara** (queda `open: false` sin
+  emitirlo) — medido, por si alguien lo intenta otra vez.
+  Verificado a 1280×800 y 375×812: la X cierra, el enlace cierra Y baja al
+  precio (`precioTop` 80, justo bajo la cabecera). El navegador de pruebas
+  ignora el scroll SUAVE programático —el instantáneo y la rueda sí mueven—,
+  así que la comprobación del salto se hizo con `scroll-behavior: auto`.
+· **Instrumentación — 3 bugs arreglados antes del primer tráfico:**
+  (1) el sorteo del A/B usaba la CUENTA si había sesión y la cookie si no: al
+  iniciar sesión la persona podía saltar de versión. Ahora SIEMPRE `mc_vid`
+  (cookie del navegador, 1 año); la cuenta solo de respaldo
+  (`lib/paleta-servidor.ts`). (2) los primeros eventos de cada carga
+  —`$mp_web_page_view` y `pagina_ventas_vista`, el 1er paso del embudo— salían
+  con la variante de la visita anterior o SIN variante (el registro iba después
+  de soltar la cola). Ahora el contexto se registra dentro de
+  `iniciarMixpanel` y la vista de página se manda a mano (autocapture de
+  vistas apagado). Verificado con visitante nueva: 100% de eventos con
+  variante. (3) `experimento_paleta` también en la FICHA de la persona
+  (`fijarEnFicha`): `pago_confirmado` lo manda el servidor sin super
+  propiedades → partir pagos por "User property → experimento_paleta".
+  Correo: con sesión va en cada evento (`correo`) y en la ficha (`$email`).
+  **Cómo leer el A/B en Mixpanel:** Breakdown por `experimento_paleta`
+  (`actual` = A, `b` = B), fecha desde el arranque; en funnels, la atribución
+  por defecto (1er paso) basta.
+· **Caché** (`lib/cache-datos.ts`, `lib/supabase/publico.ts`): catálogo,
+  materiales, directorio y cápsulas en `unstable_cache` 10 min; precios y
+  enlaces de cobro 60 s (el script de precios no puede invalidar: un precio
+  nuevo tarda ≤1 min en verse). Lo personal (avance, checklist, plan, Ojo)
+  sigue fresco, y sin cookie de sesión ni se consulta. `staleTimes` 30 s/180 s
+  en `next.config.ts` (ir y volver entre pestañas sin pedir al servidor).
+  Invalidar a mano: `revalidateTag("catalogo" | "materiales" | "capsulas" |
+  "cobro")` desde una acción del servidor.
+· Revisor visual del modal: **28/40 · 12/20, NO LISTA**. Arreglado: tocar
+  fuera ya no cierra tras mandar el código (se perdía la casilla), la X
+  responde al toque, radio 16px en la B. Pendiente: botón "Mandarme el
+  código" apagado (3,4:1) sin decir por qué, enlace "Ver el programa" en
+  frambuesa y botón en el morado de acción en la B, animación de salida,
+  asa de la hoja que no se arrastra.
+· Lint: los 3 errores y 5 avisos previos (`BarraProgreso`, `home/Capsulas` con
+  `useSyncExternalStore`, `OjoDemo`, `PrecioQueCuenta`, `CursoGratis`,
+  `ojo-experto/route.ts`) están CORREGIDOS de raíz, sin `eslint-disable` ni
+  `@ts-ignore`. **Verificado 2026-11-05: `tsc` ✓ 0 errores · `eslint lib
+  components app next.config.ts` ✓ 0 errores / 0 avisos · `build` ✓.**
+  Probado en el navegador a 375px: `?entrar=1&desde=correo_bienvenida&email=`
+  con correo VÁLIDO → el modal pasa solo a "Revisa tu correo" con el código ya
+  mandado, sin tocar nada, y la dirección queda en `/app`; con correo INVÁLIDO
+  → queda escrito y NO se pide solo. ⚠️ Mixpanel no arranca en local (sin
+  `NEXT_PUBLIC_MIXPANEL_TOKEN`): que ningún evento lleve el correo en
+  `$current_url` está garantizado por el orden de carga, pero conviene
+  confirmarlo en el Preview de Vercel mirando una llamada a `/track`.
+
+🧪 **EXPERIMENTO "HOME B v2" (2026-11-05) — EN CÓDIGO, SIN COMMITEAR, rama
+`home-b-v2-vendedor`.** Lo decide la flag `paleta_b` de Flagsmith.
+· ⚠️ **YA NO COMPARA SOLO LA PALETA.** Cristian autorizó reordenar y reescribir
+  el home B para que venda (`design-ref/home-b-v2-claude-code/PROMPT-HOME-B-V2.md`):
+  el A/B mide **home B v2 completo (paleta lavanda + orden + copy nuevos) contra
+  el home de hoy**. Si gana la B se sabrá que el conjunto vende más, no qué
+  pieza. Lo que sigue igual en las dos ramas: precios, catálogo, bolso gratis,
+  preguntas (`lib/datos-home.ts`). La paleta B repinta también `/app`.
+· **CONFIGURACIÓN DEL A/B 50/50 EN FLAGSMITH** (proyecto "Manos Creadoras",
+  feature `paleta_b`, en cada entorno: Development para QA, Production para
+  vender). ⚠️ **La regla del código cambió el 2026-11-05: la página nueva SOLO
+  sale si el valor es exactamente `b`.** Vacío, `actual` o cualquier otro =
+  página de hoy (antes vacío = B, y con los dos valores vacíos que trae el panel
+  por defecto el 100% veía la B).
+  — A/B 50/50: Enabled ✓ · **Control Value = `actual`** (se queda con el 50%
+    que sobra) · **Variant_1 → Variation Value = `b`, peso 50%** · Update.
+  — Todas en B: Enabled, valor `b`, sin variantes. · Volver atrás: apagarla.
+  — El VALOR de una variante vale para TODOS los entornos; el PESO es por
+    entorno. ⚠️ Apagar/cambiar tarda hasta **60 s** (evaluación local).
+  — Pendiente de Cristian: poner en la descripción de la flag "A/B: home B v2
+    completo vs. home actual" (no hay token de administración en el repo).
+· **Para mirar a mano:** `?paleta=b` · `?paleta=actual` · `?paleta=auto`
+  (devuelve el mando a Flagsmith). Dura 7 días en cookie.
+· **✅ EL A/B YA REPARTE EN QA (2026-11-05).** `FLAGSMITH_SERVER_KEY` está en
+  Vercel y la flag quedó bien: `paleta_b` encendida, **Control Value `actual`,
+  Variant_1 `b` al 50%**. Medido con 30 peticiones a QA, cada una con un
+  `mc_vid` distinto: **14 ven el home nuevo y 16 el de siempre** (~47/53).
+  — ⚠️ **FALTA REVISAR PRODUCTION antes de lanzar.** El VALOR de la variante es
+    común a todos los entornos (ya está puesto), pero el **PESO es por
+    entorno**: hay que confirmar que en Production la variante tiene su 50%.
+  — ⚠️ **Lo que costó un rato, por si se repite:** las dos casillas estaban
+    VACÍAS. Con la regla vigente —página nueva solo si el valor es exactamente
+    `b`— los dos grupos caían en "actual" y QA daba 10 de 10 al control, **sin
+    ningún error**, mientras `?paleta=b` a mano pintaba la B perfectamente. El
+    fallo del experimento es silencioso: parece que funciona y no mide nada.
+  — **Cómo comprobarlo sin entrar al panel:** `curl -H "X-Environment-Key:
+    $FLAGSMITH_SERVER_KEY" https://edge.api.flagsmith.com/api/v1/
+    environment-document/` y mirar
+    `multivariate_feature_state_values[].multivariate_feature_option.value`.
+  — En el repo NO hay token de administración de Flagsmith (solo la clave de
+    servidor, que es de SOLO LECTURA): cualquier cambio en el panel lo tiene
+    que hacer Cristian a mano.
+  — **Cómo medir el reparto DE VERDAD:** desde el navegador NO se puede —
+    `mc_vid` es HttpOnly y no se rota con JavaScript, así que todas las cargas
+    son la misma persona (dio 19 de 20, que no es el 50%, es una sola
+    identidad). Hay que pedir N veces con `curl -H "Cookie: mc_vid=<uuid>"`.
+· **El logo de la app lleva a la página de ventas** (`NavegacionApp.tsx`,
+  2026-11-05): antes apuntaba a `/app`, así que desde dentro no hacía nada
+  visible y no había forma de volver al home sin escribir la dirección. Para
+  moverse DENTRO de la app está la barra, donde "Mis proyectos" sigue siendo
+  `/app`. Verificado: los dos logos (grande y chico) van a `/`.
+· ⚠️ **EL COLOR DEL REPRODUCTOR DE BUNNY NO SE PUEDE CAMBIAR POR VISITA.** Se
+  intentó pasarlo en la dirección del reproductor para que la B lo tuviera
+  violeta en vez del dorado (#D9B97A) que hoy se ve también sobre el lavanda.
+  **Bunny lo ignora:** probadas `primaryColor`, `primary_color`, `color`,
+  `playerColor` y `accentColor` contra un enlace firmado real — las cinco
+  dejan `--plyr-color-main: #D9B97A`. Ese color es un ajuste **de la
+  biblioteca entera** en el panel de Bunny, así que no puede valer dos cosas a
+  la vez mientras el A/B esté corriendo. El código que lo intentaba se quitó
+  (no hacía nada). Opciones cuando se decida: (a) dejarlo hasta que gane una
+  versión, (b) poner en el panel un color neutro que sirva a las dos, o (c)
+  cambiarlo a violeta aceptando que la versión A también lo vería.
+· **El tinte de las fotos en la paleta B** (`app/globals.css`, final): las
+  fotos son de luz cálida y sobre el lavanda tiraban a dorado. Se tiñen con
+  `--tinte-foto-b` sobre `img`, menos los `.svg`. **Bajado un 20% el
+  2026-11-05** (Cristian): de `saturate .82 · hue-rotate −10° · brightness
+  1.03` a `saturate .856 · hue-rotate −8° · brightness 1.024`. ⚠️ Se rebaja lo
+  que cada filtro SE SEPARA de no hacer nada (0,18 → 0,144), no el número a
+  secas: bajar 0,82 a 0,66 habría teñido MÁS. ⚠️ **No usar una capa `::after` con `:has(> img)`:
+  se probó y el contenedor directo de una foto NO siempre es su marco** — el
+  velo caía sobre la sección entera de la profesora, las tarjetas de curso
+  gratis y navidad y el grupo de avatares, apagándoles el texto. Un filtro solo
+  puede alcanzar los píxeles de la foto. Verificado: 22 de 22 fotos con tinte
+  en la B, **0 de 22 en la A**.
+· **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en todos
+  los eventos. `boton_click` lleva además `cta` en los cuatro botones gratis
+  de la B: `heroe_gratis`, `cierre_gratis`, `tarjeta_bolso_gratis`,
+  `tarjeta_ojo_gratis` (atributo `data-cta`, lo lee `MedirHome`). ⚠️ En los
+  embudos de Mixpanel: *Breakdown* por `experimento_paleta` y fecha acotada al
+  día de arranque, o los meses viejos inflan el control.
+· **Orden del home B v2:** cabecera → héroe (titular + dolor + botón + "Plan
+  desde … · garantía" + "+1.200") → "Lo que los tutoriales no te enseñan"
+  (nueva) → Compruébalo antes de pagar → Comunidad → Cápsulas (bajaron) →
+  Profesora → Navidad (tarjeta) → Precio (absorbió "Este es solo uno") →
+  Preguntas → Cierre (empuja el bolso gratis, no el pago) → barra fija.
+  Primera pantalla medida: a 375×812 el bloque clave termina en 696px (igual
+  que el contrato); a 360×740 la foto baja a 254 y la prueba social queda 11px
+  por encima de la barra fija.
+· **Alto de la galería, ajustado el 2026-11-05 con capturas reales de Cristian**
+  (iPhone 11 Pro, Galaxy S21, MacBook Pro 13"): en MÓVIL la foto pasa a
+  `clamp(246px, 100svh − 486px, 330px)` — antes restaba 512 con suelo en 220 y
+  en un iPhone con Safari (≈635 de alto útil) la foto caía al suelo y el bolso
+  se veía más chico que en un Android con la misma pantalla. En ESCRITORIO la
+  proporción baja de 5:6 a 1:1,08 **y** se le pone techo de
+  `100svh − 200px`: a 1280×700 la foto medía 503×**603** contra 475 del copy de
+  al lado y terminaba 19px POR DEBAJO del borde de la pantalla; ahora mide
+  503×**500** y acaba en 616, alineada con el copy y sin scroll. ⚠️ Lleva
+  `lg:w-full` a propósito: la columna usa `items-center`, así que sin ancho
+  propio el techo de alto estrechaba la foto (463 en vez de 503) y dejaba un
+  hueco al lado. Medido a 375×635, 360×650, 360×740, 1280×700 y 1440×900.
+· **Ajustes de Cristian (2026-11-05, después del revisor):** el carrusel
+  avanza cada **3,5 s** (no 5) y el segmento activo se llena mientras corre;
+  la vela pasó al **3er lugar** y su etiqueta dice "Aromáticas de lujo" — nada
+  de "próximamente" ni "en camino" en la venta (eso lo ve quien ya pagó, dentro
+  de la app); **entrada escalonada** por sección con `components/home-b/
+  EntradaB.tsx` (el `Entrada.tsx` del control no se tocó; "106" videos cuenta);
+  **selector mensual/anual propio** en el precio (`SelectorCicloB`): dos
+  opciones grandes con el precio por mes dentro, etiqueta "−50%" que salta
+  hasta que se elige el anual y la línea "Con el anual pagas ~~14,60~~ 7,30/mes
+  · cámbiate".
+· **El carrusel del héroe: SIETE piezas intercaladas** (2026-11-05, Cristian):
+  bolso → accesorio → vela, dos vueltas y cierra con bolso —
+  `1 Nácar Soñado (gratis) · 2 Bastón de Navidad · 3 Girasoles de cera ·
+  4 Anillos de Seda · 5 Bolas de Navidad · 6 Carro de ositos · 7 Boho`.
+  Las velas llevan de subtítulo **"Velas de lujo"** (antes "Aromáticas de
+  lujo") y ⚠️ **ningún nombre de vela repite esa palabra**: "Velas aromáticas"
+  pasó a "Carro de ositos", porque las dos líneas de la etiqueta se leen juntas
+  y "Velas aromáticas · Velas de lujo" sonaba a tartamudeo. Comprobado en los
+  7: ninguna etiqueta se solapa ni se sale, y a 375px todos los nombres caben
+  en una línea. ⚠️ En la FRASE del héroe sigue diciendo "aromáticas de lujo"
+  a propósito: ahí la palabra que rota ya dice "velas", y "Crea velas · velas
+  de lujo" sería la misma repetición al revés.
+  Antes eran casi todo bolsos con una vela en medio: la palabra que rota
+  prometía "accesorios", "adornos" y "velas" y la galería solo enseñaba bolsos.
+  El orden se construye tomando una pieza de cada lista por vuelta (no a mano),
+  así no se descuadra cuando entre un bolso o una vela nueva.
+  — **Fotos nuevas** (`public/images/topo/`): `baston-navidad.webp`,
+    `bolas-navidad.webp`, `vela-girasoles.webp`. Recortadas en cuadrado
+    centrado y pasadas a **720×720 webp** con `sharp` (calidad 72), que es el
+    estándar del resto de fotos del carrusel: de 268/320/204 KB a **20/60/40 KB**.
+  — ⚠️ **SIGUE PROVISIONAL** la 6ª, `vela-osos-auto.webp` / "Velas aromáticas":
+    espera foto y nombre reales de Cristian. Es además la que menos parece una
+    vela de las dos.
+· **Dónde vive:** `components/home-b/`, tokens en `app/globals.css`
+  (`html[data-paleta="b"]` + "LOS TRES NIVELES DE PROFUNDIDAD"), interruptor en
+  `lib/flags.ts` + `lib/paleta-servidor.ts` + `middleware.ts`. Capturas de
+  verificación en `design-ref/home-b-v2-claude-code/verificacion/`.
+· **Verificado:** `tsc` ✓ · `lint` ✓ · `build` ✓ · render real 375/360/1440 ·
+  `?paleta=actual` = home de hoy intacto · consola limpia.
+· ⚠️ **REVISOR VISUAL — 3 rondas, siempre FIEL, siempre NO LISTA:**
+  30/40·12/20·copy 14 → 31·14·15 → **29·14·15** (mínimo 36/40 y 16/20).
+  Aplicado con OK de Cristian: cabecera en contorno "Ver planes"; barra fija
+  "Quiero todos"; precio "Quiero todos los proyectos"; "Garantía sin preguntas
+  de 7 días" (NO "Garantía Primer Bolso": insinuaba una condición que la
+  política de `lib/legal-textos.ts` no tiene); ancla "Un mes de intentos
+  fallidos se lleva US$15-20 en materiales" (estimación de FICHA-AVATAR);
+  héroe "Ni pasos saltados ni bolsos deformes: el Ojo Experto revisa la foto
+  del tuyo". Arreglados: palabra que rota sin hueco ni letras partidas, marca
+  en 1 línea a 360, "de boutique" sin corte, cursiva clara en bandas oscuras.
+  **Pendiente — decisión de Cristian:**
+  (1) 🔴 la palabra (cada 2,2 s) y la foto (cada 5 s) van con relojes
+  distintos: sale "Crea adornos" sobre la foto de la vela. Viene del contrato.
+  Opciones: que la palabra siga a la foto, o que la palabra no rote mientras
+  el carrusel avanza.
+  (2) ✅ resuelto: vela 3ª y sin "en camino".
+  (3) unificar el texto de compra (el revisor cambió de opinión entre rondas
+  sobre "Ver planes").
+  ✅ Hechos: escalonado por sección (`EntradaB`) y segmento que se llena.
+  **Pendiente de código:** el ancla del precio en renglón propio sin repetir
+  la cifra.
 
 🎀 **EXPLORACIÓN "PASTEL" DEL HOME (2026-11-04/05, pedido de Cristian) — YA
 RESUELTA: ganó la B, ver el bloque de arriba.** Contexto original: Todo en `design-ref/exploracion-pastel/`: 92
@@ -230,7 +429,19 @@ se borra un plan recién creado que no pasó la verificación. Tarda ~3 s.
   panel); el mensual `monthly × 1`.
 · Camino a mano (plan creado en el panel): `npm run precio:cambiar -- [prod]
   <ciclo> <precio> <url>`, con la misma verificación.
-· Producción en **14,60 / 96** desde el 2026-11-04 (planes creados con el script).
+· 🆕 **ANUAL AL 50% (pedido de Cristian, 2026-11-05):** 14,60 al mes y
+  **87,60 al año = 7,30/mes, exactamente la mitad** (el "Ahorra X%" y el ahorro
+  US$88 se calculan solos con `ahorroAnualDe`).
+  — **QA: HECHO** el 2026-11-05 con el script (modo prueba): mensual
+    `01a1ac5d-ba9a…1c465e` (14,60) y anual `01a1ac5d-dc0b…80426ba3` (87,60),
+    verificados en su página. Los de 9,50 / 86 se conservan.
+  — **PRODUCCIÓN: HECHO** el 2026-11-05 con OK de Cristian (modo real):
+    anual `01a1ac68-e68b-7022-80e8-1ecd680b408a` (87,60), verificado en su
+    página; el mensual ya estaba en 14,60. El anual viejo de 96
+    (`01a1a451-8f01…780ac42`) se conserva: quien lo paga sigue con su precio.
+    manoscreadoras.co ya enseña US$7,30 / US$87,60. `PRECIOS_RESPALDO` en
+    `lib/planes.ts` → `{ mensual: 14.6, anual: 87.6 }` (sin commitear).
+· Producción: 14,60 / 96 desde el 2026-11-04 → **14,60 / 87,60 desde el 2026-11-05**.
 · Probado en QA (2026-11-03/04): QA está en **9,50 / 86** (Cristian pidió
   6,5 / 86, pero así el anual salía más caro que 12 meses; eligió 9,50).
   Los viejos de 19,70 / 117 de QA siguen (tenían 1 suscripción de prueba). En producción todavía NO se ha usado: sus planes de 14,70 /

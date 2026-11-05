@@ -66,6 +66,10 @@ export function OjoDemo({
   const [agotado, setAgotado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fin = useRef<HTMLDivElement>(null);
+  /* Para las `key` de los mensajes. Un contador y no `Date.now()`: la hora no
+     es pura (el lint de React lo marca) y dos mensajes en el mismo
+     milisegundo chocarían. */
+  const siguienteId = useRef(0);
 
   /*
    * ⚠️ ESTE EFECTO ARRASTRABA LA PÁGINA ENTERA AL CARGAR. Corría al montarse,
@@ -92,7 +96,7 @@ export function OjoDemo({
     setError(null);
     setEnviando(true);
     setTexto("");
-    const mia: Mensaje = { id: `yo-${Date.now()}`, rol: "alumna", texto: q };
+    const mia: Mensaje = { id: `yo-${(siguienteId.current += 1)}`, rol: "alumna", texto: q };
     setMensajes((m) => [...m, mia]);
 
     try {
@@ -113,7 +117,7 @@ export function OjoDemo({
         return;
       }
 
-      setMensajes((m) => [...m, { id: `ojo-${Date.now()}`, rol: "ojo", texto: datos.respuesta }]);
+      setMensajes((m) => [...m, { id: `ojo-${(siguienteId.current += 1)}`, rol: "ojo", texto: datos.respuesta }]);
       setUsadas((n) => n + 1);
     } catch {
       setError("Se cortó la conexión. Vuelve a intentarlo.");

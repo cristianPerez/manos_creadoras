@@ -2,7 +2,7 @@
 
 import { Play } from "lucide-react";
 import Image from "next/image";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Entrada } from "@/components/home/Entrada";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { VisorDeHistorias } from "@/components/home/historias/VisorDeHistorias";
@@ -10,6 +10,38 @@ import type { Capsula } from "@/lib/capsulas";
 
 /** Dónde se recuerda qué cápsulas vio quien no tiene cuenta. */
 const LLAVE = "mc_capsulas_vistas";
+
+/*
+ * ── Las cápsulas vistas, leídas del navegador ────────────────────────────
+ * Con `useSyncExternalStore`, que es como React quiere que se lea algo que
+ * vive fuera de él (aquí, `localStorage`). Antes se leía en un `useEffect` y
+ * se copiaba al estado, que obliga a un render extra y el lint lo marca como
+ * error. Con esto:
+ *   · En el servidor (y en la hidratación) la lista es "[]": el HTML del
+ *     servidor y el primer pintado del navegador coinciden.
+ *   · Justo después, React lee lo guardado y repinta con las vistas.
+ *   · Al marcar una vista se avisa con un evento propio, y también se escucha
+ *     `storage` para que otra pestaña abierta se entere.
+ */
+const EVENTO_VISTAS = "mc-capsulas-vistas";
+
+function leerVistas(): string {
+  try {
+    return localStorage.getItem(LLAVE) ?? "[]";
+  } catch {
+    // Modo incógnito o almacenamiento bloqueado: se vive sin recordar las vistas.
+    return "[]";
+  }
+}
+
+function suscribirVistas(avisar: () => void): () => void {
+  window.addEventListener(EVENTO_VISTAS, avisar);
+  window.addEventListener("storage", avisar);
+  return () => {
+    window.removeEventListener(EVENTO_VISTAS, avisar);
+    window.removeEventListener("storage", avisar);
+  };
+}
 
 /**
  * Las cápsulas: UN componente, dos presentaciones.
@@ -80,32 +112,36 @@ export function ProveedorCapsulas({
   urlsDeVideo: Record<string, string | null>;
   children: ReactNode;
 }) {
-  const [vistas, setVistas] = useState<string[]>([]);
+  /* El texto guardado tal cual: `useSyncExternalStore` compara por valor y un
+     string no cambia de identidad entre lecturas iguales (un array sí). */
+  const guardado = useSyncExternalStore(suscribirVistas, leerVistas, () => "[]");
+  const vistas = useMemo<string[]>(() => {
+    try {
+      const lista: unknown = JSON.parse(guardado);
+      return Array.isArray(lista) ? lista.filter((v): v is string => typeof v === "string") : [];
+    } catch {
+      return [];
+    }
+  }, [guardado]);
   const [abierta, setAbierta] = useState<number | null>(null);
 
-  /* En un efecto y no en el primer render: `localStorage` no existe en el
-     servidor, y leerlo al pintar haría que el HTML del servidor y el del
-     navegador no coincidan. */
-  useEffect(() => {
-    try {
-      const guardado = localStorage.getItem(LLAVE);
-      if (guardado) setVistas(JSON.parse(guardado));
-    } catch {
-      // Modo incógnito o almacenamiento lleno: se vive sin recordar las vistas.
-    }
-  }, []);
-
   function marcarVista(id: string) {
-    setVistas((previas) => {
-      if (previas.includes(id)) return previas;
-      const nuevas = [...previas, id];
-      try {
-        localStorage.setItem(LLAVE, JSON.stringify(nuevas));
-      } catch {
-        /* ver arriba */
-      }
-      return nuevas;
-    });
+    /* Se relee lo guardado y no se usa `vistas`: si el visor marca dos
+       seguidas antes de repintar, `vistas` aún no trae la primera. */
+    let actuales: string[] = [];
+    try {
+      const lista: unknown = JSON.parse(leerVistas());
+      if (Array.isArray(lista)) actuales = lista.filter((v): v is string => typeof v === "string");
+    } catch {
+      /* ver `leerVistas` */
+    }
+    if (actuales.includes(id)) return;
+    try {
+      localStorage.setItem(LLAVE, JSON.stringify([...actuales, id]));
+    } catch {
+      /* ver `leerVistas` */
+    }
+    window.dispatchEvent(new Event(EVENTO_VISTAS));
   }
 
   return (

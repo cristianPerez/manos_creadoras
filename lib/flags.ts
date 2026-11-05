@@ -32,6 +32,9 @@ export type VariantePaleta = "b" | "actual";
 /** El nombre de la flag en el panel de Flagsmith. Escrito una sola vez. */
 export const FLAG_PALETA = "paleta_b";
 
+/** El ÚNICO valor de la flag que enseña la página nueva (ver la regla abajo). */
+export const VALOR_B = "b";
+
 /**
  * El cliente, creado UNA vez por proceso.
  *
@@ -76,10 +79,22 @@ function obtenerCliente(): Flagsmith | null {
  * reparte el A/B por ese valor, así que la misma persona cae SIEMPRE en la
  * misma rama — y si tiene cuenta, también desde otro teléfono.
  *
- * La regla, tal cual la pide el prompt:
- *   · flag apagada                      → "actual"
- *   · flag encendida con valor "actual" → "actual"  (el grupo de control)
- *   · flag encendida, cualquier otro    → "b"
+ * La regla (cambiada el 2026-11-05 para el A/B 50/50 del home B v2):
+ *   · flag apagada                        → "actual"
+ *   · flag encendida con valor "b"        → "b"       (la página nueva)
+ *   · flag encendida con cualquier otro   → "actual"  (vacío, "actual", errata…)
+ *
+ * ⚠️ ANTES ERA AL REVÉS ("vacío = B") Y CON ESO EL A/B NO EXISTÍA. En el panel,
+ * un A/B se monta con un valor de control y una variación; si se deja vacío
+ * cualquiera de los dos —que es lo que Flagsmith ofrece por defecto—, con la
+ * regla vieja ese grupo también veía la B y el reparto real era 100% nueva.
+ * Ahora la página nueva solo sale si alguien escribió `b` a propósito. Es la
+ * misma regla de todo el archivo: equivocarse tiene que caer en "actual".
+ *
+ * Cómo se configura (detalle en ESTADO.md):
+ *   · A/B 50/50  → valor de control `actual`, una variación `b` al 50%.
+ *   · Todas en B → valor `b`, sin variaciones.
+ *   · Volver     → apagar la flag.
  */
 export async function obtenerVariantePaleta(identidad: string): Promise<VariantePaleta> {
   const fs = obtenerCliente();
@@ -90,13 +105,12 @@ export async function obtenerVariantePaleta(identidad: string): Promise<Variante
     if (!flags.isFeatureEnabled(FLAG_PALETA)) return "actual";
 
     /*
-     * El valor de la variación. En Flagsmith una prueba A/B/n se monta dando a
-     * cada variación un valor distinto de la misma flag: aquí el control lleva
-     * literalmente "actual" y el resto queda en B. Vacío o nulo también es B
-     * (es el caso de "encenderla para todos", sin valor).
+     * El valor que le tocó a esta identidad: el de control o el de la
+     * variación, según el reparto del panel. Sin distinguir mayúsculas ni
+     * espacios, que es la errata típica al escribirlo a mano en el panel.
      */
     const valor = flags.getFeatureValue(FLAG_PALETA);
-    return String(valor ?? "").trim() === "actual" ? "actual" : "b";
+    return String(valor ?? "").trim().toLowerCase() === VALOR_B ? "b" : "actual";
   } catch {
     /*
      * Un fallo de la analítica o de una flag JAMÁS tumba la página de ventas.

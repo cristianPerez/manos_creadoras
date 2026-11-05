@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { EnlaceCompra } from "@/components/home/EnlaceCompra";
-import { FRECUENCIA_POR_DEFECTO, type Frecuencia } from "@/lib/planes";
 
 /**
  * El cierre y el pie, en la paleta B. Van en la MISMA banda oscura: la
  * referencia no los separa, y una línea de 1px basta para distinguirlos.
  *
- * ⚠️ EL BOTÓN ABRE EL PAGO DIRECTAMENTE, no baja a `#precio`. Quien llega
- * hasta aquí ya leyó el precio, las preguntas y la garantía: mandarla otra vez
- * arriba sería hacerle subir a pulsar lo mismo.
+ * ⚠️ v2 (2026-11-05): EL CIERRE EMPUJA LA OFERTA GRATIS, NO EL PAGO. Antes
+ * abría el pago directamente; ahora lleva al bolso gratis, igual que el botón
+ * del héroe. Quien llega al final sin haber pagado todavía duda, y lo que
+ * resuelve la duda es probar, no un segundo formulario de pago (que ya tuvo en
+ * el precio y tiene en la barra fija). Cristian lo aprobó en el canvas.
+ * `data-cta="cierre_gratis"` lo separa del botón del héroe en Mixpanel.
  *
  * ⚠️ EL PIE NO REUTILIZA `FooterLegal` porque aquel abre su propia banda
  * espresso debajo de esta, y quedarían dos bloques oscuros pegados con un
@@ -23,17 +24,15 @@ const LEGALES = [
 ];
 
 export function CierreB({
-  enlaces,
+  slugGratis,
   desde,
-  resumen,
 }: {
-  enlaces: Record<Frecuencia, string | null>;
+  /** El bolso de regalo, de la base. Sin él, el botón lleva a la plataforma. */
+  slugGratis: string | null;
   /** "US$8" — el precio por mes más bajo, de la base. */
   desde: string;
-  /** "US$14,60 al mes o US$96 al año" — las dos cifras reales. */
-  resumen: string;
 }) {
-  const enlace = enlaces[FRECUENCIA_POR_DEFECTO];
+  const destino = slugGratis ? `/app/bolsos/${slugGratis}` : "/app";
 
   return (
     <section
@@ -45,20 +44,20 @@ export function CierreB({
           className="font-display text-ivory text-balance"
           style={{ fontWeight: 500, fontSize: "clamp(40px, 4.4vw, 60px)", lineHeight: 1.05 }}
         >
-          ¿Te gustó? Esto <em className="clave">apenas empieza.</em>
+          {/* `de\u00a0boutique` sin corte: "de" solo al final del renglón se leía
+              como una palabra suelta (revisor, escritorio). */}
+          Tu primer bolso <em className="clave">de{"\u00a0"}boutique</em> empieza hoy.
         </h2>
-        <p className="text-on-dark-muted mt-3.5 leading-snug text-balance lg:mt-4 lg:text-lg">
-          {resumen} · cancelas cuando quieras · garantía de 7 días.
+        <p className="text-on-dark-muted mt-3 leading-snug text-balance lg:mt-4 lg:text-lg">
+          Gratis, sin tarjeta. Si te gusta, el plan va desde {desde}/mes con garantía de 7 días.
         </p>
-        <EnlaceCompra
-          href={enlace ?? `/pagar?ciclo=${FRECUENCIA_POR_DEFECTO}`}
-          origen="cierre"
-          plan={FRECUENCIA_POR_DEFECTO}
-          abrePago={Boolean(enlace)}
-          className="bg-ivory text-espresso-2 mt-6 flex h-13 items-center justify-center rounded-full font-bold transition-transform active:scale-[0.98] lg:mt-7.5 lg:inline-flex lg:h-14 lg:px-8.5"
+        <Link
+          href={destino}
+          data-cta="cierre_gratis"
+          className="bg-ivory text-espresso-2 mt-5.5 flex h-13 items-center justify-center rounded-full font-bold transition-transform active:scale-[0.98] lg:mt-7.5 lg:inline-flex lg:h-14 lg:px-8.5"
         >
-          Inscribirme · desde {desde}/mes
-        </EnlaceCompra>
+          Empezar mi bolso gratis
+        </Link>
       </div>
 
       <footer className="contenedor-b pb-9">

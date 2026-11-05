@@ -423,6 +423,16 @@ html[data-paleta="b"] {
 html[data-paleta="b"] .clave {
   color: var(--apoyo);
 }
+/*
+ * ⚠️ SOBRE LAS BANDAS OSCURAS, LA CURSIVA VA EN LAVANDA CLARO, NO EN FRAMBUESA.
+ * La regla de arriba tiene más especificidad que `.sobre-oscuro .clave` y le
+ * ganaba: "Elizabeth Valencia." y "de boutique" salían frambuesa sobre el
+ * morado oscuro (≈2,5:1, casi ilegible) cuando la referencia los pone en
+ * #D9CCEE. Lo vio la comparación con `home-b-v2-claude-code/screenshots`.
+ */
+html[data-paleta="b"] .sobre-oscuro .clave {
+  color: var(--gold-light);
+}
 
 /* ============================================================================
    LAS MEDIDAS DEL HOME B
@@ -501,6 +511,47 @@ html[data-paleta="b"] .clave {
  */
 .contenedor-precio-b {
   max-width: 1000px;
+}
+
+/*
+ * ════════════════════════════════════════════════════════════════════════════
+ * LOS TRES NIVELES DE PROFUNDIDAD DEL HOME B v2 (2026-11-05)
+ * ════════════════════════════════════════════════════════════════════════════
+ *   BASE     → `--cream` liso. Fondo general, héroe, comunidad, precio, dudas.
+ *   ELEVADO  → `elevado-b`: marfil + sombra corta y difusa. Lo que se TOCA o se
+ *              decide: tarjetas de dolor, de "Pruébalo gratis", Navidad, precio.
+ *   HUNDIDO  → `hundido-b`: lavanda + una línea arriba y otra abajo POR DENTRO.
+ *              Lo que se LEE como bloque aparte: dolores, cápsulas, "Incluye".
+ *
+ * ⚠️ SIN SALIR DE LA PALETA: la sombra es el espresso (#2E2440) a 6-25%, nunca
+ * negro, y no hay glow, vidrio ni degradado. El revisor pidió profundidad, no
+ * efectos: una página toda al mismo nivel se lee como un documento.
+ *
+ * ⚠️ VAN EN `:root` Y NO DENTRO DE `[data-paleta="b"]`, por la misma razón que
+ * los radios de arriba: si una pieza se reutiliza fuera de la rama, una sombra
+ * indefinida desaparece sin avisar. Solo las usa `components/home-b/`.
+ *
+ * `@utility` para que existan las variantes (`lg:elevado-b`), igual que
+ * `contenedor-b`.
+ */
+:root {
+  --sombra-elevada: 0 1px 2px rgba(46, 36, 64, 0.06), 0 10px 24px -16px rgba(46, 36, 64, 0.25);
+  /* La etiqueta del bolso flota sobre una FOTO, no sobre el fondo liso: con la
+     sombra de las tarjetas se pierde contra el bolso. */
+  --sombra-etiqueta: 0 1px 2px rgba(46, 36, 64, 0.08), 0 10px 22px -12px rgba(46, 36, 64, 0.35);
+  --sombra-hundida: inset 0 1px 0 var(--line), inset 0 -1px 0 var(--line);
+  /* La sombra del botón de acción: del MISMO morado, corta y hacia abajo. */
+  --sombra-accion-b: 0 10px 22px -14px rgba(107, 79, 160, 0.7);
+}
+
+@utility elevado-b {
+  background-color: var(--ivory);
+  box-shadow: var(--sombra-elevada);
+}
+
+@utility hundido-b {
+  background-color: var(--sand);
+  box-shadow: var(--sombra-hundida);
 }
 
 @theme inline {
@@ -978,6 +1029,23 @@ body {
   to   { opacity: 1; }
 }
 
+/* El radio del modal de entrar: hoja (solo arriba) en el celular, las cuatro
+   esquinas desde 768. 24px con la paleta de siempre; la B es "menos redonda"
+   (FICHA-ARTE: tarjetas 12, precio 16) y baja a 16. */
+.hoja-entrar { border-radius: 24px 24px 0 0; }
+@media (min-width: 768px) { .hoja-entrar { border-radius: 24px; } }
+html[data-paleta="b"] .hoja-entrar { border-radius: 16px 16px 0 0; }
+@media (min-width: 768px) { html[data-paleta="b"] .hoja-entrar { border-radius: 16px; } }
+
+/* La hoja de entrar subiendo desde abajo en el celular (`ModalEntrar`). */
+@keyframes hoja-sube {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog[open] { animation: none !important; }
+}
+
 /*
  * La rayita de las historias, llenándose de izquierda a derecha.
  *
@@ -1148,4 +1216,45 @@ select:disabled,
 input:disabled,
 [aria-disabled="true"] {
   cursor: not-allowed;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   EL VELO DE LAS FOTOS — SOLO EN LA PALETA B
+   ════════════════════════════════════════════════════════════════════════════
+   Las fotos del curso están hechas con luz cálida: perlas color nácar, madera,
+   dorados. Sobre la paleta de siempre eso es coherente, pero sobre el lavanda
+   de la B las mismas fotos tiran a amarillo y la página parece dos páginas
+   pegadas (pedido de Cristian, 2026-11-05: "que no se vean tan doradas").
+
+   ⚠️ PRIMERO SE INTENTÓ CON UNA CAPA ENCIMA (`:has(> img)::after`) Y ESTABA
+   MAL. El contenedor directo de una foto no siempre es su marco: medido en el
+   home B, el velo caía sobre la SECCIÓN ENTERA de la profesora, sobre las
+   tarjetas de "Tu primer bolso, gratis" y de navidad y sobre el grupo de
+   avatares — es decir, también sobre su texto, que quedaba apagado. Y marcar
+   las fotos una a una significaba tocar una docena de componentes y que la
+   foto que alguien añada el mes que viene saliera dorada sin que se note.
+
+   Lo que sí distingue la foto del texto es teñir LOS PÍXELES DE LA IMAGEN, que
+   es lo que hace un filtro: no puede alcanzar a nada que no sea la foto.
+   `saturate` baja la fuerza del dorado, `hue-rotate` lo acerca al violeta de
+   la paleta y `brightness` devuelve la luz que quita lo anterior.
+
+   Los iconos y el logo quedan fuera: son marca y señalización, no fotos.
+   ──────────────────────────────────────────────────────────────────────────── */
+html[data-paleta="b"] {
+  /*
+   * El tinte, en un sitio, para poder calibrarlo sin tocar el selector.
+   *
+   * Bajado un 20% el 2026-11-05 (Cristian: "que no las afecte tanto"). Se
+   * rebaja lo que cada filtro SE SEPARA de no hacer nada, que es lo que de
+   * verdad se nota: saturate iba 0,18 por debajo de 1 y ahora va 0,144;
+   * hue-rotate iba a −10° y ahora a −8°; brightness subía 0,03 y ahora 0,024.
+   * Bajar los números a secas (0,82 → 0,66) habría hecho lo contrario: teñir
+   * MÁS.
+   */
+  --tinte-foto-b: saturate(0.856) hue-rotate(-8deg) brightness(1.024);
+}
+
+html[data-paleta="b"] img:not([src$=".svg"]):not(.sin-tinte) {
+  filter: var(--tinte-foto-b);
 }
