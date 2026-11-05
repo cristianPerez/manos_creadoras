@@ -49,12 +49,21 @@ const TOKEN = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN ?? "";
  * eventos se pierden en silencio. Una analítica que tumba la app es peor que no
  * tener analítica.
  */
-export function iniciarMixpanel(): void {
+export function iniciarMixpanel(contexto: Propiedades = {}): void {
   if (listo || typeof window === "undefined" || TOKEN === "") return;
 
   mixpanel.init(TOKEN, {
-    autocapture: true,
-    track_pageview: true,
+    /*
+     * ⚠️ TODO EL AUTOCAPTURE MENOS LA VISTA DE PÁGINA (2026-11-05). La vista
+     * automática sale DENTRO de `init`, antes de que se pueda registrar nada
+     * —ni siquiera en `loaded`—, así que llegaba sin variante ni país (medido
+     * con una visitante nueva). La mandamos a mano: al encender, justo después
+     * de registrar el contexto, y en cada cambio de página dentro de la app
+     * (`medirVistaDePagina`, desde `<Analitica>`). Clics, campos, envíos y
+     * scroll siguen automáticos.
+     */
+    autocapture: { pageview: false },
+    track_pageview: false,
 
     /*
       ⚠️ GRABACIÓN DE SESIÓN ENCENDIDA EL 2026-11-01, Y CON CONDICIONES.
@@ -99,12 +108,47 @@ export function iniciarMixpanel(): void {
     ip: false,
   });
 
+  /*
+   * ⚠️ EL CONTEXTO (VARIANTE DEL A/B, PAÍS) SE REGISTRA AQUÍ, ANTES DE SOLTAR
+   * LA COLA Y ANTES DE LA VISTA DE PÁGINA (arreglado el 2026-11-05, el día del
+   * primer tráfico al experimento).
+   *
+   * React corre los efectos de los hijos antes que los del padre: el
+   * `<Medir evento="pagina_ventas_vista">` de la página disparaba ANTES de que
+   * `<Analitica>` registrara `experimento_paleta`, el evento quedaba en la
+   * cola, y la cola salía al encender… todavía sin variante. Resultado medido
+   * en local: `pagina_ventas_vista` salía con la variante de la VISITA
+   * ANTERIOR (la que Mixpanel guardó en el navegador) o, en una visitante
+   * nueva, sin ninguna. Era el primer paso del embudo: sin variante, el
+   * embudo no se podía partir en A y B.
+   */
+  registrarSinComprobar(contexto);
+  try {
+    mixpanel.track_pageview();
+  } catch {
+    // idem
+  }
+
   listo = true;
 
-  // Lo que llegó mientras tanto sale ahora, en orden.
+  // Lo que llegó mientras tanto sale ahora, en orden, ya con el contexto.
   while (enEspera.length > 0) {
     const pendiente = enEspera.shift();
     if (pendiente) enviar(pendiente.evento, pendiente.propiedades);
+  }
+}
+
+/**
+ * La vista de página al navegar DENTRO de la app (el autocapture de vistas
+ * está apagado, ver `iniciarMixpanel`). La primera de cada carga la manda el
+ * propio encendido.
+ */
+export function medirVistaDePagina(): void {
+  if (!listo) return;
+  try {
+    mixpanel.track_pageview();
+  } catch {
+    // idem
   }
 }
 
@@ -171,6 +215,30 @@ export function identificar(userId: string, correo?: string | null): void {
 }
 
 /**
+ * Datos que van a la FICHA de la persona (la pestaña "Users" de Mixpanel), no
+ * a los eventos. Solo con sesión: una ficha sin identidad no se puede unir a
+ * nada.
+ *
+ * ⚠️ HACE FALTA PARA LEER EL A/B EN LOS PAGOS (2026-11-05). `pago_confirmado`
+ * lo manda el SERVIDOR (el webhook de OnePay), que no hereda las super
+ * propiedades del navegador: sin esto, ese evento no tiene `experimento_paleta`
+ * y un reporte de pagos no se podría partir en las dos versiones. Con la
+ * variante en la ficha, cualquier reporte —pagos incluidos— se parte con
+ * "Breakdown → User property → experimento_paleta".
+ */
+export function fijarEnFicha(props: Propiedades): void {
+  if (!listo) return;
+  try {
+    const limpias = Object.fromEntries(
+      Object.entries(props).filter(([, v]) => v !== undefined && v !== ""),
+    );
+    if (Object.keys(limpias).length > 0) mixpanel.people.set(limpias);
+  } catch {
+    // idem
+  }
+}
+
+/**
  * Al cerrar sesión: que lo siguiente que se mida en este navegador no se le
  * atribuya a ella (un celular compartido en casa es lo normal aquí).
  */
@@ -208,6 +276,11 @@ export function olvidarIdentidad(): void {
  */
 export function registrarContexto(props: Propiedades): void {
   if (!listo) return;
+  registrarSinComprobar(props);
+}
+
+/** `register` de verdad, sin mirar `listo` (lo usa también `iniciarMixpanel`). */
+function registrarSinComprobar(props: Propiedades): void {
   try {
     const limpias = Object.fromEntries(
       Object.entries(props).filter(([, v]) => v !== undefined && v !== ""),
