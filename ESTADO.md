@@ -350,6 +350,22 @@ endpoint**; la 0025 añadió `duracion_ms` y el log marca `lento` a los 8s.
 
 ## 📊 ANALÍTICA: QUÉ SE MIDE Y QUÉ NO (2026-11-01)
 
+**🆕 2026-11-04 — INSTRUMENTACIÓN DENTRO DE LA APP (sin commitear, probada en local con QA):**
+- **Correo en Mixpanel** (pedido de Cristian): `identificar(userId, correo)` → `identify` +
+  `people.set($email)` + super propiedad `correo`/`user_id` en CADA evento. Eventos del servidor
+  también lo llevan y fijan `$email` en la ficha (`medirServidor`). `olvidarIdentidad()` al cerrar
+  sesión. **La política de privacidad se cambió en el mismo cambio** (punto Mixpanel).
+- **País/región/ciudad en las columnas oficiales**: `mp_country_code`, `$region`, `$city` desde las
+  cabeceras de Vercel (sigue `ip: false`; El Charcu sí entrega la IP, aquí no).
+- **Videos**: `video_abierto`, `video_reproducido`, `video_progreso` (25/50/75), `video_completado`
+  (80%) → **marca "visto" solo** (`marcarVideo`). `video_marcado_manual` para el botón.
+  Fuente: `timeupdate` de Bunny en `ReproductorEnSitio` → `FichaBolso`.
+- **Nuevos**: `bolso_abierto`, `material_marcado`, `directorio_clic`, `baja_pedida`,
+  `boton_click` en toda la app (`MedirApp`), `consulta_enviada/respondida`/`sin_cupo` (sin el texto
+  de la pregunta), servidor: `pago_reconciliado` (huérfano reclamado, con `minutos_sin_acceso`),
+  `suscripcion_cancelada`, `cobro_fallido`. `RegistrarEntrada` ya está montado
+  (`cuenta_creada`/`cuenta_iniciada` NUNCA habían llegado).
+
 **El país ya va en TODOS los eventos.** No iba porque se calcula en el
 SERVIDOR (Vercel, `lib/pais.ts`) y Mixpanel vive en el NAVEGADOR: el dato
 estaba en `sesiones_pais` y nadie había hecho el puente. Ahora el layout raíz

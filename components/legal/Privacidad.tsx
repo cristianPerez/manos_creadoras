@@ -66,7 +66,8 @@ export function ContenidoPrivacidad() {
             </li>
             <li>
               <strong className="text-espresso">Cómo usas la app</strong>: qué pantallas abres
-              y qué botones tocas. Sin nombre ni correo — ver el punto 4.
+              qué botones tocas, qué videos ves y hasta dónde. Va unido a tu cuenta y a tu correo,
+              para poder ayudarte si algo falla — ver el punto 4.
             </li>
           </ul>
         </section>
@@ -129,11 +130,13 @@ export function ContenidoPrivacidad() {
             </li>
             <li>
               <strong className="text-espresso">Mixpanel</strong> — mide cómo se usa la app.{" "}
+Recibe tu correo y tu código de cuenta, para que sepamos a quién le pasa qué si algo
+              falla (por ejemplo, un pago que no se activó), qué pantallas abres, qué videos ves y
+              hasta dónde, desde qué país y ciudad entras y tu tipo de dispositivo.{" "}
               <strong className="text-espresso">
-                No recibe tu correo, ni tu nombre, ni tus fotos, ni tus preguntas
+                No recibe tus fotos ni lo que le escribes al Ojo Experto
               </strong>
-              : solo un código interno que no dice quién eres, qué pantallas abres, desde qué país
-              entras y tu tipo de dispositivo. No guardamos tu dirección IP.
+              , y no le damos tu dirección IP: el país y la ciudad los calculamos nosotros.
               <br />
               <span className="mt-2 block">
                 Para entender dónde se traba la gente, Mixpanel también{" "}

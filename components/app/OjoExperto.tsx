@@ -30,6 +30,8 @@ import {
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Cupo } from "@/lib/alumna";
 import type { Frecuencia } from "@/lib/planes";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medir } from "@/lib/analitica/mixpanel";
 
 /** Las preguntas que el servidor regala sin cuenta (`PREGUNTAS_DE_VISITANTE` en la ruta). */
 const PREGUNTAS_DE_VISITANTE = 2;
@@ -198,6 +200,22 @@ export function OjoExperto({
     };
     setMensajes((m) => [...m, mia]);
 
+    /*
+     * ⚠️ LA PREGUNTA NO VA A MIXPANEL, solo su forma (largo, si lleva foto, de
+     * qué bolso y paso). La política promete que lo que escribe no sale de
+     * aquí, y para saber dónde se traban basta con el bolso y el paso.
+     */
+    const contexto = {
+      con_foto: Boolean(foto),
+      largo: pregunta.length,
+      bolso: bolso ?? undefined,
+      paso: paso ?? undefined,
+      visitante,
+      conversacion_nueva: !conversacion,
+    };
+    const empezo = Date.now();
+    medir(EVENTOS.consultaEnviada, contexto);
+
     try {
       /*
         El token va en la cabecera porque la ruta lo valida EN SERVIDOR. No se
@@ -231,6 +249,7 @@ export function OjoExperto({
       if (!r.ok) {
         // Se quita la pregunta: dejarla colgada sin respuesta parece que se perdió.
         setMensajes((m) => m.filter((x) => x.id !== mia.id));
+        if (datos.necesitaPlan) medir(EVENTOS.sinCupo, { ...contexto, motivo: datos.motivo ?? "agotado" });
         if (datos.necesitaPlan && enlaces) {
           setPidePlan({ motivo: datos.motivo === "foto" ? "foto" : "agotado", mensaje: datos.error });
           // Si ya las gastó en otra visita, el contador lo sabe ahora: 0 de 2.
@@ -251,6 +270,7 @@ export function OjoExperto({
         ...m,
         { id: datos.consulta?.id ?? `ojo-${Date.now()}`, rol: "ojo", texto: datos.respuesta },
       ]);
+      medir(EVENTOS.consultaRespondida, { ...contexto, segundos: Math.round((Date.now() - empezo) / 1000) });
       if (datos.conversacionId) setConversacion(datos.conversacionId);
       if (datos.uso && usado) setUsado({ ...usado, preguntasUsadas: datos.uso.preguntas, fotosUsadas: datos.uso.fotos });
       if (visitante && datos.uso) setUsadasVisitante(datos.uso.preguntas);

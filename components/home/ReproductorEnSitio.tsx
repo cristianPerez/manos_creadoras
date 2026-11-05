@@ -28,6 +28,7 @@ export function ReproductorEnSitio({
   titulo,
   className,
   onReproduciendo,
+  onProgreso,
   arrancarAlMontar,
 }: {
   /** La URL FIRMADA del embed. La firma el servidor: la clave nunca baja aquí. */
@@ -40,6 +41,12 @@ export function ReproductorEnSitio({
   className?: string;
   /** Avisa a quien lo monta de si hay video corriendo, para que tape o destape. */
   onReproduciendo?: (activo: boolean) => void;
+  /**
+   * Cada avance del video, en segundos, tal como lo cuenta Bunny
+   * (`timeupdate`). Lo usa la ficha del bolso para medir hasta dónde vio y
+   * marcarlo como visto al 80% (2026-11-04).
+   */
+  onProgreso?: (segundos: number, duracion: number) => void;
   /**
    * Arranca sin esperar a que toquen el póster.
    *
@@ -231,12 +238,30 @@ export function ReproductorEnSitio({
         arranco.current = true;
         onReproduciendo?.(true);
       }
+      /* player.js manda `{ seconds, duration }` en cada `timeupdate`. Si un día
+         llega con otra forma, simplemente no se mide: el video sigue igual. */
+      if (d?.event === "timeupdate" && onProgreso && d.value) {
+        let v = d.value as { seconds?: unknown; duration?: unknown } | string;
+        if (typeof v === "string") {
+          try {
+            v = JSON.parse(v) as { seconds?: unknown; duration?: unknown };
+          } catch {
+            v = {};
+          }
+        }
+        if (typeof v !== "object" || v === null) v = {};
+        const segundos = Number(v.seconds);
+        const duracion = Number(v.duration);
+        if (Number.isFinite(segundos) && Number.isFinite(duracion) && duracion > 0) {
+          onProgreso(segundos, duracion);
+        }
+      }
       if (d?.event === "pause" || d?.event === "ended") onReproduciendo?.(false);
     };
 
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
-  }, [reproduciendo, onReproduciendo, mudo]);
+  }, [reproduciendo, onReproduciendo, onProgreso, mudo]);
 
   /*
    * ⚠️ LA MINIATURA DE BUNNY PUEDE NO CARGAR, Y HAY QUE PREVERLO. Su CDN de

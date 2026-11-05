@@ -1,4 +1,5 @@
-import { medirPagoConfirmado } from "@/lib/analitica/mixpanel-servidor";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medirPagoConfirmado, medirServidor } from "@/lib/analitica/mixpanel-servidor";
 import { enviarCorreo } from "@/lib/correo";
 import { correoDeBienvenida } from "@/lib/correos/bienvenida";
 import { reportarAviso } from "@/lib/fallos";
@@ -217,6 +218,7 @@ export async function aplicar(
     await medirPagoConfirmado(userId, {
       proveedor,
       suscripcion: evento.recursoId ?? undefined,
+      correo: evento.correo,
     });
     await darLaBienvenida(db, userId, origen, rastro);
     return;
@@ -233,6 +235,14 @@ export async function aplicar(
     // como "le cortamos hoy".
     rastro.paso("cancelada (conserva acceso hasta vencer)");
     await cerrar("procesado");
+    /* La baja también entra al panel: sin ella no se puede medir cuánto dura
+       una alumna ni qué hizo la semana antes de irse. */
+    await medirServidor(
+      EVENTOS.suscripcionCancelada,
+      userId,
+      { proveedor, suscripcion: evento.recursoId ?? undefined, correo: evento.correo },
+      `${EVENTOS.suscripcionCancelada}:${eventoId}`,
+    );
     return;
   }
 
@@ -249,6 +259,12 @@ export async function aplicar(
     await db.from("membresias").update({ estado: "vencida" }).eq("user_id", userId);
     rastro.paso("cobro fallido o vencida");
     await cerrar("procesado", "cobro fallido o suscripción vencida");
+    await medirServidor(
+      EVENTOS.cobroFallido,
+      userId,
+      { proveedor, tipo: evento.tipo, suscripcion: evento.recursoId ?? undefined, correo: evento.correo },
+      `${EVENTOS.cobroFallido}:${eventoId}`,
+    );
     reportarAviso("webhook", "a una alumna le falló el cobro", {
       traza: rastro.traza,
       proveedor,

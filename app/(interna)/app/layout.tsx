@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MedirApp } from "@/components/app/MedirApp";
 import { BarraInferior, CabeceraApp } from "@/components/app/NavegacionApp";
 import { ProveedorSesion } from "@/components/app/SesionContexto";
 import { alumnaActual, iniciales } from "@/lib/alumna";
@@ -45,6 +46,7 @@ export default async function LayoutApp({ children }: { children: ReactNode }) {
         */}
         <div className="hueco-barra-inferior flex flex-1">{children}</div>
         <BarraInferior />
+        <MedirApp />
       </div>
     </ProveedorSesion>
   );

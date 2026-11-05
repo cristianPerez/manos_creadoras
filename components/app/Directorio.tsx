@@ -19,6 +19,8 @@ import Link from "next/link";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { rutaCompra, type AccesoDirectorio, type ItemDirectorio } from "@/lib/bolsos-logica";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medir } from "@/lib/analitica/mixpanel";
 import { GARANTIA } from "@/lib/planes";
 
 /** Qué aviso está abierto: ninguno o "esto es de la membresía". */
@@ -297,6 +299,14 @@ function BotonCompra({
         /* `sponsored`: pueden ser de afiliado y decirlo es lo correcto.
            `noopener`: la pestaña nueva no toca la nuestra. */
         rel="sponsored noopener"
+        onClick={() =>
+          medir(EVENTOS.directorioClic, {
+            producto: item.nombre,
+            categoria: item.categoria,
+            gratis: item.gratis,
+            con_acceso: conAcceso,
+          })
+        }
         className={`bg-cacao text-ivory flex ${alto} items-center justify-center gap-1.5 rounded-full text-sm font-semibold transition-transform duration-100 [touch-action:manipulation] active:scale-[0.97]`}
       >
         {/* Sin membresía, el abierto se dice: es la muestra gratis. */}

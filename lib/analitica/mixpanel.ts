@@ -89,8 +89,13 @@ export function iniciarMixpanel(): void {
     /* Las fotos que sube y los videos del curso: fuera de la grabación. */
     record_block_selector: "img,video,canvas,[data-privado]",
 
-    // Sin esto, Mixpanel guarda la IP completa. La IP es dato personal y para
-    // este embudo no aporta nada: el país lo da igual la agregación.
+    /*
+      Sin esto, Mixpanel usa la IP. La IP es dato personal y no hace falta:
+      país, departamento y ciudad los da Vercel y `<Analitica>` los manda con
+      los nombres OFICIALES de Mixpanel (`mp_country_code`, `$region`,
+      `$city`), así que sus columnas Country/Region/City se llenan igual que
+      en El Charcu sin entregarle la IP (2026-11-04).
+    */
     ip: false,
   });
 
@@ -131,17 +136,48 @@ export function medir(evento: string, propiedades?: Propiedades): void {
 }
 
 /**
- * Ata los eventos a la cuenta cuando la alumna entra.
+ * Ata los eventos a la cuenta cuando la alumna entra: su ID de Supabase y su
+ * correo.
  *
- * ⚠️ Se le pasa el ID de Supabase, NO el correo. El correo es dato personal y
- * mandarlo a un tercero sin necesidad es regalar algo que no hace falta: el ID
- * permite cruzar el panel con la base cuando haga falta, y no identifica a
- * nadie por sí solo fuera de aquí.
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ EL CORREO SÍ VA A MIXPANEL DESDE EL 2026-11-04 (pedido de Cristian)
+ * ════════════════════════════════════════════════════════════════════════════
+ * Antes solo iba el ID, para no entregarle un dato personal a un tercero. El
+ * costo se vio con la primera venta real: para saber qué hizo diliar… hubo que
+ * buscar su ID en la base, y un pago que entró ANTES de existir la cuenta no
+ * se podía reconciliar con nadie. Con el correo, el panel se lee por persona.
+ *
+ * La política de privacidad se cambió en el MISMO cambio (punto de Mixpanel en
+ * `components/legal/Privacidad.tsx`): mandar el correo sin decirlo habría sido
+ * desmentir por escrito lo que la app promete. Lo que escriben y las fotos
+ * siguen tapados en las grabaciones.
+ *
+ * Tres sitios, cada uno por una razón:
+ *   · `identify(userId)`  → el recorrido anónimo de antes se une a la cuenta.
+ *   · `people.set($email)` → la ficha de la persona en "Users" lleva el correo.
+ *   · `register(correo)`  → CADA evento lo lleva, para filtrar sin abrir fichas.
  */
-export function identificar(userId: string): void {
+export function identificar(userId: string, correo?: string | null): void {
   if (!listo || userId === "") return;
   try {
     mixpanel.identify(userId);
+    if (correo) {
+      mixpanel.people.set({ $email: correo, user_id: userId });
+      mixpanel.register({ correo, user_id: userId });
+    }
+  } catch {
+    // idem
+  }
+}
+
+/**
+ * Al cerrar sesión: que lo siguiente que se mida en este navegador no se le
+ * atribuya a ella (un celular compartido en casa es lo normal aquí).
+ */
+export function olvidarIdentidad(): void {
+  if (!listo) return;
+  try {
+    mixpanel.reset();
   } catch {
     // idem
   }
@@ -167,8 +203,8 @@ export function identificar(userId: string): void {
  * ⚠️ NO ARREGLA EL PASADO. Los eventos que ya se mandaron no tienen país y no
  * se les puede añadir; esto empieza a contar desde que se despliega.
  *
- * ⚠️ NADA DE DATOS PERSONALES AQUÍ. País y región son agregados; el `user_id`
- * va por `identify`, no por aquí, y el correo no sale nunca de casa.
+ * ⚠️ AQUÍ SOLO VA EL CONTEXTO DEL LUGAR. La identidad (ID y correo) la pone
+ * `identificar`, que es quien sabe si hay sesión.
  */
 export function registrarContexto(props: Propiedades): void {
   if (!listo) return;

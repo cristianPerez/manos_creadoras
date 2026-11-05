@@ -3,6 +3,8 @@
 import { Check } from "lucide-react";
 import { useOptimistic, useTransition } from "react";
 import { marcarMaterial } from "@/app/(interna)/app/acciones";
+import { EVENTOS } from "@/lib/analitica/eventos";
+import { medir } from "@/lib/analitica/mixpanel";
 import { rutaCompra, type Material } from "@/lib/bolsos-logica";
 
 /**
@@ -63,6 +65,11 @@ export function MaterialesDelBolso({
               onClick={() =>
                 empezar(async () => {
                   marcarOptimista({ id: m.id, tengo: !m.tengo });
+                  medir(EVENTOS.materialMarcado, {
+                    material: m.texto,
+                    tengo: !m.tengo,
+                    pagina: window.location.pathname,
+                  });
                   await marcarMaterial(m.id, !m.tengo);
                 })
               }
