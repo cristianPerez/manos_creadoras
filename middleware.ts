@@ -1,5 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  COOKIE_FORZADA,
+  COOKIE_VISITANTE,
+  DIAS_FORZADA,
+  DIAS_VISITANTE,
+  esVariante,
+} from "@/lib/paleta";
+
+const DIA = 24 * 60 * 60;
 
 /**
  * Pantallas que exigen haber iniciado sesión.
@@ -27,6 +36,35 @@ import { NextResponse, type NextRequest } from "next/server";
 const PRIVADAS: string[] = [];
 
 export async function middleware(request: NextRequest) {
+  /*
+   * ── EL EXPERIMENTO DE PALETA (2026-11-05) ────────────────────────────────
+   *
+   * Aquí solo se preparan las dos cookies; quién ve qué lo decide Flagsmith en
+   * `lib/paleta-servidor.ts`, que corre después, en el layout.
+   *
+   * ⚠️ LAS COOKIES SE ESCRIBEN TAMBIÉN EN `request.cookies`, NO SOLO EN LA
+   * RESPUESTA. Es lo que hace que el layout las vea YA en esta misma visita. Si
+   * solo fueran a la respuesta, la primera carga de cada visitante nueva —que
+   * es justo la que decide si compra— se resolvería sin identidad y caería a
+   * "actual", y el reparto del A/B no empezaría hasta la segunda página. Nadie
+   * lo notaría y los números saldrían sesgados hacia el control.
+   */
+  const paletaPedida = request.nextUrl.searchParams.get("paleta");
+  // `?paleta=auto` devuelve el mando al panel: se borra la cookie forzada.
+  const borrarForzada = paletaPedida === "auto";
+  const fijarForzada = esVariante(paletaPedida) ? paletaPedida : null;
+
+  if (fijarForzada) request.cookies.set(COOKIE_FORZADA, fijarForzada);
+  if (borrarForzada) request.cookies.delete(COOKIE_FORZADA);
+
+  /*
+   * La identidad del visitante anónimo. `crypto.randomUUID` existe en el
+   * runtime Edge sin importar nada.
+   */
+  const visitante = request.cookies.get(COOKIE_VISITANTE)?.value;
+  const nuevoVisitante = visitante ? null : crypto.randomUUID();
+  if (nuevoVisitante) request.cookies.set(COOKIE_VISITANTE, nuevoVisitante);
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -55,6 +93,37 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  /*
+   * Las cookies del experimento viajan en TODAS las respuestas que salen de
+   * aquí, también las redirecciones. Si solo fueran en la normal, quien entra
+   * por un enlace que redirige saldría sin `mc_vid` y volvería a generar uno en
+   * la siguiente página: la misma persona repartida en las dos ramas.
+   *
+   * `httpOnly` en `mc_vid` porque no hay ninguna razón para que el navegador lo
+   * lea; la forzada sí se deja visible, que es parte de poder comprobar desde
+   * la consola qué rama se está viendo al revisar QA.
+   */
+  const conCookies = <T extends NextResponse>(r: T): T => {
+    if (nuevoVisitante) {
+      r.cookies.set(COOKIE_VISITANTE, nuevoVisitante, {
+        path: "/",
+        maxAge: DIAS_VISITANTE * DIA,
+        sameSite: "lax",
+        httpOnly: true,
+      });
+    }
+    if (fijarForzada) {
+      r.cookies.set(COOKIE_FORZADA, fijarForzada, {
+        path: "/",
+        maxAge: DIAS_FORZADA * DIA,
+        sameSite: "lax",
+        httpOnly: false,
+      });
+    }
+    if (borrarForzada) r.cookies.delete(COOKIE_FORZADA);
+    return r;
+  };
+
   const path = request.nextUrl.pathname;
   const esPrivada = PRIVADAS.some((p) => path === p || path.startsWith(`${p}/`));
 
@@ -63,7 +132,7 @@ export async function middleware(request: NextRequest) {
     login.pathname = "/login";
     // Para devolverla a donde quería ir después de entrar.
     login.searchParams.set("next", path);
-    return NextResponse.redirect(login);
+    return conCookies(NextResponse.redirect(login));
   }
 
   // Ya tiene sesión y va al login: mándala directo a sus cursos.
@@ -71,10 +140,10 @@ export async function middleware(request: NextRequest) {
     const cursos = request.nextUrl.clone();
     cursos.pathname = "/cursos";
     cursos.search = "";
-    return NextResponse.redirect(cursos);
+    return conCookies(NextResponse.redirect(cursos));
   }
 
-  return response;
+  return conCookies(response);
 }
 
 export const config = {

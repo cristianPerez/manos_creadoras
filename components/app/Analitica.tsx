@@ -19,6 +19,7 @@ export function Analitica({
   fuentePais,
   ciudad,
   subdivision,
+  experimentoPaleta,
 }: {
   userId: string | null;
   /** El correo de la sesión, para identificarla en Mixpanel (ver `identificar`). */
@@ -40,6 +41,21 @@ export function Analitica({
   ciudad?: string | null;
   /** Departamento o estado en código, de `x-vercel-ip-country-region`. */
   subdivision?: string | null;
+  /**
+   * Qué rama del experimento de paleta le tocó: "b" (lavanda) o "actual".
+   *
+   * ⚠️ VA COMO SUPER PROPIEDAD, NO COMO UN EVENTO NUEVO, y esa es la pieza que
+   * hace que el experimento se pueda leer. Al registrarla aquí, TODOS los
+   * eventos que ya existen —`pagina_ventas_vista`, `cta_inscribirme_click`,
+   * `checkout_abierto`, `pago_confirmado`…— la llevan pegada, así que cualquier
+   * embudo del panel se puede partir en dos con un "Breakdown" y comparar las
+   * dos versiones sin instrumentar ni un botón más.
+   *
+   * Un evento tipo `paleta_vista` habría servido solo para contar cuántas la
+   * vieron, que es justo lo que menos importa: lo que se quiere saber es cuál
+   * de las dos VENDE.
+   */
+  experimentoPaleta?: string;
 }) {
   useEffect(() => {
     iniciarMixpanel();
@@ -66,9 +82,10 @@ export function Analitica({
       mp_country_code: conocido ? pais : undefined,
       $region: subdivision ?? undefined,
       $city: ciudad ?? undefined,
+      experimento_paleta: experimentoPaleta,
     });
     if (userId) identificar(userId, correo);
-  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision]);
+  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPaleta]);
 
   return null;
 }

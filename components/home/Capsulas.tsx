@@ -32,7 +32,14 @@ type ContextoCapsulas = {
 
 const Contexto = createContext<ContextoCapsulas | null>(null);
 
-function useCapsulas(): ContextoCapsulas {
+/**
+ * ⚠️ EXPORTADO DESDE EL EXPERIMENTO DE PALETA (2026-11-05): el home B dibuja
+ * sus cápsulas distinto (tarjetas verticales con marco frambuesa) pero usa el
+ * MISMO visor y el MISMO registro de vistas. Sin esto habría que duplicar el
+ * `localStorage` y el estado del visor, y un día una mitad se enteraría de que
+ * una cápsula se vio y la otra no.
+ */
+export function useCapsulas(): ContextoCapsulas {
   const c = useContext(Contexto);
   if (!c) throw new Error("Las cápsulas necesitan <ProveedorCapsulas> alrededor");
   return c;
@@ -349,7 +356,12 @@ export function Capsulas() {
  * `unoptimized` en el fotograma: viene de fuera de nuestro dominio y así no
  * hay que declarar el hostname de Bunny en la configuración de Next.
  */
-function ImagenDeCapsula({
+/* ⚠️ EXPORTADO desde el experimento de paleta (2026-11-05): el home B dibuja
+   sus cápsulas distinto pero necesita exactamente esta lógica —foto primero,
+   fotograma solo de respaldo, `unoptimized` en el de Bunny—. Reescribirla allí
+   fue el primer intento y costó un error 500: el hostname de Bunny no está
+   declarado en `next.config.ts`, y ese `unoptimized` es justo lo que lo evita. */
+export function ImagenDeCapsula({
   miniatura,
   respaldo,
   sizes,

@@ -1,6 +1,6 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-11-02.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-11-05.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
 mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
@@ -12,6 +12,80 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > Quedan ~353 líneas y la regla del SO son 200. No se recorta más a costa de
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
+
+🧪 **EXPERIMENTO DE PALETA "B · LAVANDA EMPOLVADA" (2026-11-05) — EN CÓDIGO,
+SIN COMMITEAR, APAGADO POR DEFECTO.** Cristian eligió la **B** de las tres
+exploradas. Conviven dos homes y dos paletas; lo decide la flag `paleta_b` de
+Flagsmith.
+· **Qué cambia con la flag encendida:** la paleta de TODA la app (el home y
+  `/app`: catálogo, fichas, Ojo, Mi plan) + un home nuevo y más corto. El
+  contenido es el MISMO en las dos ramas (precios, fotos, preguntas, bolso
+  gratis salen de `lib/datos-home.ts`): si cambiara, el A/B mediría dos ofertas
+  en vez de dos diseños.
+· **Cómo se enciende/apaga/reparte** (panel de Flagsmith, proyecto "Manos
+  Creadoras", org Goingtube, id 53390):
+  — Probar en QA: encender `paleta_b` en **Development**.
+  — Lanzar a todas: encenderla en **Production**, sin valor.
+  — A/B 50/50: en Production → `paleta_b` → *Create A/B/n Test* → una variación
+    con valor **`actual`** al 50% (ese es el control); el resto cae en B.
+  — Volver atrás: **apagarla**. ⚠️ Tarda **hasta 60 s** en notarse: la
+    evaluación es local y se refresca cada minuto (es el precio de no hacer una
+    llamada de red por visita). No es que el panel no haya funcionado.
+· **Para mirar a mano, sin tocar el panel:** `?paleta=b` · `?paleta=actual` ·
+  `?paleta=auto` (devuelve el mando a Flagsmith). Dura 7 días en cookie.
+· **🔴 BLOQUEADO PARA QA: falta `FLAGSMITH_SERVER_KEY`.** La clave de servidor
+  (`ser.…`) la copia Cristian del panel (SDK Keys → ojo → copiar) a `.env.local`
+  y a Vercel (**Preview**, marcada *Sensitive*). Sin ella todo el mundo ve el
+  sitio de siempre y no hay error — el fallo es seguro, pero el experimento no
+  corre. Variables declaradas en `.env.example`.
+· **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en TODOS
+  los eventos (`components/app/Analitica.tsx`). ⚠️ **HAY QUE ACTUALIZAR LOS
+  EMBUDOS DE MIXPANEL**: los que ya existen no la llevan en los eventos
+  anteriores al despliegue. Para comparar, en cada embudo hay que añadir un
+  *Breakdown* por `experimento_paleta` y **acotar la fecha al día en que empezó
+  el experimento**; si no, los meses viejos entran en el grupo "actual" e
+  inflan el control.
+· **Dónde vive:** tokens en `app/globals.css` (`html[data-paleta="b"]`),
+  pantallas en `components/home-b/`, interruptor en `lib/flags.ts` +
+  `lib/paleta-servidor.ts` + `middleware.ts` (cookies `mc_vid` y
+  `mc_paleta_forzada`), fotos topo en `public/images/topo/` (las genera
+  `scripts/fotos-topo.mjs`; el café de los fondos se lee "durazno" con lavanda).
+· **Verificado:** `tsc` ✓ · `lint` ✓ · `build` ✓ · render real a 375 y 1440 con
+  `?paleta=b` · `?paleta=actual` devuelve el home de hoy (el JSX movido a
+  `components/home/HomeActual.tsx` es idéntico al de `git HEAD:app/page.tsx`,
+  comprobado con `diff`) · `/app` repintada sin cambios de maquetación.
+· ⚠️ **EL REVISOR VISUAL LO DECLARÓ `FIEL` A LA REFERENCIA (0 de 6 fallos) PERO
+  `NO LISTA` POR RÚBRICA: 28/40 usabilidad · 13/20 craft · 13/20 copy.** Y es
+  importante no confundir las dos cosas: lo implementado reproduce el contrato
+  de `design-ref/paleta-b-claude-code/`; lo que el revisor penaliza es el
+  DISEÑO de ese contrato, no la ejecución. Sus cuatro reparos de fondo:
+  (a) sobre el pliegue a 375px no cabe el titular entero ni el botón —entran
+  cabecera, cápsulas y foto—; (b) el titular habla de producto, no del dolor de
+  la ficha de avatar; (c) no hay precio ni garantía por encima del pliegue;
+  (d) las cápsulas arriba pesan más que el héroe. Son decisiones de la
+  referencia que aprobó Cristian. **Pendiente de su decisión**: dejarlas (el
+  A/B las juzga con ventas reales) o corregirlas antes de encender la flag.
+
+🎀 **EXPLORACIÓN "PASTEL" DEL HOME (2026-11-04/05, pedido de Cristian) — YA
+RESUELTA: ganó la B, ver el bloque de arriba.** Contexto original: Todo en `design-ref/exploracion-pastel/`: 92
+capturas (home por sección y `/app` invitada/alumna, 375 y 1440),
+`PROMPT-1-PALETAS-CLAUDE-DESIGN.md` (3 paletas A Perla rosada / B Lavanda
+empolvada / C Rosa té, contraste AA medido, con Text Rotate de 21st.dev) y
+`PROMPT-CLAUDE-DESIGN.md` (análisis de CTAs: de 12 secciones a 8 y de 8 botones
+de compra a 4 + barra fija; quitar "Ver los proyectos" → `/app`, Navidad,
+historias y cápsulas del home; la app SE QUEDA en `/app`).
+· ⚠️ `FICHA-ARTE.md` (crema/dorado) SIGUE MANDANDO hasta que Cristian elija
+  paleta. Orden: elegir paleta → home en Claude Design → reescribir la ficha →
+  recién entonces código.
+· Instaladas en `.claude/skills/`: `frontend-design` (Anthropic) + 8 de
+  Owl-Listener/designer-skills (color, tipografía, jerarquía, espaciado, grilla,
+  3 de crítica). MCP `21st-magic` en `.mcp.json` con `${TWENTYFIRST_API_KEY}`
+  (la clave vive en `~/.zshrc`, no en el repo; carga al reiniciar Claude Code).
+· ✅ `app/robots.ts` (2026-11-05): QA rastreable + `noindex` por cabecera es la
+  regla DEFINITIVA (no volver a `disallow: "/"`). Producción bloquea lecciones,
+  `/app/cuenta|plan|ojo`, `/app/directorio/ir/`, `/pagar`, `/bienvenida`,
+  `/entrar`, `/auth/`, `/api/`; deja abiertos `/app` y las fichas. **Sin commit
+  ni deploy todavía.**
 
 🔗 **DIRECTORIO: UN ENLACE GRATIS PARA TODAS, EL RESTO CON MEMBRESÍA
 (2026-11-02, migraciones 0041 + 0042, decisión de Cristian). En QA y PRODUCCIÓN.** «Cuentas de 10 mm»

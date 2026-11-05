@@ -43,3 +43,71 @@
 - Modo (**CLARO**) DERIVADO por: las pantallas que entregó Cristian. ⚠️ Antes decía "oscuro" por la landing vieja de Lovable; la app llevaba semanas en crema y esta ficha no se había actualizado.
 
 ## Idioma UI: Español (LATAM) · Fecha de cierre: 2026-07-31 · Corregida: 2026-10-14 (el brand kit decía oscuro) · Aprobada por el usuario: SÍ
+
+---
+
+## Paleta B — "Lavanda empolvada" (EXPERIMENTO, 2026-11)
+
+> ⚠️ **ESTO NO REEMPLAZA NADA DE ARRIBA.** La paleta crema y dorado sigue
+> siendo la del sitio y el CONTROL del experimento. Esta es la rama nueva de
+> un A/B que decide la flag `paleta_b` en Flagsmith; mientras el experimento
+> esté vivo, las dos son contrato y ninguna de las dos se toca sin decidir
+> antes cuál gana. Si gana la B, se sube aquí y la de arriba se archiva;
+> si gana el control, este bloque se borra.
+>
+> Elegida por Cristian el 2026-11-05 entre tres opciones comparadas en Claude
+> Design (A · Perla rosada · B · Lavanda empolvada · C · Rosa té).
+> Referencia: `design-ref/paleta-b-claude-code/` (screenshots = contrato).
+
+### Los colores (contraste medido, todos pasan WCAG AA)
+
+| Rol | Hex | Contraste |
+|---|---|---|
+| Fondo | `#F7F4FB` | — |
+| Tarjeta | `#FDFBFF` | — |
+| Sección alterna / toggle | `#ECE5F5` | — |
+| Bordes 1px | `#E2D9EE` · fuerte `#CFC3E0` | — |
+| Texto principal | `#2E2440` | 13,4:1 |
+| Texto secundario | `#625A74` | 6,0:1 |
+| Notas | `#696178` | 5,4:1 sobre fondo · 4,8:1 sobre alterna |
+| **ACCIÓN** (botón, precio, dato clave) | `#6B4FA0` | 5,9:1 como texto |
+| **APOYO** (cursiva del titular y enlaces) | `#A3466F` | — |
+| Banda oscura | `#3A2D52` · elevado `#3A2D52` sobre `#2E2440` | — |
+| Acento sobre oscuro | `#D9CCEE` | 9,6:1 |
+
+Reparto **60-30-10**: 60% fondo/tarjeta, 30% alterna, 10% el morado de acción.
+
+### Las tres reglas que la separan del control
+
+1. **DOS colores de marca, no uno.** El morado es SOLO la acción (botón,
+   precio, "+1.200"); el frambuesa es SOLO la palabra en cursiva de cada
+   titular y los enlaces de texto. Nunca al revés, y el frambuesa nunca en un
+   botón: si el morado saliera también en el titular, el ojo dejaría de saber
+   dónde tocar.
+2. **Menos redondez.** Fotos 8px (6px dentro de una tarjeta), tarjetas 12px,
+   chips y el +/− del acordeón 6px, tarjeta de precio 16px. Los **botones
+   siguen en píldora** (52px de alto en móvil, 56 en escritorio): es lo que
+   mantiene la marca reconocible entre las dos versiones.
+3. **Plana.** Sin degradados dorados, sin vidrio, sin brillos. Los tokens de
+   degradado se escriben como un degradado de un solo color porque van en
+   `background-image`.
+
+Tipografía: **igual que el control** — Cormorant Garamond 500 en titulares (una
+palabra en cursiva) y Manrope en el texto. Íconos Lucide de línea.
+
+### Las fotos
+
+Los bolsos están fotografiados sobre fondo café y madera, y con el lavanda ese
+café se lee "durazno". La rama B usa las versiones **topo** (mismo encuadre,
+fondo neutralizado) de `public/images/topo/`, que genera
+`scripts/fotos-topo.mjs`. Van tal cual: Nácar Soñado, Navidad, Elizabeth y las
+fotos de alumnas.
+
+### Dónde vive
+
+- Tokens: `app/globals.css`, bloque `html[data-paleta="b"]` (remapea los 12 de
+  marca; por eso repinta también `/app` sin tocar un componente).
+- Home B: `components/home-b/`.
+- El interruptor: `lib/flags.ts` + `lib/paleta-servidor.ts`.
+- Para verla a mano: `?paleta=b` · volver al control: `?paleta=actual` ·
+  devolver el mando al panel: `?paleta=auto`.

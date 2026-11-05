@@ -75,6 +75,16 @@
   --border-strong: #D8C3A2;
   --border-focus: var(--gold);
 
+  /*
+   * El color de APOYO: la palabra en cursiva de los titulares y los enlaces de
+   * texto. Con la paleta de siempre ES el dorado —esta paleta tiene un solo
+   * color de marca y funciona así—, y la paleta B del experimento lo separa en
+   * frambuesa para no repetir el color de la acción. Declararlo aquí es lo que
+   * permite que `text-apoyo` exista en las dos ramas sin un `if` en ningún
+   * componente.
+   */
+  --apoyo: var(--gold);
+
   --brand-primary: var(--gold);
   --brand-gradient-start: var(--gold-start);
   --brand-gradient-end: var(--gold-deep);
@@ -205,6 +215,24 @@
   --vidrio-fondo: rgba(42, 31, 25, 0.42);
   --vidrio-desenfoque: 14px;
 
+  /*
+   * El velo de las historias: lo que hace legible el texto blanco sobre
+   * CUALQUIER portada, clara u oscura. Oscurece arriba y abajo y deja limpio el
+   * centro, que es donde se ve el bolso.
+   *
+   * ⚠️ VIVE AQUÍ Y NO EN EL COMPONENTE desde el experimento de paleta
+   * (2026-11-05). Estaba escrito a mano con `rgba(42,31,25,…)` —el espresso— en
+   * dos sitios, así que con la paleta B el velo seguía tirando a café sobre una
+   * app lavanda. Ahora sale del token de la marca y cada paleta lo tiñe sola.
+   */
+  --velo-historia: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--espresso) 62%, transparent) 0%,
+    color-mix(in srgb, var(--espresso) 0%, transparent) 26%,
+    color-mix(in srgb, var(--espresso) 0%, transparent) 52%,
+    color-mix(in srgb, var(--espresso) 88%, transparent) 100%
+  );
+
   --barra-lateral: 260px;
   --barra-lateral-ojo: 280px;
   /* La navegación unificada de la app (2026-10-23): la barra de abajo en
@@ -284,6 +312,303 @@
   --z-toast: 50;
 }
 
+/* ============================================================================
+   PALETA B — "Lavanda empolvada" · el experimento de 2026-11-05
+   ============================================================================
+   De la exploración en Claude Design, columna B, que es la que eligió Cristian.
+   La enciende la flag `paleta_b` de Flagsmith: `app/layout.tsx` pinta
+   `data-paleta="b"` en el `<html>` y este bloque entra. Ver `lib/flags.ts`.
+
+   ⚠️ ESTE BLOQUE REPINTA LA APP ENTERA SIN TOCAR UN SOLO COMPONENTE, y es la
+   misma razón por la que existían los 12 de marca: ninguna de las pantallas
+   usa un hex suelto, todas piden `--cream`, `--gold`, `--espresso`… Así que
+   remapear esos doce nombres convierte el home Y `/app` (el catálogo, las
+   fichas, el Ojo Experto, Mi plan) de golpe. Es lo que permite que el
+   experimento sea un interruptor en un panel y no una rama de código paralela
+   que haya que mantener viva.
+
+   ⚠️ SE REMAPEAN LOS NOMBRES VIEJOS, NO SE INVENTAN NOMBRES NUEVOS. La
+   tentación es declarar `--lavanda`, `--violeta`, `--berenjena`… y cambiar los
+   componentes para que los pidan. Eso sería duplicar cada pantalla: una
+   pidiendo `--gold` y otra `--violeta`, las dos vivas a la vez. Los nombres
+   quedan "mintiendo" un poco (`--gold` vale violeta con la B), y ese es el
+   precio aceptado: está escrito aquí y no cuesta un componente duplicado.
+   La única excepción es `--apoyo`, que abajo se explica por qué sí.
+
+   Reparto 60-30-10: 60% fondo/tarjeta, 30% sección alterna, 10% violeta de
+   acción. Contrastes medidos en la exploración: texto 13,4:1 · texto 2º 6,0:1 ·
+   acción como texto 5,9:1 · notas 5,4:1 sobre fondo y 4,8:1 sobre alterna ·
+   acento claro sobre banda oscura 9,6:1.
+   ============================================================================ */
+html[data-paleta="b"] {
+  --cream: #F7F4FB;          /* fondo */
+  --ivory: #FDFBFF;          /* tarjetas */
+  --sand: #ECE5F5;           /* secciones alternas, fondo del toggle */
+  --sand-hover: #E3DAF0;
+  --line: #E2D9EE;
+  --line-strong: #CFC3E0;
+  --border-strong: #CFC3E0;
+
+  /*
+   * ⚠️ LA REGLA DE CONTRASTE DE LA PALETA VIEJA SIGUE VIGENTE, TRADUCIDA: el
+   * color de acción sobre el fondo claro es SIEMPRE `--gold` (aquí violeta
+   * #6B4FA0). Los dos claros —`--gold-light` y `--gold-pale`— existen solo para
+   * ir ENCIMA de los bloques oscuros, igual que antes. El lavanda claro sobre
+   * el fondo da ~1,3:1: precioso en pantalla, ilegible de verdad.
+   */
+  --gold: #6B4FA0;           /* ACCIÓN: botón principal, precio, dato clave */
+  --gold-start: #6B4FA0;
+  --gold-deep: #5A4189;
+  --gold-light: #D9CCEE;     /* acento SOLO sobre oscuro */
+  --gold-pale: #D9CCEE;
+  --cacao: #4A3B66;
+
+  --espresso: #2E2440;       /* texto principal y bandas oscuras */
+  --espresso-2: #3A2D52;     /* bloque elevado dentro de lo oscuro */
+  --espresso-line: #4B3D66;
+  --ink-body: #625A74;       /* párrafos */
+  --ink-muted: #696178;      /* notas */
+  --on-dark-muted: #D9CCEE;
+  --punto-inactivo: #D6CCE6;
+
+  /*
+   * ⚠️ EL ÚNICO TOKEN NUEVO DEL TEMA, Y HACE FALTA. La paleta de hoy tiene UN
+   * color de marca: el dorado es a la vez el botón y la palabra en cursiva del
+   * titular, y funciona. La B tiene dos —violeta de acción y frambuesa de
+   * apoyo— justo para que no se confundan: si la cursiva del titular fuera
+   * violeta, el ojo vería el color de la acción en dos sitios de la misma
+   * pantalla y dejaría de saber cuál es el botón.
+   *
+   * SOLO va en la palabra en cursiva de cada titular y en los enlaces de texto.
+   * Nunca en un botón, nunca en un fondo.
+   */
+  --apoyo: #A3466F;
+
+  --surface-overlay: rgba(46, 36, 64, 0.55);
+  --brand-primary-soft: rgba(107, 79, 160, 0.1);
+  --shadow-sm: 0 1px 2px rgba(46, 36, 64, 0.06);
+  --shadow-md: 0 4px 12px -2px rgba(46, 36, 64, 0.08);
+  --shadow-lg: 0 12px 32px -8px rgba(46, 36, 64, 0.12);
+  --shadow-gold: 0 18px 44px -18px rgba(107, 79, 160, 0.28);
+  --shadow-overlay: 0 25px 50px -12px rgba(46, 36, 64, 0.25);
+
+  /*
+   * ⚠️ LA B ES PLANA: SIN DEGRADADOS. Se escriben como degradado de un solo
+   * color y no como color suelto porque estos tokens se usan en
+   * `background-image`, donde un color a secas no vale y el botón saldría
+   * transparente.
+   */
+  --boton-bronce: linear-gradient(var(--gold), var(--gold));
+  --boton-dorado: linear-gradient(var(--gold-light), var(--gold-light)); /* texto: --espresso */
+  --card-destacada: linear-gradient(160deg, var(--cacao), var(--espresso) 72%);
+  --anillo-historia: linear-gradient(var(--gold), var(--gold));
+  --capsula-degradado: linear-gradient(
+    180deg,
+    rgba(30, 22, 44, 0.45) 0%,
+    rgba(30, 22, 44, 0) 30%,
+    rgba(30, 22, 44, 0.3) 55%,
+    rgba(30, 22, 44, 0.92) 100%
+  );
+  --vidrio-fondo: rgba(46, 36, 64, 0.42);
+
+  /*
+   * ⚠️ LOS SEMÁNTICOS NO SE TIÑEN DE MORADO, Y NO ES UN OLVIDO. El verde de
+   * "guardado" y el rojo de "error" son SEÑALES, no decoración: si el error se
+   * acercara al violeta de los botones, un fallo de pago se leería como un
+   * adorno de la marca. Se dejan los de siempre, ya calibrados para fondo claro.
+   */
+}
+
+/* La palabra en cursiva de cada titular: el apoyo, no la acción. */
+html[data-paleta="b"] .clave {
+  color: var(--apoyo);
+}
+
+/* ============================================================================
+   LAS MEDIDAS DEL HOME B
+   ============================================================================
+   ⚠️ VAN EN `:root` Y NO DENTRO DE `[data-paleta="b"]` A PROPÓSITO: una
+   variable que solo existe bajo un atributo deja de resolverse en cuanto
+   alguien reutiliza la pieza fuera de la rama, y el radio se cae a 0 sin
+   avisar. Solo las usa `components/home-b/`, pero están siempre definidas.
+
+   ⚠️ LA B ES MENOS REDONDA QUE EL SITIO DE HOY, y ese es su gesto. Donde la
+   paleta de siempre pone 20-30px, la B pone 8 o 12: las fotos dejan de parecer
+   pegatinas y la página se lee más seria. La excepción son los BOTONES, que
+   siguen en píldora — es lo que mantiene reconocible la marca entre las dos
+   versiones. Todo esto sale de los screenshots de
+   `design-ref/paleta-b-claude-code/`, que son el contrato.
+   ============================================================================ */
+:root {
+  --radius-foto-b: 8px;     /* fotos, bandas, cajitas de dato */
+  --radius-dentro-b: 6px;   /* una foto DENTRO de una tarjeta: siempre menor */
+  --radius-tarjeta-b: 12px; /* tarjetas-enlace */
+  --radius-chip-b: 6px;     /* chips, badges, el +/− del acordeón */
+  --radius-precio-b: 16px;  /* la tarjeta de precio, la pieza más grande */
+
+  /*
+   * El aire lateral del home B. Un solo valor para TODAS sus secciones: es lo
+   * que hace que los márgenes izquierdo y derecho sean idénticos en toda la
+   * página, que es de lo primero que delata una maqueta hecha a trozos.
+   */
+  --aire-b: clamp(20px, 4vw, 40px);
+
+  /* El aire que usa de verdad `contenedor-b`. 16px en móvil: el `clamp` daría
+     20 y a 375px eso deja la columna estrecha de más. */
+  --aire-lateral-b: 16px;
+
+  /*
+   * El aire entre el marco de una cápsula y su foto. 3px: con 4 el marco se
+   * despega y la tarjeta deja de leerse como "historia"; con 2 la foto toca el
+   * borde y el marco parece un error de recorte.
+   */
+  --grosor-marco: 3px;
+}
+
+/*
+ * El titular de sección del home B. Es el `.titulo-seccion` de siempre con la
+ * escala de la referencia B: arranca más pequeño en móvil (36) y sube hasta 52
+ * en escritorio, donde el de siempre llega a 54. Existe aparte para no tocar el
+ * del control mientras dure el experimento.
+ */
+.titulo-seccion-b {
+  font-family: var(--font-display-src), "Cormorant Garamond", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(36px, 3.6vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  color: var(--espresso);
+}
+.sobre-oscuro .titulo-seccion-b {
+  color: var(--ivory);
+}
+
+/*
+ * El botón de ACCIÓN del home B. Existe como clase y no como `style` suelto
+ * porque sale en tres sitios (portada, precio y, con otro fondo, el cierre) y
+ * `--boton-bronce` es la única forma correcta de pedirlo: con la paleta B es el
+ * morado plano y con la de siempre, el degradado bronce.
+ */
+.boton-accion-b {
+  background-image: var(--boton-bronce);
+  color: var(--brand-primary-text);
+}
+
+/*
+ * La sección de precio es MÁS ESTRECHA que las demás (1000 contra 1200): una
+ * tarjeta de decisión a todo el ancho del monitor obliga a barrer la cabeza de
+ * un lado a otro para leer el precio y luego los beneficios.
+ */
+.contenedor-precio-b {
+  max-width: 1000px;
+}
+
+@theme inline {
+  /*
+   * El escalón de 13px que la escala general no tiene: está entre `--text-xs`
+   * (12) y `--text-sm` (14). Ya existía escrito a mano en `.ojo-nota`, y el
+   * home B lo pide en los pies de las cápsulas, los contadores y las notas.
+   * Como clase (`text-nota`) deja de aparecer como valor arbitrario suelto.
+   */
+  --text-nota: 13px;
+
+  /*
+   * El escalón de las ETIQUETAS en versales del home B: 11,5px. Va por debajo
+   * del mínimo de 12 de la escala, y se permite SOLO aquí porque son versales
+   * con tracking ancho —que se leen bastante más grandes de lo que miden— y
+   * nunca llevan texto corrido, solo una o dos palabras ("CURSO GRATUITO").
+   * Ningún párrafo baja de 14.
+   */
+  --text-micro: 11.5px;
+
+  --radius-foto-b: var(--radius-foto-b);
+  --radius-dentro-b: var(--radius-dentro-b);
+  --radius-tarjeta-b: var(--radius-tarjeta-b);
+  --radius-chip-b: var(--radius-chip-b);
+  --radius-precio-b: var(--radius-precio-b);
+}
+
+/*
+ * El contenedor de cada sección del home B: ancho máximo 1200 y el aire
+ * lateral común. En móvil el aire baja a 16px, que es lo que mide la
+ * referencia a 375px (el `clamp` ya daría 20 y ahí se ve estrecho de más).
+ */
+/*
+ * ⚠️ `@utility` Y NO UNA CLASE NORMAL (`.contenedor-b { … }`).
+ *
+ * La portada la pide como `lg:contenedor-b` —en móvil la foto va a sangre y
+ * solo desde 1024px hay contenedor—, y Tailwind NO genera variantes de una
+ * clase CSS escrita a mano: `lg:contenedor-b` no existía y simplemente no
+ * hacía nada. El resultado fue un titular pegado al borde izquierdo de la
+ * pantalla, cortado. Declarada como utilidad, Tailwind le fabrica todas las
+ * variantes (`lg:`, `md:`, `max-lg:`…).
+ *
+ * El aire lateral sale de una variable para que la utilidad quede plana: 16px
+ * en móvil (lo que mide la referencia a 375) y el `clamp` desde tableta.
+ */
+@utility contenedor-b {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: var(--aire-lateral-b);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --aire-lateral-b: var(--aire-b);
+  }
+}
+
+/*
+ * El eyebrow del home B: 11,5px y tracking .2em, con su rayita delante. Es más
+ * pequeño y más abierto que el `.eyebrow` de la paleta de siempre (12px,
+ * .18em, dorado) y además NO es del color de acción: va en el gris de los
+ * textos secundarios, porque en la B el morado está reservado al botón.
+ */
+/*
+ * ⚠️ NO DECLARA `display`, Y ES UN ARREGLO, NO UN OLVIDO. La primera versión
+ * ponía `display: flex` aquí, y como este archivo va DESPUÉS de las utilidades
+ * de Tailwind, le ganaba a `hidden` — el eyebrow "CON ELIZABETH VALENCIA", que
+ * debía salir solo en escritorio, se pintaba también en el teléfono y se
+ * montaba encima del titular. Se vio en el primer render a 375px.
+ *
+ * La disposición la ponen las utilidades en el marcado (`flex items-center
+ * gap-3`), que es donde `hidden` puede ganarles.
+ */
+.eyebrow-b {
+  font-family: var(--font-body-src), "Manrope", system-ui, sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-body);
+}
+.eyebrow-b::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+/* Centrado (precio): la rayita estorba, se quita. */
+.eyebrow-b-centrado::before {
+  display: none;
+}
+/* Dentro de un bloque oscuro, el gris no se lee: pasa al claro de la paleta. */
+.sobre-oscuro .eyebrow-b {
+  color: var(--gold-light);
+}
+
+@media (min-width: 1024px) {
+  .eyebrow-b {
+    font-size: 12px;
+    letter-spacing: 0.22em;
+  }
+  .eyebrow-b::before {
+    width: 32px;
+  }
+}
+
 @theme inline {
   /* Los 12  de marca, disponibles como clases: bg-cream, text-gold,
      border-line… Es lo que permite escribir las pantallas sin un solo hex. */
@@ -298,6 +623,9 @@
   /* El arena de los puntitos del carrusel: se declara aquí para que exista
      `bg-punto-inactivo`. En Tailwind v4 una variable de `:root` NO genera clase. */
   --color-punto-inactivo: var(--punto-inactivo);
+  /* El color de apoyo como clase (`text-apoyo`): dorado con la paleta de
+     siempre, frambuesa con la B. Ver `--apoyo` en `:root`. */
+  --color-apoyo: var(--apoyo);
   --color-cacao: var(--cacao);
   --color-espresso: var(--espresso);
   --color-ink-body: var(--ink-body);
