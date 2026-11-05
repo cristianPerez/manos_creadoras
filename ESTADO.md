@@ -127,26 +127,54 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
     completo vs. home actual" (no hay token de administración en el repo).
 · **Para mirar a mano:** `?paleta=b` · `?paleta=actual` · `?paleta=auto`
   (devuelve el mando a Flagsmith). Dura 7 días en cookie.
-· **🔴 BLOQUEADO: LA VARIANTE DE LA FLAG ESTÁ VACÍA (comprobado el 2026-11-05
-  contra la API de Flagsmith, entorno Development).** La clave
-  `FLAGSMITH_SERVER_KEY` ya está puesta en Vercel. Lo que falla es el panel:
-  `paleta_b` está encendida, pero **el valor de la variante es NULO** (peso
-  50% ✓) y el de control también. Con la regla vigente —página nueva solo si el
-  valor es exactamente `b`— los DOS grupos caen en "actual": medido en QA, 10
-  de 10 al control, mientras `?paleta=b` a mano pinta la B perfectamente. Es el
-  espejo del bug del 2026-11-05: antes vacío = B y lo veía el 100%; ahora
-  vacío = actual y no lo ve nadie.
-  — **Arreglo:** en Flagsmith → `paleta_b` → Variant_1 → **Variation Value =
-    `b`** (y Control Value = `actual`, por claridad). Hay que hacerlo **en cada
-    entorno que vaya a medir**: Development para QA y **Production antes de
-    lanzar** — el valor de la variante es común a todos los entornos, pero el
-    PESO es por entorno, así que Production se revisa igual.
-  — No hay token de administración de Flagsmith en el repo (solo la clave de
-    servidor, que es de SOLO LECTURA): lo tiene que tocar Cristian a mano.
+· **✅ EL A/B YA REPARTE EN QA (2026-11-05).** `FLAGSMITH_SERVER_KEY` está en
+  Vercel y la flag quedó bien: `paleta_b` encendida, **Control Value `actual`,
+  Variant_1 `b` al 50%**. Medido con 30 peticiones a QA, cada una con un
+  `mc_vid` distinto: **14 ven el home nuevo y 16 el de siempre** (~47/53).
+  — ⚠️ **FALTA REVISAR PRODUCTION antes de lanzar.** El VALOR de la variante es
+    común a todos los entornos (ya está puesto), pero el **PESO es por
+    entorno**: hay que confirmar que en Production la variante tiene su 50%.
+  — ⚠️ **Lo que costó un rato, por si se repite:** las dos casillas estaban
+    VACÍAS. Con la regla vigente —página nueva solo si el valor es exactamente
+    `b`— los dos grupos caían en "actual" y QA daba 10 de 10 al control, **sin
+    ningún error**, mientras `?paleta=b` a mano pintaba la B perfectamente. El
+    fallo del experimento es silencioso: parece que funciona y no mide nada.
   — **Cómo comprobarlo sin entrar al panel:** `curl -H "X-Environment-Key:
     $FLAGSMITH_SERVER_KEY" https://edge.api.flagsmith.com/api/v1/
     environment-document/` y mirar
     `multivariate_feature_state_values[].multivariate_feature_option.value`.
+  — **Cómo medir el reparto DE VERDAD:** desde el navegador NO se puede —
+    `mc_vid` es HttpOnly y no se rota con JavaScript, así que todas las cargas
+    son la misma persona (dio 19 de 20, que no es el 50%, es una sola
+    identidad). Hay que pedir N veces con `curl -H "Cookie: mc_vid=<uuid>"`.
+· **El logo de la app lleva a la página de ventas** (`NavegacionApp.tsx`,
+  2026-11-05): antes apuntaba a `/app`, así que desde dentro no hacía nada
+  visible y no había forma de volver al home sin escribir la dirección. Para
+  moverse DENTRO de la app está la barra, donde "Mis proyectos" sigue siendo
+  `/app`. Verificado: los dos logos (grande y chico) van a `/`.
+· ⚠️ **EL COLOR DEL REPRODUCTOR DE BUNNY NO SE PUEDE CAMBIAR POR VISITA.** Se
+  intentó pasarlo en la dirección del reproductor para que la B lo tuviera
+  violeta en vez del dorado (#D9B97A) que hoy se ve también sobre el lavanda.
+  **Bunny lo ignora:** probadas `primaryColor`, `primary_color`, `color`,
+  `playerColor` y `accentColor` contra un enlace firmado real — las cinco
+  dejan `--plyr-color-main: #D9B97A`. Ese color es un ajuste **de la
+  biblioteca entera** en el panel de Bunny, así que no puede valer dos cosas a
+  la vez mientras el A/B esté corriendo. El código que lo intentaba se quitó
+  (no hacía nada). Opciones cuando se decida: (a) dejarlo hasta que gane una
+  versión, (b) poner en el panel un color neutro que sirva a las dos, o (c)
+  cambiarlo a violeta aceptando que la versión A también lo vería.
+· **El tinte de las fotos en la paleta B** (`app/globals.css`, final): las
+  fotos son de luz cálida y sobre el lavanda tiraban a dorado. Se tiñen con
+  `--tinte-foto-b` sobre `img`, menos los `.svg`. **Bajado un 20% el
+  2026-11-05** (Cristian): de `saturate .82 · hue-rotate −10° · brightness
+  1.03` a `saturate .856 · hue-rotate −8° · brightness 1.024`. ⚠️ Se rebaja lo
+  que cada filtro SE SEPARA de no hacer nada (0,18 → 0,144), no el número a
+  secas: bajar 0,82 a 0,66 habría teñido MÁS. ⚠️ **No usar una capa `::after` con `:has(> img)`:
+  se probó y el contenedor directo de una foto NO siempre es su marco** — el
+  velo caía sobre la sección entera de la profesora, las tarjetas de curso
+  gratis y navidad y el grupo de avatares, apagándoles el texto. Un filtro solo
+  puede alcanzar los píxeles de la foto. Verificado: 22 de 22 fotos con tinte
+  en la B, **0 de 22 en la A**.
 · **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en todos
   los eventos. `boton_click` lleva además `cta` en los cuatro botones gratis
   de la B: `heroe_gratis`, `cierre_gratis`, `tarjeta_bolso_gratis`,
@@ -183,9 +211,29 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   opciones grandes con el precio por mes dentro, etiqueta "−50%" que salta
   hasta que se elige el anual y la línea "Con el anual pagas ~~14,60~~ 7,30/mes
   · cámbiate".
-· ⚠️ **PROVISIONAL:** la foto de velas del carrusel
-  (`public/images/topo/vela-osos-auto.webp`) y su nombre "Velas aromáticas" —
-  esperan el nombre y la foto reales de Cristian.
+· **El carrusel del héroe: SIETE piezas intercaladas** (2026-11-05, Cristian):
+  bolso → accesorio → vela, dos vueltas y cierra con bolso —
+  `1 Nácar Soñado (gratis) · 2 Bastón de Navidad · 3 Girasoles de cera ·
+  4 Anillos de Seda · 5 Bolas de Navidad · 6 Carro de ositos · 7 Boho`.
+  Las velas llevan de subtítulo **"Velas de lujo"** (antes "Aromáticas de
+  lujo") y ⚠️ **ningún nombre de vela repite esa palabra**: "Velas aromáticas"
+  pasó a "Carro de ositos", porque las dos líneas de la etiqueta se leen juntas
+  y "Velas aromáticas · Velas de lujo" sonaba a tartamudeo. Comprobado en los
+  7: ninguna etiqueta se solapa ni se sale, y a 375px todos los nombres caben
+  en una línea. ⚠️ En la FRASE del héroe sigue diciendo "aromáticas de lujo"
+  a propósito: ahí la palabra que rota ya dice "velas", y "Crea velas · velas
+  de lujo" sería la misma repetición al revés.
+  Antes eran casi todo bolsos con una vela en medio: la palabra que rota
+  prometía "accesorios", "adornos" y "velas" y la galería solo enseñaba bolsos.
+  El orden se construye tomando una pieza de cada lista por vuelta (no a mano),
+  así no se descuadra cuando entre un bolso o una vela nueva.
+  — **Fotos nuevas** (`public/images/topo/`): `baston-navidad.webp`,
+    `bolas-navidad.webp`, `vela-girasoles.webp`. Recortadas en cuadrado
+    centrado y pasadas a **720×720 webp** con `sharp` (calidad 72), que es el
+    estándar del resto de fotos del carrusel: de 268/320/204 KB a **20/60/40 KB**.
+  — ⚠️ **SIGUE PROVISIONAL** la 6ª, `vela-osos-auto.webp` / "Velas aromáticas":
+    espera foto y nombre reales de Cristian. Es además la que menos parece una
+    vela de las dos.
 · **Dónde vive:** `components/home-b/`, tokens en `app/globals.css`
   (`html[data-paleta="b"]` + "LOS TRES NIVELES DE PROFUNDIDAD"), interruptor en
   `lib/flags.ts` + `lib/paleta-servidor.ts` + `middleware.ts`. Capturas de
