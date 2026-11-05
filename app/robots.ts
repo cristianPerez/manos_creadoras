@@ -26,15 +26,15 @@ export default function robots(): MetadataRoute.Robots {
 
   if (!esProduccion) {
     /*
-     * ⚠️ TEMPORAL (2026-10-18): fuera de producción SE DEJA RASTREAR, y es a
-     * propósito. QA estuvo abierta con `Disallow: /` y sin `noindex`, así que
-     * Google pudo indexar URLs sin poder volver a entrar a ver que no debía.
-     * Para sacarlas del índice tiene que RASTREARLAS y leer el
-     * `X-Robots-Tag: noindex` que ahora manda `next.config.ts`. Con `Disallow`
-     * nunca lo vería.
+     * Fuera de producción SE DEJA RASTREAR, y es a propósito. Lo que saca a QA
+     * de Google es el `X-Robots-Tag: noindex, nofollow` que `next.config.ts`
+     * pone en TODA respuesta fuera de producción. Para leerlo, Google tiene que
+     * poder entrar: con `Disallow: /` no lo vería nunca y podría seguir
+     * listando URLs de QA que alguien enlazó (pasó entre sept y oct de 2026).
      *
-     * Cuando Search Console ya no muestre nada de qa.manoscreadoras.co,
-     * volver a: `return { rules: [{ userAgent: "*", disallow: "/" }] };`
+     * ⚠️ NO VOLVER A `disallow: "/"`. Antes este bloque decía que era temporal;
+     * desde 2026-11-05 es la regla definitiva: rastrear + noindex es lo único
+     * que garantiza que QA no aparezca en Google.
      */
     return { rules: [{ userAgent: "*", allow: "/" }] };
   }
@@ -45,11 +45,31 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         /*
-          La app interna no tiene nada que buscar: son pantallas de alumnas que
-          además la base no entregaría sin sesión. Que Google no gaste tiempo
-          ahí — lo que tiene que encontrar es la página de ventas.
+          ⚠️ ACTUALIZADO EL 2026-11-05. Bloqueaba `/cuenta` y `/ojo-experto`,
+          rutas que dejaron de existir cuando la app pasó a vivir en `/app`, y
+          dejaba todo `/app/*` abierto.
+
+          SE DEJA ABIERTO a propósito: `/app` (el catálogo) y las fichas
+          `/app/bolsos/<slug>` — tienen fotos y nombres de los proyectos, y
+          pueden traer búsquedas como "bolso de perlas paso a paso".
+
+          SE CIERRA lo que no tiene nada que buscar: las pantallas personales
+          de la alumna, las lecciones (`/app/bolsos/<slug>/<orden>`, el video va
+          firmado y sin membresía no se ve), el salto a los enlaces del
+          directorio, el pago, el login y lo técnico.
         */
-        disallow: ["/cuenta", "/ojo-experto", "/auth/", "/api/"],
+        disallow: [
+          "/app/bolsos/*/",
+          "/app/cuenta",
+          "/app/plan",
+          "/app/ojo",
+          "/app/directorio/ir/",
+          "/pagar",
+          "/bienvenida",
+          "/entrar",
+          "/auth/",
+          "/api/",
+        ],
       },
     ],
   };
