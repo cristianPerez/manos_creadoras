@@ -104,9 +104,26 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
     completo vs. home actual" (no hay token de administración en el repo).
 · **Para mirar a mano:** `?paleta=b` · `?paleta=actual` · `?paleta=auto`
   (devuelve el mando a Flagsmith). Dura 7 días en cookie.
-· **🔴 BLOQUEADO PARA QA EN VERCEL: falta `FLAGSMITH_SERVER_KEY` en Vercel**
-  (Preview y Production, marcada *Sensitive*). En `.env.local` ya existe. Sin
-  ella todo el mundo ve el sitio de siempre, sin error.
+· **🔴 BLOQUEADO: LA VARIANTE DE LA FLAG ESTÁ VACÍA (comprobado el 2026-11-05
+  contra la API de Flagsmith, entorno Development).** La clave
+  `FLAGSMITH_SERVER_KEY` ya está puesta en Vercel. Lo que falla es el panel:
+  `paleta_b` está encendida, pero **el valor de la variante es NULO** (peso
+  50% ✓) y el de control también. Con la regla vigente —página nueva solo si el
+  valor es exactamente `b`— los DOS grupos caen en "actual": medido en QA, 10
+  de 10 al control, mientras `?paleta=b` a mano pinta la B perfectamente. Es el
+  espejo del bug del 2026-11-05: antes vacío = B y lo veía el 100%; ahora
+  vacío = actual y no lo ve nadie.
+  — **Arreglo:** en Flagsmith → `paleta_b` → Variant_1 → **Variation Value =
+    `b`** (y Control Value = `actual`, por claridad). Hay que hacerlo **en cada
+    entorno que vaya a medir**: Development para QA y **Production antes de
+    lanzar** — el valor de la variante es común a todos los entornos, pero el
+    PESO es por entorno, así que Production se revisa igual.
+  — No hay token de administración de Flagsmith en el repo (solo la clave de
+    servidor, que es de SOLO LECTURA): lo tiene que tocar Cristian a mano.
+  — **Cómo comprobarlo sin entrar al panel:** `curl -H "X-Environment-Key:
+    $FLAGSMITH_SERVER_KEY" https://edge.api.flagsmith.com/api/v1/
+    environment-document/` y mirar
+    `multivariate_feature_state_values[].multivariate_feature_option.value`.
 · **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en todos
   los eventos. `boton_click` lleva además `cta` en los cuatro botones gratis
   de la B: `heroe_gratis`, `cierre_gratis`, `tarjeta_bolso_gratis`,
