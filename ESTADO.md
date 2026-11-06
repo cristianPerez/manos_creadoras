@@ -13,8 +13,42 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
+👆 **TOQUES EN VACÍO Y EL BOTÓN DE PAGAR (2026-11-06, rama `home-b-v2-vendedor`,
+SIN COMMITEAR).** Sale de Mixpanel (30 días, leído en el Chrome de Cristian
+con la consulta interna de Insights: la API sigue cerrada en el plan gratis):
+455 "Dead Click", 58% en el home.
+· **El botón de pagar no reaccionaba:** 12 de las 18 personas que abrieron el
+  pago lo tocaron sin ver nada (23 toques, hasta 4 por persona; también la
+  única compradora). OnePay tarda y el botón no decía nada. Ahora
+  `EnlaceCompra` cambia en el acto a "Abriendo el pago seguro…", bloquea el
+  2º toque; a los 4 s sin salir pasa a "Está tardando, reintenta" + "No se te
+  cobró nada… WhatsApp"; al volver atrás se restablece (`useAbrirPago`).
+  ⚠️ El botón de **Mi plan** (`SelectorDePago`) era un `<Link>` suelto que
+  **NO medía `checkout_abierto`**: ahora va por `EnlaceCompra`, origen
+  `pagina_plan`. El embudo de antes subcontaba quién abría el pago desde ahí.
+· **Fotos:** carrusel del home de siempre (70 toques, 42 personas) y del home
+  B → tocar la foto pasa a la siguiente (sin doble salto con las flechas ni al
+  deslizar). Foto de Navidad del home de siempre (40 toques, 21 personas) →
+  lleva a `#precio` con origen `navidad_pieza`, como ya hacía `NavidadB`.
+· **Enlaces lentos:** la app no tenía ningún `loading.tsx`. Ahora hay
+  esqueletos (`components/app/Esqueletos.tsx`) en `(conbarra)` y en la ficha,
+  y `VeloCargando` (`useLinkStatus`) en las tarjetas de bolso, "Ver los
+  proyectos" (46 toques, 30 personas) y "Empezar mi bolso gratis" del home B.
+· **Revisor visual (6 rondas):** última medida **34/40 · 16/20 — NO LISTA**
+  (craft pasa; usabilidad a 2 del mínimo). Después se aplicaron sus dos
+  arreglos de accesibilidad (aviso a los 4 s, anuncio de carga montado vacío),
+  sin nueva ronda. Queda su 3er punto: en estado "tardo" el aviso y la línea
+  "Pago seguro · acceso por correo…" se leen como un solo bloque gris.
+  ⚠️ FICHA-ARTE.md dice "Jost" y el sitio usa Manrope desde el 2026-10-09: la
+  ficha está desfasada (no se tocó; es decisión de arte).
+· **Pendiente:** la pantalla puente antes de OnePay (qué se lleva, precio en
+  su moneda, aviso del código de WhatsApp) — diseñada, sin construir. ⚠️ De
+  Cristian: mirar en OnePay si se puede quitar el WhatsApp previo o mostrar
+  "USD", y si PSE/Nequi funcionan en el plan en dólares. Foto de Elizabeth
+  (13 toques) y "Activar sonido" (12) sin tocar.
+
 📒 **EL AVANCE GUARDA EL MINUTO · AUDITORÍA DE LA BASE (2026-11-06, migraciones
-0047 + 0048, EN QA, SIN COMMITEAR).** Salió de auditar las 26 tablas de
+0047 + 0048, APLICADAS EN QA Y PRODUCCIÓN; código en PR #14 a main).** Salió de auditar las 26 tablas de
 producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
 · **Lo que NO era cierto:** el avance sí se registraba solo desde el 2026-11-04
   (al 80% del video). `progreso` está vacía en producción porque **nadie ha
@@ -53,7 +87,7 @@ producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
   pantalla las escribía** — y las dos se LEEN (el saludo de `/app` decía "Hola
   de nuevo" a todo el mundo; el Ojo Experto respondía sin saber su nombre ni qué
   le cuesta). Las notas solo salen con plan.
-· ⚠️ **PRODUCCIÓN NO SE HA TOCADO.** Las dos migraciones están solo en QA.
+· ✅ **0047 + 0048 APLICADAS EN PRODUCCIÓN el 2026-11-06** (`db push` tras `--dry-run`; historial 49/49). El código va en el PR #14 (develop → main): ya se puede fusionar.
 · **Verificado en QA con alumna de prueba real:** `tsc` ✓ · `eslint` ✓ · `build` ✓ ·
   registro de cuenta nueva ✓ · guardar nombre+notas ✓ (el saludo pasó a "HOLA,
   ELIZABETH" y el avatar de AD a EV) · reproducir → fila con `segundo: 30`,

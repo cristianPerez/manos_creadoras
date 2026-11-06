@@ -4,6 +4,7 @@ import { usePrecios } from "@/components/app/Precios";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { VeloCargando } from "@/components/app/VeloCargando";
 import { useRef, useState } from "react";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { NumeroQueCuenta } from "@/components/home/NumeroQueCuenta";
@@ -35,6 +36,9 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
   const pr = usePrecios();
   const [i, setI] = useState(0);
   const tocado = useRef<number | null>(null);
+  /* Si el dedo se deslizó, el `click` que el navegador dispara después NO es
+     un toque: ya pasó la foto el gesto, y contarlo la pasaría dos veces. */
+  const deslizo = useRef(false);
 
   if (fotos.length === 0) return null;
 
@@ -74,7 +78,10 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
               const d = e.changedTouches[0].clientX - tocado.current;
               // 50px de umbral: por debajo suele ser un scroll vertical torcido,
               // no un gesto de pasar foto.
-              if (Math.abs(d) > 50) ir(d < 0 ? i + 1 : i - 1);
+              if (Math.abs(d) > 50) {
+                ir(d < 0 ? i + 1 : i - 1);
+                deslizo.current = true;
+              }
               tocado.current = null;
             }}
           >
@@ -110,7 +117,23 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
               foto casi cuadrada de antes no cabían. 4:3 sigue enseñando el
               bolso entero (asa incluida) y libera ~90px.
             */}
-            <div className="bg-espresso relative aspect-square overflow-hidden rounded-(--radius-foto) max-md:aspect-[4/3] max-md:rounded-bloque">
+            {/*
+              ⚠️ TOCAR LA FOTO PASA A LA SIGUIENTE (2026-11-06). Era lo más
+              tocado "en vacío" de todo el sitio: 70 toques de 42 personas en
+              30 días (Mixpanel). Solo respondía al deslizar, y quien llega de
+              Instagram toca la foto como toca una historia. Las flechas y el
+              teclado siguen ahí para quien no use el dedo.
+            */}
+            <div
+              className="bg-espresso relative aspect-square cursor-pointer overflow-hidden rounded-(--radius-foto) [touch-action:manipulation] max-md:aspect-[4/3] max-md:rounded-bloque"
+              onClick={() => {
+                if (deslizo.current) {
+                  deslizo.current = false;
+                  return;
+                }
+                ir(i + 1);
+              }}
+            >
               {/* `key` por slug: al cambiar de bolso React monta una imagen
                   nueva, y con `animate-[aparecer]` el cambio se funde en vez de
                   saltar. */}
@@ -247,9 +270,12 @@ export function HeroSlider({ fotos }: { fotos: FotoHero[] }) {
             */}
             <Link
               href="/app"
-              className="border-line text-espresso flex h-14 items-center justify-center rounded-full border px-8 font-semibold max-md:h-12 max-md:rounded-md"
+              className="border-line text-espresso relative flex h-14 items-center justify-center overflow-hidden rounded-full border px-8 font-semibold transition-transform active:scale-[0.98] max-md:h-12 max-md:rounded-md"
             >
               Ver los proyectos
+              {/* 46 toques en vacío de 30 personas en 30 días (Mixpanel,
+                  2026-11-06): el enlace funcionaba pero tardaba sin decir nada. */}
+              <VeloCargando />
             </Link>
           </div>
 

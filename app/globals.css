@@ -947,6 +947,12 @@ body {
 .sobre-oscuro .clave {
   color: var(--gold-pale);
 }
+/* El aviso "No se te cobró nada…" de `EnlaceCompra` cuando el pago tarda: el
+   botón vive tanto en tarjetas claras como en espresso, y el aviso no sabe en
+   cuál está. Claro por defecto (`text-ink-body`); aquí, el par de oscuro. */
+.sobre-oscuro .aviso-pago {
+  color: var(--on-dark-muted);
+}
 
 /* Una fila con scroll lateral (las dudas del mini Ojo en móvil): se desliza
    con el dedo, sin la barra gris que en escritorio aparece debajo. */

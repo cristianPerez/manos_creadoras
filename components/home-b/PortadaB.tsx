@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import { VeloCargando } from "@/components/app/VeloCargando";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { NumeroQueCuenta } from "@/components/home/NumeroQueCuenta";
@@ -139,6 +140,9 @@ export function PortadaB({
   const [parado, setParado] = useState(false);
   const [encima, setEncima] = useState(false);
   const tocado = useRef<number | null>(null);
+  /* Si el dedo se deslizó, el `click` que llega después no es un toque: el
+     gesto ya pasó la foto, y contarlo la pasaría dos veces. */
+  const deslizo = useRef(false);
 
   /* `useCallback`: si cambiara en cada render, el intervalo de `TextoQueRota`
      se reiniciaría y la palabra no llegaría a rotar nunca. */
@@ -257,7 +261,10 @@ export function PortadaB({
           if (tocado.current === null) return;
           const d = e.changedTouches[0].clientX - tocado.current;
           // 50px de umbral: por debajo suele ser un scroll vertical torcido.
-          if (Math.abs(d) > 50) irAMano(d < 0 ? i + 1 : i - 1);
+          if (Math.abs(d) > 50) {
+            irAMano(d < 0 ? i + 1 : i - 1);
+            deslizo.current = true;
+          }
           tocado.current = null;
         }}
       >
@@ -296,7 +303,24 @@ export function PortadaB({
           bajarle el techo de alto, la foto se iba estrechando (463 en vez de
           los 503 de su columna) y dejaba un hueco al lado.
         */}
-        <div className="bg-sand relative aspect-square max-h-[calc(100svh-340px)] w-full overflow-hidden lg:aspect-[1/1.08] lg:h-auto lg:max-h-[calc(100svh-200px)] lg:rounded-foto-b">
+        {/*
+          ⚠️ TOCAR LA FOTO PASA A LA SIGUIENTE (2026-11-06): en el home de
+          siempre la foto del carrusel era lo más tocado "en vacío" del sitio
+          (70 toques de 42 personas en 30 días, Mixpanel) y aquí ya sumaba 7.
+          Las flechas van DENTRO de la foto: su toque se ignora aquí para no
+          avanzar dos veces.
+        */}
+        <div
+          className="bg-sand relative aspect-square max-h-[calc(100svh-340px)] w-full cursor-pointer overflow-hidden [touch-action:manipulation] lg:aspect-[1/1.08] lg:h-auto lg:max-h-[calc(100svh-200px)] lg:rounded-foto-b"
+          onClick={(e) => {
+            if (deslizo.current) {
+              deslizo.current = false;
+              return;
+            }
+            if ((e.target as HTMLElement).closest("button")) return;
+            irAMano(i + 1);
+          }}
+        >
           <Image
             /* `key` por slug: al cambiar de proyecto React monta una imagen
                nueva y `animate-[aparecer]` funde el cambio en vez de saltar. */
@@ -456,11 +480,13 @@ export function PortadaB({
         <Link
           href={destinoGratis}
           data-cta="heroe_gratis"
-          className="boton-accion-b flex h-13 items-center justify-center gap-2.5 rounded-full text-[17px] font-bold transition-transform active:scale-[0.98] lg:h-14 lg:px-7.5"
+          className="boton-accion-b relative flex h-13 items-center justify-center gap-2.5 overflow-hidden rounded-full text-[17px] font-bold transition-transform active:scale-[0.98] lg:h-14 lg:px-7.5"
           style={{ boxShadow: "var(--sombra-accion-b)" }}
         >
           <Play size={17} fill="currentColor" aria-hidden="true" />
           Empezar mi bolso gratis
+          {/* La ficha del bolso tarda en armarse: el toque se ve en el acto. */}
+          <VeloCargando />
         </Link>
 
         {/* ⚠️ LA OFERTA ARRIBA, COMO TEXTO Y NO COMO OTRO BOTÓN (reparo nº 3):
