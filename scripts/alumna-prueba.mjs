@@ -59,23 +59,21 @@ async function crear(correo) {
   if (e1) throw new Error(`No se pudo crear la cuenta: ${e1.message}`);
 
   /*
-   * ⚠️ `profiles.status` y `profiles.plan` YA NO DECIDEN NADA. Desde la
-   * migración 0014 eso vive en `membresias`, y quien manda es `tiene_acceso_de`.
-   * Se siguen rellenando porque las columnas existen y alguna pantalla vieja
-   * aún las lee, pero el acceso se da abajo, con `dar_membresia`.
+   * ⚠️ AQUÍ YA NO SE ESCRIBE NINGÚN ESTADO DE PAGO (2026-11-06). Este objeto
+   * llevaba `status`, `plan`, `first_paid_at` y `access_until`, columnas de
+   * cuando el cobro era Hotmart: desde la migración 0014 el acceso lo decide
+   * `membresias` y ninguna pantalla las leía ya. La 0047 las BORRÓ de la tabla,
+   * así que mandarlas aquí haría fallar el script con "column does not exist".
+   *
+   * Lo único que queda es quién es: su correo y su nombre. El acceso se da
+   * abajo con `dar_membresia`, que es lo que de verdad abre la puerta, y el
+   * caso "cancelada" lo arma `cancelar_membresia` con su propia fecha.
    */
   const perfil = {
     id: creado.user.id,
     email: correo,
     nombre: "Alumna de Prueba",
-    status: estado,
-    plan,
-    first_paid_at: new Date().toISOString(),
   };
-  // Si la simulamos cancelada, le dejamos 20 días de período ya pagado.
-  if (estado === "cancelled") {
-    perfil.access_until = new Date(Date.now() + 20 * 24 * 3600 * 1000).toISOString();
-  }
 
   /*
    * `upsert` y no `insert`.
@@ -149,6 +147,13 @@ async function crear(correo) {
   console.log(`\n✅ Alumna de prueba lista`);
   console.log(`   Correo: ${correo}`);
   console.log(`   Plan:   ${plan}  ·  Estado: ${estado}`);
+  /* Honestidad: solo "active" crea membresía. Pedir "cancelled" deja una cuenta
+     GRATIS, no una cancelada con período pendiente — eso lo hace
+     `cancelar_membresia`, que este script nunca ha llamado. Antes se disimulaba
+     escribiendo `access_until`, una columna que nadie leía (borrada en la 0047). */
+  if (estado !== "active") {
+    console.log(`   ⚠️  "${estado}" no crea membresía: queda como cuenta gratis.`);
+  }
   console.log(`\n🔗 Pega este enlace en tu navegador para entrar como ella:\n`);
   console.log(`   ${entrar}\n`);
   console.log(`   (El enlace sirve una sola vez. Vuelve a correr el comando si lo gastas.)`);

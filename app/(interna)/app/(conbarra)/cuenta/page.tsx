@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import { UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ActivarAvisos } from "@/components/app/ActivarAvisos";
 import { BotonCerrarSesion } from "@/components/app/BotonCerrarSesion";
 import { FormularioAcceso } from "@/components/app/FormularioAcceso";
+import { FormularioPerfil } from "@/components/app/FormularioPerfil";
+import { IconChip } from "@/components/app/IconChip";
 import { EyebrowLinea } from "@/components/home/EyebrowLinea";
 import { alumnaActual, cupoActual } from "@/lib/alumna";
 import { preciosDeLaPagina } from "@/lib/precios";
@@ -152,6 +155,35 @@ export default async function MiCuenta() {
                 </p>
               </Tarjeta>
             )}
+
+            {/*
+              ⚠️ ESTA TARJETA NO EXISTÍA Y ERA UN HUECO REAL (2026-11-06).
+              `profiles.nombre` y `notas_tejido` estaban al 100% nulas en
+              producción porque ninguna pantalla las escribía — y las dos se
+              leen (el saludo de /app y el contexto del Ojo Experto). Va a lo
+              ancho de la rejilla: es un formulario, no un dato de una línea.
+            */}
+            <section className="bg-ivory border-line rounded-lg border p-5 sm:col-span-2">
+              {/* En `font-display` y más grande que las etiquetas de los campos:
+                  con el mismo sans semibold de las dos, al entrecerrar los ojos
+                  no había nivel 2 contra nivel 4 (lo marcó el revisor visual).
+                  El chip y la cursiva de acento son el detalle firma de la casa
+                  (`.clave`, la misma de los titulares del home): sin ellos la
+                  tarjeta era un formulario de cualquier app. */}
+              <div className="flex items-center gap-3">
+                <IconChip icon={UserRound} size={40} />
+                <h2 className="font-display text-espresso text-xl" style={{ fontWeight: 500 }}>
+                  Cómo te <em className="clave">llamamos</em>
+                </h2>
+              </div>
+              <div className="mt-4">
+                <FormularioPerfil
+                  nombre={alumna.nombre}
+                  notas={alumna.notasTejido}
+                  conOjo={alumna.tieneAcceso}
+                />
+              </div>
+            </section>
 
             <Tarjeta titulo="Avisos de modelos nuevos">
               <ActivarAvisos />
