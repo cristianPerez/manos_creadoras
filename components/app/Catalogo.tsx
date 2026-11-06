@@ -65,7 +65,12 @@ export function Catalogo({
       <div
         role="group"
         aria-label="Filtrar proyectos"
-        className="sin-barra -mx-4 mt-6 flex gap-2.5 overflow-x-auto px-4 lg:mx-0 lg:mt-8 lg:flex-wrap lg:px-0"
+        /* A 375px "Terminados 0" quedaba cortado por el borde y se leía como
+           un error (revisor visual, 2026-11-06). Se probó fundir el borde y
+           era peor: el chip seguía medio borrado incluso al final del
+           desplazamiento. Ahora los tres CABEN: gap y padding de los chips un
+           paso más chicos solo en el celular. */
+        className="sin-barra -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:mt-8 lg:flex-wrap lg:gap-2.5 lg:px-0"
       >
         {(
           [
@@ -81,7 +86,7 @@ export function Catalogo({
               type="button"
               aria-pressed={activo}
               onClick={() => setFiltro(id)}
-              className={`flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-5 text-base whitespace-nowrap transition-colors [touch-action:manipulation] ${
+              className={`flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 text-base whitespace-nowrap lg:px-5 transition-colors [touch-action:manipulation] ${
                 activo
                   ? "bg-espresso border-espresso text-cream font-semibold"
                   : "border-line-strong text-espresso hover:bg-sand"

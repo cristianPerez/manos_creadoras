@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { VeloCargando } from "@/components/app/VeloCargando";
 import { estadoDe, medidasEnTexto, type Bolso } from "@/lib/bolsos-logica";
 
 /**
@@ -17,12 +18,16 @@ export function TarjetaBolso({ bolso, bloqueado }: { bolso: Bolso; bloqueado: bo
   return (
     <Link
       href={`/app/bolsos/${bolso.slug}`}
-      className="group block focus-visible:outline-none"
+      /* `active:scale` y no solo hover: en el celular el hover no existe y el
+         toque no tenía respuesta en el primer fotograma (revisor, 2026-11-06). */
+      className="group block transition-transform active:scale-[0.98] [touch-action:manipulation] focus-visible:outline-none"
       aria-label={`${bolso.nombre}${bloqueado ? " — necesita un plan de pago" : ""}`}
     >
       {/* Foto 4:5 (app interna, 2026-10-23): los bolsos son verticales y en
           cuadrado se cortaba el asa. */}
-      <div className="bg-espresso relative aspect-[4/5] overflow-hidden rounded-lg">
+      {/* El foco de teclado se dibuja aquí: el enlace quita su contorno y,
+          sin esto, quien navega con teclado no veía en qué tarjeta estaba. */}
+      <div className="bg-espresso ring-offset-cream group-focus-visible:ring-cacao relative aspect-[4/5] overflow-hidden rounded-lg group-focus-visible:ring-2 group-focus-visible:ring-offset-2">
         {bolso.portadaUrl ? (
           <Image
             src={bolso.portadaUrl}
@@ -47,6 +52,8 @@ export function TarjetaBolso({ bolso, bloqueado }: { bolso: Bolso; bloqueado: bo
         )}
 
         <Etiqueta estado={estado} gratis={bolso.gratis} bloqueado={bloqueado} />
+        {/* El toque se ve en el acto aunque la ficha tarde (2026-11-06). */}
+        <VeloCargando />
       </div>
 
       <h3
