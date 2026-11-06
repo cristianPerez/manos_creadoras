@@ -104,14 +104,26 @@ export function Navidad() {
         </div>
 
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
-          {/* ── La foto. Primera en el DOM a propósito: ver la cabecera. ── */}
-          <Image
-            src="/images/navidad-accesorios.webp"
-            alt="Bandeja con una veintena de accesorios navideños tejidos en perlas y cristal: esferas, campanas, coronas, copos de nieve, estrellas, bastones de caramelo, renos, caballitos, moños, lunas, caritas de Papá Noel y cajitas de regalo"
-            width={900}
-            height={994}
-            sizes="(min-width: 768px) 560px, 100vw"
-            /*
+          {/* ── La foto. Primera en el DOM a propósito: ver la cabecera. ──
+              ⚠️ ES TOCABLE Y LLEVA AL PRECIO (2026-11-06): sin enlace era lo
+              2º más tocado "en vacío" del sitio —40 toques de 21 personas en
+              30 días (Mixpanel)—. Quien toca una pieza que le gusta pregunta
+              "¿cómo la consigo?", y la respuesta es el plan. Igual que en
+              `home-b/NavidadB.tsx`, que ya lo hacía. */}
+          <EnlaceCompra
+            href="#precio"
+            origen="navidad_pieza"
+            plan={FRECUENCIA_POR_DEFECTO}
+            ariaLabel="Ver el plan que incluye los accesorios navideños"
+            className="block rounded-(--radius-foto) transition-transform active:scale-[0.99]"
+          >
+            <Image
+              src="/images/navidad-accesorios.webp"
+              alt="Bandeja con una veintena de accesorios navideños tejidos en perlas y cristal: esferas, campanas, coronas, copos de nieve, estrellas, bastones de caramelo, renos, caballitos, moños, lunas, caritas de Papá Noel y cajitas de regalo"
+              width={900}
+              height={994}
+              sizes="(min-width: 768px) 560px, 100vw"
+              /*
               ⚠️ CUADRADA Y RECORTADA, NO AL ALTO NATURAL (2026-11-02, pedido de
               Cristian). La foto es 900×994 y puesta a su alto real se veía
               alargada, sobre todo en escritorio, donde estiraba la columna muy
@@ -119,14 +131,18 @@ export function Navidad() {
               recorta 94px repartidos arriba y abajo: la bandeja está centrada,
               así que no se pierde ninguna pieza.
             */
-            className="aspect-square w-full rounded-(--radius-foto) object-cover"
-            /* El halo dorado de la ficha, que es su detalle firma. Aquí hace
+              className="aspect-square w-full rounded-(--radius-foto) object-cover"
+              /* El halo dorado de la ficha, que es su detalle firma. Aquí hace
                falta además por una razón práctica: dentro de una franja que
                Cristian quiso PLANA y a sangre, es lo único que separa la foto
                del fondo como nivel elevado, en vez de dejarla pegada encima
                (revisor, 2026-11-02: "profundidad de un solo nivel"). */
-            style={{ boxShadow: "0 20px 60px -20px color-mix(in srgb, var(--gold) 40%, transparent)" }}
-          />
+              style={{
+                boxShadow:
+                  "0 20px 60px -20px color-mix(in srgb, var(--gold) 40%, transparent)",
+              }}
+            />
+          </EnlaceCompra>
 
           {/*
             ── El texto y el CTA ──
@@ -171,8 +187,8 @@ export function Navidad() {
               <p className="text-on-dark-muted text-balance">
                 12 piezas en perla y cristal, incluidas en tu membresía: los
                 videos paso a paso{" "}
-                <span className="text-gold-pale">se publican en diciembre</span>.
-                Para regalar algo hecho por ti que no parezca casero.
+                <span className="text-gold-pale">se publican en diciembre</span>
+                . Para regalar algo hecho por ti que no parezca casero.
               </p>
             </Entrada>
 
@@ -209,13 +225,18 @@ export function Navidad() {
                   líneas a 375px y un rótulo de dos renglones deja de leerse
                   como rótulo. El plazo está dos líneas más arriba, en dorado,
                   dentro de la frase donde está la promesa. */}
-              <p className="eyebrow text-gold-pale mb-3">Lo que vas a tejer · 12 videos</p>
+              <p className="eyebrow text-gold-pale mb-3">
+                Lo que vas a tejer · 12 videos
+              </p>
               {/* `last:pb-0`: cada ítem lleva su `pb-2.5` para separarse del
                   siguiente, y el último se lo come el padding de la caja —
                   el aire de abajo se veía menor que el de arriba (revisor). */}
               <ul className="columns-2 gap-x-3 [&>li:last-child]:pb-0">
                 {PIEZAS.map((pieza) => (
-                  <li key={pieza} className="flex break-inside-avoid items-start gap-2.5 pb-2.5">
+                  <li
+                    key={pieza}
+                    className="flex break-inside-avoid items-start gap-2.5 pb-2.5"
+                  >
                     <span
                       aria-hidden="true"
                       className="bg-gold-pale mt-[0.55em] size-1.5 shrink-0 rounded-full"
