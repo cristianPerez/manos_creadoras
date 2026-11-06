@@ -29,6 +29,7 @@ export function ReproductorEnSitio({
   className,
   onReproduciendo,
   onProgreso,
+  arrancarEnSegundo,
   arrancarAlMontar,
 }: {
   /** La URL FIRMADA del embed. La firma el servidor: la clave nunca baja aquí. */
@@ -47,6 +48,15 @@ export function ReproductorEnSitio({
    * marcarlo como visto al 80% (2026-11-04).
    */
   onProgreso?: (segundos: number, duracion: number) => void;
+  /**
+   * El segundo por donde retomar (2026-11-06). 0 o sin valor = desde el principio.
+   *
+   * ⚠️ NO BASTA CON PEDIRLO AL MONTAR: el reproductor no escucha hasta que
+   * manda `ready`, igual que con la suscripción a los eventos. Y se vuelve a
+   * pedir en CADA `ready`, porque el iframe se remonta solo si el navegador
+   * obliga a silenciarlo —cambia su `key`— y ese remonte volvía al segundo 0.
+   */
+  arrancarEnSegundo?: number;
   /**
    * Arranca sin esperar a que toquen el póster.
    *
@@ -83,6 +93,12 @@ export function ReproductorEnSitio({
    * respuesta se queda, que es el lado seguro.
    */
   const [vecesPedido, setVecesPedido] = useState(0);
+  /*
+   * El último segundo que Bunny nos contó. Sirve para dos cosas:
+   * conocer por dónde va, y —si el iframe se remonta por el plan B del
+   * sonido— volver A AHÍ y no al segundo que traía al montar.
+   */
+  const segundoVivo = useRef(0);
   const [sonidoConfirmado, setSonidoConfirmado] = useState(false);
   const arranco = useRef(false);
   const relojPlanB = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -220,6 +236,18 @@ export function ReproductorEnSitio({
         /* La prueba de que el video SÍ avanza. Sin esto, el temporizador que
            decide si hace falta reintentar mudo no sabría si arrancó. */
         pedir("addEventListener", "timeupdate");
+        /*
+         * RETOMAR DONDE LO DEJÓ (2026-11-06). El `max` con `segundoVivo` es
+         * lo que hace que un remonte por el plan B del sonido no la devuelva
+         * atrás: si ya iba por el 300, se vuelve al 300, no al 120 con que
+         * se montó.
+         *
+         * Se descuentan 3 s a propósito: retomar un pelín antes deja ver de
+         * nuevo el último gesto de las manos y se entiende mejor que caer
+         * justo en el fotograma donde se fue.
+         */
+        const desde = Math.max(segundoVivo.current, arrancarEnSegundo ?? 0);
+        if (desde > 3) pedir("setCurrentTime", Math.floor(desde - 3));
         /* Ya está cargado: a partir de AQUÍ tiene sentido medir si reproduce. */
         if (!mudo && !relojPlanB.current) {
           relojPlanB.current = setTimeout(() => {
@@ -253,6 +281,7 @@ export function ReproductorEnSitio({
         const segundos = Number(v.seconds);
         const duracion = Number(v.duration);
         if (Number.isFinite(segundos) && Number.isFinite(duracion) && duracion > 0) {
+          segundoVivo.current = segundos;
           onProgreso(segundos, duracion);
         }
       }
@@ -261,7 +290,7 @@ export function ReproductorEnSitio({
 
     window.addEventListener("message", alMensaje);
     return () => window.removeEventListener("message", alMensaje);
-  }, [reproduciendo, onReproduciendo, onProgreso, mudo]);
+  }, [reproduciendo, onReproduciendo, onProgreso, mudo, arrancarEnSegundo]);
 
   /*
    * ⚠️ LA MINIATURA DE BUNNY PUEDE NO CARGAR, Y HAY QUE PREVERLO. Su CDN de

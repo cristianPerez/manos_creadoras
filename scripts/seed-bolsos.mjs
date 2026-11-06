@@ -124,7 +124,8 @@ async function cargarBolsos() {
           medidas_cm: b.medidas_cm,
           portada_url: b.portada_url ?? null,
           gratis: b.gratis,
-          publicado_en: b.publicado_en ?? null,
+          /* `publicado_en` se quitó en la migración 0047: el seed siempre
+             mandaba null y ninguna pantalla la leía. */
           notas: b.notas ?? [],
         },
         { onConflict: "slug" },

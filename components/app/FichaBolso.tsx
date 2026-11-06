@@ -3,7 +3,7 @@
 import { ArrowLeft, Check, ChevronRight, Play, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { marcarVideo } from "@/app/(interna)/app/acciones";
+import { guardarSegundo, marcarVideo } from "@/app/(interna)/app/acciones";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { AccesoMateriales } from "@/components/app/AccesoMateriales";
@@ -28,6 +28,11 @@ export type VideoFicha = {
   /** "1 de 2" cuando el paso se partió en varios videos. */
   parte: string | null;
   visto: boolean;
+  /**
+   * Por dónde iba en este video, en segundos (0 = nunca lo empezó).
+   * Lo guarda `progreso.segundo` desde la migración 0047.
+   */
+  segundo: number;
   url: string | null;
   poster: string | null;
 };
@@ -175,6 +180,22 @@ export function FichaBolso({
    * una cuenta nueva, y ninguno se manda dos veces en la misma.
    */
   const hitos = useRef<{ clave: string; enviados: Set<number> }>({ clave: "", enviados: new Set() });
+  /*
+   * ⚠️ EL MINUTO SE GUARDA CADA 15 s, NO EN CADA `timeupdate` (2026-11-06).
+   *
+   * Bunny manda `timeupdate` unas cuatro veces por segundo. Escribir en la base
+   * en cada uno serían ~240 escrituras por minuto de video por alumna: no es
+   * que fuera lento, es que sería una tormenta de peticiones por algo que solo
+   * se lee en la siguiente visita.
+   *
+   * 15 s es el peor caso de lo que puede perder: si cierra el navegador de
+   * golpe, la devolvemos como mucho un cuarto de minuto antes. Nadie nota eso;
+   * empezar un video de 20 minutos desde cero sí se nota.
+   *
+   * Se guarda el segundo en un ref y no en estado: no se pinta nada con él, y
+   * en estado volvería a renderizar la ficha cuatro veces por segundo.
+   */
+  const ultimoGuardado = useRef<{ clave: string; segundo: number }>({ clave: "", segundo: 0 });
   /* El callback lee el video y la reproducción vigentes por ref: así es
      estable y el reproductor no se resuscribe a cada segundo de video. */
   const actualRef = useRef(actual);
@@ -192,6 +213,28 @@ export function FichaBolso({
       const enviados = hitos.current.enviados;
       const pct = Math.min(100, Math.floor((segundos / duracion) * 100));
       const base = { ...datosDelVideo(v), duracion_seg: Math.round(duracion) };
+
+      /*
+       * POR DÓNDE VA, para poder devolverla aquí mañana. Va antes que los
+       * hitos de medición porque no depende de ellos: esto se guarda aunque
+       * el video ya estuviera visto (está repasando y también quiere volver
+       * a donde iba).
+       *
+       * `clave` distinta = otro video o otra reproducción: el reloj de los 15 s
+       * empieza de nuevo, si no el primer apunte del video nuevo esperaría a
+       * que venciera el del anterior.
+       */
+      if (!bloqueado && v.videoId) {
+        const previo = ultimoGuardado.current;
+        const cambioDeVideo = previo.clave !== clave;
+        if (cambioDeVideo || Math.abs(segundos - previo.segundo) >= 15) {
+          ultimoGuardado.current = { clave, segundo: segundos };
+          /* En el cambio de video no se escribe: el segundo 0 del video nuevo
+             no es un avance, y escribirlo crearía una fila por cada video que
+             apenas roza. Solo se pone el reloj a cero. */
+          if (!cambioDeVideo) void guardarSegundo(bolsoId, v.videoId, segundos);
+        }
+      }
 
       if (!enviados.has(0) && segundos > 0) {
         enviados.add(0);
@@ -330,6 +373,10 @@ export function FichaBolso({
                     respaldo={portadaUrl}
                     titulo={`${nombre} · ${actual.titulo}`}
                     arrancarAlMontar={arranque > 0}
+                    /* Retomar solo si NO lo había terminado. Si ya está visto,
+                       está repasando a propósito y lo quiere desde el
+                       principio: devolverla al minuto 19 de 20 sería absurdo. */
+                    arrancarEnSegundo={actual.visto ? 0 : actual.segundo}
                     onReproduciendo={setViendo}
                     onProgreso={alProgreso}
                     className="size-full"
