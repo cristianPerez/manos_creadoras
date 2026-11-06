@@ -5,6 +5,7 @@ import { InterruptorPlan } from "@/components/app/InterruptorPlan";
 import { Check, ShieldCheck } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
+import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
 import { useState } from "react";
 import {
@@ -102,14 +103,29 @@ export function SelectorDePago({
             contacto —donde se explica que el enlace de pago llega por correo— y
             lo DICE antes de que se pulse.
           */}
-          <Link
-            href={url ?? "/contacto"}
-            className="bg-gold-pale text-espresso mt-6 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
-          >
-            {/* Con enlace de pago dice lo mismo que el home y Mis bolsos
-                (auditoría 2026-10-23); sin él no promete inscribir. */}
-            {url ? "Inscribirme con el plan" : "Quiero el plan"} {frecuencia === "anual" ? "anual" : "mensual"}
-          </Link>
+          {/* Con enlace de pago dice lo mismo que el home y Mis bolsos
+              (auditoría 2026-10-23); sin él no promete inscribir.
+              ⚠️ Con enlace va por `EnlaceCompra` (2026-11-06): mide
+              `checkout_abierto` —antes este botón abría OnePay sin contarlo— y
+              dice "Abriendo el pago seguro…" mientras OnePay carga. */}
+          {url ? (
+            <EnlaceCompra
+              href={url}
+              origen="pagina_plan"
+              plan={frecuencia}
+              abrePago
+              className="bg-gold-pale text-espresso mt-6 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
+            >
+              Inscribirme con el plan {frecuencia === "anual" ? "anual" : "mensual"}
+            </EnlaceCompra>
+          ) : (
+            <Link
+              href="/contacto"
+              className="bg-gold-pale text-espresso mt-6 flex h-14 items-center justify-center rounded-full font-semibold transition-transform active:scale-[0.98]"
+            >
+              Quiero el plan {frecuencia === "anual" ? "anual" : "mensual"}
+            </Link>
+          )}
           <p className="text-on-dark-muted mt-4 text-center text-sm md:text-left">
             {url ? NOTA_PAGO : "Te escribimos al correo con el enlace de pago y tu acceso."}
           </p>
