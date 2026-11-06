@@ -13,8 +13,11 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
-👆 **TOQUES EN VACÍO Y EL BOTÓN DE PAGAR (2026-11-06, rama `home-b-v2-vendedor`,
-SIN COMMITEAR).** Sale de Mixpanel (30 días, leído en el Chrome de Cristian
+👆 **TOQUES EN VACÍO Y EL BOTÓN DE PAGAR (2026-11-06, EN PRODUCCIÓN: PR #15 →
+develop, PR #16 → main; probado en QA y en manoscreadoras.co).**
+⚠️ Las pruebas en QA y producción dispararon 1-2 `checkout_abierto` falsos el
+2026-11-06 (se tocó el botón de pagar con la salida a OnePay frenada): no son
+personas reales. Sale de Mixpanel (30 días, leído en el Chrome de Cristian
 con la consulta interna de Insights: la API sigue cerrada en el plan gratis):
 455 "Dead Click", 58% en el home.
 · **El botón de pagar no reaccionaba:** 12 de las 18 personas que abrieron el
