@@ -30,6 +30,12 @@ export type Alumna = {
   id: string;
   email: string;
   nombre: string | null;
+  /**
+   * Lo que el Ojo Experto debe recordar de SU tejido. Lo escribe ella en Mi
+   * cuenta (2026-11-06): hasta entonces la columna existía, el Ojo la leía y
+   * nadie podía llenarla.
+   */
+  notasTejido: string | null;
   plan: Plan;
   ciclo: "mensual" | "anual" | null;
   estado: "activa" | "vencida" | "cancelada";
@@ -49,7 +55,11 @@ export const alumnaActual = cache(async (): Promise<Alumna | null> => {
   if (!user) return null;
 
   const [{ data: perfil }, { data: membresia }, { data: tieneAcceso }] = await Promise.all([
-    supabase.from("profiles").select("email, nombre").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("email, nombre, notas_tejido")
+      .eq("id", user.id)
+      .maybeSingle(),
     supabase
       .from("membresias")
       .select("plan, ciclo, estado, vence_el, creada_el")
@@ -62,6 +72,7 @@ export const alumnaActual = cache(async (): Promise<Alumna | null> => {
     id: user.id,
     email: perfil?.email ?? user.email ?? "",
     nombre: perfil?.nombre ?? null,
+    notasTejido: perfil?.notas_tejido ?? null,
     // Sin fila de membresía el suelo es Aprendiz, igual que en la base. Pasa
     // solo en cuentas creadas antes de la 0014; no es un error que mostrar.
     plan: (membresia?.plan as Plan) ?? "gratis",

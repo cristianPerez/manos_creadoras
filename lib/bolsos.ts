@@ -70,7 +70,7 @@ function construirBolso(
     gratis: boolean;
     lecciones: FilaLeccion[];
   },
-  vistos: Set<string>,
+  avance: Avance,
 ): Bolso {
   const lecciones = [...fila.lecciones]
     .sort((a, b) => a.orden - b.orden)
@@ -81,10 +81,20 @@ function construirBolso(
       videoId: l.video_id,
       parte: l.parte,
       duracionSeg: l.duracion_seg,
-      vista: vistos.has(l.video_id),
+      vista: avance.get(l.video_id)?.visto ?? false,
+      segundo: avance.get(l.video_id)?.segundo ?? 0,
     }));
 
-  const materialesVisto = vistos.has(fila.video_materiales_id);
+  const materiales = avance.get(fila.video_materiales_id);
+  const materialesVisto = materiales?.visto ?? false;
+
+  /* El movimiento más reciente de CUALQUIER video de este bolso. Se calcula
+     aquí y no en la base porque el avance ya viene entero en memoria: pedir el
+     máximo por bolso sería otra consulta para ahorrar un bucle de 7 elementos. */
+  const movimientos = [...lecciones.map((l) => l.videoId), fila.video_materiales_id]
+    .map((id) => avance.get(id)?.actualizado)
+    .filter((f): f is string => Boolean(f))
+    .sort();
 
   return {
     id: fila.id,
@@ -100,20 +110,42 @@ function construirBolso(
     videos: lecciones.length + 1,
     vistos: lecciones.filter((l) => l.vista).length + (materialesVisto ? 1 : 0),
     materialesVisto,
+    materialesSegundo: materiales?.segundo ?? 0,
+    ultimoMovimiento: movimientos.at(-1) ?? null,
   };
 }
 
 /**
- * Qué videos ha visto quien mira. Vacío si no ha entrado.
+ * El avance de quien mira: por cada video, si lo terminó y por qué segundo iba.
  *
  * Una consulta aparte y no un `join`: así la lista de bolsos se puede cachear
- * igual para todo el mundo y lo único personal es este conjunto.
+ * igual para todo el mundo y lo único personal es este mapa.
+ *
+ * ⚠️ `visto` NO ES "TIENE FILA" (migración 0047). Desde que `progreso` guarda
+ * el minuto, hay una fila en cuanto empieza un video, con `visto_at` nulo. Si
+ * esto contara filas a secas, un video de 20 minutos visto 10 segundos saldría
+ * tachado en la ficha y el catálogo diría "6 de 6".
  */
-async function videosVistos(): Promise<Set<string>> {
-  if (!(await haySesion())) return new Set();
+type Avance = Map<string, { visto: boolean; segundo: number; actualizado: string }>;
+
+async function avancePropio(): Promise<Avance> {
+  if (!(await haySesion())) return new Map();
   const supabase = await supabaseServer();
-  const { data } = await supabase.from("progreso").select("video_id");
-  return new Set((data ?? []).map((f: { video_id: string }) => f.video_id));
+  const { data } = await supabase
+    .from("progreso")
+    .select("video_id, visto_at, segundo, actualizado_el");
+  type Fila = {
+    video_id: string;
+    visto_at: string | null;
+    segundo: number | null;
+    actualizado_el: string;
+  };
+  return new Map(
+    (data ?? []).map((f: Fila) => [
+      f.video_id,
+      { visto: f.visto_at !== null, segundo: f.segundo ?? 0, actualizado: f.actualizado_el },
+    ]),
+  );
 }
 
 /**
@@ -189,8 +221,8 @@ const materialesCacheados = unstable_cache(
 
 /** El catálogo entero, con el avance de quien mira. */
 export const listarBolsos = cache(async (): Promise<Bolso[]> => {
-  const [filas, vistos] = await Promise.all([filasDelCatalogo(), videosVistos()]);
-  return filas.map((f) => construirBolso(f, vistos));
+  const [filas, avance] = await Promise.all([filasDelCatalogo(), avancePropio()]);
+  return filas.map((f) => construirBolso(f, avance));
 });
 
 /**
@@ -201,11 +233,11 @@ export const listarBolsos = cache(async (): Promise<Bolso[]> => {
  * también vienen de la caché. Lo único fresco es lo personal.
  */
 export const obtenerBolso = cache(async (slug: string): Promise<BolsoConDetalle | null> => {
-  const [filas, vistos] = await Promise.all([filasDelCatalogo(), videosVistos()]);
+  const [filas, avance] = await Promise.all([filasDelCatalogo(), avancePropio()]);
   const fila = filas.find((f) => f.slug === slug);
   if (!fila) return null;
 
-  const bolso = construirBolso(fila, vistos);
+  const bolso = construirBolso(fila, avance);
 
   const [mats, marcados] = await Promise.all([
     materialesCacheados(bolso.id).catch((): FilaMaterial[] => []),

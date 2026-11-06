@@ -20,6 +20,14 @@ export type Leccion = {
   parte: string | null;
   duracionSeg: number | null;
   vista: boolean;
+  /**
+   * Por dónde iba en ESTE video, en segundos (0 si no lo ha empezado).
+   *
+   * ⚠️ NO ES LO MISMO QUE `vista` (migración 0047). Un video puede tener
+   * `vista: false` y `segundo: 420`: lo dejó a mitad y hay que devolverla ahí.
+   * Antes solo existía el sí/no, y volver a un video a medias empezaba de cero.
+   */
+  segundo: number;
 };
 
 /**
@@ -59,6 +67,13 @@ export type Bolso = {
   videos: number;
   vistos: number;
   materialesVisto: boolean;
+  /** Por dónde iba en el video de materiales, en segundos. */
+  materialesSegundo: number;
+  /**
+   * Cuándo se movió algo en este proyecto por última vez (ISO), o `null` si
+   * nunca lo abrió. Es lo que decide qué proyecto se ofrece retomar.
+   */
+  ultimoMovimiento: string | null;
 };
 
 export type BolsoConDetalle = Bolso & {
@@ -172,16 +187,26 @@ export function medidasEnTexto(medidas: Bolso["medidas"]): string | null {
 }
 
 /**
- * El bolso que se sugiere retomar: el más avanzado sin terminar.
+ * El bolso que se sugiere retomar: EL ÚLTIMO QUE TOCÓ, sin terminar.
  *
- * Se ordena por videos vistos y no por fecha porque `progreso` guarda cuándo se
- * vio cada video, pero pedir el máximo por bolso costaría otra consulta. Con 14
- * bolsos, ordenar en memoria es gratis y evita el viaje.
+ * ⚠️ POR FECHA Y NO POR "EL MÁS AVANZADO" (cambiado el 2026-11-06). Hasta la
+ * migración 0047 esto ordenaba por videos vistos, con una razón honesta: la
+ * fecha estaba por video y sacar el máximo por bolso costaba otra consulta.
+ * Pero daba la respuesta equivocada en el caso que importa: quien lleva 5
+ * videos del Nácar y ayer empezó el Boho, al volver quería el Boho — y la
+ * tarjeta le ofrecía el Nácar. Ahora `progreso.actualizado_el` viene en el
+ * mismo viaje (`ultimoMovimiento`), así que se ofrece donde estuvo de verdad.
+ *
+ * Un bolso EMPEZADO es uno con cualquier movimiento, aunque no haya terminado
+ * ningún video: abrir un video y verlo 30 segundos ya cuenta, que es
+ * justamente el caso que antes se perdía.
  */
 export function continuarDonde(bolsos: Bolso[]): Bolso | null {
-  const empezados = bolsos.filter((b) => b.vistos > 0 && b.vistos < b.videos);
+  const empezados = bolsos.filter((b) => b.ultimoMovimiento !== null && b.vistos < b.videos);
   if (empezados.length > 0) {
-    return empezados.sort((a, b) => b.vistos - a.vistos)[0];
+    return empezados.sort((a, b) =>
+      (b.ultimoMovimiento ?? "").localeCompare(a.ultimoMovimiento ?? ""),
+    )[0];
   }
   // Nadie ha empezado nada: se sugiere el gratis, que es por donde se entra.
   return bolsos.find((b) => b.gratis) ?? bolsos[0] ?? null;

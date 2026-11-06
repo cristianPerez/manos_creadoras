@@ -13,6 +13,65 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
+📒 **EL AVANCE GUARDA EL MINUTO · AUDITORÍA DE LA BASE (2026-11-06, migraciones
+0047 + 0048, EN QA, SIN COMMITEAR).** Salió de auditar las 26 tablas de
+producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
+· **Lo que NO era cierto:** el avance sí se registraba solo desde el 2026-11-04
+  (al 80% del video). `progreso` está vacía en producción porque **nadie ha
+  reproducido un video ahí**, no porque falle: la única que pagó entró el 4-nov,
+  marcó un material y no volvió; las otras 7 cuentas son gratis. En QA sí hay
+  filas. Lo que faltaba de verdad era el **minuto**: solo se sabía "visto sí/no",
+  así que dejar un video de 20 min a la mitad y volver empezaba de cero.
+  ⚠️ El Charcu NO lo hace mejor: tiene la columna `last_second` y nadie la
+  escribe (su único guardado es un botón que manda `second: 0`).
+· **0047** — `progreso` gana `segundo` y `actualizado_el`, y **`visto_at` pasa a
+  ser NULABLE**: fila con `visto_at` nulo = lo empezó; con fecha = lo terminó.
+  ⚠️ **Quien cuente "vistos" DEBE filtrar `visto_at is not null`** — contar filas
+  a secas da por terminado un video de 10 segundos (`avancePropio()` en
+  `lib/bolsos.ts`). Añade el permiso de **UPDATE** que faltaba (el código usaba
+  `upsert` con solo insert/delete: la actualización se rechazaba en silencio).
+  Borra `processed_events` y `webhook_log` (muertas desde la 0019), seis columnas
+  de `profiles` (status, plan, hotmart_tx, hotmart_sub, first_paid_at,
+  access_until) y `bolsos.publicado_en`.
+  ⚠️ **NO se tocaron `membresias.pasarela/pasarela_id/pais`**: están vacías pero
+  las escribe `dar_membresia()`. Vacío ≠ muerto.
+· ⚠️ **0048 — LA 0047 ROMPIÓ EL REGISTRO Y HAY QUE SUBIRLAS JUNTAS.**
+  `crear_perfil_al_registrarse()` insertaba `profiles.status`: al borrar la
+  columna, crear cuenta devolvía `500 Database error creating new user`. Es
+  EXACTAMENTE el fallo de la migración 0023, por el mismo motivo. Lo encontró
+  una prueba real (`npm run alumna:crear`), no una revisión del código.
+  **Regla: toda migración que toque columnas de `profiles`/`membresias` mira esa
+  función ANTES de darse por terminada y prueba un registro de verdad.**
+· **Retomar, de punta a punta:** el minuto se guarda cada ~15 s (no en cada
+  `timeupdate`: Bunny manda 4 por segundo); al volver, el reproductor hace
+  `setCurrentTime` en `ready` **menos 3 s**; si el video ya estaba visto arranca
+  de 0 (está repasando). `continuarDonde` ahora ordena **por fecha** y no por
+  "el más avanzado": quien lleva 5 videos del Nácar y ayer empezó el Boho quiere
+  el Boho.
+· **"Cómo te llamamos" en Mi cuenta** (`components/app/FormularioPerfil.tsx`):
+  `profiles.nombre` y `notas_tejido` estaban al 100% nulas **porque ninguna
+  pantalla las escribía** — y las dos se LEEN (el saludo de `/app` decía "Hola
+  de nuevo" a todo el mundo; el Ojo Experto respondía sin saber su nombre ni qué
+  le cuesta). Las notas solo salen con plan.
+· ⚠️ **PRODUCCIÓN NO SE HA TOCADO.** Las dos migraciones están solo en QA.
+· **Verificado en QA con alumna de prueba real:** `tsc` ✓ · `eslint` ✓ · `build` ✓ ·
+  registro de cuenta nueva ✓ · guardar nombre+notas ✓ (el saludo pasó a "HOLA,
+  ELIZABETH" y el avatar de AD a EV) · reproducir → fila con `segundo: 30`,
+  `visto_at: null` y la ficha diciendo "0 de 6" ✓ · volver → retomó en 27 y llegó
+  a 57 en 25 s (desde cero habría dado ~25) ✓ · al pasar el 80% se marcó visto
+  solo ✓ · "CONTINÚA DONDE QUEDASTE · Nácar Soñado · 1 de 6" ✓ · consola limpia.
+· **Hallazgos de la 2ª pasada (2026-11-06, no arreglados):** los botones "Me
+  sirvió / No me sirvió" del Ojo (`OjoExperto.tsx`, `MensajeDelOjo`) solo
+  cambian el estado en pantalla: **nadie escribe `ojo_mensajes.feedback`**
+  (la política de UPDATE existe desde la 0015), así que al recargar se pierde y
+  no hay dato de calidad del Ojo. `ojo_mensajes.foto_url` no la lee ni escribe
+  ningún archivo → candidata a borrar. `checklist_materiales` y
+  `push_subscriptions` vacías en QA pero con código vivo (sin estrenar, no muertas).
+· **Pendiente anotado, no arreglado:** `lecciones.duracion_seg` está 100% nula y
+  el código la lee pero NO la pinta en ninguna pantalla (por eso ningún paso dice
+  "6 min"); `directorio_items.imagen_url` sigue vacía (sin fotos de producto);
+  `membresias.vence_el`/`ciclo` siguen con el hueco del webhook ya conocido.
+
 ⚡ **ENTRAR COMO MODAL · INSTRUMENTACIÓN DEL A/B · CACHÉ (2026-11-05, rama
 `home-b-v2-vendedor`, va en el PR #6).**
 · **Entrar es un modal** (`components/app/ModalEntrar.tsx`, patrón de El
@@ -386,11 +445,16 @@ día anterior (hora de Bogotá); queda en `reportes/` (fuera de git). Skill
 (`reporte-diario-manos-creadoras`; corre solo con la app abierta).
 · "Visitantes" = navegadores (`sesiones_pais` es UNA fila por cookie de 30
   días), NO sesiones: el número real de visitas no se guarda en Supabase.
-· ⚠️ **MIXPANEL NO ESTÁ CONECTADO AL REPORTE**: el token de la app solo
-  ESCRIBE eventos. Falta una cuenta de servicio de solo lectura en `.env.prod`
-  (`MIXPANEL_SA_USUARIO`, `MIXPANEL_SA_SECRETO`, `MIXPANEL_PROYECTO_ID=4064037`,
-  y `MIXPANEL_REGION=eu` si el proyecto está en Europa). Con eso el script
-  añade solo el embudo y los países de Mixpanel.
+· ⚠️ **MIXPANEL NO SE PUEDE CONECTAR AL REPORTE CON EL PLAN GRATIS**
+  (probado el 2026-11-05, no volver a intentarlo). Se creó la cuenta de
+  servicio de solo lectura `reporte-diario-so.fea25b.mp-service-account`
+  (rol Consumer, proyecto 4064037, residencia **US** — no `eu`) y la Query API
+  responde **402 "Your plan does not allow API calls"**. Las claves NO quedaron
+  en `.env.prod`, solo un comentario explicándolo. El embudo se mira a mano en
+  mixpanel.com (informe "Embudo principal") o, si se quiere automático sin
+  pagar, hay que registrar los 4 eventos del embudo también en Supabase.
+  Nota: el proyecto de Mixpanel está en zona horaria **US/Pacific**, así que
+  sus días no coinciden exactamente con los del reporte (Bogotá).
 · Foto al 2026-11-03: 614 visitantes reales en 40 países desde el 21-oct (casi
   todo desde el 31-oct): CO 34% · MX 9% · US 8% · VE 8% · CL 4%; 59% Android,
   36% iPhone; ~36% entra desde el navegador de Instagram. 4 cuentas gratis,
@@ -1209,6 +1273,16 @@ toca reintentar en el servidor.
 ---
 
 ## 🟡 Pendientes de código (no bloquean vender)
+
+- 🔴 **`npx tsc --noEmit` ESTÁ EN ROJO AHORA MISMO (2026-11-06).** Hay trabajo a
+  medias SIN COMMITEAR de la migración `0047_el_avance_guarda_el_minuto`
+  (guardar el minuto exacto del video, no solo visto sí/no): `lib/bolsos-logica.ts`
+  ya declara `Leccion.segundo`, `Bolso.materialesSegundo` y `Bolso.ultimoMovimiento`,
+  pero en `lib/bolsos.ts` **falta el tipo `Avance`** (`Cannot find name 'Avance'`).
+  Los errores cambian entre una corrida y otra porque los archivos se están
+  editando en este momento. **No es de la sesión del reporte diario** (esa solo
+  escribió en `reportes/`, que está fuera de git). Quien esté con el minuto del
+  video, que lo cierre antes de declarar nada listo.
 
 - ✅ **AUDITORÍA DE /app EN 3 ESTADOS (2026-10-23) — CORREGIDA.** La página de cada
   paso ya no existe como pantalla: `/app/bolsos/[slug]/[orden]` redirige a la ficha
