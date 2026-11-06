@@ -14,7 +14,7 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
 📒 **EL AVANCE GUARDA EL MINUTO · AUDITORÍA DE LA BASE (2026-11-06, migraciones
-0047 + 0048, EN QA, SIN COMMITEAR).** Salió de auditar las 26 tablas de
+0047 + 0048, APLICADAS EN QA Y PRODUCCIÓN; código en PR #14 a main).** Salió de auditar las 26 tablas de
 producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
 · **Lo que NO era cierto:** el avance sí se registraba solo desde el 2026-11-04
   (al 80% del video). `progreso` está vacía en producción porque **nadie ha
@@ -53,7 +53,7 @@ producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
   pantalla las escribía** — y las dos se LEEN (el saludo de `/app` decía "Hola
   de nuevo" a todo el mundo; el Ojo Experto respondía sin saber su nombre ni qué
   le cuesta). Las notas solo salen con plan.
-· ⚠️ **PRODUCCIÓN NO SE HA TOCADO.** Las dos migraciones están solo en QA.
+· ✅ **0047 + 0048 APLICADAS EN PRODUCCIÓN el 2026-11-06** (`db push` tras `--dry-run`; historial 49/49). El código va en el PR #14 (develop → main): ya se puede fusionar.
 · **Verificado en QA con alumna de prueba real:** `tsc` ✓ · `eslint` ✓ · `build` ✓ ·
   registro de cuenta nueva ✓ · guardar nombre+notas ✓ (el saludo pasó a "HOLA,
   ELIZABETH" y el avatar de AD a EV) · reproducir → fila con `segundo: 30`,
