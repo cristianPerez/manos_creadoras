@@ -24,7 +24,7 @@ import type { DatosHome } from "@/lib/datos-home";
  * ════════════════════════════════════════════════════════════════════════════
  *
  * Lo enciende la flag `paleta_b` de Flagsmith; con la flag apagada no se monta
- * nada de esta carpeta. Ver `lib/flags.ts` y `app/page.tsx`.
+ * nada de esta carpeta. Ver `lib/flags.ts` y `app/(home)/page.tsx`.
  *
  * ⚠️ MISMO CONTENIDO QUE EL CONTROL, OTRO DISEÑO. Precios, fotos, preguntas,
  * bolso gratis y cifras salen de `lib/datos-home.ts`, que carga una vez para

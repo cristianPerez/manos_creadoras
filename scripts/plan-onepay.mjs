@@ -5,6 +5,14 @@
  *   npm run plan:onepay -- mensual 14,70              (QA, simulación: no toca nada)
  *   npm run plan:onepay -- mensual 14,70 --si         (QA, de verdad)
  *   npm run plan:onepay -- prod anual 97 --si         (producción, de verdad)
+ *   npm run plan:onepay -- mensual 59900 --moneda=COP --si   (Colombia, en pesos)
+ *   npm run plan:onepay -- anual 1599 --moneda=MXN --si      (México, en pesos)
+ *
+ * ── LA MONEDA (2026-11-06, migración 0049) ─────────────────────────────────
+ * Sin `--moneda` (o con USD): cambia las filas que cobran en dólares
+ * (internacional, y Colombia/México mientras no tengan plan propio).
+ * Con `--moneda=COP` cambia SOLO la fila de Colombia; con MXN, SOLO México.
+ * En pesos el precio va SIN puntos de miles: 59900, no 59.900.
  *
  * No hace falta publicar código ni escribir migraciones: la app lee precio y
  * enlace de `plan_checkout` en cada visita (migración 0044).
@@ -40,17 +48,24 @@ import {
   describir,
   dinero,
   onepay,
+  REGION_DE_MONEDA,
   verificarPlan,
 } from "./lib/onepay.mjs";
 
 const args = process.argv.slice(2);
 const confirmar = args.includes("--si");
+const moneda = (args.find((a) => a.startsWith("--moneda="))?.split("=")[1] ?? "USD").toUpperCase();
+if (!["USD", "COP", "MXN"].includes(moneda)) {
+  console.error(`\n❌ Moneda "${moneda}" no válida: USD, COP o MXN.\n`);
+  process.exit(1);
+}
+const regionLocal = REGION_DE_MONEDA[moneda] ?? null;
 const resto = args.filter((a) => !a.startsWith("--"));
 const esProd = resto[0] === "prod" || resto[0] === "produccion";
 if (esProd) resto.shift();
 const [ciclo, precioTexto] = resto;
 
-const USO = "Uso:  npm run plan:onepay -- [prod] <mensual|anual> <precio en USD> [--si]";
+const USO = "Uso:  npm run plan:onepay -- [prod] <mensual|anual> <precio> [--moneda=USD|COP|MXN] [--si]";
 function parar(motivo) {
   console.error(`\n❌ ${motivo}\n`);
   process.exit(1);
@@ -73,11 +88,18 @@ const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SECRET_KE
 /* ── Lo que hay hoy ──────────────────────────────────────────────────────── */
 const { data: filas, error: errorFilas } = await db
   .from("plan_checkout")
-  .select("ciclo, region, url, precio_usd")
+  .select("ciclo, region, url, precio_usd, moneda, precio")
   .eq("plan", "completo");
 if (errorFilas) parar(`No se pudo leer ${donde}: ${errorFilas.message}`);
-const delCiclo = filas.filter((f) => f.ciclo === ciclo);
-if (!delCiclo.length) parar(`${donde} no tiene filas del plan ${ciclo} en plan_checkout.`);
+/* Qué filas cambia: en USD, las que siguen en dólares; en COP/MXN, la de su país. */
+const aCambiar = (f) =>
+  f.ciclo === ciclo && (regionLocal ? f.region === regionLocal : f.moneda === "USD");
+const delCiclo = filas.filter(aCambiar);
+if (!delCiclo.length) {
+  parar(`${donde} no tiene filas del plan ${ciclo} ${regionLocal ? `para ${regionLocal}` : "en USD"} (¿falta la migración 0049?).`);
+}
+/* El equivalente en dólares de una fila en pesos: lo que cobra el plan internacional. */
+const usdDelCiclo = filas.find((f) => f.ciclo === ciclo && f.region === "internacional")?.precio_usd ?? null;
 
 const { data: cupos } = await db
   .from("plan_cupos")
@@ -97,8 +119,8 @@ const caracteristica = (texto, cantidad) =>
 const plan = {
   name: `${membresia.onepay.nombre} · ${etiqueta}`,
   description: membresia.onepay.descripcion,
-  internal_id: `MC-${etiqueta.toUpperCase()}-${precio.toFixed(2)}-USD`,
-  currency: "USD",
+  internal_id: `MC-${etiqueta.toUpperCase()}-${precio.toFixed(2)}-${moneda}`,
+  currency: moneda,
   amount_in_cents: centavos,
   reference_price_in_cents: String(centavos),
   /*
@@ -120,8 +142,8 @@ const plan = {
 };
 
 console.log(`\n${donde} · plan ${ciclo}`);
-for (const f of delCiclo) console.log(`  hoy  ${f.region.padEnd(14)} ${dinero(f.precio_usd).padEnd(10)} ${f.url}`);
-console.log(`  nuevo: "${plan.name}" · ${dinero(precio)} cada ${ciclo === "mensual" ? "mes" : "año"} · USD · ${plan.features.length} características`);
+for (const f of delCiclo) console.log(`  hoy  ${f.region.padEnd(14)} ${dinero(f.precio ?? f.precio_usd, f.moneda).padEnd(14)} ${f.url}`);
+console.log(`  nuevo: "${plan.name}" · ${dinero(precio, moneda)} cada ${ciclo === "mensual" ? "mes" : "año"} · ${moneda} · ${plan.features.length} características`);
 
 if (!confirmar) {
   console.log("\nSimulación: no se creó ni se cambió nada. Para hacerlo, repite el comando con --si al final.\n");
@@ -129,7 +151,7 @@ if (!confirmar) {
 }
 
 /* ── 1. Crear ─────────────────────────────────────────────────────────────── */
-const idempotencia = `mc-${esProd ? "prod" : "qa"}-${ciclo}-${centavos}-${Date.now()}`;
+const idempotencia = `mc-${esProd ? "prod" : "qa"}-${ciclo}-${moneda}-${centavos}-${Date.now()}`;
 const creado = await onepay("POST", "/plans", plan, { "x-idempotency": idempotencia });
 if (!creado.ok) parar(`OnePay no creó el plan (${creado.status}): ${JSON.stringify(creado.datos).slice(0, 400)}`);
 const nuevoId = creado.datos?.id ?? creado.datos?.data?.id;
@@ -138,7 +160,7 @@ if (!nuevoId || !nuevoEnlace) parar(`OnePay respondió sin id ni enlace: ${JSON.
 console.log(`\n✅ 1/3 Plan creado en OnePay: ${nuevoEnlace}`);
 
 /* ── 2. Verificar ─────────────────────────────────────────────────────────── */
-const { leido, problemas } = await verificarPlan(nuevoEnlace, { ciclo, precio, esProd });
+const { leido, problemas } = await verificarPlan(nuevoEnlace, { ciclo, precio, esProd, moneda });
 if (problemas.length) {
   const borrado = await onepay("DELETE", `/plans/${nuevoId}`);
   parar(
@@ -153,17 +175,21 @@ const { data: cambiadas, error: errorEscribir } = await db
   .from("plan_checkout")
   .update({
     url: nuevoEnlace,
-    precio_usd: precio,
+    moneda,
+    precio,
+    /* En pesos, `precio_usd` guarda el equivalente en dólares (informes). */
+    precio_usd: moneda === "USD" ? precio : usdDelCiclo,
     onepay_plan_id: nuevoId,
     actualizado_en: new Date().toISOString(),
   })
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
+  .in("region", delCiclo.map((f) => f.region))
   .select("region");
 if (errorEscribir) {
   parar(`El plan se creó (${nuevoEnlace}) pero no se pudo escribir en ${donde}: ${errorEscribir.message}. La página sigue con el plan viejo; repite con precio:cambiar.`);
 }
-console.log(`✅ 3/3 ${donde}: plan ${ciclo} a ${dinero(precio)} en ${cambiadas.length} regiones. La página ya lo enseña.`);
+console.log(`✅ 3/3 ${donde}: plan ${ciclo} a ${dinero(precio, moneda)} en ${cambiadas.length} regiones (${cambiadas.map((f) => f.region).join(", ")}). La página ya lo enseña.`);
 
 console.log("   El plan anterior se conserva en OnePay: quien ya lo paga sigue con su precio.");
 

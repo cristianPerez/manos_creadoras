@@ -505,6 +505,87 @@ html[data-paleta="b"] .sobre-oscuro .clave {
 }
 
 /*
+ * ════════════════════════════════════════════════════════════════════════════
+ * LA TARJETA DEL PLAN EN `/pagar` (2026-11-06)
+ * ════════════════════════════════════════════════════════════════════════════
+ * Tiene que verse como la tarjeta de precio del home del que viene la alumna,
+ * y los dos homes la pintan distinto: el de siempre en ESPRESSO (precio en
+ * dorado pálido, botón dorado pálido) y el B en MARFIL (precio y botón en
+ * violeta). Romper esa continuidad justo en el paso de pagar fue el defecto
+ * nº 3 del revisor visual. Por eso la tarjeta lleva sus propios colores, que
+ * la B reasigna abajo, en vez de duplicar el componente.
+ */
+.tarjeta-pago {
+  --tp-fondo: var(--espresso);
+  --tp-borde: var(--espresso-line);
+  --tp-texto: var(--cream);
+  --tp-texto-2: var(--on-dark-muted);
+  --tp-precio: var(--gold-pale);
+  --tp-hundido: var(--espresso-2);
+  --tp-opcion: var(--cream);
+  --tp-opcion-texto: var(--espresso);
+  --tp-opcion-precio: var(--gold);
+  --tp-badge: var(--gold-pale);
+  --tp-badge-texto: var(--espresso);
+  --tp-boton: linear-gradient(var(--gold-pale), var(--gold-pale));
+  --tp-boton-texto: var(--espresso);
+  background-color: var(--tp-fondo);
+  border-color: var(--tp-borde);
+  color: var(--tp-texto);
+}
+html[data-paleta="b"] .tarjeta-pago {
+  --tp-fondo: var(--ivory);
+  --tp-borde: var(--line);
+  --tp-texto: var(--espresso);
+  --tp-texto-2: var(--ink-body);
+  --tp-precio: var(--gold);
+  --tp-hundido: var(--sand);
+  --tp-opcion: var(--ivory);
+  --tp-opcion-texto: var(--espresso);
+  --tp-opcion-precio: var(--gold);
+  --tp-badge: var(--gold);
+  --tp-badge-texto: var(--ivory);
+  --tp-boton: var(--boton-bronce);
+  --tp-boton-texto: var(--brand-primary-text);
+  box-shadow: var(--sombra-elevada);
+}
+.boton-tarjeta-pago {
+  background-image: var(--tp-boton);
+  color: var(--tp-boton-texto);
+}
+/* Lo que `.sobre-oscuro` haría, pero siguiendo a la tarjeta: oscura en la
+   paleta de siempre y clara en la B. Con `.sobre-oscuro` fijo, en la B el
+   aviso "No se te cobró nada…" saldría lavanda claro sobre marfil. */
+.tarjeta-pago :focus-visible {
+  outline-color: var(--tp-precio);
+}
+.tarjeta-pago .aviso-pago {
+  color: var(--tp-texto-2);
+}
+
+/*
+ * El grano de papel de la ficha como FONDO de una página entera (`/pagar`).
+ * ⚠️ NO ES `.grain`: aquel se pinta ENCIMA del contenido (sirve en el héroe,
+ * sobre una foto). Aquí va DEBAJO —`z-index:-1` dentro de su propio contexto
+ * (`isolation`)— para que tiña el fondo y no las tarjetas ni el texto. 5%,
+ * el valor de la ficha: con 3,5% no se veía a 375px (revisor, 3ª ronda).
+ */
+.grano-fondo {
+  position: relative;
+  isolation: isolate;
+}
+.grano-fondo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/*
  * La sección de precio es MÁS ESTRECHA que las demás (1000 contra 1200): una
  * tarjeta de decisión a todo el ancho del monitor obliga a barrer la cabeza de
  * un lado a otro para leer el precio y luego los beneficios.

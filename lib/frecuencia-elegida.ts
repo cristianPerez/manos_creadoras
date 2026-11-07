@@ -16,7 +16,7 @@ import { FRECUENCIA_POR_DEFECTO, type Frecuencia } from "@/lib/planes";
  * distintos a la vez para la misma persona.
  *
  * Lo normal sería un Context, pero su Provider tiene que envolver a los dos
- * componentes, y aquí el padre común es `app/page.tsx`, que es un Server
+ * componentes, y aquí el padre común es `app/(home)/page.tsx`, que es un Server
  * Component y no puede sostener estado. Habría que envolver la página entera en
  * un cliente solo para compartir una palabra.
  *

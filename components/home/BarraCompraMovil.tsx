@@ -37,7 +37,7 @@ export function BarraCompraMovil() {
     const banner = document.getElementById("banner");
     const observadores: IntersectionObserver[] = [];
 
-    // `#banner` es el envoltorio del banner en `app/page.tsx` y existe siempre,
+    // `#banner` es el envoltorio del banner en `app/(home)/page.tsx` y existe siempre,
     // aunque el carrusel no tenga fotos. Si un día se quitara, la barra no
     // aparecería: es el fallo seguro (nunca tapa nada).
     if (banner) {

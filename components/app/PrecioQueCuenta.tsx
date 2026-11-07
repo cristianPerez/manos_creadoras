@@ -2,6 +2,7 @@
 
 import { animate } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import { formatoPrecio, type Moneda } from "@/lib/planes";
 
 /**
  * El precio, contando hasta su valor cada vez que cambia.
@@ -15,7 +16,16 @@ import { useEffect, useRef, useState } from "react";
  *
  * Este cuenta al cambiar el VALOR, sin mirar el scroll.
  */
-export function PrecioQueCuenta({ hasta, quieto }: { hasta: number; quieto: boolean }) {
+export function PrecioQueCuenta({
+  hasta,
+  quieto,
+  moneda = "USD",
+}: {
+  hasta: number;
+  quieto: boolean;
+  /** En pesos: "$59.900" grande y el código "COP" en letra chica al lado. */
+  moneda?: Moneda;
+}) {
   const [n, setN] = useState(hasta);
 
   /*
@@ -50,16 +60,22 @@ export function PrecioQueCuenta({ hasta, quieto }: { hasta: number; quieto: bool
     return () => control.stop();
   }, [hasta, quieto]);
 
-  const texto = (v: number) => `US$${v.toFixed(2).replace(".", ",")}`;
+  const texto = (v: number) =>
+    moneda === "USD" ? `US$${v.toFixed(2).replace(".", ",")}` : formatoPrecio(v, moneda, { sinCodigo: true });
 
   /* El ancho se reserva con el valor final invisible: si no, el renglón entero
      se movería a cada cifra mientras cuenta. */
   return (
-    <span className="relative inline-grid">
-      <span aria-hidden="true" className="invisible col-start-1 row-start-1">
-        {texto(hasta)}
+    <span className="inline-flex items-baseline">
+      <span className="relative inline-grid">
+        <span aria-hidden="true" className="invisible col-start-1 row-start-1">
+          {texto(hasta)}
+        </span>
+        <span className="col-start-1 row-start-1">{texto(quieto ? hasta : n)}</span>
       </span>
-      <span className="col-start-1 row-start-1">{texto(quieto ? hasta : n)}</span>
+      {/* El código de la moneda, chico: "$59.900" + "COP". Deja claro que son
+          pesos y no dólares sin robarle tamaño a la cifra. */}
+      {moneda !== "USD" && <span className="ml-1.5 text-[0.32em] font-semibold tracking-wide">{moneda}</span>}
     </span>
   );
 }

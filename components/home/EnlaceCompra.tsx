@@ -1,36 +1,19 @@
 "use client";
 
 import { LoaderCircle, RotateCw } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import { usePrecios } from "@/components/app/Precios";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { WHATSAPP_URL } from "@/lib/landing";
+import type { OrigenCompra } from "@/lib/origen-compra";
 import type { Frecuencia } from "@/lib/planes";
 
-/** Desde dónde se tocó un botón de compra. Son los seis del home v3. */
-export type OrigenCompra =
-  | "header"
-  | "banner_precio"
-  | "banda_1de16"
-  // El panel navideño (2026-10-31): su botón del pie.
-  | "navidad"
-  /* La FOTO del panel navideño, enlazada a `#precio`. Entre el 2026-11-02 y
-     el 2026-11-06 no tuvo enlace (de 4 fotos se pasó a una sola) y acumuló 40
-     toques en vacío: volvió a ser tocable con el mismo origen de antes, así
-     que el embudo viejo y el nuevo se leen juntos. */
-  | "navidad_pieza"
-  | "precio"
-  | "cierre"
-  | "barra_movil"
-  // Dentro de la app (2026-10-21): los que antes decían "Crear mi cuenta gratis".
-  | "catalogo"
-  | "ficha_bolso"
-  | "ojo_agotado"
-  // Cabecera de escritorio del Ojo v5, para quien entra sin cuenta.
-  | "ojo_cabecera"
-  /* La pantalla Mi plan (`SelectorDePago`). Hasta el 2026-11-06 su botón era un
-     `<Link>` suelto: abría OnePay SIN medir `checkout_abierto`. */
-  | "pagina_plan";
+/* La lista de orígenes vive en `lib/origen-compra.ts` (la valida también la
+   página `/pagar`, que es de servidor). Se re-exporta el tipo para no tocar a
+   quien ya lo importaba de aquí. */
+export type { OrigenCompra } from "@/lib/origen-compra";
 
 /**
  * Cuánto se espera a OnePay antes de decir "Está tardando, reintenta". Si en
@@ -169,12 +152,27 @@ function AvisoTarda() {
  * Si va directo al pago (`abrePago`), se mide también `checkout_abierto`, que es
  * el evento que ya usa el embudo para "abrió el pago". Así el panel viejo sigue
  * contando bien y el nuevo dice además desde qué botón.
+ *
+ * ════════════════════════════════════════════════════════════════════════════
+ * ⚠️ DESDE EL 2026-11-06 NINGÚN BOTÓN VA DIRECTO A ONEPAY: PASA POR `/pagar`
+ * ════════════════════════════════════════════════════════════════════════════
+ * Embudo de 30 días: 285 vieron el precio, 17 abrieron OnePay, 1 pagó. OnePay
+ * pide primero el WhatsApp con +57 puesto y enseña "$14.60" sin decir de qué
+ * moneda; quien llegaba ahí sin aviso se iba. Ahora todo botón de compra con
+ * `abrePago` lleva a la página intermedia (`app/(publicas)/pagar`), que dice
+ * qué se compra, cuánto en su moneda y qué va a pedir OnePay. El ÚNICO que
+ * abre OnePay es el botón de esa página, con `directo`.
+ *
+ * Así no hubo que tocar ni un botón de los homes, Mi plan o la app: el cambio
+ * vive aquí. `checkout_abierto` se sigue midiendo al abrir OnePay de verdad
+ * (desde la intermedia), así que el embudo viejo sigue significando lo mismo.
  */
 export function EnlaceCompra({
   href,
   origen,
   plan,
   abrePago = false,
+  directo = false,
   className,
   children,
   ariaLabel,
@@ -183,12 +181,34 @@ export function EnlaceCompra({
   origen: OrigenCompra;
   plan: Frecuencia;
   abrePago?: boolean;
+  /** Solo el botón de `/pagar`: abre OnePay sin pasar por la intermedia. */
+  directo?: boolean;
   className?: string;
   children: ReactNode;
   ariaLabel?: string;
 }) {
-  const { estado, alTocar } = useAbrirPago(abrePago);
+  const alPuente = abrePago && !directo;
+  const { estado, alTocar } = useAbrirPago(abrePago && directo);
+  const { moneda } = usePrecios();
   const ocupado = estado !== "quieto";
+
+  /*
+   * A la intermedia con `<Link>`: es navegación de la app, se precarga y su
+   * esqueleto (`pagar/loading.tsx`) sale en el mismo toque. Se pasa el origen
+   * para que `checkout_abierto` siga diciendo desde qué botón se empezó.
+   */
+  if (alPuente) {
+    return (
+      <Link
+        href={`/pagar?ciclo=${plan}&desde=${origen}`}
+        aria-label={ariaLabel}
+        className={className}
+        onClick={() => medir(EVENTOS.ctaInscribirmeClick, { origen, plan })}
+      >
+        {children}
+      </Link>
+    );
+  }
 
   const enlace = (
     <a
@@ -200,7 +220,7 @@ export function EnlaceCompra({
         // El segundo toque mientras carga OnePay no cuenta: ni navega ni mide.
         if (!alTocar(e)) return;
         medir(EVENTOS.ctaInscribirmeClick, { origen, plan });
-        if (abrePago) medir(EVENTOS.checkoutAbierto, { plan });
+        if (abrePago) medir(EVENTOS.checkoutAbierto, { plan, moneda });
       }}
     >
       {ocupado ? <TextoAbriendoPago tardo={estado === "tardo"} /> : children}
