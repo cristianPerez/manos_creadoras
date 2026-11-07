@@ -1,6 +1,6 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-11-05.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-11-06.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
 mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
@@ -12,6 +12,60 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > Quedan ~353 líneas y la regla del SO son 200. No se recorta más a costa de
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
+
+💱 **PRECIO EN MONEDA LOCAL + PÁGINA INTERMEDIA `/pagar` + ESQUELETOS
+(2026-11-06, rama `home-b-v2-vendedor`, SIN COMMIT — Cristian revisa antes).**
+· **Migración 0049 — APLICADA SOLO EN QA.** `plan_checkout` gana `moneda`
+  (USD/COP/MXN) y `precio` (en esa moneda) + región `mexico` (nace copiando
+  internacional). Una FILA por país, no columnas `precio_cop/url_cop…`
+  (aprobado por Cristian). `precio_usd` queda como equivalente para informes.
+  ⚠️ En pesos el código NUNCA cae a `precio_usd` (enseñaría dólares con signo
+  de pesos); si un país tiene los ciclos en monedas distintas, se enseña
+  como internacional (`lib/checkout.ts`).
+· **Planes QA (modo prueba) creados y verificados en su página:** CO mensual
+  `01a1b279-eb03…` $59.900 COP · CO anual `01a1b27a-0074…` $359.900 COP ·
+  MX mensual `01a1b27a-0bad…` $269 MXN · MX anual `01a1b27a-2588…` $1.599 MXN.
+  OnePay SÍ acepta MXN. Comando: `npm run plan:onepay -- <ciclo> <precio>
+  --moneda=COP|MXN [--si]` (en pesos sin puntos: 59900). `precio:cambiar`
+  ahora solo toca filas USD.
+  ⚠️ Hasta publicar este código, QA enseña US$ a Colombia/México pero el
+  botón ya lleva al plan en pesos.
+· **Producción: NADA hecho.** Falta, con OK de Cristian (dinero real):
+  `db push` de la 0049 a prod + los 4 planes con `plan:onepay -- prod …`.
+· **País:** `regionDe` → colombia / mexico / internacional. Para probar:
+  `?pais=MX` (cookie `mc_pais_prueba`, ignorada si `VERCEL_ENV=production`);
+  `?pais=auto` la quita.
+  ⚠️ **En localhost SIEMPRE sale USD sin `?pais=`** (2026-11-07, Cristian lo
+  vio y creyó que el home no cambiaba): sin Vercel no hay cabecera
+  `x-vercel-ip-country` y el idioma del navegador (`en-US`/`es`) no trae
+  país. No es un fallo: en QA/prod la detección es automática. Verificado
+  `/?pais=CO` → héroe "$59.900 COP/mes".
+· **Estado 2026-11-07:** Cristian revisa en localhost antes de commit/QA.
+  Siguiente: con su OK, commit + push a QA; luego producción (0049 + planes).
+· **`/pagar` ya no redirige:** es la página intermedia
+  (`components/pago/PuentePago.tsx`). TODOS los botones con `abrePago` van
+  ahí (`EnlaceCompra` lo decide; solo el de `/pagar` lleva `directo`).
+  Evento nuevo `pago_puente_visto` (plan, moneda, desde); `checkout_abierto`
+  lleva `moneda`. Embudo: cta_inscribirme_click → pago_puente_visto →
+  checkout_abierto → pago_confirmado. Tarjeta del plan espresso (crema) /
+  marfil (B) vía `.tarjeta-pago` en globals. Sin número de proyectos ni video
+  (decisión del 2026-11-01; el video no existe). El diseño se hizo desde
+  `design-ref/pagina-intermedia-pago/PROMPT-PAGINA-INTERMEDIA.md`:
+  `design-ref/PROMPT-claude-code.md` NO existía.
+· **Esqueletos:** `/pagar`, Mi plan, Cuenta, Directorio, Ojo y conversación,
+  Contacto, Legal y el home (movido a `app/(home)/` para que su esqueleto no
+  salga al navegar a la app). Entrada de `/pagar` por CSS (`.reveal`), no
+  Motion: con Motion el contenido llegaba oculto hasta hidratar.
+· Verificado: tsc ✓ lint ✓ build ✓ · CO/MX/PE y las 2 paletas a 375 y 1440 ·
+  capturas en `design-ref/pagina-intermedia-pago/verificacion/` (r1…r5, final-*).
+· **Revisor visual `/pagar`: 5 rondas → LISTA 38/40 · 16/20 · copy 16/20**
+  (31·14·14 → 34·15·16 → 35·16·16 → 37·16·15 → 38·16·16). Craft justo en el
+  mínimo. Afinado pendiente (no bloquea): el precio del resumen final no
+  "cuenta" al cambiar de ciclo; el grano al 5% casi no se ve (mirar en un
+  Android real antes de subirlo). Los esqueletos no se puntuaron con captura
+  (salen solo mientras carga; compilan y tienen la silueta de cada pantalla).
+  ⚠️ El botón de `/pagar` dice "Ir a mi pago seguro" (el revisor sugería
+  "Quiero mi acceso ahora": decisión de Cristian).
 
 👆 **TOQUES EN VACÍO Y EL BOTÓN DE PAGAR (2026-11-06, EN PRODUCCIÓN: PR #15 →
 develop, PR #16 → main; probado en QA y en manoscreadoras.co).**
@@ -44,10 +98,12 @@ con la consulta interna de Insights: la API sigue cerrada en el plan gratis):
   "Pago seguro · acceso por correo…" se leen como un solo bloque gris.
   ⚠️ FICHA-ARTE.md dice "Jost" y el sitio usa Manrope desde el 2026-10-09: la
   ficha está desfasada (no se tocó; es decisión de arte).
-· **Pendiente:** la pantalla puente antes de OnePay (qué se lleva, precio en
-  su moneda, aviso del código de WhatsApp) — diseñada, sin construir. ⚠️ De
-  Cristian: mirar en OnePay si se puede quitar el WhatsApp previo o mostrar
-  "USD", y si PSE/Nequi funcionan en el plan en dólares. Foto de Elizabeth
+· ✅ **HECHA (bloque 💱 de arriba):** la pantalla puente antes de OnePay (qué se lleva, precio en
+  su moneda, aviso del código de WhatsApp). **Prompt para Claude Design listo**
+  en `design-ref/pagina-intermedia-pago/` (con 12 capturas del flujo actual);
+  falta diseñarla y construirla en `/pagar`. **OnePay NO va a cambiar nada**
+  (Cristian, 2026-11-06): el WhatsApp previo, el +57 y el "$14.60" sin USD se
+  quedan, así que el puente los explica antes de salir. Foto de Elizabeth
   (13 toques) y "Activar sonido" (12) sin tocar.
 
 📒 **EL AVANCE GUARDA EL MINUTO · AUDITORÍA DE LA BASE (2026-11-06, migraciones
