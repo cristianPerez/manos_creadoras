@@ -76,7 +76,15 @@ export type Frecuencia = "anual" | "mensual";
  * enlace cambie al expirar — si no, es decoración.
  */
 
-export type Precios = { mensual: number; anual: number };
+/**
+ * En qué moneda paga quien mira (2026-11-06, migración 0049): Colombia en
+ * pesos colombianos, México en pesos mexicanos y el resto en dólares. Cada
+ * moneda tiene SU plan en OnePay, así que lo que se enseña es lo que se cobra
+ * — no una conversión aproximada.
+ */
+export type Moneda = "USD" | "COP" | "MXN";
+
+export type Precios = { mensual: number; anual: number; moneda: Moneda };
 
 /**
  * EL PRECIO DE RESPALDO. ⚠️ YA NO ES LA FUENTE (2026-11-03, migración 0044).
@@ -91,7 +99,34 @@ export type Precios = { mensual: number; anual: number };
  * Conviene que coincida con producción, pero si un día no coincide, la app
  * sigue enseñando lo de la base.
  */
-export const PRECIOS_RESPALDO: Precios = { mensual: 14.6, anual: 87.6 };
+export const PRECIOS_RESPALDO: Precios = { mensual: 14.6, anual: 87.6, moneda: "USD" };
+
+/**
+ * Una cifra en su moneda: "US$14,60" · "$59.900 COP" · "$269 MXN".
+ *
+ * ⚠️ EN PESOS, SIN DECIMALES Y CON PUNTO DE MILES. Nadie en Colombia o México
+ * escribe "$29.991,67": el "al mes" del anual se redondea al peso. En dólares
+ * se quedan los centavos, porque ahí sí cambian la decisión (7,30 vs 7).
+ *
+ * `sinCodigo`: solo "$59.900", para cuando el código va aparte en letra chica.
+ */
+export function formatoPrecio(v: number, moneda: Moneda, { sinCodigo = false } = {}): string {
+  if (moneda === "USD") return dolares(Math.round(v * 100) / 100);
+  const txt = Math.round(v).toLocaleString("es-CO");
+  return sinCodigo ? `$${txt}` : `$${txt} ${moneda}`;
+}
+
+/**
+ * El ancla de precio: lo que se va en materiales desperdiciados al mes.
+ * ⚠️ ES LA ESTIMACIÓN DE FICHA-AVATAR (US$15-20), no un dato medido; en pesos
+ * se redondea a cifras que se dicen en voz alta. El guion es U+2011 (no se
+ * corta): con el normal, "$60.000-" quedaba en un renglón y "80.000" en otro.
+ */
+export const ANCLA_MATERIALES: Record<Moneda, string> = {
+  USD: "US$15‑20",
+  COP: "$60.000‑80.000",
+  MXN: "$300‑400",
+};
 
 /**
  * Lo que cuesta cada mes según cómo se pague.
@@ -104,10 +139,14 @@ export function precioPorMesDe(p: Precios): Record<Frecuencia, number> {
   return { mensual: p.mensual, anual: p.anual / 12 };
 }
 
-/** Lo que se ahorra pagando el año de golpe, en dólares y en porcentaje. */
-export function ahorroAnualDe(p: Precios): { dolares: number; pct: number } {
-  const dolares = Math.round(p.mensual * 12 - p.anual);
-  return { dolares, pct: Math.round((dolares / (p.mensual * 12)) * 100) };
+/** Lo que se ahorra pagando el año de golpe, en su moneda y en porcentaje. */
+export function ahorroAnualDe(p: Precios): { monto: number; texto: string; pct: number } {
+  const monto = Math.round(p.mensual * 12 - p.anual);
+  return {
+    monto,
+    texto: formatoPrecio(monto, p.moneda),
+    pct: Math.round((monto / (p.mensual * 12)) * 100),
+  };
 }
 
 /**
@@ -190,19 +229,21 @@ export function dolares(v: number): string {
   return `US$${Number.isInteger(v) ? v : v.toFixed(2).replace(".", ",")}`;
 }
 
-/** "US$6,67" — siempre por mes, que es como se comparan los dos ciclos. */
+/** "US$6,67" · "$29.992 COP" — siempre por mes, que es como se comparan los dos ciclos. */
 export function precioPorMes(p: Precios, frecuencia: Frecuencia): string {
-  return `US$${precioPorMesDe(p)[frecuencia].toFixed(2).replace(".", ",")}`;
+  const v = precioPorMesDe(p)[frecuencia];
+  /* En dólares, siempre con centavos ("US$14,60", no "US$14,6"). */
+  return p.moneda === "USD" ? `US$${v.toFixed(2).replace(".", ",")}` : formatoPrecio(v, p.moneda);
 }
 
-/** "US$80" — el cobro de verdad, sin decimales si son redondos. */
+/** "US$80" · "$359.900 COP" — el cobro de verdad, sin decimales si son redondos. */
 export function precioDelCobro(p: Precios, frecuencia: Frecuencia): string {
-  return dolares(p[frecuencia]);
+  return formatoPrecio(p[frecuencia], p.moneda);
 }
 
 /** La línea bajo el precio: qué se cobra y cuándo. */
 export function notaDelCobro(p: Precios, frecuencia: Frecuencia): string {
-  const ahorro = ahorroAnualDe(p).dolares;
+  const ahorro = ahorroAnualDe(p).texto;
   /*
    * ⚠️ "UN PAGO AL AÑO", NUNCA "PAGO ÚNICO". El diseño del home v3 decía "pago
    * único de US$89,90", pero el plan anual de OnePay se renueva solo cada 12
@@ -210,7 +251,7 @@ export function notaDelCobro(p: Precios, frecuencia: Frecuencia): string {
    * reclamo — o un reembolso. Decisión de Cristian, 2026-10-20.
    */
   return frecuencia === "anual"
-    ? `Un pago de ${precioDelCobro(p, "anual")} al año · ahorras US$${ahorro}`
+    ? `Un pago de ${precioDelCobro(p, "anual")} al año · ahorras ${ahorro}`
     : `Se cobra ${precioDelCobro(p, "mensual")} cada mes · cancelas cuando quieras`;
 }
 
@@ -235,6 +276,7 @@ export function precioDesde(p: Precios): string {
 export function conPrecios(p: Precios) {
   return {
     precios: p,
+    moneda: p.moneda,
     porMesNumero: precioPorMesDe(p),
     ahorro: ahorroAnualDe(p),
     desde: precioDesde(p),

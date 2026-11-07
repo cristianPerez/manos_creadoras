@@ -1,4 +1,5 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { COOKIE_PAIS_PRUEBA, ENTORNO_DE_PRUEBA } from "@/lib/pais-prueba";
 
 /**
  * Desde qué país nos está visitando quien pide esta página.
@@ -18,7 +19,7 @@ import { headers } from "next/headers";
  * ════════════════════════════════════════════════════════════════════════════
  */
 
-export type Region = "colombia" | "internacional";
+export type Region = "colombia" | "mexico" | "internacional";
 export type FuenteDelPais = "vercel" | "idioma" | "defecto";
 
 export type PaisDetectado = {
@@ -63,6 +64,15 @@ export async function detectarPais(): Promise<PaisDetectado> {
 
   const subdivision = h.get("x-vercel-ip-country-region") || null;
 
+  /* 0. El país fingido con `?pais=MX` (ver `middleware.ts`). Nunca en
+     producción: ahí `ENTORNO_DE_PRUEBA` es falso y la cookie ni se mira. */
+  if (ENTORNO_DE_PRUEBA) {
+    const fingido = (await cookies()).get(COOKIE_PAIS_PRUEBA)?.value;
+    if (fingido && /^[A-Z]{2}$/.test(fingido)) {
+      return { pais: fingido, fuente: "vercel", userAgent, ciudad, subdivision };
+    }
+  }
+
   const deVercel = h.get("x-vercel-ip-country");
   if (deVercel && deVercel.length === 2) {
     return { pais: deVercel.toUpperCase(), fuente: "vercel", userAgent, ciudad, subdivision };
@@ -93,5 +103,9 @@ export async function detectarPais(): Promise<PaisDetectado> {
  * abandone. El error barato es el que se elige.
  */
 export function regionDe(pais: string): Region {
-  return pais.toUpperCase() === "CO" ? "colombia" : "internacional";
+  const p = pais.toUpperCase();
+  /* México desde el 2026-11-06 (migración 0049): paga en pesos mexicanos. */
+  if (p === "CO") return "colombia";
+  if (p === "MX") return "mexico";
+  return "internacional";
 }

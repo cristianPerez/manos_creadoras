@@ -12,7 +12,7 @@ import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { elegirFrecuencia, useFrecuenciaElegida } from "@/lib/frecuencia-elegida";
 import { WHATSAPP_URL } from "@/lib/landing";
-import { INCLUYE, type Frecuencia } from "@/lib/planes";
+import { ANCLA_MATERIALES, INCLUYE, type Frecuencia } from "@/lib/planes";
 
 /**
  * El precio, en la paleta B.
@@ -147,7 +147,7 @@ export function PrecioB({
                    US$0,00, que en un precio es lo más parecido a un error. */
                 style={{ fontWeight: 600, fontSize: "clamp(52px, 6vw, 72px)", lineHeight: 1 }}
               >
-                <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} quieto={Boolean(quieto)} />
+                <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} moneda={pr.moneda} quieto={Boolean(quieto)} />
               </span>
               <span className="text-ink-body text-base lg:text-lg">/mes</span>
             </p>
@@ -164,7 +164,7 @@ export function PrecioB({
               de la ficha, no un dato medido; si cambia allí, cambia aquí.
             */}
             <p className="text-espresso text-nota mt-1.5 font-semibold lg:text-sm">
-              Un mes de intentos fallidos se lleva US$15-20 en materiales. Todo el plan,{" "}
+              Un mes de intentos fallidos se lleva {ANCLA_MATERIALES[pr.moneda]} en materiales. Todo el plan,{" "}
               {pr.porMes(frecuencia)}/mes.
             </p>
 
@@ -323,7 +323,7 @@ function SelectorCicloB({
         </button>
       ) : (
         <p className="text-espresso mt-2.5 flex min-h-11 items-center justify-center text-center text-sm font-semibold">
-          Pagas la mitad: ahorras US${pr.ahorro.dolares} al año frente al mensual.
+          Pagas la mitad: ahorras {pr.ahorro.texto} al año frente al mensual.
         </p>
       )}
     </div>

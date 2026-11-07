@@ -15,7 +15,18 @@ export function cargarEntorno(esProd) {
   return esProd ? "PRODUCCIÓN" : "QA";
 }
 
-export const dinero = (v) => (v == null ? "—" : `US$${Number(v).toFixed(2).replace(".", ",")}`);
+/** "US$14,60" · "$59.900 COP" · "$269 MXN". Sin moneda, dólares (como siempre). */
+export const dinero = (v, moneda = "USD") => {
+  if (v == null) return "—";
+  const n = Number(v);
+  if (moneda === "USD") return `US$${n.toFixed(2).replace(".", ",")}`;
+  const entero = Number.isInteger(n);
+  const txt = n.toLocaleString("es-CO", { minimumFractionDigits: entero ? 0 : 2, maximumFractionDigits: 2 });
+  return `$${txt} ${moneda}`;
+};
+
+/** Qué fila de `plan_checkout` cobra en cada moneda local. USD = las que siguen en dólares. */
+export const REGION_DE_MONEDA = { COP: "colombia", MXN: "mexico" };
 
 /* ── API de OnePay ───────────────────────────────────────────────────────── */
 const BASE = "https://api.onepay.la/v1";
@@ -58,7 +69,7 @@ export const idDelEnlace = (url) => url?.match(/\/plan\/([0-9a-f-]{36})$/)?.[1] 
  * ciclo y modo (producción solo planes REALES, QA solo de PRUEBA).
  * Devuelve `{ leido, problemas }`; con `problemas` vacío, todo cuadra.
  */
-export async function verificarPlan(url, { ciclo, precio, esProd }) {
+export async function verificarPlan(url, { ciclo, precio, esProd, moneda = "USD" }) {
   const pagina = await fetch(url, { redirect: "follow" }).then((r) => (r.ok ? r.text() : null));
   if (!pagina) return { leido: null, problemas: [`OnePay no devolvió la página del plan (${url}).`] };
 
@@ -81,9 +92,9 @@ export async function verificarPlan(url, { ciclo, precio, esProd }) {
 
   const problemas = [];
   if (leido.centavos !== Math.round(precio * 100)) {
-    problemas.push(`El plan cobra ${dinero(leido.centavos / 100)}, no ${dinero(precio)}.`);
+    problemas.push(`El plan cobra ${dinero(leido.centavos / 100, moneda)}, no ${dinero(precio, moneda)}.`);
   }
-  if (leido.moneda !== "USD") problemas.push(`El plan está en ${leido.moneda}, no en USD.`);
+  if (leido.moneda !== moneda) problemas.push(`El plan está en ${leido.moneda}, no en ${moneda}.`);
   if (leido.impuesto !== 0) problemas.push(`El plan tiene ${leido.impuesto}% de impuesto: cobraría más de lo que dice la página.`);
   const esperada = ciclo === "mensual" ? "mes" : "año";
   if (leido.frecuencia !== esperada) {
@@ -95,4 +106,4 @@ export async function verificarPlan(url, { ciclo, precio, esProd }) {
 }
 
 export const describir = (l) =>
-  `${dinero(l.centavos / 100)} ${l.moneda} cada ${l.frecuencia} · impuesto ${l.impuesto}% · ${l.esPrueba ? "modo prueba" : "modo real"}`;
+  `${dinero(l.centavos / 100, l.moneda)} cada ${l.frecuencia} · impuesto ${l.impuesto}% · ${l.esPrueba ? "modo prueba" : "modo real"}`;
