@@ -26,13 +26,26 @@ develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
   `mc_vid`, cacheada por petición) → `enlacesDeCobro()` filtra por variante.
   Si a una variante le falta un ciclo en una región → se enseña la A entera.
   TODO falla hacia la A (sin flag, sin llave, valor raro).
-· **Analítica:** super propiedad `experimento_precio` (la variante que se
-  ENSEÑÓ de verdad) en todos los eventos + en la ficha con sesión;
-  `experimento_paleta` se borra del navegador (`unregister`). Para leerlo:
-  Breakdown por `experimento_precio` y filtrar por `moneda`/país (cada
-  moneda es un precio distinto). ⚠️ El embudo guardado "A/B home" usa
-  `experimento_paleta`: hay que cambiarlo a `experimento_precio` (límite de
-  5 informes en Mixpanel).
+· **Analítica (2026-11-07, código SIN COMMITEAR):** super propiedades en
+  TODOS los eventos: `pais`, `region`, `experimento_precio` (la variante que
+  se ENSEÑÓ), `moneda`, `precio_mensual`, `precio_anual`. Además
+  `cta_inscribirme_click`, `pago_puente_visto` y `checkout_abierto` llevan
+  `plan`, `moneda` y `precio` (el del ciclo tocado). **`pago_confirmado`
+  (servidor) lleva lo que se PAGÓ DE VERDAD**: el webhook lee del cuerpo de
+  OnePay el id del plan, la moneda y el monto (`leerCobro`, probado con los
+  cuerpos reales guardados) y busca ese plan en `plan_checkout` →
+  `experimento_precio`, `region`, `plan`, `moneda`, `precio`, `plan_onepay`.
+  No depende de la cookie. `experimento_paleta` se borra del navegador.
+  Verificado en local: `checkout_abierto` con anual · MXN · 1349 · b · MX.
+  ⚠️ La prueba mandó 2 eventos falsos desde localhost (`$host = localhost`).
+· **Mixpanel, tablero "Embudo de venta" (2026-11-07):** borrado "A/B home";
+  creados **"Moneda local: ¿pagan más en COP/MXN que en USD?"** (Breakdown
+  `moneda`) y **"Precio A/B/C: ¿el precio bajo vende más?"** (Breakdown
+  `experimento_precio`). Ambos: pagina_ventas_vista → pago_puente_visto →
+  checkout_abierto → pago_confirmado, ventana 7 días. Salen "(not set)" hasta
+  que el código llegue a producción. Para el de precio, filtrar por `moneda`
+  o país al leer (cada moneda es otro precio). ⚠️ **Informes guardados: 5 de
+  5** (límite del plan gratis): para crear otro hay que borrar uno.
 · **Para mirar a mano (SOLO fuera de producción):** `?precio=b`, `?precio=auto`
   (cookie `mc_precio_forzado`, 7 días). Combinable con `?pais=MX`. En
   producción se ignora a propósito: nadie se elige el precio barato.
