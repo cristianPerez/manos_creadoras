@@ -7,6 +7,7 @@ import {
   DIAS_VISITANTE,
   esVariante,
 } from "@/lib/paleta";
+import { COOKIE_PAIS_PRUEBA, ENTORNO_DE_PRUEBA } from "@/lib/pais-prueba";
 
 const DIA = 24 * 60 * 60;
 
@@ -56,6 +57,19 @@ export async function middleware(request: NextRequest) {
 
   if (fijarForzada) request.cookies.set(COOKIE_FORZADA, fijarForzada);
   if (borrarForzada) request.cookies.delete(COOKIE_FORZADA);
+
+  /*
+   * `?pais=MX` — FINGIR UN PAÍS, SOLO FUERA DE PRODUCCIÓN (2026-11-06). Para
+   * probar precios y enlaces de Colombia y México sin viajar. En producción
+   * se ignora: ahí el país lo da siempre la conexión (`lib/pais.ts`), y nadie
+   * puede pedir el precio de otro país tocando la dirección.
+   * `?pais=auto` lo quita.
+   */
+  const paisPedido = ENTORNO_DE_PRUEBA ? request.nextUrl.searchParams.get("pais")?.toUpperCase() : undefined;
+  const fijarPais = paisPedido && /^[A-Z]{2}$/.test(paisPedido) ? paisPedido : null;
+  const borrarPais = paisPedido === "AUTO";
+  if (fijarPais) request.cookies.set(COOKIE_PAIS_PRUEBA, fijarPais);
+  if (borrarPais) request.cookies.delete(COOKIE_PAIS_PRUEBA);
 
   /*
    * La identidad del visitante anónimo. `crypto.randomUUID` existe en el
@@ -121,6 +135,8 @@ export async function middleware(request: NextRequest) {
       });
     }
     if (borrarForzada) r.cookies.delete(COOKIE_FORZADA);
+    if (fijarPais) r.cookies.set(COOKIE_PAIS_PRUEBA, fijarPais, { path: "/", sameSite: "lax", httpOnly: true });
+    if (borrarPais) r.cookies.delete(COOKIE_PAIS_PRUEBA);
     return r;
   };
 

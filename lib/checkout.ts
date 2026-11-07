@@ -3,7 +3,7 @@ import { cache } from "react";
 import { ETIQUETA_COBRO, VIDA_COBRO_S } from "@/lib/cache-datos";
 import { detectarPais, regionDe, type Region } from "@/lib/pais";
 import { supabasePublico } from "@/lib/supabase/publico";
-import { PRECIOS_RESPALDO, type Frecuencia, type Precios } from "@/lib/planes";
+import { PRECIOS_RESPALDO, type Frecuencia, type Moneda, type Precios } from "@/lib/planes";
 
 /**
  * A dónde manda el botón de pagar.
@@ -27,7 +27,16 @@ export type EnlacesDeCobro = {
   precios: Precios;
 };
 
-type FilaCobro = { ciclo: string; url: string | null; precio_usd: number | string | null };
+type FilaCobro = {
+  ciclo: string;
+  url: string | null;
+  precio_usd: number | string | null;
+  /* Desde la 0049: en qué moneda cobra el plan de `url` y cuánto, en esa moneda. */
+  moneda: string | null;
+  precio: number | string | null;
+};
+
+const MONEDAS: readonly Moneda[] = ["USD", "COP", "MXN"];
 
 /**
  * Las filas de cobro de UNA región, en la caché de datos de Next (2026-11-05).
@@ -45,13 +54,13 @@ const cobroCacheado = unstable_cache(
   async (region: Region): Promise<FilaCobro[]> => {
     const { data, error } = await supabasePublico()
       .from("plan_checkout")
-      .select("ciclo, url, precio_usd")
+      .select("ciclo, url, precio_usd, moneda, precio")
       .eq("plan", "completo")
       .eq("region", region);
     if (error || !data) throw new Error(`cobro: ${error?.message ?? "sin datos"}`);
     return data as FilaCobro[];
   },
-  ["cobro-v1"],
+  ["cobro-v2"],
   { revalidate: VIDA_COBRO_S, tags: [ETIQUETA_COBRO] },
 );
 
@@ -61,15 +70,38 @@ export const enlacesDeCobro = cache(async (): Promise<EnlacesDeCobro> => {
 
   /* Si la base falla, sin filas: el precio cae al respaldo del código y el
      botón a contacto, igual que antes. Lo fallido no se guarda en caché. */
-  const data = await cobroCacheado(region).catch((): FilaCobro[] => []);
+  let data = await cobroCacheado(region).catch((): FilaCobro[] => []);
+
+  /*
+   * ⚠️ LOS DOS CICLOS TIENEN QUE IR EN LA MISMA MONEDA. Si Colombia tuviera
+   * el mensual en COP y el anual aún en USD (un plan a medio crear), la página
+   * compararía pesos con dólares: "ahorras -$59.813". En ese caso se enseña
+   * el país como internacional, en dólares, hasta que estén los dos.
+   */
+  const monedaDe = (f: FilaCobro): Moneda =>
+    MONEDAS.includes(f.moneda as Moneda) ? (f.moneda as Moneda) : "USD";
+  const enPesosSinPrecio = data.some((f) => monedaDe(f) !== "USD" && !(Number(f.precio) > 0));
+  if (region !== "internacional" && (new Set(data.map(monedaDe)).size > 1 || enPesosSinPrecio)) {
+    data = await cobroCacheado("internacional").catch((): FilaCobro[] => []);
+  }
+  const moneda: Moneda = data.length ? monedaDe(data[0]) : "USD";
 
   const porCiclo = new Map((data ?? []).map((f) => [f.ciclo, f.url]));
   /* `numeric` llega como texto o número según el cliente: se normaliza, y
      cualquier cosa que no sea un precio positivo cae al respaldo. */
   const precioDe = (ciclo: Frecuencia) => {
-    const v = Number((data ?? []).find((f) => f.ciclo === ciclo)?.precio_usd);
-    return Number.isFinite(v) && v > 0 ? v : PRECIOS_RESPALDO[ciclo];
+    const fila = (data ?? []).find((f) => f.ciclo === ciclo);
+    /* `precio` (en su moneda) manda; `precio_usd` solo para filas en USD de
+       antes de la 0049. En pesos NUNCA se cae a `precio_usd`: enseñaría
+       dólares con el signo de pesos. */
+    const v = Number(fila?.precio ?? (moneda === "USD" ? fila?.precio_usd : null));
+    return Number.isFinite(v) && v > 0 ? v : null;
   };
+  const mensual = precioDe("mensual");
+  const anual = precioDe("anual");
+  /* Sin los dos precios en su moneda, el respaldo entero (en USD), nunca medio y medio. */
+  const precios: Precios =
+    mensual != null && anual != null ? { mensual, anual, moneda } : PRECIOS_RESPALDO;
 
   return {
     region,
@@ -84,6 +116,6 @@ export const enlacesDeCobro = cache(async (): Promise<EnlacesDeCobro> => {
       mensual: porCiclo.get("mensual") ?? null,
       anual: porCiclo.get("anual") ?? null,
     },
-    precios: { mensual: precioDe("mensual"), anual: precioDe("anual") },
+    precios,
   };
 });

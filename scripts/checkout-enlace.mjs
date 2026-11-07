@@ -51,17 +51,19 @@ const donde = esProd ? "PRODUCCIÓN" : "QA";
 async function ver() {
   const { data, error } = await admin
     .from("plan_checkout")
-    .select("plan, ciclo, region, url, precio_usd, actualizado_en")
+    .select("plan, ciclo, region, url, precio_usd, moneda, precio, actualizado_en")
     .order("ciclo")
     .order("region");
   if (error) {
     console.error(`No se pudo leer ${donde}:`, error.message);
     process.exit(1);
   }
+  const { dinero } = await import("./lib/onepay.mjs");
   console.log(`\nEnlaces de pago en ${donde}:\n`);
   for (const f of data) {
-    const precio = f.precio_usd == null ? "sin precio" : `US$${Number(f.precio_usd).toFixed(2).replace(".", ",")}`;
-    console.log(`  ${f.ciclo.padEnd(8)} ${f.region.padEnd(14)} ${precio.padEnd(11)} ${f.url}`);
+    const valor = f.precio ?? f.precio_usd;
+    const precio = valor == null ? "sin precio" : dinero(valor, f.moneda ?? "USD");
+    console.log(`  ${f.ciclo.padEnd(8)} ${f.region.padEnd(14)} ${precio.padEnd(14)} ${f.url}`);
   }
   console.log();
 }

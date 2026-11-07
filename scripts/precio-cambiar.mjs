@@ -73,6 +73,9 @@ const { data: antes, error: errorLeer } = await admin
   .select("region, url, precio_usd")
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
+  /* Solo las filas que cobran en dólares (0049): Colombia y México pueden
+     tener su plan en COP/MXN, y este script solo verifica planes en USD. */
+  .eq("moneda", "USD")
   .order("region");
 if (errorLeer) parar(`No se pudo leer ${donde}: ${errorLeer.message}`);
 if (!antes?.length) parar(`${donde} no tiene filas del plan ${ciclo} en plan_checkout.`);
@@ -93,13 +96,23 @@ const { data: cambiadas, error: errorEscribir } = await admin
   .update({
     url,
     precio_usd: precio,
+    precio,
     onepay_plan_id: url.match(/\/plan\/([0-9a-f-]{36})$/)[1],
     actualizado_en: new Date().toISOString(),
   })
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
+  .eq("moneda", "USD")
   .select("region");
 if (errorEscribir) parar(`No se pudo escribir en ${donde}: ${errorEscribir.message}`);
+/* Las filas en COP/MXN guardan en `precio_usd` el equivalente en dólares
+   (para informes): se pone al día, sin tocar su enlace ni su precio local. */
+await admin
+  .from("plan_checkout")
+  .update({ precio_usd: precio })
+  .eq("plan", "completo")
+  .eq("ciclo", ciclo)
+  .neq("moneda", "USD");
 
 console.log(`\n✅ ${donde}: plan ${ciclo} a ${dinero(precio)} en ${cambiadas.length} regiones (${cambiadas.map((f) => f.region).join(", ")}).`);
 console.log("   La página ya lo enseña: lee precio y enlace de la base en cada visita, sin publicar código.");

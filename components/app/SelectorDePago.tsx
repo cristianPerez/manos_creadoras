@@ -76,7 +76,7 @@ export function SelectorDePago({
                 ⚠️ EL PRECIO CUENTA, no aparece de golpe: al pasar de mensual a
                 anual, ver el número BAJAR es la demostración del descuento.
               */}
-              <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} quieto={Boolean(quieto)} />
+              <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} moneda={pr.moneda} quieto={Boolean(quieto)} />
             </span>
             <span className="text-on-dark-muted text-lg">/mes</span>
           </p>

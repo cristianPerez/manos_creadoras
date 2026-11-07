@@ -98,7 +98,7 @@ export function PrecioHome({ enlaces }: { enlaces: Record<Frecuencia, string | n
                   — lo que cambia es el ciclo. Con el otro, al cambiar se quedaba
                   en US$0,00, que en un precio es lo más parecido a un error.
                 */}
-                <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} quieto={Boolean(quieto)} />
+                <PrecioQueCuenta hasta={pr.porMesNumero[frecuencia]} moneda={pr.moneda} quieto={Boolean(quieto)} />
               </span>
               <span className="text-on-dark-muted text-lg">/mes</span>
             </p>
