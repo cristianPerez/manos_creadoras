@@ -1,12 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import {
-  COOKIE_FORZADA,
+  COOKIE_PRECIO_FORZADO,
   COOKIE_VISITANTE,
   DIAS_FORZADA,
   DIAS_VISITANTE,
-  esVariante,
-} from "@/lib/paleta";
+  esVariantePrecio,
+} from "@/lib/experimento";
 import { COOKIE_PAIS_PRUEBA, ENTORNO_DE_PRUEBA } from "@/lib/pais-prueba";
 
 const DIA = 24 * 60 * 60;
@@ -38,25 +38,27 @@ const PRIVADAS: string[] = [];
 
 export async function middleware(request: NextRequest) {
   /*
-   * ── EL EXPERIMENTO DE PALETA (2026-11-05) ────────────────────────────────
+   * ── EL EXPERIMENTO DE PRECIO (2026-11-07) ────────────────────────────────
    *
-   * Aquí solo se preparan las dos cookies; quién ve qué lo decide Flagsmith en
-   * `lib/paleta-servidor.ts`, que corre después, en el layout.
+   * Aquí solo se preparan las cookies; qué precio ve cada quien lo decide
+   * Flagsmith en `lib/experimento-servidor.ts`, que corre después.
    *
    * ⚠️ LAS COOKIES SE ESCRIBEN TAMBIÉN EN `request.cookies`, NO SOLO EN LA
-   * RESPUESTA. Es lo que hace que el layout las vea YA en esta misma visita. Si
-   * solo fueran a la respuesta, la primera carga de cada visitante nueva —que
-   * es justo la que decide si compra— se resolvería sin identidad y caería a
-   * "actual", y el reparto del A/B no empezaría hasta la segunda página. Nadie
-   * lo notaría y los números saldrían sesgados hacia el control.
+   * RESPUESTA. Es lo que hace que el servidor las vea YA en esta misma visita.
+   * Si solo fueran a la respuesta, la primera carga de cada visitante nueva
+   * —la que decide si compra— se resolvería sin identidad y caería al
+   * control, y los números saldrían sesgados hacia la A.
+   *
+   * `?precio=b` (fijar a mano) y `?precio=auto` (devolver el mando al panel)
+   * SOLO FUERA DE PRODUCCIÓN, como `?pais=`: en producción nadie puede
+   * elegirse el precio más barato tocando la dirección.
    */
-  const paletaPedida = request.nextUrl.searchParams.get("paleta");
-  // `?paleta=auto` devuelve el mando al panel: se borra la cookie forzada.
-  const borrarForzada = paletaPedida === "auto";
-  const fijarForzada = esVariante(paletaPedida) ? paletaPedida : null;
+  const precioPedido = ENTORNO_DE_PRUEBA ? request.nextUrl.searchParams.get("precio")?.toLowerCase() : undefined;
+  const borrarForzada = precioPedido === "auto";
+  const fijarForzada = esVariantePrecio(precioPedido) ? precioPedido : null;
 
-  if (fijarForzada) request.cookies.set(COOKIE_FORZADA, fijarForzada);
-  if (borrarForzada) request.cookies.delete(COOKIE_FORZADA);
+  if (fijarForzada) request.cookies.set(COOKIE_PRECIO_FORZADO, fijarForzada);
+  if (borrarForzada) request.cookies.delete(COOKIE_PRECIO_FORZADO);
 
   /*
    * `?pais=MX` — FINGIR UN PAÍS, SOLO FUERA DE PRODUCCIÓN (2026-11-06). Para
@@ -115,7 +117,7 @@ export async function middleware(request: NextRequest) {
    *
    * `httpOnly` en `mc_vid` porque no hay ninguna razón para que el navegador lo
    * lea; la forzada sí se deja visible, que es parte de poder comprobar desde
-   * la consola qué rama se está viendo al revisar QA.
+   * la consola qué precio se está viendo al revisar QA.
    */
   const conCookies = <T extends NextResponse>(r: T): T => {
     if (nuevoVisitante) {
@@ -127,14 +129,14 @@ export async function middleware(request: NextRequest) {
       });
     }
     if (fijarForzada) {
-      r.cookies.set(COOKIE_FORZADA, fijarForzada, {
+      r.cookies.set(COOKIE_PRECIO_FORZADO, fijarForzada, {
         path: "/",
         maxAge: DIAS_FORZADA * DIA,
         sameSite: "lax",
         httpOnly: false,
       });
     }
-    if (borrarForzada) r.cookies.delete(COOKIE_FORZADA);
+    if (borrarForzada) r.cookies.delete(COOKIE_PRECIO_FORZADO);
     if (fijarPais) r.cookies.set(COOKIE_PAIS_PRUEBA, fijarPais, { path: "/", sameSite: "lax", httpOnly: true });
     if (borrarPais) r.cookies.delete(COOKIE_PAIS_PRUEBA);
     return r;

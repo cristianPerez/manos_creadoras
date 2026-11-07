@@ -27,7 +27,7 @@ export function Analitica({
   fuentePais,
   ciudad,
   subdivision,
-  experimentoPaleta,
+  experimentoPrecio,
 }: {
   userId: string | null;
   /** El correo de la sesión, para identificarla en Mixpanel (ver `identificar`). */
@@ -50,20 +50,16 @@ export function Analitica({
   /** Departamento o estado en código, de `x-vercel-ip-country-region`. */
   subdivision?: string | null;
   /**
-   * Qué rama del experimento de paleta le tocó: "b" (lavanda) o "actual".
+   * Qué variante del experimento de precio le tocó: "a" (el de siempre), "b"
+   * o "c" (ver `lib/flags.ts`).
    *
-   * ⚠️ VA COMO SUPER PROPIEDAD, NO COMO UN EVENTO NUEVO, y esa es la pieza que
-   * hace que el experimento se pueda leer. Al registrarla aquí, TODOS los
-   * eventos que ya existen —`pagina_ventas_vista`, `cta_inscribirme_click`,
-   * `checkout_abierto`, `pago_confirmado`…— la llevan pegada, así que cualquier
-   * embudo del panel se puede partir en dos con un "Breakdown" y comparar las
-   * dos versiones sin instrumentar ni un botón más.
-   *
-   * Un evento tipo `paleta_vista` habría servido solo para contar cuántas la
-   * vieron, que es justo lo que menos importa: lo que se quiere saber es cuál
-   * de las dos VENDE.
+   * ⚠️ VA COMO SUPER PROPIEDAD, NO COMO UN EVENTO NUEVO: así TODOS los eventos
+   * que ya existen —`pagina_ventas_vista`, `pago_puente_visto`,
+   * `checkout_abierto`, `pago_confirmado`…— la llevan pegada, y cualquier
+   * embudo del panel se parte en tres con un "Breakdown" sin instrumentar ni
+   * un botón más. (Mismo patrón que el A/B de paleta, ya terminado.)
    */
-  experimentoPaleta?: string;
+  experimentoPrecio?: string;
 }) {
   useEffect(() => {
     /*
@@ -89,7 +85,7 @@ export function Analitica({
       mp_country_code: conocido ? pais : undefined,
       $region: subdivision ?? undefined,
       $city: ciudad ?? undefined,
-      experimento_paleta: experimentoPaleta,
+      experimento_precio: experimentoPrecio,
     };
     /* El contexto va DENTRO del encendido: así los eventos que ya esperaban
        en cola (la vista del home, que se dispara antes que este efecto) salen
@@ -102,9 +98,9 @@ export function Analitica({
       identificar(userId, correo);
       /* La variante también en la ficha: ver `fijarEnFicha` (los pagos los
          manda el servidor y no llevan las super propiedades). */
-      fijarEnFicha({ experimento_paleta: experimentoPaleta });
+      fijarEnFicha({ experimento_precio: experimentoPrecio });
     }
-  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPaleta]);
+  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPrecio]);
 
   /*
    * La vista de página en cada navegación dentro de la app. La de la carga la

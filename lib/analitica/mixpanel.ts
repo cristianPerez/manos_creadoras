@@ -115,7 +115,7 @@ export function iniciarMixpanel(contexto: Propiedades = {}): void {
    *
    * React corre los efectos de los hijos antes que los del padre: el
    * `<Medir evento="pagina_ventas_vista">` de la página disparaba ANTES de que
-   * `<Analitica>` registrara `experimento_paleta`, el evento quedaba en la
+   * `<Analitica>` registrara `experimento_precio`, el evento quedaba en la
    * cola, y la cola salía al encender… todavía sin variante. Resultado medido
    * en local: `pagina_ventas_vista` salía con la variante de la VISITA
    * ANTERIOR (la que Mixpanel guardó en el navegador) o, en una visitante
@@ -221,10 +221,10 @@ export function identificar(userId: string, correo?: string | null): void {
  *
  * ⚠️ HACE FALTA PARA LEER EL A/B EN LOS PAGOS (2026-11-05). `pago_confirmado`
  * lo manda el SERVIDOR (el webhook de OnePay), que no hereda las super
- * propiedades del navegador: sin esto, ese evento no tiene `experimento_paleta`
+ * propiedades del navegador: sin esto, ese evento no tiene `experimento_precio`
  * y un reporte de pagos no se podría partir en las dos versiones. Con la
  * variante en la ficha, cualquier reporte —pagos incluidos— se parte con
- * "Breakdown → User property → experimento_paleta".
+ * "Breakdown → User property → experimento_precio".
  */
 export function fijarEnFicha(props: Propiedades): void {
   if (!listo) return;
@@ -286,6 +286,13 @@ function registrarSinComprobar(props: Propiedades): void {
       Object.entries(props).filter(([, v]) => v !== undefined && v !== ""),
     );
     mixpanel.register(limpias);
+    /*
+     * ⚠️ EL A/B DE PALETA TERMINÓ EL 2026-11-07. Mixpanel guarda las super
+     * propiedades en el navegador para siempre: quien ya había visitado
+     * seguiría mandando `experimento_paleta: "actual"` en cada evento y
+     * ensuciaría los informes. Se borra aquí, en cada registro de contexto.
+     */
+    mixpanel.unregister("experimento_paleta");
   } catch {
     // Igual que el resto: la analítica nunca interrumpe a quien está usando la app.
   }

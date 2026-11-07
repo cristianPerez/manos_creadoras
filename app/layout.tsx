@@ -6,8 +6,8 @@ import { preciosDeLaPagina } from "@/lib/precios";
 import { MotionProvider } from "@/components/app/MotionProvider";
 import { ProveedorEntrar } from "@/components/app/ModalEntrar";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
-import { COLOR_FONDO_SISTEMA, COLOR_FONDO_SISTEMA_B } from "@/lib/marca";
-import { paletaDeLaVisita } from "@/lib/paleta-servidor";
+import { COLOR_FONDO_SISTEMA_B } from "@/lib/marca";
+import { enlacesDeCobro } from "@/lib/checkout";
 import { detectarPais, regionDe } from "@/lib/pais";
 import { supabaseServer } from "@/lib/supabase/server";
 import "./globals.css";
@@ -51,21 +51,12 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * ⚠️ ES `generateViewport()` Y NO LA CONSTANTE `viewport` DE ANTES porque el
- * color de la barra del sistema depende ahora de la rama del experimento: con
- * la paleta B es lavanda y con la de siempre, la de siempre. Una constante no
- * puede mirar una cookie.
- */
-export async function generateViewport(): Promise<Viewport> {
-  const paleta = await paletaDeLaVisita();
-  return {
-    // Tiñe la barra del sistema con el fondo de la marca cuando está instalada.
-    themeColor: paleta === "b" ? COLOR_FONDO_SISTEMA_B : COLOR_FONDO_SISTEMA,
-    // Evita que el contenido quede bajo el notch al abrirse a pantalla completa.
-    viewportFit: "cover",
-  };
-}
+export const viewport: Viewport = {
+  // Tiñe la barra del sistema con el fondo de la marca (lavanda) cuando está instalada.
+  themeColor: COLOR_FONDO_SISTEMA_B,
+  // Evita que el contenido quede bajo el notch al abrirse a pantalla completa.
+  viewportFit: "cover",
+};
 
 export default async function RootLayout({
   children,
@@ -97,19 +88,21 @@ export default async function RootLayout({
   const { precios } = await preciosDeLaPagina();
 
   /*
-    La rama del experimento de paleta, resuelta UNA vez por visita y aquí
-    arriba: el atributo sale ya en el HTML del servidor, así que la página no
-    parpadea de crema a lavanda al cargar. Ver `lib/paleta-servidor.ts`.
+    La variante del experimento de precio (A/B/C), para la analítica. Se toma
+    de `enlacesDeCobro` y no de la flag a secas: es la variante cuyos precios
+    se enseñaron DE VERDAD (si a una le faltara un plan, se enseña la "a" y
+    así lo registra). Cacheada por petición: es la misma consulta de arriba.
   */
-  const paleta = await paletaDeLaVisita();
+  const { variante: variantePrecio } = await enlacesDeCobro();
 
   return (
     <html
       lang="es"
-      /* Sin atributo cuando es la paleta de siempre: así el sitio de hoy sigue
-         saliendo byte por byte como salía, y no hay forma de que una regla de
-         la B se le cuele por un selector mal escrito. */
-      data-paleta={paleta === "b" ? "b" : undefined}
+      /* ⚠️ FIJO EN "b" DESDE EL 2026-11-07: el home morado ganó el A/B de
+         paleta y es el único. Los tokens de `globals.css` siguen escritos como
+         base crema + `html[data-paleta="b"]` encima; quitar el atributo
+         volvería a pintar todo en crema. */
+      data-paleta="b"
       className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-dvh flex flex-col bg-surface-base text-text-primary font-body">
@@ -130,7 +123,7 @@ export default async function RootLayout({
           fuentePais={fuente}
           ciudad={ciudad}
           subdivision={subdivision}
-          experimentoPaleta={paleta}
+          experimentoPrecio={variantePrecio}
         />
         <RegistrarEntrada />
       </body>
