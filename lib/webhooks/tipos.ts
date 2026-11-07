@@ -67,6 +67,12 @@ export type EventoNormalizado = {
    * instante en que llegó el mensaje, no.
    */
   marca: string | null;
+  /**
+   * Qué se cobró, si la pasarela lo dice (2026-11-07): el id del plan, la
+   * moneda y el monto en centavos. Solo para la analítica (qué variante de
+   * precio y en qué moneda pagó); el acceso NO depende de esto.
+   */
+  cobro?: { planId: string | null; moneda: string | null; centavos: number | null } | null;
 };
 
 export type ResultadoVerificacion =

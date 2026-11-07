@@ -97,8 +97,13 @@ export function PuentePago({
   useEffect(() => {
     if (medido.current) return;
     medido.current = true;
-    medir(EVENTOS.pagoPuenteVisto, { plan: frecuenciaInicial, moneda: pr.moneda, desde: desde ?? "directo" });
-  }, [frecuenciaInicial, pr.moneda, desde]);
+    medir(EVENTOS.pagoPuenteVisto, {
+      plan: frecuenciaInicial,
+      moneda: pr.moneda,
+      precio: pr.precios[frecuenciaInicial],
+      desde: desde ?? "directo",
+    });
+  }, [frecuenciaInicial, pr.moneda, pr.precios, desde]);
 
   /*
    * Entrada escalonada por CSS (`.reveal`, 70 ms entre bloques) y NO con

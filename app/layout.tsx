@@ -124,6 +124,9 @@ export default async function RootLayout({
           ciudad={ciudad}
           subdivision={subdivision}
           experimentoPrecio={variantePrecio}
+          moneda={precios.moneda}
+          precioMensual={precios.mensual}
+          precioAnual={precios.anual}
         />
         <RegistrarEntrada />
       </body>

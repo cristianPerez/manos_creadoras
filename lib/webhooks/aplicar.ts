@@ -212,13 +212,11 @@ export async function aplicar(
      * Va DESPUÉS de cerrar el evento y no bloquea nada: si Mixpanel falla, se
      * traga el error (ver el módulo) y la membresía ya quedó activa igual.
      */
-    /* Sin `ciclo`: el evento de la pasarela no dice si es mensual o anual, y
-       no se inventa. Para separarlos en el panel está `checkout_abierto`, que
-       sí lleva el plan que tocó la alumna. */
     await medirPagoConfirmado(userId, {
       proveedor,
       suscripcion: evento.recursoId ?? undefined,
       correo: evento.correo,
+      ...(await queSePago(db, evento)),
     });
     await darLaBienvenida(db, userId, origen, rastro);
     return;
@@ -271,5 +269,48 @@ export async function aplicar(
       suscripcion: evento.recursoId,
       correo: evento.correo ?? "(no vino)",
     });
+  }
+}
+
+/**
+ * Qué plan se pagó, dicho con los MISMOS nombres de propiedad que usa el
+ * navegador (`experimento_precio`, `moneda`, `region`), para que el último
+ * paso del embudo se parta igual que los demás (2026-11-07).
+ *
+ * ⚠️ SALE DEL PLAN QUE SE COBRÓ, NO DE LA COOKIE. El id del plan de OnePay se
+ * busca en `plan_checkout`: esa fila dice su variante, región y ciclo. Es la
+ * verdad de lo que pagó, aunque haya cambiado de navegador por el camino.
+ * Un plan viejo que ya no está en la tabla da solo moneda y monto.
+ * Nunca lanza: la analítica no puede tumbar un webhook de pago.
+ */
+async function queSePago(
+  db: ReturnType<typeof supabaseAdmin>,
+  evento: EventoNormalizado,
+): Promise<Record<string, string | number | undefined>> {
+  const cobro = evento.cobro;
+  if (!cobro) return {};
+  const base = {
+    plan_onepay: cobro.planId ?? undefined,
+    moneda: cobro.moneda ?? undefined,
+    precio: cobro.centavos != null ? cobro.centavos / 100 : undefined,
+  };
+  if (!cobro.planId) return base;
+  try {
+    const { data } = await db
+      .from("plan_checkout")
+      .select("variante, region, ciclo, moneda, precio")
+      .eq("onepay_plan_id", cobro.planId)
+      .limit(1)
+      .maybeSingle();
+    if (!data) return base;
+    return {
+      ...base,
+      experimento_precio: data.variante ?? undefined,
+      region: data.region ?? undefined,
+      plan: data.ciclo ?? undefined,
+      moneda: base.moneda ?? data.moneda ?? undefined,
+    };
+  } catch {
+    return base;
   }
 }
