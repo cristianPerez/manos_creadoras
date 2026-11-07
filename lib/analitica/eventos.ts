@@ -20,6 +20,12 @@ export const EVENTOS = {
   paginaVentasVista: "pagina_ventas_vista",
   /** Tocó un botón de compra. Lleva qué plan (mensual/anual). */
   checkoutAbierto: "checkout_abierto",
+  /**
+   * Llegó a la página intermedia `/pagar` (2026-11-06), el paso entre tocar
+   * "comprar" y abrir OnePay. Lleva `plan`, `moneda` y `desde` (qué botón).
+   * Embudo: cta_inscribirme_click → pago_puente_visto → checkout_abierto.
+   */
+  pagoPuenteVisto: "pago_puente_visto",
 
   /*
    * ── El embudo DENTRO del home (2026-11-01) ───────────────────────────
