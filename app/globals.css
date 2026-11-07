@@ -316,8 +316,9 @@
    PALETA B — "Lavanda empolvada" · el experimento de 2026-11-05
    ============================================================================
    De la exploración en Claude Design, columna B, que es la que eligió Cristian.
-   La enciende la flag `paleta_b` de Flagsmith: `app/layout.tsx` pinta
-   `data-paleta="b"` en el `<html>` y este bloque entra. Ver `lib/flags.ts`.
+   ⚠️ DESDE EL 2026-11-07 ES LA PALETA DE TODO EL SITIO: ganó el A/B y
+   `app/layout.tsx` pinta `data-paleta="b"` SIEMPRE en el `<html>`. Los tokens
+   de arriba (crema) quedan como base que este bloque pisa.
 
    ⚠️ ESTE BLOQUE REPINTA LA APP ENTERA SIN TOCAR UN SOLO COMPONENTE, y es la
    misma razón por la que existían los 12 de marca: ninguna de las pantallas

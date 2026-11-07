@@ -9,7 +9,7 @@ import { VeloCargando } from "@/components/app/VeloCargando";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EnlaceCompra } from "@/components/home/EnlaceCompra";
 import { NumeroQueCuenta } from "@/components/home/NumeroQueCuenta";
-import type { FotoHero } from "@/components/home/HeroSlider";
+import type { FotoHero } from "@/lib/datos-home";
 import { TextoQueRota } from "@/components/home-b/TextoQueRota";
 import { fotoTopo } from "@/lib/fotos-topo";
 import { TESTIMONIOS } from "@/lib/landing";
