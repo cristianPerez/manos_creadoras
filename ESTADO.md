@@ -26,7 +26,7 @@ develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
   `mc_vid`, cacheada por petición) → `enlacesDeCobro()` filtra por variante.
   Si a una variante le falta un ciclo en una región → se enseña la A entera.
   TODO falla hacia la A (sin flag, sin llave, valor raro).
-· **Analítica (2026-11-07, código SIN COMMITEAR):** super propiedades en
+· **Analítica (2026-11-07, EN QA: PR #20 → develop):** super propiedades en
   TODOS los eventos: `pais`, `region`, `experimento_precio` (la variante que
   se ENSEÑÓ), `moneda`, `precio_mensual`, `precio_anual`. Además
   `cta_inscribirme_click`, `pago_puente_visto` y `checkout_abierto` llevan
@@ -38,6 +38,10 @@ develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
   No depende de la cookie. `experimento_paleta` se borra del navegador.
   Verificado en local: `checkout_abierto` con anual · MXN · 1349 · b · MX.
   ⚠️ La prueba mandó 2 eventos falsos desde localhost (`$host = localhost`).
+  Verificado en qa.manoscreadoras.co: super propiedades c · COP · 39900 ·
+  239900, sin `experimento_paleta`. ⚠️ El 1er despliegue de QA del #20 falló
+  por Vercel sin poder bajar Cormorant de Google Fonts (no era el código: el
+  preview del PR había compilado); se arregló con `vercel redeploy`.
 · **Mixpanel, tablero "Embudo de venta" (2026-11-07):** borrado "A/B home";
   creados **"Moneda local: ¿pagan más en COP/MXN que en USD?"** (Breakdown
   `moneda`) y **"Precio A/B/C: ¿el precio bajo vende más?"** (Breakdown
