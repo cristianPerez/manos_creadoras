@@ -4,26 +4,29 @@ import { listarCapsulas } from "@/lib/capsulas";
 import { enlacesDeCobro } from "@/lib/checkout";
 import { preciosDeLaPagina } from "@/lib/precios";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
-import type { PasoGratis } from "@/components/home/CursoGratis";
-import type { FotoHero } from "@/components/home/HeroSlider";
 
 /**
- * ════════════════════════════════════════════════════════════════════════════
- * LOS DATOS DEL HOME, CARGADOS UNA SOLA VEZ
- * ════════════════════════════════════════════════════════════════════════════
+ * Los datos del home, cargados una sola vez en el servidor.
  *
- * ⚠️ NACE CON EL EXPERIMENTO DE PALETA (2026-11-05). Desde que hay dos homes
- * —el de siempre y el de la paleta B—, esto vivía en `app/page.tsx` y la
- * tentación era copiarlo en los dos componentes. Dos copias de las mismas
- * consultas es el camino directo a que un día una diga 20 proyectos y la otra
- * 21, o a que una firme los videos y la otra no. Se carga aquí, una vez, y cada
- * home recibe lo mismo.
- *
- * Las dos versiones comparten TODO el contenido: precios, fotos, preguntas, el
- * bolso gratis. Lo único que cambia entre ellas es el diseño. Si cambiara el
- * contenido, el experimento no mediría el diseño: mediría dos ofertas
- * distintas, y no se podría saber cuál de las dos cosas movió el número.
+ * Nació con el A/B de paleta (2026-11-05), cuando había dos homes que tenían
+ * que enseñar exactamente lo mismo. Desde el 2026-11-07 hay uno solo (el
+ * morado), pero las consultas siguen aquí y no en la página.
  */
+
+/** Una foto del carrusel del héroe. */
+export type FotoHero = { slug: string; nombre: string; subtitulo: string; url: string };
+
+/** Un paso del bolso gratis (0 = materiales). */
+export type PasoGratis = {
+  orden: number;
+  numero: number | null;
+  titulo: string;
+  descripcion: string;
+  /** La URL FIRMADA del embed. La firma el servidor; la clave nunca baja aquí. */
+  urlVideo: string | null;
+  /** La miniatura que genera Bunny del propio video. */
+  poster: string | null;
+};
 
 /**
  * Los subtítulos del carrusel. Describen la TÉCNICA, no el bolso.
@@ -34,36 +37,13 @@ import type { FotoHero } from "@/components/home/HeroSlider";
  * sus pasos. Mezclarlos obligaría a que un cambio de copy pasara por una
  * migración.
  */
-const SUBTITULOS: Record<string, string> = {
-  /* ⚠️ PRIMERO EN EL CARRUSEL por pedido de Cristian (2026-10-17): es el que
-     abre la galería en la referencia de sparkle-bag-studio. El orden de este
-     objeto ES el orden del banner — ver `ORDEN_CARRUSEL` abajo. */
-  "anillos-de-seda": "Asa de perlas y anillos",
-  "gota-de-rocio": "Bandolera de perlas",
-  "cristal-brillante": "Cristal facetado",
-  "marfil-elegante": "Perla marfil",
-  "encantado-dorado": "Perla y marco dorado",
-  "brillo-lunar": "Boquilla metálica",
-  "tornado-de-aurora": "Cristal tornasol",
-  "perla-tejida": "Perlas de 10 y 30 mm",
-  "coquett-clasico": "Shamballa de 14 mm",
-  "silueta-nacar": "Cuentas de 10 mm",
-};
-
-/** El orden del carrusel: lo manda el diseño, no el catálogo. */
-const ORDEN_CARRUSEL = Object.keys(SUBTITULOS);
-
-/**
- * El carrusel del home B v2 (Claude Design, "Home B v2 · vendedor"): detrás del
- * bolso gratis y de la vela van estos cuatro, en este orden. Boho no está en el
- * de siempre; su subtítulo sigue la misma regla (lo que lo distingue en una
- * línea) y sale de su ficha de materiales.
- */
+/* El orden de este objeto ES el orden del carrusel (detrás del bolso gratis
+   y de la vela, que pone `PortadaB` delante). */
 const SUBTITULOS_B: Record<string, string> = {
-  "anillos-de-seda": SUBTITULOS["anillos-de-seda"],
+  "anillos-de-seda": "Asa de perlas y anillos",
   boho: "Cuentas de 10 mm",
-  "gota-de-rocio": SUBTITULOS["gota-de-rocio"],
-  "marfil-elegante": SUBTITULOS["marfil-elegante"],
+  "gota-de-rocio": "Bandolera de perlas",
+  "marfil-elegante": "Perla marfil",
 };
 const ORDEN_CARRUSEL_B = Object.keys(SUBTITULOS_B);
 
@@ -85,19 +65,7 @@ export async function cargarDatosHome() {
   const totalVideos = bolsos.reduce((s, b) => s + b.videos, 0);
 
   const porSlug = new Map(bolsos.map((b) => [b.slug, b]));
-  const fotos: FotoHero[] = ORDEN_CARRUSEL.flatMap((slug) => {
-    const b = porSlug.get(slug);
-    if (!b?.portadaUrl) return [];
-    return [{ slug, nombre: b.nombre, subtitulo: SUBTITULOS[slug], url: b.portadaUrl }];
-  });
-
-  /*
-   * ⚠️ LAS FOTOS DEL CARRUSEL DEL HOME B v2, APARTE DE `fotos`. La B pide otro
-   * orden y un bolso que el carrusel de siempre no tiene (Boho). Si se tocara
-   * `fotos`, cambiaría también el banner del CONTROL, y el control tiene que
-   * quedarse idéntico mientras dure el experimento. El bolso gratis y la vela
-   * (que no es un bolso de la base) los pone `PortadaB` delante.
-   */
+  /* El carrusel del héroe: el bolso gratis y la vela los pone `PortadaB` delante. */
   const fotosB: FotoHero[] = ORDEN_CARRUSEL_B.flatMap((slug) => {
     const b = porSlug.get(slug);
     if (!b?.portadaUrl) return [];
@@ -159,7 +127,6 @@ export async function cargarDatosHome() {
     cobro,
     totalProyectos,
     totalVideos,
-    fotos,
     fotosB,
     gratis,
     urlsDeCapsulas,

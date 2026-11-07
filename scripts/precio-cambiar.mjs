@@ -25,6 +25,10 @@
  * (Colombia e internacional) a la vez, como desde la 0037. Cada cambio queda en
  * `plan_checkout_historial` (lo escribe un trigger, migración 0044).
  *
+ * ⚠️ SOLO TOCA LA VARIANTE "a" (migración 0050). Las variantes del
+ * experimento de precio (b, c) se crean y cambian con
+ * `npm run plan:onepay -- <ciclo> <precio> --variante=b`.
+ *
  * ⚠️ NO archiva el plan viejo en OnePay: quien ya pagó sigue en él con su
  * precio. Archivar es irreversible y se decide aparte.
  */
@@ -76,6 +80,7 @@ const { data: antes, error: errorLeer } = await admin
   /* Solo las filas que cobran en dólares (0049): Colombia y México pueden
      tener su plan en COP/MXN, y este script solo verifica planes en USD. */
   .eq("moneda", "USD")
+  .eq("variante", "a")
   .order("region");
 if (errorLeer) parar(`No se pudo leer ${donde}: ${errorLeer.message}`);
 if (!antes?.length) parar(`${donde} no tiene filas del plan ${ciclo} en plan_checkout.`);
@@ -103,6 +108,7 @@ const { data: cambiadas, error: errorEscribir } = await admin
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
   .eq("moneda", "USD")
+  .eq("variante", "a")
   .select("region");
 if (errorEscribir) parar(`No se pudo escribir en ${donde}: ${errorEscribir.message}`);
 /* Las filas en COP/MXN guardan en `precio_usd` el equivalente en dólares
@@ -112,6 +118,7 @@ await admin
   .update({ precio_usd: precio })
   .eq("plan", "completo")
   .eq("ciclo", ciclo)
+  .eq("variante", "a")
   .neq("moneda", "USD");
 
 console.log(`\n✅ ${donde}: plan ${ciclo} a ${dinero(precio)} en ${cambiadas.length} regiones (${cambiadas.map((f) => f.region).join(", ")}).`);

@@ -1,6 +1,6 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-11-06.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-11-07.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
 mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
@@ -13,9 +13,66 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
+🧪 **EXPERIMENTO DE PRECIO A/B/C (2026-11-07) — ✅ CORRIENDO EN QA (PR #19 →
+develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
+· **Precios aprobados por Cristian** (anual = 6 mensualidades, -50%):
+  COP A 59.900/359.900 · B 49.900/299.900 · C 39.900/239.900 ·
+  MXN A 269/1.599 · B 225/1.349 · C 179/1.069 ·
+  USD A 14,60/87,60 · B 12,20/73,20 · C 9,70/58,20. A = control (el de hoy).
+· **Cómo funciona:** migración **0050** añade `plan_checkout.variante`
+  (a/b/c, parte de la clave). Una fila por región·ciclo·variante: precio y
+  enlace siguen JUNTOS; la flag solo dice la letra. `lib/flags.ts` (flag
+  `precio`) → `lib/experimento-servidor.ts` (`varianteDePrecio`, identidad
+  `mc_vid`, cacheada por petición) → `enlacesDeCobro()` filtra por variante.
+  Si a una variante le falta un ciclo en una región → se enseña la A entera.
+  TODO falla hacia la A (sin flag, sin llave, valor raro).
+· **Analítica (2026-11-07, código SIN COMMITEAR):** super propiedades en
+  TODOS los eventos: `pais`, `region`, `experimento_precio` (la variante que
+  se ENSEÑÓ), `moneda`, `precio_mensual`, `precio_anual`. Además
+  `cta_inscribirme_click`, `pago_puente_visto` y `checkout_abierto` llevan
+  `plan`, `moneda` y `precio` (el del ciclo tocado). **`pago_confirmado`
+  (servidor) lleva lo que se PAGÓ DE VERDAD**: el webhook lee del cuerpo de
+  OnePay el id del plan, la moneda y el monto (`leerCobro`, probado con los
+  cuerpos reales guardados) y busca ese plan en `plan_checkout` →
+  `experimento_precio`, `region`, `plan`, `moneda`, `precio`, `plan_onepay`.
+  No depende de la cookie. `experimento_paleta` se borra del navegador.
+  Verificado en local: `checkout_abierto` con anual · MXN · 1349 · b · MX.
+  ⚠️ La prueba mandó 2 eventos falsos desde localhost (`$host = localhost`).
+· **Mixpanel, tablero "Embudo de venta" (2026-11-07):** borrado "A/B home";
+  creados **"Moneda local: ¿pagan más en COP/MXN que en USD?"** (Breakdown
+  `moneda`) y **"Precio A/B/C: ¿el precio bajo vende más?"** (Breakdown
+  `experimento_precio`). Ambos: pagina_ventas_vista → pago_puente_visto →
+  checkout_abierto → pago_confirmado, ventana 7 días. Salen "(not set)" hasta
+  que el código llegue a producción. Para el de precio, filtrar por `moneda`
+  o país al leer (cada moneda es otro precio). ⚠️ **Informes guardados: 5 de
+  5** (límite del plan gratis): para crear otro hay que borrar uno.
+· **Para mirar a mano (SOLO fuera de producción):** `?precio=b`, `?precio=auto`
+  (cookie `mc_precio_forzado`, 7 días). Combinable con `?pais=MX`. En
+  producción se ignora a propósito: nadie se elige el precio barato.
+· **Planes QA (modo prueba) creados y verificados contra su página:**
+  `npm run plan:onepay -- <ciclo> <precio> [--moneda=COP|MXN] --variante=b|c --si`
+  (ids en `npm run checkout:ver`, 18 filas). `precio:cambiar` solo toca la A.
+· **Verificado en local (2026-11-07):** tsc ✓ lint ✓ build ✓ · `/?pais=CO&precio=b`
+  → $49.900 COP · `/pagar` MX+C → $179/$1.069 con sus planes · PE+B →
+  US$12,20 · CO+A → planes de siempre · `?precio=auto` sin flag → A · consola
+  limpia. Sin cambio visual: no se pasó revisor (solo cambian cifras).
+· **Flag `precio` creada en Flagsmith (2026-11-07, desde el Chrome de
+  Cristian):** Server-side only · Control `a` · Variant_1 `b` · Variant_2 `c`,
+  pesos 34/33/33. **Enabled solo en Development**; en Production está
+  APAGADA (se creó con "Enabled by default" off).
+· **Verificado en qa.manoscreadoras.co:** 30 visitantes con `mc_vid` distinto
+  → A=10 · B=9 · C=11, y en los 30 el precio enseñado = el plan del botón.
+  Cada visitante ve el mismo precio en el home y en `/pagar`.
+· **FALTA — PRODUCCIÓN, en orden: `db push` de la
+  0050 desde `/tmp/mc-prod-db` tras `--dry-run`, crear los 12 planes REALES
+  con `plan:onepay -- prod …` (USD primero), desplegar código, y SOLO
+  ENTONCES encender la flag en Production (los pesos 33/33 ya vienen por
+  defecto; revisarlos en ese entorno). ⚠️ Orden obligatorio: si la base
+  de prod tiene filas b/c antes del código nuevo, prod mezcla precios.
+
 💱 **PRECIO EN MONEDA LOCAL + PÁGINA INTERMEDIA `/pagar` + ESQUELETOS
-(2026-11-06, rama `home-b-v2-vendedor`, SIN COMMIT — Cristian revisa antes).**
-· **Migración 0049 — APLICADA SOLO EN QA.** `plan_checkout` gana `moneda`
+(2026-11-07: EN PRODUCCIÓN — PR #17 → develop, PR #18 → main).**
+· **Migración 0049 — APLICADA EN QA Y PRODUCCIÓN** (prod 2026-11-07, `db push` desde `/tmp/mc-prod-db`, carpeta enlazada a prod, tras `--dry-run`). `plan_checkout` gana `moneda`
   (USD/COP/MXN) y `precio` (en esa moneda) + región `mexico` (nace copiando
   internacional). Una FILA por país, no columnas `precio_cop/url_cop…`
   (aprobado por Cristian). `precio_usd` queda como equivalente para informes.
@@ -28,10 +85,18 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   OnePay SÍ acepta MXN. Comando: `npm run plan:onepay -- <ciclo> <precio>
   --moneda=COP|MXN [--si]` (en pesos sin puntos: 59900). `precio:cambiar`
   ahora solo toca filas USD.
-  ⚠️ Hasta publicar este código, QA enseña US$ a Colombia/México pero el
-  botón ya lleva al plan en pesos.
-· **Producción: NADA hecho.** Falta, con OK de Cristian (dinero real):
-  `db push` de la 0049 a prod + los 4 planes con `plan:onepay -- prod …`.
+· **Planes REALES (modo real) creados y verificados 2026-11-07:** CO mensual
+  `01a1b56e-5020…` $59.900 COP · CO anual `01a1b56e-5c02…` $359.900 COP ·
+  MX mensual `01a1b56e-77a8…` $269 MXN · MX anual `01a1b56e-80e1…` $1.599 MXN.
+  Internacional sigue en US$14,60 / US$87,60. Los planes USD viejos se
+  conservan (quien los paga sigue igual). `PRECIOS_RESPALDO` sigue en USD a
+  propósito (respaldo si la base falla).
+· **Verificado en manoscreadoras.co (2026-11-07):** conexión de Colombia →
+  /pagar y home en $59.900 COP, botón al plan COP real `01a1b56e-5020…`; los
+  botones del home van a `/pagar`; `?pais=MX` se IGNORA en producción (bien).
+  México no se pudo ver desde aquí (sin conexión mexicana): sus filas y
+  planes están verificados en la base y en OnePay. Mirar `pago_puente_visto`
+  y `checkout_abierto` por `moneda` en Mixpanel la próxima semana.
 · **País:** `regionDe` → colombia / mexico / internacional. Para probar:
   `?pais=MX` (cookie `mc_pais_prueba`, ignorada si `VERCEL_ENV=production`);
   `?pais=auto` la quita.
@@ -40,8 +105,9 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   `x-vercel-ip-country` y el idioma del navegador (`en-US`/`es`) no trae
   país. No es un fallo: en QA/prod la detección es automática. Verificado
   `/?pais=CO` → héroe "$59.900 COP/mes".
-· **Estado 2026-11-07:** Cristian revisa en localhost antes de commit/QA.
-  Siguiente: con su OK, commit + push a QA; luego producción (0049 + planes).
+· **QA verificado 2026-11-07** (qa.manoscreadoras.co, sin `?pais=`): detectó
+  Colombia sola → $59.900 COP en /pagar y en el home, botón al plan COP;
+  `?pais=MX` → $133/mes, $1.599 MXN, botón al plan MXN.
 · **`/pagar` ya no redirige:** es la página intermedia
   (`components/pago/PuentePago.tsx`). TODOS los botones con `abrePago` van
   ahí (`EnlaceCompra` lo decide; solo el de `/pagar` lleva `directo`).
@@ -165,6 +231,15 @@ producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
   "6 min"); `directorio_items.imagen_url` sigue vacía (sin fotos de producto);
   `membresias.vence_el`/`ciclo` siguen con el hueco del webhook ya conocido.
 
+🎨 **CHECKOUT DE ONEPAY EN MORADO (2026-11-07, home B al 100%).** Panel
+admin.onepay.la → Configuración → Checkout → Marca: color primario
+#2A1F19 → **#6B4FA0** (el morado de acción de la B), texto #FFFFFF (≈6,5:1).
+Logo: `public/images/marca/logo-b-512.png` (la "M" cursiva de la cabecera B,
+512×512, generado con la fuente real). Es un ajuste de TODA la cuenta de
+producción (todos los planes). Verificado en la página de pago del anual.
+Pendiente opcional: la descripción del plan aún dice "pronto velas / en
+camino" (sale de `lib/membresia.json`; cambia al crear el próximo plan).
+
 ⚡ **ENTRAR COMO MODAL · INSTRUMENTACIÓN DEL A/B · CACHÉ (2026-11-05, rama
 `home-b-v2-vendedor`, va en el PR #6).**
 · **Entrar es un modal** (`components/app/ModalEntrar.tsx`, patrón de El
@@ -267,52 +342,15 @@ producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
   `$current_url` está garantizado por el orden de carga, pero conviene
   confirmarlo en el Preview de Vercel mirando una llamada a `/track`.
 
-🧪 **EXPERIMENTO "HOME B v2" (2026-11-05) — EN CÓDIGO, SIN COMMITEAR, rama
-`home-b-v2-vendedor`.** Lo decide la flag `paleta_b` de Flagsmith.
-· ⚠️ **YA NO COMPARA SOLO LA PALETA.** Cristian autorizó reordenar y reescribir
-  el home B para que venda (`design-ref/home-b-v2-claude-code/PROMPT-HOME-B-V2.md`):
-  el A/B mide **home B v2 completo (paleta lavanda + orden + copy nuevos) contra
-  el home de hoy**. Si gana la B se sabrá que el conjunto vende más, no qué
-  pieza. Lo que sigue igual en las dos ramas: precios, catálogo, bolso gratis,
-  preguntas (`lib/datos-home.ts`). La paleta B repinta también `/app`.
-· **CONFIGURACIÓN DEL A/B 50/50 EN FLAGSMITH** (proyecto "Manos Creadoras",
-  feature `paleta_b`, en cada entorno: Development para QA, Production para
-  vender). ⚠️ **La regla del código cambió el 2026-11-05: la página nueva SOLO
-  sale si el valor es exactamente `b`.** Vacío, `actual` o cualquier otro =
-  página de hoy (antes vacío = B, y con los dos valores vacíos que trae el panel
-  por defecto el 100% veía la B).
-  — A/B 50/50: Enabled ✓ · **Control Value = `actual`** (se queda con el 50%
-    que sobra) · **Variant_1 → Variation Value = `b`, peso 50%** · Update.
-  — Todas en B: Enabled, valor `b`, sin variantes. · Volver atrás: apagarla.
-  — El VALOR de una variante vale para TODOS los entornos; el PESO es por
-    entorno. ⚠️ Apagar/cambiar tarda hasta **60 s** (evaluación local).
-  — Pendiente de Cristian: poner en la descripción de la flag "A/B: home B v2
-    completo vs. home actual" (no hay token de administración en el repo).
-· **Para mirar a mano:** `?paleta=b` · `?paleta=actual` · `?paleta=auto`
-  (devuelve el mando a Flagsmith). Dura 7 días en cookie.
-· **✅ EL A/B YA REPARTE EN QA (2026-11-05).** `FLAGSMITH_SERVER_KEY` está en
-  Vercel y la flag quedó bien: `paleta_b` encendida, **Control Value `actual`,
-  Variant_1 `b` al 50%**. Medido con 30 peticiones a QA, cada una con un
-  `mc_vid` distinto: **14 ven el home nuevo y 16 el de siempre** (~47/53).
-  — ⚠️ **FALTA REVISAR PRODUCTION antes de lanzar.** El VALOR de la variante es
-    común a todos los entornos (ya está puesto), pero el **PESO es por
-    entorno**: hay que confirmar que en Production la variante tiene su 50%.
-  — ⚠️ **Lo que costó un rato, por si se repite:** las dos casillas estaban
-    VACÍAS. Con la regla vigente —página nueva solo si el valor es exactamente
-    `b`— los dos grupos caían en "actual" y QA daba 10 de 10 al control, **sin
-    ningún error**, mientras `?paleta=b` a mano pintaba la B perfectamente. El
-    fallo del experimento es silencioso: parece que funciona y no mide nada.
-  — **Cómo comprobarlo sin entrar al panel:** `curl -H "X-Environment-Key:
-    $FLAGSMITH_SERVER_KEY" https://edge.api.flagsmith.com/api/v1/
-    environment-document/` y mirar
-    `multivariate_feature_state_values[].multivariate_feature_option.value`.
-  — En el repo NO hay token de administración de Flagsmith (solo la clave de
-    servidor, que es de SOLO LECTURA): cualquier cambio en el panel lo tiene
-    que hacer Cristian a mano.
-  — **Cómo medir el reparto DE VERDAD:** desde el navegador NO se puede —
-    `mc_vid` es HttpOnly y no se rota con JavaScript, así que todas las cargas
-    son la misma persona (dio 19 de 20, que no es el 50%, es una sola
-    identidad). Hay que pedir N veces con `curl -H "Cookie: mc_vid=<uuid>"`.
+🟣 **HOME MORADO (B v2) — EL ÚNICO DESDE EL 2026-11-07.** Ganó el A/B de
+paleta; el home crema (`HomeActual` y sus piezas), la flag `paleta_b`,
+`lib/paleta*.ts` y `?paleta=` se BORRARON del código (rama
+`home-b-v2-vendedor`, sin commitear). `app/layout.tsx` pinta
+`data-paleta="b"` SIEMPRE: los tokens de `globals.css` siguen como base crema
++ `html[data-paleta="b"]` encima (fundirlos es limpieza opcional; quitar el
+atributo volvería a pintar crema). ⚠️ La flag `paleta_b` sigue en el panel de
+Flagsmith: Cristian puede archivarla (el código ya no la lee).
+Lo que sigue es lo vivo del diseño del home:
 · **El logo de la app lleva a la página de ventas** (`NavegacionApp.tsx`,
   2026-11-05): antes apuntaba a `/app`, así que desde dentro no hacía nada
   visible y no había forma de volver al home sin escribir la dirección. Para
@@ -341,12 +379,6 @@ producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
   gratis y navidad y el grupo de avatares, apagándoles el texto. Un filtro solo
   puede alcanzar los píxeles de la foto. Verificado: 22 de 22 fotos con tinte
   en la B, **0 de 22 en la A**.
-· **Analítica:** super propiedad `experimento_paleta: "b" | "actual"` en todos
-  los eventos. `boton_click` lleva además `cta` en los cuatro botones gratis
-  de la B: `heroe_gratis`, `cierre_gratis`, `tarjeta_bolso_gratis`,
-  `tarjeta_ojo_gratis` (atributo `data-cta`, lo lee `MedirHome`). ⚠️ En los
-  embudos de Mixpanel: *Breakdown* por `experimento_paleta` y fecha acotada al
-  día de arranque, o los meses viejos inflan el control.
 · **Orden del home B v2:** cabecera → héroe (titular + dolor + botón + "Plan
   desde … · garantía" + "+1.200") → "Lo que los tutoriales no te enseñan"
   (nueva) → Compruébalo antes de pagar → Comunidad → Cápsulas (bajaron) →
@@ -417,11 +449,9 @@ producción (`npm run auditoria:tablas [-- prod]`, script nuevo, solo lee).
     espera foto y nombre reales de Cristian. Es además la que menos parece una
     vela de las dos.
 · **Dónde vive:** `components/home-b/`, tokens en `app/globals.css`
-  (`html[data-paleta="b"]` + "LOS TRES NIVELES DE PROFUNDIDAD"), interruptor en
-  `lib/flags.ts` + `lib/paleta-servidor.ts` + `middleware.ts`. Capturas de
+  (`html[data-paleta="b"]` + "LOS TRES NIVELES DE PROFUNDIDAD"). Capturas de
   verificación en `design-ref/home-b-v2-claude-code/verificacion/`.
-· **Verificado:** `tsc` ✓ · `lint` ✓ · `build` ✓ · render real 375/360/1440 ·
-  `?paleta=actual` = home de hoy intacto · consola limpia.
+· **Verificado (2026-11-05):** `tsc` ✓ · `lint` ✓ · `build` ✓ · render real 375/360/1440 · consola limpia.
 · ⚠️ **REVISOR VISUAL — 3 rondas, siempre FIEL, siempre NO LISTA:**
   30/40·12/20·copy 14 → 31·14·15 → **29·14·15** (mínimo 36/40 y 16/20).
   Aplicado con OK de Cristian: cabecera en contorno "Ver planes"; barra fija
