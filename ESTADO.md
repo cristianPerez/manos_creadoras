@@ -13,8 +13,8 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
-🧪 **EXPERIMENTO DE PRECIO A/B/C (2026-11-07) — EN QA (base + 12 planes de
-prueba), CÓDIGO SIN COMMITEAR en `home-b-v2-vendedor`. PRODUCCIÓN: FALTA.**
+🧪 **EXPERIMENTO DE PRECIO A/B/C (2026-11-07) — ✅ CORRIENDO EN QA (PR #19 →
+develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
 · **Precios aprobados por Cristian** (anual = 6 mensualidades, -50%):
   COP A 59.900/359.900 · B 49.900/299.900 · C 39.900/239.900 ·
   MXN A 269/1.599 · B 225/1.349 · C 179/1.069 ·
@@ -43,16 +43,18 @@ prueba), CÓDIGO SIN COMMITEAR en `home-b-v2-vendedor`. PRODUCCIÓN: FALTA.**
   → $49.900 COP · `/pagar` MX+C → $179/$1.069 con sus planes · PE+B →
   US$12,20 · CO+A → planes de siempre · `?precio=auto` sin flag → A · consola
   limpia. Sin cambio visual: no se pasó revisor (solo cambian cifras).
-· ⚠️ **QA desplegado hoy es el código VIEJO con la base NUEVA:** lee las 3
-  variantes mezcladas y puede enseñar un precio y llevar a otro plan (solo
-  QA, modo prueba). Se arregla al desplegar esta rama a QA.
-· **FALTA, en orden:** (1) desplegar a QA y crear en Flagsmith (Development)
-  la flag `precio`: Enabled · Control Value `a` · Variant_1 `b` 33% ·
-  Variant_2 `c` 33% (el PESO es por entorno, el VALOR común); comprobar
-  reparto con curl y N `mc_vid` distintos. (2) PRODUCCIÓN: `db push` de la
+· **Flag `precio` creada en Flagsmith (2026-11-07, desde el Chrome de
+  Cristian):** Server-side only · Control `a` · Variant_1 `b` · Variant_2 `c`,
+  pesos 34/33/33. **Enabled solo en Development**; en Production está
+  APAGADA (se creó con "Enabled by default" off).
+· **Verificado en qa.manoscreadoras.co:** 30 visitantes con `mc_vid` distinto
+  → A=10 · B=9 · C=11, y en los 30 el precio enseñado = el plan del botón.
+  Cada visitante ve el mismo precio en el home y en `/pagar`.
+· **FALTA — PRODUCCIÓN, en orden: `db push` de la
   0050 desde `/tmp/mc-prod-db` tras `--dry-run`, crear los 12 planes REALES
   con `plan:onepay -- prod …` (USD primero), desplegar código, y SOLO
-  ENTONCES encender la flag en Production. ⚠️ Orden obligatorio: si la base
+  ENTONCES encender la flag en Production (los pesos 33/33 ya vienen por
+  defecto; revisarlos en ese entorno). ⚠️ Orden obligatorio: si la base
   de prod tiene filas b/c antes del código nuevo, prod mezcla precios.
 
 💱 **PRECIO EN MONEDA LOCAL + PÁGINA INTERMEDIA `/pagar` + ESQUELETOS
