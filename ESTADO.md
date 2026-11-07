@@ -14,8 +14,8 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
 💱 **PRECIO EN MONEDA LOCAL + PÁGINA INTERMEDIA `/pagar` + ESQUELETOS
-(2026-11-07: EN QA vía PR #17 → develop; PR #18 develop → main ABIERTO, SIN FUSIONAR).**
-· **Migración 0049 — APLICADA SOLO EN QA.** `plan_checkout` gana `moneda`
+(2026-11-07: EN PRODUCCIÓN — PR #17 → develop, PR #18 → main).**
+· **Migración 0049 — APLICADA EN QA Y PRODUCCIÓN** (prod 2026-11-07, `db push` desde `/tmp/mc-prod-db`, carpeta enlazada a prod, tras `--dry-run`). `plan_checkout` gana `moneda`
   (USD/COP/MXN) y `precio` (en esa moneda) + región `mexico` (nace copiando
   internacional). Una FILA por país, no columnas `precio_cop/url_cop…`
   (aprobado por Cristian). `precio_usd` queda como equivalente para informes.
@@ -28,12 +28,18 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   OnePay SÍ acepta MXN. Comando: `npm run plan:onepay -- <ciclo> <precio>
   --moneda=COP|MXN [--si]` (en pesos sin puntos: 59900). `precio:cambiar`
   ahora solo toca filas USD.
-· **Producción: NADA hecho.** ⚠️ ORDEN OBLIGATORIO (está en el PR #18):
-  1) `db push` de la 0049 a prod (con `--dry-run` antes; ver cómo se
-  aplicó la 0041 a prod más abajo), 2) fusionar #18, 3) los 4 planes con
-  `plan:onepay -- prod <ciclo> <precio> --moneda=COP|MXN --si`. Fusionar SIN
-  la 0049 rompe la venta: el código pide columnas que no existen, cae al
-  respaldo y los botones dejan de llevar a OnePay. Todo con OK de Cristian.
+· **Planes REALES (modo real) creados y verificados 2026-11-07:** CO mensual
+  `01a1b56e-5020…` $59.900 COP · CO anual `01a1b56e-5c02…` $359.900 COP ·
+  MX mensual `01a1b56e-77a8…` $269 MXN · MX anual `01a1b56e-80e1…` $1.599 MXN.
+  Internacional sigue en US$14,60 / US$87,60. Los planes USD viejos se
+  conservan (quien los paga sigue igual). `PRECIOS_RESPALDO` sigue en USD a
+  propósito (respaldo si la base falla).
+· **Verificado en manoscreadoras.co (2026-11-07):** conexión de Colombia →
+  /pagar y home en $59.900 COP, botón al plan COP real `01a1b56e-5020…`; los
+  botones del home van a `/pagar`; `?pais=MX` se IGNORA en producción (bien).
+  México no se pudo ver desde aquí (sin conexión mexicana): sus filas y
+  planes están verificados en la base y en OnePay. Mirar `pago_puente_visto`
+  y `checkout_abierto` por `moneda` en Mixpanel la próxima semana.
 · **País:** `regionDe` → colombia / mexico / internacional. Para probar:
   `?pais=MX` (cookie `mc_pais_prueba`, ignorada si `VERCEL_ENV=production`);
   `?pais=auto` la quita.
