@@ -14,7 +14,7 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
 💱 **PRECIO EN MONEDA LOCAL + PÁGINA INTERMEDIA `/pagar` + ESQUELETOS
-(2026-11-06, rama `home-b-v2-vendedor`, SIN COMMIT — Cristian revisa antes).**
+(2026-11-07: EN QA vía PR #17 → develop; PR #18 develop → main ABIERTO, SIN FUSIONAR).**
 · **Migración 0049 — APLICADA SOLO EN QA.** `plan_checkout` gana `moneda`
   (USD/COP/MXN) y `precio` (en esa moneda) + región `mexico` (nace copiando
   internacional). Una FILA por país, no columnas `precio_cop/url_cop…`
@@ -28,10 +28,12 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   OnePay SÍ acepta MXN. Comando: `npm run plan:onepay -- <ciclo> <precio>
   --moneda=COP|MXN [--si]` (en pesos sin puntos: 59900). `precio:cambiar`
   ahora solo toca filas USD.
-  ⚠️ Hasta publicar este código, QA enseña US$ a Colombia/México pero el
-  botón ya lleva al plan en pesos.
-· **Producción: NADA hecho.** Falta, con OK de Cristian (dinero real):
-  `db push` de la 0049 a prod + los 4 planes con `plan:onepay -- prod …`.
+· **Producción: NADA hecho.** ⚠️ ORDEN OBLIGATORIO (está en el PR #18):
+  1) `db push` de la 0049 a prod (con `--dry-run` antes; ver cómo se
+  aplicó la 0041 a prod más abajo), 2) fusionar #18, 3) los 4 planes con
+  `plan:onepay -- prod <ciclo> <precio> --moneda=COP|MXN --si`. Fusionar SIN
+  la 0049 rompe la venta: el código pide columnas que no existen, cae al
+  respaldo y los botones dejan de llevar a OnePay. Todo con OK de Cristian.
 · **País:** `regionDe` → colombia / mexico / internacional. Para probar:
   `?pais=MX` (cookie `mc_pais_prueba`, ignorada si `VERCEL_ENV=production`);
   `?pais=auto` la quita.
@@ -40,8 +42,9 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   `x-vercel-ip-country` y el idioma del navegador (`en-US`/`es`) no trae
   país. No es un fallo: en QA/prod la detección es automática. Verificado
   `/?pais=CO` → héroe "$59.900 COP/mes".
-· **Estado 2026-11-07:** Cristian revisa en localhost antes de commit/QA.
-  Siguiente: con su OK, commit + push a QA; luego producción (0049 + planes).
+· **QA verificado 2026-11-07** (qa.manoscreadoras.co, sin `?pais=`): detectó
+  Colombia sola → $59.900 COP en /pagar y en el home, botón al plan COP;
+  `?pais=MX` → $133/mes, $1.599 MXN, botón al plan MXN.
 · **`/pagar` ya no redirige:** es la página intermedia
   (`components/pago/PuentePago.tsx`). TODOS los botones con `abrePago` van
   ahí (`EnlaceCompra` lo decide; solo el de `/pagar` lleva `directo`).
