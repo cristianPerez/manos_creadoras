@@ -28,6 +28,9 @@ export function Analitica({
   ciudad,
   subdivision,
   experimentoPrecio,
+  moneda,
+  precioMensual,
+  precioAnual,
 }: {
   userId: string | null;
   /** El correo de la sesión, para identificarla en Mixpanel (ver `identificar`). */
@@ -60,6 +63,14 @@ export function Analitica({
    * un botón más. (Mismo patrón que el A/B de paleta, ya terminado.)
    */
   experimentoPrecio?: string;
+  /**
+   * La moneda y los precios que se le ENSEÑARON en esta visita (2026-11-07).
+   * Con `pais`, `region` y `experimento_precio` dicen exactamente qué precio
+   * vio cada persona en cada paso del embudo, incluida la vista de página.
+   */
+  moneda?: string;
+  precioMensual?: number;
+  precioAnual?: number;
 }) {
   useEffect(() => {
     /*
@@ -86,6 +97,9 @@ export function Analitica({
       $region: subdivision ?? undefined,
       $city: ciudad ?? undefined,
       experimento_precio: experimentoPrecio,
+      moneda,
+      precio_mensual: precioMensual,
+      precio_anual: precioAnual,
     };
     /* El contexto va DENTRO del encendido: así los eventos que ya esperaban
        en cola (la vista del home, que se dispara antes que este efecto) salen
@@ -98,9 +112,9 @@ export function Analitica({
       identificar(userId, correo);
       /* La variante también en la ficha: ver `fijarEnFicha` (los pagos los
          manda el servidor y no llevan las super propiedades). */
-      fijarEnFicha({ experimento_precio: experimentoPrecio });
+      fijarEnFicha({ experimento_precio: experimentoPrecio, moneda });
     }
-  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPrecio]);
+  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPrecio, moneda, precioMensual, precioAnual]);
 
   /*
    * La vista de página en cada navegación dentro de la app. La de la carga la

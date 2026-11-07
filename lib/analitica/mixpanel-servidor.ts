@@ -109,7 +109,13 @@ async function fijarCorreo(userId: string, correo: string): Promise<void> {
 /** El pago entró y la membresía quedó activa. Cierra el embudo de venta. */
 export async function medirPagoConfirmado(
   userId: string,
-  datos: { proveedor: string; suscripcion?: string; correo?: string | null },
+  /* Desde el 2026-11-07 también qué se pagó: `experimento_precio`, `moneda`,
+     `precio`, `region`, `plan` y `plan_onepay` (ver `queSePago` en
+     `lib/webhooks/aplicar.ts`). */
+  datos: { proveedor: string; suscripcion?: string; correo?: string | null } & Record<
+    string,
+    string | number | null | undefined
+  >,
 ): Promise<void> {
   await medirServidor(
     EVENTOS.pagoConfirmado,

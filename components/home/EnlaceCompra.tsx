@@ -189,7 +189,11 @@ export function EnlaceCompra({
 }) {
   const alPuente = abrePago && !directo;
   const { estado, alTocar } = useAbrirPago(abrePago && directo);
-  const { moneda } = usePrecios();
+  /* Qué precio estaba enseñando ESTE botón: moneda y monto del ciclo. La
+     variante (A/B/C) y el país ya van en todos los eventos como super
+     propiedades (`<Analitica>`). */
+  const { moneda, precios } = usePrecios();
+  const precio = precios[plan];
   const ocupado = estado !== "quieto";
 
   /*
@@ -203,7 +207,7 @@ export function EnlaceCompra({
         href={`/pagar?ciclo=${plan}&desde=${origen}`}
         aria-label={ariaLabel}
         className={className}
-        onClick={() => medir(EVENTOS.ctaInscribirmeClick, { origen, plan })}
+        onClick={() => medir(EVENTOS.ctaInscribirmeClick, { origen, plan, moneda, precio })}
       >
         {children}
       </Link>
@@ -219,8 +223,8 @@ export function EnlaceCompra({
       onClick={(e) => {
         // El segundo toque mientras carga OnePay no cuenta: ni navega ni mide.
         if (!alTocar(e)) return;
-        medir(EVENTOS.ctaInscribirmeClick, { origen, plan });
-        if (abrePago) medir(EVENTOS.checkoutAbierto, { plan, moneda });
+        medir(EVENTOS.ctaInscribirmeClick, { origen, plan, moneda, precio });
+        if (abrePago) medir(EVENTOS.checkoutAbierto, { plan, moneda, precio });
       }}
     >
       {ocupado ? <TextoAbriendoPago tardo={estado === "tardo"} /> : children}

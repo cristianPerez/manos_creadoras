@@ -134,6 +134,38 @@ export const onepay: Proveedor = {
       venceEl: tipo === "suscripcion.pagada" ? proximaCobranza : null,
       // Ver `marca` en el contrato: distingue ocurrencia de reintento.
       marca: proximaCobranza ?? canceladaEn,
+      cobro: leerCobro(c),
     };
   },
 };
+
+/**
+ * Qué plan y cuánto se cobró, para la analítica (2026-11-07).
+ *
+ * ⚠️ LA FORMA REAL ES RARA Y POR ESO SE BUSCA, NO SE INDEXA. En el primer pago
+ * real (2026-11-04) el monto venía en `payment.{currency, amount_in_cents}`
+ * y el plan en `subscription["0"].data.plan.id` — una clave "0" que parece un
+ * array serializado. Se recorre el cuerpo buscando el primer objeto `plan`
+ * con `id`, para no romperse si OnePay endereza la estructura.
+ */
+function leerCobro(c: Record<string, unknown>): EventoNormalizado["cobro"] {
+  const pago = (c.payment ?? {}) as Record<string, unknown>;
+  const buscarPlan = (v: unknown, prof = 0): string | null => {
+    if (!v || typeof v !== "object" || prof > 6) return null;
+    const o = v as Record<string, unknown>;
+    const plan = o.plan as Record<string, unknown> | undefined;
+    if (plan && typeof plan.id === "string") return plan.id;
+    if (typeof o.plan_id === "string") return o.plan_id;
+    for (const hijo of Object.values(o)) {
+      const id = buscarPlan(hijo, prof + 1);
+      if (id) return id;
+    }
+    return null;
+  };
+  const centavos = Number(pago.amount_in_cents);
+  return {
+    planId: buscarPlan(c),
+    moneda: typeof pago.currency === "string" ? pago.currency : null,
+    centavos: Number.isFinite(centavos) ? centavos : null,
+  };
+}
