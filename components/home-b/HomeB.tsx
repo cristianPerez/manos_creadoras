@@ -20,16 +20,12 @@ import type { DatosHome } from "@/lib/datos-home";
 
 /**
  * ════════════════════════════════════════════════════════════════════════════
- * EL HOME B — la rama nueva del experimento de paleta (2026-11-05)
+ * EL HOME — el morado (paleta B v2), el ÚNICO desde el 2026-11-07
  * ════════════════════════════════════════════════════════════════════════════
  *
- * Lo enciende la flag `paleta_b` de Flagsmith; con la flag apagada no se monta
- * nada de esta carpeta. Ver `lib/flags.ts` y `app/(home)/page.tsx`.
- *
- * ⚠️ MISMO CONTENIDO QUE EL CONTROL, OTRO DISEÑO. Precios, fotos, preguntas,
- * bolso gratis y cifras salen de `lib/datos-home.ts`, que carga una vez para
- * las dos ramas. Si una enseñara otra oferta, el experimento no mediría el
- * diseño y el resultado no diría nada.
+ * Nació como la rama B del A/B de paleta (flag `paleta_b`, 2026-11-05). Ganó
+ * contra el home crema, se quedó al 100% y el control se borró del código.
+ * Los datos salen de `lib/datos-home.ts`.
  *
  * ── v2 "vendedor" (2026-11-05, canvas "Home B v2 · vendedor") ─────────────
  *
@@ -68,9 +64,7 @@ export function HomeB({ datos }: { datos: DatosHome }) {
 
       <CabeceraB />
 
-      {/* El proveedor de cápsulas guarda qué vio y monta el visor. Es el MISMO
-          que usa el control: así lo que se vea en una rama queda marcado en la
-          otra, que importa porque con `?paleta=` se salta de una a otra. */}
+      {/* El proveedor de cápsulas guarda qué vio y monta el visor. */}
       <ProveedorCapsulas capsulas={capsulas} urlsDeVideo={urlsDeCapsulas}>
         <main className="flex flex-col">
           <MedirHome />

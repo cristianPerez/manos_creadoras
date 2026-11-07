@@ -1,6 +1,8 @@
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { ETIQUETA_COBRO, VIDA_COBRO_S } from "@/lib/cache-datos";
+import { VARIANTE_CONTROL, type VariantePrecio } from "@/lib/experimento";
+import { varianteDePrecio } from "@/lib/experimento-servidor";
 import { detectarPais, regionDe, type Region } from "@/lib/pais";
 import { supabasePublico } from "@/lib/supabase/publico";
 import { PRECIOS_RESPALDO, type Frecuencia, type Moneda, type Precios } from "@/lib/planes";
@@ -20,6 +22,8 @@ import { PRECIOS_RESPALDO, type Frecuencia, type Moneda, type Precios } from "@/
 
 export type EnlacesDeCobro = {
   region: Region;
+  /** La variante del experimento de precio cuyas filas se usaron (ver abajo). */
+  variante: VariantePrecio;
   pais: string;
   /** La URL de cada ciclo, o `null` si ese ciclo todavía no tiene plan creado. */
   url: Record<Frecuencia, string | null>;
@@ -46,21 +50,22 @@ const MONEDAS: readonly Moneda[] = ["USD", "COP", "MXN"];
  * de Next: con 60 s, un precio nuevo tarda como mucho un minuto en verse en
  * la web. Ver `lib/cache-datos.ts`.
  *
- * La región entra en la clave (es el argumento): Colombia e internacional se
- * guardan por separado. El país se sigue detectando en cada visita, fuera de
+ * La región y la variante entran en la clave (son los argumentos): cada
+ * combinación se guarda por separado. El país se sigue detectando en cada visita, fuera de
  * la caché, porque sale de la conexión de quien mira.
  */
 const cobroCacheado = unstable_cache(
-  async (region: Region): Promise<FilaCobro[]> => {
+  async (region: Region, variante: VariantePrecio): Promise<FilaCobro[]> => {
     const { data, error } = await supabasePublico()
       .from("plan_checkout")
       .select("ciclo, url, precio_usd, moneda, precio")
       .eq("plan", "completo")
-      .eq("region", region);
+      .eq("region", region)
+      .eq("variante", variante);
     if (error || !data) throw new Error(`cobro: ${error?.message ?? "sin datos"}`);
     return data as FilaCobro[];
   },
-  ["cobro-v2"],
+  ["cobro-v3"],
   { revalidate: VIDA_COBRO_S, tags: [ETIQUETA_COBRO] },
 );
 
@@ -68,9 +73,24 @@ export const enlacesDeCobro = cache(async (): Promise<EnlacesDeCobro> => {
   const { pais } = await detectarPais();
   const region = regionDe(pais);
 
+  /*
+   * ── EL EXPERIMENTO DE PRECIO (2026-11-07, migración 0050) ───────────────
+   * La flag `precio` dice qué variante le toca (a/b/c) y se leen SUS filas.
+   * ⚠️ SI ESA VARIANTE NO TIENE LOS DOS CICLOS EN ESTA REGIÓN, SE USA LA "a"
+   * ENTERA, nunca medio y medio: un plan a medio crear no puede dejar a nadie
+   * sin botón de pago, ni comparar el mensual de una variante con el anual de
+   * otra. `variante` devuelve la que de verdad se usó.
+   */
+  let variante = await varianteDePrecio();
+
   /* Si la base falla, sin filas: el precio cae al respaldo del código y el
      botón a contacto, igual que antes. Lo fallido no se guarda en caché. */
-  let data = await cobroCacheado(region).catch((): FilaCobro[] => []);
+  const filas = (r: Region, v: VariantePrecio) => cobroCacheado(r, v).catch((): FilaCobro[] => []);
+  let data = await filas(region, variante);
+  if (variante !== VARIANTE_CONTROL && new Set(data.map((f) => f.ciclo)).size < 2) {
+    variante = VARIANTE_CONTROL;
+    data = await filas(region, variante);
+  }
 
   /*
    * ⚠️ LOS DOS CICLOS TIENEN QUE IR EN LA MISMA MONEDA. Si Colombia tuviera
@@ -82,7 +102,11 @@ export const enlacesDeCobro = cache(async (): Promise<EnlacesDeCobro> => {
     MONEDAS.includes(f.moneda as Moneda) ? (f.moneda as Moneda) : "USD";
   const enPesosSinPrecio = data.some((f) => monedaDe(f) !== "USD" && !(Number(f.precio) > 0));
   if (region !== "internacional" && (new Set(data.map(monedaDe)).size > 1 || enPesosSinPrecio)) {
-    data = await cobroCacheado("internacional").catch((): FilaCobro[] => []);
+    data = await filas("internacional", variante);
+    if (variante !== VARIANTE_CONTROL && new Set(data.map((f) => f.ciclo)).size < 2) {
+      variante = VARIANTE_CONTROL;
+      data = await filas("internacional", variante);
+    }
   }
   const moneda: Moneda = data.length ? monedaDe(data[0]) : "USD";
 
@@ -105,6 +129,7 @@ export const enlacesDeCobro = cache(async (): Promise<EnlacesDeCobro> => {
 
   return {
     region,
+    variante,
     pais,
     /*
      * ⚠️ `null` CUANDO NO HAY FILA, y quien lo use debe tenerlo en cuenta. Hoy

@@ -51,7 +51,8 @@ const donde = esProd ? "PRODUCCIÓN" : "QA";
 async function ver() {
   const { data, error } = await admin
     .from("plan_checkout")
-    .select("plan, ciclo, region, url, precio_usd, moneda, precio, actualizado_en")
+    .select("plan, ciclo, region, variante, url, precio_usd, moneda, precio, actualizado_en")
+    .order("variante")
     .order("ciclo")
     .order("region");
   if (error) {
@@ -63,7 +64,7 @@ async function ver() {
   for (const f of data) {
     const valor = f.precio ?? f.precio_usd;
     const precio = valor == null ? "sin precio" : dinero(valor, f.moneda ?? "USD");
-    console.log(`  ${f.ciclo.padEnd(8)} ${f.region.padEnd(14)} ${precio.padEnd(14)} ${f.url}`);
+    console.log(`  ${(f.variante ?? "a").toUpperCase()}  ${f.ciclo.padEnd(8)} ${f.region.padEnd(14)} ${precio.padEnd(14)} ${f.url}`);
   }
   console.log();
 }
