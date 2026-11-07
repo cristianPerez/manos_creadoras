@@ -13,8 +13,25 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
 
-🧪 **EXPERIMENTO DE PRECIO A/B/C (2026-11-07) — ✅ CORRIENDO EN QA (PR #19 →
-develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
+🧪 **EXPERIMENTO DE PRECIO A/B/C — ✅ EN PRODUCCIÓN DESDE EL 2026-11-07
+(~10:00 hora Colombia). PR #19 + #20 → develop, PR #21 → main.**
+· **Producción:** 0050 aplicada (`/tmp/mc-prod-db`, tras `--dry-run`) →
+  código desplegado (con la flag sin efecto todos veían la A: verificado) →
+  12 planes REALES creados y verificados contra su página (modo real),
+  18 filas en `plan_checkout` → reparto medido en manoscreadoras.co con 30
+  `mc_vid` desde Colombia: **A=13 · B=7 · C=10, 0 incoherentes**.
+  Planes reales B/C: `npm run checkout:ver -- prod`.
+· ⚠️ **LA LLAVE DE FLAGSMITH DE PRODUCCIÓN EN VERCEL ES LA DE DEVELOPMENT**
+  (`FLAGSMITH_SERVER_KEY` Production = la misma `ser.JRJF…` de QA; su
+  documento de entorno dice `Development`). Producción obedece el entorno
+  **Development** de Flagsmith: tocar la flag en Development cambia QA Y
+  producción a la vez; el entorno Production del panel hoy no hace nada.
+  Así el experimento se encendió en producción al encenderlo en
+  Development (sin precios cruzados: sin filas B/C caía a la A). Se dejó
+  `precio` encendida igual (34/33/33) también en Production para que no
+  haya corte al arreglarlo. **Arreglo (Cristian, es una credencial):**
+  Flagsmith → Production → SDK Keys → crear Server-side key → ponerla en
+  Vercel como `FLAGSMITH_SERVER_KEY` SOLO para Production → redeploy.
 · **Precios aprobados por Cristian** (anual = 6 mensualidades, -50%):
   COP A 59.900/359.900 · B 49.900/299.900 · C 39.900/239.900 ·
   MXN A 269/1.599 · B 225/1.349 · C 179/1.069 ·
@@ -26,7 +43,7 @@ develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
   `mc_vid`, cacheada por petición) → `enlacesDeCobro()` filtra por variante.
   Si a una variante le falta un ciclo en una región → se enseña la A entera.
   TODO falla hacia la A (sin flag, sin llave, valor raro).
-· **Analítica (2026-11-07, EN QA: PR #20 → develop):** super propiedades en
+· **Analítica (2026-11-07, EN PRODUCCIÓN: PR #20 → #21):** super propiedades en
   TODOS los eventos: `pais`, `region`, `experimento_precio` (la variante que
   se ENSEÑÓ), `moneda`, `precio_mensual`, `precio_anual`. Además
   `cta_inscribirme_click`, `pago_puente_visto` y `checkout_abierto` llevan
@@ -37,7 +54,9 @@ develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
   `experimento_precio`, `region`, `plan`, `moneda`, `precio`, `plan_onepay`.
   No depende de la cookie. `experimento_paleta` se borra del navegador.
   Verificado en local: `checkout_abierto` con anual · MXN · 1349 · b · MX.
-  ⚠️ La prueba mandó 2 eventos falsos desde localhost (`$host = localhost`).
+  **Mixpanel son DOS proyectos:** producción = proyecto 4064037 (token
+  `337702b9…`, donde está el tablero "Embudo de venta"); QA y localhost =
+  token `4af968e2…`. Las pruebas de QA/local NO ensucian producción.
   Verificado en qa.manoscreadoras.co: super propiedades c · COP · 39900 ·
   239900, sin `experimento_paleta`. ⚠️ El 1er despliegue de QA del #20 falló
   por Vercel sin poder bajar Cormorant de Google Fonts (no era el código: el
@@ -67,12 +86,8 @@ develop, flag encendida en Development). PRODUCCIÓN: FALTA.**
 · **Verificado en qa.manoscreadoras.co:** 30 visitantes con `mc_vid` distinto
   → A=10 · B=9 · C=11, y en los 30 el precio enseñado = el plan del botón.
   Cada visitante ve el mismo precio en el home y en `/pagar`.
-· **FALTA — PRODUCCIÓN, en orden: `db push` de la
-  0050 desde `/tmp/mc-prod-db` tras `--dry-run`, crear los 12 planes REALES
-  con `plan:onepay -- prod …` (USD primero), desplegar código, y SOLO
-  ENTONCES encender la flag en Production (los pesos 33/33 ya vienen por
-  defecto; revisarlos en ese entorno). ⚠️ Orden obligatorio: si la base
-  de prod tiene filas b/c antes del código nuevo, prod mezcla precios.
+· ⚠️ **Quien pague B o C sigue a ese precio en cada renovación** aunque el
+  experimento termine (decidir al cerrar si se respeta o se migra en OnePay).
 
 💱 **PRECIO EN MONEDA LOCAL + PÁGINA INTERMEDIA `/pagar` + ESQUELETOS
 (2026-11-07: EN PRODUCCIÓN — PR #17 → develop, PR #18 → main).**
