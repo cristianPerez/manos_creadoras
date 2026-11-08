@@ -61,15 +61,17 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   239900, sin `experimento_paleta`. ⚠️ El 1er despliegue de QA del #20 falló
   por Vercel sin poder bajar Cormorant de Google Fonts (no era el código: el
   preview del PR había compilado); se arregló con `vercel redeploy`.
-· **`/pagar` instrumentada (2026-11-07, código SIN COMMITEAR):** se monta
+· **`/pagar` instrumentada (2026-11-07, EN PRODUCCIÓN: PR #22 → develop, #23 → main):** se monta
   `MedirHome` (secciones, scroll, clics) y TODOS sus eventos llevan ahora
   `pagina` (`/` o `/pagar`). Secciones de `/pagar`: `pagar_titular`,
   `pagar_plan`, `pagar_recibes`, `pagar_pasos`, `pagar_cierre`,
   `pagar_barra` (prefijo para no chocar con `seccion = precio` del home).
   Evento nuevo **`ciclo_cambiado`** (`de`, `a`, `desde` tarjeta|resumen,
   `moneda`, `precio`); botones con `data-cta` `ciclo_mensual|ciclo_anual|
-  resumen_a_*`. Verificado llegando al proyecto Mixpanel de QA con clics
-  reales (ciclo_cambiado a anual · 1069 · c · MX).
+  resumen_a_*`. Verificado llegando al Mixpanel de QA con clics reales,
+  desde local y desde qa.manoscreadoras.co. En producción se comprobó el
+  HTML (las 6 secciones y los `data-cta`) sin clics de prueba, para no
+  ensuciar los embudos reales.
 · **Mixpanel, tablero "Embudo de venta" (2026-11-07):** borrado "A/B home";
   **"Embudo principal" pasa a 5 pasos: página → seccion_vista(precio) →
   pago_puente_visto → checkout_abierto → pago_confirmado** (antes de hoy no
