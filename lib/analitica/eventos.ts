@@ -26,6 +26,13 @@ export const EVENTOS = {
    * Embudo: cta_inscribirme_click → pago_puente_visto → checkout_abierto.
    */
   pagoPuenteVisto: "pago_puente_visto",
+  /**
+   * En `/pagar` cambió de mensual a anual o al revés (2026-11-07). Lleva `de`,
+   * `a`, `desde` (selector de la tarjeta o el enlace del resumen final),
+   * `moneda` y `precio` del ciclo elegido. Dice si el anual convence una vez
+   * que se ve el precio.
+   */
+  cicloCambiado: "ciclo_cambiado",
 
   /*
    * ── El embudo DENTRO del home (2026-11-01) ───────────────────────────

@@ -21,6 +21,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, 
 import { usePrecios } from "@/components/app/Precios";
 import { PrecioQueCuenta } from "@/components/app/PrecioQueCuenta";
 import { EnlaceCompra, EnlaceWhatsApp } from "@/components/home/EnlaceCompra";
+import { MedirHome } from "@/components/home/MedirHome";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { WHATSAPP_NUMERO, WHATSAPP_URL } from "@/lib/landing";
@@ -66,6 +67,14 @@ export function PuentePago({
   const quieto = Boolean(useReducedMotion());
   const enLinea = useEnLinea();
   const [frecuencia, setFrecuencia] = useState<Frecuencia>(frecuenciaInicial);
+  /* Cambiar de ciclo, midiéndolo: ¿el anual convence cuando ya se ve el
+     precio? `desde` dice si fue el selector de la tarjeta o el enlace del
+     resumen final. Elegir el que ya estaba elegido no cuenta. */
+  const cambiarCiclo = (a: Frecuencia, desde: "tarjeta" | "resumen") => {
+    if (a === frecuencia) return;
+    medir(EVENTOS.cicloCambiado, { de: frecuencia, a, desde, moneda: pr.moneda, precio: pr.precios[a] });
+    setFrecuencia(a);
+  };
   const url = enlaces[frecuencia];
 
   /* Los dos botones del móvil (arriba, en la tarjeta, y al final). La barra
@@ -119,6 +128,8 @@ export function PuentePago({
 
   return (
     <div className="bg-surface-base grano-fondo min-h-dvh pb-28 lg:pb-16">
+      {/* Secciones vistas, scroll y clics de esta página (con `pagina`). */}
+      <MedirHome />
       {/* ── Cabecera mínima: es un paso de pago, sin menú. ── */}
       <header className="mx-auto flex max-w-270 items-center justify-between px-4 py-3 lg:px-8 lg:py-5">
         <BotonVolver />
@@ -133,7 +144,7 @@ export function PuentePago({
       <main className="mx-auto grid max-w-270 gap-6 px-4 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-12 lg:px-8">
         {/* ── Columna de lectura (en móvil: titular, plan, qué recibes, pasos) ── */}
         <div className="flex min-w-0 flex-col gap-6 lg:gap-8">
-          <div {...entra(0)} className="reveal pt-2 lg:pt-6">
+          <div {...entra(0)} data-seccion="pagar_titular" className="reveal pt-2 lg:pt-6">
             <p className="text-ink-muted text-xs font-bold tracking-[0.2em] uppercase">Último paso</p>
             <h1
               className="font-display text-espresso mt-2 text-balance"
@@ -147,17 +158,17 @@ export function PuentePago({
           </div>
 
           {/* En móvil el plan va aquí, arriba: el botón se ve sin bajar. */}
-          <div {...entra(1)} className="reveal lg:hidden">
+          <div {...entra(1)} data-seccion="pagar_plan" className="reveal lg:hidden">
             <TarjetaPlan
               frecuencia={frecuencia}
-              alCambiar={setFrecuencia}
+              alCambiar={(f) => cambiarCiclo(f, "tarjeta")}
               quieto={quieto}
               pais={pais}
               boton={<div ref={botonRef}>{botonTarjeta}</div>}
             />
           </div>
 
-          <section {...entra(2)} aria-labelledby="que-recibes">
+          <section {...entra(2)} data-seccion="pagar_recibes" aria-labelledby="que-recibes">
             <h2 id="que-recibes" className="font-display text-espresso text-2xl" style={{ fontWeight: 600 }}>
               Qué recibes desde hoy
             </h2>
@@ -186,26 +197,26 @@ export function PuentePago({
             </ul>
           </section>
 
-          <section {...entra(3)} aria-labelledby="que-pasa">
+          <section {...entra(3)} data-seccion="pagar_pasos" aria-labelledby="que-pasa">
             <PasosOnePay pais={pais} correo={correo} />
           </section>
 
           {/* Cierre del móvil: garantía y el botón otra vez, al final de leer. */}
-          <div {...entra(4)} className="reveal flex flex-col gap-4 lg:hidden">
+          <div {...entra(4)} data-seccion="pagar_cierre" className="reveal flex flex-col gap-4 lg:hidden">
             <Garantia />
             <PruebaSocial />
-            <ResumenFinal frecuencia={frecuencia} alCambiar={setFrecuencia} />
+            <ResumenFinal frecuencia={frecuencia} alCambiar={(f) => cambiarCiclo(f, "resumen")} />
             <div ref={botonFinRef}>{boton}</div>
             <Dudas />
           </div>
         </div>
 
         {/* ── Escritorio: el resumen y el botón fijos a la derecha ── */}
-        <aside {...entra(1)} className="reveal hidden lg:block">
+        <aside {...entra(1)} data-seccion="pagar_plan" className="reveal hidden lg:block">
           <div className="sticky top-6 flex flex-col gap-4 pt-6">
             <TarjetaPlan
               frecuencia={frecuencia}
-              alCambiar={setFrecuencia}
+              alCambiar={(f) => cambiarCiclo(f, "tarjeta")}
               quieto={quieto}
               pais={pais}
               boton={botonTarjeta}
@@ -219,6 +230,7 @@ export function PuentePago({
 
       {/* ── Móvil: barra fija cuando el botón de arriba ya no se ve ── */}
       <div
+        data-seccion="pagar_barra"
         aria-hidden={botonVisible}
         className={`bg-ivory border-line fixed inset-x-0 bottom-0 z-30 border-t px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-16px_rgba(42,31,25,0.35)] transition-transform duration-300 ease-out lg:hidden ${
           botonVisible ? "pointer-events-none translate-y-full" : "translate-y-0"
@@ -291,6 +303,7 @@ function SelectorCiclo({ valor, alCambiar }: { valor: Frecuencia; alCambiar: (f:
         type="button"
         role="radio"
         aria-checked={activa}
+        data-cta={`ciclo_${ciclo}`}
         onClick={() => alCambiar(ciclo)}
         className={`relative flex min-h-16 flex-1 cursor-pointer flex-col items-center justify-center rounded-xl px-3 py-2 transition-[background-color,box-shadow,transform] duration-200 [touch-action:manipulation] active:scale-[0.98] ${
           activa ? "bg-(--tp-opcion) text-(--tp-opcion-texto) shadow-(--sombra-elevada)" : "text-(--tp-texto-2)"
@@ -502,6 +515,7 @@ function ResumenFinal({ frecuencia, alCambiar }: { frecuencia: Frecuencia; alCam
       </p>
       <button
         type="button"
+        data-cta={`resumen_a_${otro}`}
         onClick={() => alCambiar(otro)}
         className="text-gold min-h-11 text-sm font-bold underline underline-offset-4 [touch-action:manipulation]"
       >
