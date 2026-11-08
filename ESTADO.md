@@ -61,8 +61,20 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   239900, sin `experimento_paleta`. ⚠️ El 1er despliegue de QA del #20 falló
   por Vercel sin poder bajar Cormorant de Google Fonts (no era el código: el
   preview del PR había compilado); se arregló con `vercel redeploy`.
+· **`/pagar` instrumentada (2026-11-07, código SIN COMMITEAR):** se monta
+  `MedirHome` (secciones, scroll, clics) y TODOS sus eventos llevan ahora
+  `pagina` (`/` o `/pagar`). Secciones de `/pagar`: `pagar_titular`,
+  `pagar_plan`, `pagar_recibes`, `pagar_pasos`, `pagar_cierre`,
+  `pagar_barra` (prefijo para no chocar con `seccion = precio` del home).
+  Evento nuevo **`ciclo_cambiado`** (`de`, `a`, `desde` tarjeta|resumen,
+  `moneda`, `precio`); botones con `data-cta` `ciclo_mensual|ciclo_anual|
+  resumen_a_*`. Verificado llegando al proyecto Mixpanel de QA con clics
+  reales (ciclo_cambiado a anual · 1069 · c · MX).
 · **Mixpanel, tablero "Embudo de venta" (2026-11-07):** borrado "A/B home";
-  creados **"Moneda local: ¿pagan más en COP/MXN que en USD?"** (Breakdown
+  **"Embudo principal" pasa a 5 pasos: página → seccion_vista(precio) →
+  pago_puente_visto → checkout_abierto → pago_confirmado** (antes de hoy no
+  existía `/pagar`, así que fechas viejas caen a 0 en ese paso). Creados
+  **"Moneda local: ¿pagan más en COP/MXN que en USD?"** (Breakdown
   `moneda`) y **"Precio A/B/C: ¿el precio bajo vende más?"** (Breakdown
   `experimento_precio`). Ambos: pagina_ventas_vista → pago_puente_visto →
   checkout_abierto → pago_confirmado, ventana 7 días. Salen "(not set)" hasta
