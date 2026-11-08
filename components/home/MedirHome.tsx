@@ -7,6 +7,12 @@ import { medir } from "@/lib/analitica/mixpanel";
 /**
  * El embudo de dentro del home: qué vio, hasta dónde bajó y qué tocó.
  *
+ * ⚠️ DESDE EL 2026-11-07 TAMBIÉN EN `/pagar` (la página intermedia antes de
+ * OnePay), y por eso cada evento lleva `pagina` (`/` o `/pagar`): sin ella,
+ * un clic del home y uno de `/pagar` se verían iguales en el panel. Las
+ * secciones de `/pagar` se llaman `pagar_…` para no confundirse con las del
+ * home (el embudo principal filtra `seccion = precio`).
+ *
  * ════════════════════════════════════════════════════════════════════════════
  * ⚠️ POR QUÉ EXISTE (2026-11-01)
  * ════════════════════════════════════════════════════════════════════════════
@@ -47,7 +53,7 @@ export function MedirHome() {
           const nombre = e.target.getAttribute("data-seccion");
           if (!nombre || vistas.has(nombre)) continue;
           vistas.add(nombre);
-          medir(EVENTOS.seccionVista, { seccion: nombre });
+          medir(EVENTOS.seccionVista, { seccion: nombre, pagina: window.location.pathname });
         }
       },
       /* 35% visible: con menos, una sección alta cuenta como "vista" cuando
@@ -69,7 +75,7 @@ export function MedirHome() {
       for (const h of hitos) {
         if (pct >= h && !alcanzados.has(h)) {
           alcanzados.add(h);
-          medir(EVENTOS.scrollProfundidad, { hasta: h });
+          medir(EVENTOS.scrollProfundidad, { hasta: h, pagina: window.location.pathname });
         }
       }
     };
@@ -104,6 +110,7 @@ export function MedirHome() {
       medir(EVENTOS.botonClick, {
         texto: etiqueta,
         seccion,
+        pagina: window.location.pathname,
         ...(cta ? { cta } : {}),
         destino: control instanceof HTMLAnchorElement ? control.getAttribute("href") ?? "" : "",
       });
