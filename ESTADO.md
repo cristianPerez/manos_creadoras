@@ -44,6 +44,24 @@ v2 de `/pagar`, que no estaba hecho). Capturas en `…/verificacion/`.
   `checkout_abierto → pago_confirmado` por `ruta_pago` (con ~285 visitas al
   precio/mes, el A/B tarda semanas). OnePay no acepta referencia externa:
   contexto en `sessionStorage['mc_checkout_ctx']`; el pago se une por correo.
+· **`origen_inicial` (2026-11-08) — QUÉ BOTÓN VENDE.** Medido en el Mixpanel de
+  producción: los 22 `checkout_abierto` de 30 días decían TODOS `origen:
+  "pagar"`. Es correcto (ahí se tocó) pero inútil: como todo el mundo pasa por
+  la intermedia, los seis botones del home eran indistinguibles. Ahora
+  `cta_inscribirme_click`, `checkout_abierto` y `pago_puente_visto` llevan
+  `origen_inicial` = el botón donde EMPEZÓ la compra (`?desde=` viaja por
+  `ContextoPago`). **Para "¿qué botón vende?" se usa `origen_inicial`, nunca
+  `origen`.** Verificado en local: `/pagar?desde=barra_movil` → el clic manda
+  `origen: "pagar"` + `origen_inicial: "barra_movil"`.
+· **Tablero de Mixpanel corregido (2026-11-08).** Los tres embudos saltaban de
+  "vio precio" a `/pagar` y por eso parecían muertos. Se les metió el paso
+  `cta_inscribirme_click`. Embudo principal, 7 días: 1.114 → 456 ven precio
+  (40,9%) → **206 tocan inscribirme (45,2%)** → 2 llegan a `/pagar` → 0 pagos.
+  ⚠️ El plan gratis topa en 5 informes guardados: se editan, no se crean.
+  ⚠️ Al leer el A/B de precio, empezar el rango el **5-nov**: antes de ese día
+  los eventos no llevan `experimento_precio` y salen como "(not set)" (901 de
+  1.108 en 7 días), lo que hace parecer que el experimento no corre. Hoy, 0
+  sin variante. Con 1 pago en 30 días NO hay ganador de nada todavía.
 · **Verificado en local a 375px:** CO puente home → `/pagar` recortada → marca;
   con marca → OnePay directo; MX directo → "Así sigue" 🇲🇽 +52 y enlace OnePay;
   AR + UA Instagram → aviso y USD (sin UA, sin aviso). tsc ✓ lint ✓ build ✓.

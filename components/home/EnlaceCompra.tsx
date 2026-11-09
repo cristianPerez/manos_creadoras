@@ -217,6 +217,10 @@ export function EnlaceCompra({
      lee por evento y así no depende de que el registro haya llegado antes. */
   const propiedades = (saltoPuente: boolean) => ({
     origen,
+    /* DÓNDE EMPEZÓ LA COMPRA, no dónde se tocó. En el home los dos son el
+       mismo botón; desde `/pagar` este conserva el del home (ver `desde` en
+       `ContextoPago`). Es el que responde "¿qué botón vende?". */
+    origen_inicial: ctx?.desde ?? origen,
     plan,
     moneda,
     precio,

@@ -17,6 +17,19 @@ export type ContextoPago = {
   pais: string;
   variantePrecio: string;
   rutaPago: RutaPago;
+  /**
+   * EL BOTÓN DONDE EMPEZÓ LA COMPRA, cuando ya veníamos de otra página.
+   *
+   * ⚠️ SIN ESTO NO SE SABE QUÉ BOTÓN VENDE (medido en Mixpanel el 2026-11-08).
+   * El botón de `/pagar` manda `origen: "pagar"` —es verdad, es donde se tocó—
+   * y como TODO el mundo pasa por la intermedia, los 22 `checkout_abierto` del
+   * mes decían lo mismo: "pagar". La pregunta por la que existen los seis
+   * botones del home —cuál trae las ventas— no se podía contestar.
+   *
+   * El home no lo pone (allí el botón donde se empezó ES el que se tocó);
+   * `/pagar` lo pone con su `?desde=`.
+   */
+  desde?: string;
 };
 
 const Contexto = createContext<ContextoPago | null>(null);
