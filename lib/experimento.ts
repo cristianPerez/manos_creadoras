@@ -53,3 +53,22 @@ export const DIAS_FORZADA = 7;
 
 /** 1 año: la identidad del A/B tiene que durar más que el experimento. */
 export const DIAS_VISITANTE = 365;
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * LA RUTA DE PAGO — flag `ruta_pago` (2026-11-08)
+ * ════════════════════════════════════════════════════════════════════════════
+ * Qué hace el botón dorado del home:
+ *   · "puente"  → `/pagar` (recortada) y desde ahí a OnePay. El control.
+ *   · "directo" → OnePay en el mismo toque, sin pasar por `/pagar`.
+ * Todo lo que no sea "directo" es "puente": apagada, vacía o con errata.
+ */
+export type RutaPago = "puente" | "directo";
+
+export const RUTA_CONTROL: RutaPago = "puente";
+
+export function esRutaPago(v: string | undefined | null): v is RutaPago {
+  return v === "puente" || v === "directo";
+}
+
+/** `?ruta=directo|puente` la fija para revisar; `?ruta=auto` la borra. Solo fuera de producción. */
+export const COOKIE_RUTA_FORZADA = "mc_ruta_forzada";

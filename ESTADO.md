@@ -1,6 +1,6 @@
 # ESTADO — Manos Creadoras App
 
-**Última actualización: 2026-11-07.** Aquí solo entra lo que sigue siendo cierto
+**Última actualización: 2026-11-08.** Aquí solo entra lo que sigue siendo cierto
 y accionable. El porqué de cada cosa vive en la cabecera de su archivo y en los
 mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.**
 
@@ -12,6 +12,41 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
 > Quedan ~353 líneas y la regla del SO son 200. No se recorta más a costa de
 > borrar un hecho vivo: si vuelve a crecer, lo primero que sale son los
 > pendientes de código, no los bloqueos ni los avisos que cuestan dinero.
+
+🟢 **HOME V3 + `/pagar` RECORTADA + FLAG `ruta_pago` (2026-11-08) → QA.**
+Encargo: `design-ref/home-v3-pago-claude-code/PROMPT-HOME-V3-PAGO.md` (incluye el
+v2 de `/pagar`, que no estaba hecho). Capturas en `…/verificacion/`.
+· **Dorado = pagar, morado = gratis:** `.cta-pagar` con `--pago-inicio/--pago-fin`
+  fijos (no toca `--gold`). Solo en la tarjeta de precio, la barra fija y los
+  botones de `/pagar`. El botón gratis del cierre pasó a morado.
+· **Home:** `PrecioB` nuevo (selector dentro, precio local, nota de moneda,
+  medios, garantía en una línea, testimonio `TESTIMONIOS[1]`); `ComunidadB` cita
+  `TESTIMONIOS[0]`; portada/barra/cierre dicen "desde {anual por mes}";
+  barra fija clara, aparece al pasar `#cta-gratis-heroe` y se esconde con
+  `#cta-pagar-precio`; `AvisoInstagram` (UA Instagram/FBAN/FBAV, ✕ en sessionStorage).
+· **`/pagar`:** sin "Qué recibes"; título con Elizabeth, WhatsApp por país,
+  correo con Copiar (fallback: selecciona el texto). Deja `mc_pagar_visto`: al
+  volver, el botón del home va directo a OnePay (`salto_puente: true`).
+· **CO dice "Nequi, PSE o tarjeta"** (Cristian confirmó Nequi y PSE).
+  ⚠️ Daviplata NO va hasta confirmarlo en el plan COP de OnePay.
+· **Flag `ruta_pago`** (`lib/flags.ts` → `rutaDePago()` en
+  `lib/experimento-servidor.ts`, misma identidad `mc_vid` que `precio`). Todo
+  falla a `puente`. QA: `?ruta=directo|puente|auto` (cookie `mc_ruta_forzada`).
+  Con `directo` el home abre OnePay y enseña "Así sigue". `/app/plan`, catálogo
+  y ficha NO cambian con la flag. Si `url[ciclo]` es null cae a `/pagar`.
+· **Encenderla:** Flagsmith → `ruta_pago` → encender → Create A/B/n Test →
+  `directo` 50%. Apagar = volver (≤60 s). ⚠️ Recuerda: producción lee el
+  entorno **Development** de Flagsmith (llave cruzada, ver abajo).
+· **Mixpanel:** super propiedad `ruta_pago`. `cta_inscribirme_click` y
+  `checkout_abierto` llevan `posicion` (precio · barra_fija · pagar_tarjeta ·
+  pagar_cierre · pagar_barra), `pais`, `variante_precio`, `ruta_pago`,
+  `salto_puente`. `pago_puente_visto` lleva `in_app_browser`. Mirar primero
+  `checkout_abierto → pago_confirmado` por `ruta_pago` (con ~285 visitas al
+  precio/mes, el A/B tarda semanas). OnePay no acepta referencia externa:
+  contexto en `sessionStorage['mc_checkout_ctx']`; el pago se une por correo.
+· **Verificado en local a 375px:** CO puente home → `/pagar` recortada → marca;
+  con marca → OnePay directo; MX directo → "Así sigue" 🇲🇽 +52 y enlace OnePay;
+  AR + UA Instagram → aviso y USD (sin UA, sin aviso). tsc ✓ lint ✓ build ✓.
 
 🧪 **EXPERIMENTO DE PRECIO A/B/C — ✅ EN PRODUCCIÓN DESDE EL 2026-11-07
 (~10:00 hora Colombia). PR #19 + #20 → develop, PR #21 → main.**
@@ -61,15 +96,17 @@ mensajes de commit, largos a propósito. **Lo que se termina, se BORRA de aquí.
   239900, sin `experimento_paleta`. ⚠️ El 1er despliegue de QA del #20 falló
   por Vercel sin poder bajar Cormorant de Google Fonts (no era el código: el
   preview del PR había compilado); se arregló con `vercel redeploy`.
-· **`/pagar` instrumentada (2026-11-07, código SIN COMMITEAR):** se monta
+· **`/pagar` instrumentada (2026-11-07, EN PRODUCCIÓN: PR #22 → develop, #23 → main):** se monta
   `MedirHome` (secciones, scroll, clics) y TODOS sus eventos llevan ahora
   `pagina` (`/` o `/pagar`). Secciones de `/pagar`: `pagar_titular`,
   `pagar_plan`, `pagar_recibes`, `pagar_pasos`, `pagar_cierre`,
   `pagar_barra` (prefijo para no chocar con `seccion = precio` del home).
   Evento nuevo **`ciclo_cambiado`** (`de`, `a`, `desde` tarjeta|resumen,
   `moneda`, `precio`); botones con `data-cta` `ciclo_mensual|ciclo_anual|
-  resumen_a_*`. Verificado llegando al proyecto Mixpanel de QA con clics
-  reales (ciclo_cambiado a anual · 1069 · c · MX).
+  resumen_a_*`. Verificado llegando al Mixpanel de QA con clics reales,
+  desde local y desde qa.manoscreadoras.co. En producción se comprobó el
+  HTML (las 6 secciones y los `data-cta`) sin clics de prueba, para no
+  ensuciar los embudos reales.
 · **Mixpanel, tablero "Embudo de venta" (2026-11-07):** borrado "A/B home";
   **"Embudo principal" pasa a 5 pasos: página → seccion_vista(precio) →
   pago_puente_visto → checkout_abierto → pago_confirmado** (antes de hoy no
