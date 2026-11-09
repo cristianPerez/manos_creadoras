@@ -507,6 +507,45 @@ html[data-paleta="b"] .sobre-oscuro .clave {
 
 /*
  * ════════════════════════════════════════════════════════════════════════════
+ * DORADO = PAGAR, MORADO = GRATIS (home v3, 2026-11-08)
+ * ════════════════════════════════════════════════════════════════════════════
+ * Los botones que COBRAN son dorados y los que regalan, morados: el color dice
+ * qué pasa al tocar antes de leer. Llevan `.cta-pagar` SOLO: el botón de la
+ * tarjeta de precio del home, el de la barra fija y los "Ir a mi pago seguro"
+ * de `/pagar`. Nada más es dorado (ni íconos ni bordes): si se regara, dejaría
+ * de significar "pagar".
+ *
+ * ⚠️ TOKENS PROPIOS Y FIJOS, NO `--gold`: la paleta B redefine `--gold`,
+ * `--gold-start` y `--gold-deep` como morado. `--pago-inicio`/`--pago-fin` no
+ * los toca ninguna paleta, así que el botón es dorado en las dos.
+ *
+ * ⚠️ 19px EN NEGRITA, Y NO ES CAPRICHO: blanco sobre #9C7638 da 4,15:1, que
+ * AA solo acepta en texto grande (negrita ≥ 18,66px).
+ */
+:root {
+  --pago-inicio: #9C7638;
+  --pago-fin: #83602A;
+}
+.cta-pagar {
+  background: linear-gradient(135deg, var(--pago-inicio), var(--pago-fin));
+  color: #fff;
+  font-weight: 700;
+  font-size: 19px;
+  border-radius: 9999px;
+  min-height: 52px;
+  box-shadow: 0 6px 18px rgba(140, 106, 47, 0.35);
+}
+.cta-pagar:hover,
+.cta-pagar:active {
+  background: var(--pago-fin);
+}
+.cta-pagar:focus-visible {
+  outline: 3px solid #2E2440;
+  outline-offset: 3px;
+}
+
+/*
+ * ════════════════════════════════════════════════════════════════════════════
  * LA TARJETA DEL PLAN EN `/pagar` (2026-11-06)
  * ════════════════════════════════════════════════════════════════════════════
  * Tiene que verse como la tarjeta de precio del home del que viene la alumna,
@@ -523,6 +562,7 @@ html[data-paleta="b"] .sobre-oscuro .clave {
   --tp-texto-2: var(--on-dark-muted);
   --tp-precio: var(--gold-pale);
   --tp-hundido: var(--espresso-2);
+  --tp-hundido-suave: var(--espresso-2);
   --tp-opcion: var(--cream);
   --tp-opcion-texto: var(--espresso);
   --tp-opcion-precio: var(--gold);
@@ -541,10 +581,14 @@ html[data-paleta="b"] .tarjeta-pago {
   --tp-texto-2: var(--ink-body);
   --tp-precio: var(--gold);
   --tp-hundido: var(--sand);
+  /* El fondo del testimonio: un paso más suave que el selector. */
+  --tp-hundido-suave: var(--cream);
   --tp-opcion: var(--ivory);
   --tp-opcion-texto: var(--espresso);
   --tp-opcion-precio: var(--gold);
-  --tp-badge: var(--gold);
+  /* "−50%" en oscuro y no en violeta (home v3): el violeta queda para lo
+     gratis y el dorado para pagar; la etiqueta no compite con ninguno. */
+  --tp-badge: var(--espresso-2);
   --tp-badge-texto: var(--ivory);
   --tp-boton: var(--boton-bronce);
   --tp-boton-texto: var(--brand-primary-text);

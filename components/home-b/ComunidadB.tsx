@@ -9,10 +9,11 @@ import { TESTIMONIOS } from "@/lib/landing";
  * SIEMPRE. Las fotos se leen de un vistazo, como se ven en un grupo de
  * Telegram, y la frase es UNA, entera, con su nombre.
  *
- * ⚠️ LA CITA ES LA DE JENIFER ("—¿En cuánto tiempo lo hiciste? —1 día.",
- * `TESTIMONIOS[1]`), no la primera con frase. Es la que responde la objeción
- * de "no tengo tiempo" y la que hace creíble "de boutique": un bolso así en un
- * día. Se elige por posición porque la decisión es de copy, no de datos.
+ * ⚠️ LA CITA ES "Hoy traigo mi corazón en la mano…" (`TESTIMONIOS[0]`) desde
+ * el home v3 (2026-11-08). Hasta entonces era la de "—1 día."
+ * (`TESTIMONIOS[1]`), que ahora va pegada al botón de pago (`TestimonioCorto`):
+ * ahí responde "no tengo tiempo" justo al decidir, y repetirla aquí la gastaría.
+ * Se elige por posición porque la decisión es de copy, no de datos.
  *
  * ⚠️ QUÉ FOTOS: en el teléfono 3 (una alta y dos apiladas) y en escritorio 4
  * (la cuarta, ancha, abajo a la derecha). La del bolso "en proceso" no entra:
@@ -24,7 +25,7 @@ const ALTA = TESTIMONIOS[0];
 const DOS = TESTIMONIOS[1];
 const TRES_ESCRITORIO = TESTIMONIOS[2];
 const ANCHA = TESTIMONIOS[4];
-const CITA = TESTIMONIOS[1];
+const CITA = TESTIMONIOS[0];
 
 export function ComunidadB() {
   if (!ALTA?.foto || !DOS?.foto || !ANCHA?.foto || !CITA?.frase) return null;

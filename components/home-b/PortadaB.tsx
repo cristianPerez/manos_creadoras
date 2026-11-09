@@ -479,6 +479,9 @@ export function PortadaB({
         */}
         <Link
           href={destinoGratis}
+          /* `id`: la barra fija de compra espera a que ESTE botón salga de
+             pantalla para aparecer (`BarraCompraB`). */
+          id="cta-gratis-heroe"
           data-cta="heroe_gratis"
           className="boton-accion-b relative flex h-13 items-center justify-center gap-2.5 overflow-hidden rounded-full text-[17px] font-bold transition-transform active:scale-[0.98] lg:h-14 lg:px-7.5"
           style={{ boxShadow: "var(--sombra-accion-b)" }}
@@ -491,7 +494,9 @@ export function PortadaB({
 
         {/* ⚠️ LA OFERTA ARRIBA, COMO TEXTO Y NO COMO OTRO BOTÓN (reparo nº 3):
             un segundo botón competiría con el de arriba; una línea responde
-            "¿y cuánto cuesta?" sin pedir nada. El precio sale de la base. */}
+            "¿y cuánto cuesta?" sin pedir nada. El precio sale de la base.
+            Home v3 (2026-11-08): el precio por mes del ANUAL, el más bajo, en
+            su moneda ("$29.992 COP/mes"), nunca un US$ fijo. */}
         <p className="text-ink-body mt-2.5 text-center text-[13.5px] leading-5 lg:mt-0 lg:text-left lg:text-[15px]">
           Plan desde{" "}
           <EnlaceCompra
@@ -500,7 +505,7 @@ export function PortadaB({
             plan={FRECUENCIA_POR_DEFECTO}
             className="text-apoyo font-bold underline underline-offset-3"
           >
-            {pr.desde}/mes
+            {pr.porMes("anual")}/mes
           </EnlaceCompra>{" "}
           · {GARANTIA.titulo.toLowerCase()}
         </p>
