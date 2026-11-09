@@ -24,6 +24,12 @@ export const EVENTOS = {
    * pagar_cierre · pagar_barra), `pais`, `variante_precio`, `ruta_pago`
    * (puente|directo) y `salto_puente` (true = ya había visto `/pagar` y el
    * botón del home la saltó).
+   *
+   * ⚠️ PARA SABER QUÉ BOTÓN VENDE, USA `origen_inicial`, NO `origen`
+   * (2026-11-08). `origen` dice dónde se tocó, y como todo el mundo pasa por
+   * `/pagar`, ahí siempre dice "pagar": en el panel los 22 checkouts del mes
+   * salían todos iguales y los seis botones del home eran indistinguibles.
+   * `origen_inicial` conserva el botón donde EMPEZÓ la compra.
    */
   checkoutAbierto: "checkout_abierto",
   /**

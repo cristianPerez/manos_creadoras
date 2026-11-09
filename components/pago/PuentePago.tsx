@@ -126,6 +126,9 @@ export function PuentePago({
       moneda: pr.moneda,
       precio: pr.precios[frecuenciaInicial],
       desde: desde ?? "directo",
+      /* El mismo dato con el nombre que usan los demás pasos del embudo, para
+         poder partirlo entero por un solo "Breakdown" (ver `ContextoPago`). */
+      origen_inicial: desde ?? "directo",
       pais,
       variante_precio: variantePrecio,
       in_app_browser: enInstagram,
@@ -146,7 +149,7 @@ export function PuentePago({
   );
 
   return (
-    <ProveedorPago valor={{ pais, variantePrecio, rutaPago }}>
+    <ProveedorPago valor={{ pais, variantePrecio, rutaPago, desde: desde ?? undefined }}>
       <div className="bg-surface-base grano-fondo min-h-dvh pb-28 lg:pb-16">
         {/* Secciones vistas, scroll y clics de esta página (con `pagina`). */}
         <MedirHome />
