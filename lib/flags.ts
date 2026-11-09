@@ -1,10 +1,17 @@
 import "server-only";
 import { DefaultFlag, Flagsmith } from "flagsmith-nodejs";
-import { esVariantePrecio, VARIANTE_CONTROL, type VariantePrecio } from "@/lib/experimento";
+import {
+  esRutaPago,
+  esVariantePrecio,
+  RUTA_CONTROL,
+  VARIANTE_CONTROL,
+  type RutaPago,
+  type VariantePrecio,
+} from "@/lib/experimento";
 
 /**
  * ════════════════════════════════════════════════════════════════════════════
- * LAS FLAGS — hoy solo una: `precio`
+ * LAS FLAGS — `precio` y `ruta_pago`
  * ════════════════════════════════════════════════════════════════════════════
  *
  * Una "flag" es un interruptor que vive FUERA del código, en el panel de
@@ -28,6 +35,13 @@ import { esVariantePrecio, VARIANTE_CONTROL, type VariantePrecio } from "@/lib/e
 
 /** El nombre de la flag en el panel de Flagsmith. Escrito una sola vez. */
 export const FLAG_PRECIO = "precio";
+
+/**
+ * Si el botón dorado del home pasa por `/pagar` ("puente") o abre OnePay
+ * directo ("directo"). Creada el 2026-11-08: server-side only, valor `puente`,
+ * apagada en todos los entornos. Ver `obtenerRutaPago`.
+ */
+export const FLAG_RUTA_PAGO = "ruta_pago";
 
 /**
  * El cliente, creado UNA vez por proceso.
@@ -86,5 +100,34 @@ export async function obtenerVariantePrecio(identidad: string): Promise<Variante
   } catch {
     /* Un fallo de una flag JAMÁS tumba la página ni cambia el precio. */
     return VARIANTE_CONTROL;
+  }
+}
+
+/**
+ * Por dónde paga esta persona: "puente" (home → `/pagar` → OnePay) o
+ * "directo" (home → OnePay).
+ *
+ * Mismo patrón que `obtenerVariantePrecio`: misma identidad, mismo cliente
+ * (sin otra llamada de red: la evaluación es local) y el mismo principio —
+ * TODO FALLA HACIA "puente", que es como funcionaba la página hasta hoy:
+ *   · flag apagada, sin llave o Flagsmith caído → "puente"
+ *   · encendida con valor "directo"             → "directo"
+ *   · encendida con cualquier otro valor        → "puente"
+ *
+ * En el panel: encender `ruta_pago` → Create A/B/n Test → variación
+ * `directo` al 50%. Volver atrás: apagarla (≤ 60 s).
+ */
+export async function obtenerRutaPago(identidad: string): Promise<RutaPago> {
+  const fs = obtenerCliente();
+  if (!fs || identidad === "") return RUTA_CONTROL;
+
+  try {
+    const flags = await fs.getIdentityFlags(identidad);
+    if (!flags.isFeatureEnabled(FLAG_RUTA_PAGO)) return RUTA_CONTROL;
+    const valor = String(flags.getFeatureValue(FLAG_RUTA_PAGO) ?? "").trim().toLowerCase();
+    return esRutaPago(valor) ? valor : RUTA_CONTROL;
+  } catch {
+    /* Un fallo de la flag JAMÁS rompe la página: se paga como siempre. */
+    return RUTA_CONTROL;
   }
 }

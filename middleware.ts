@@ -2,9 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   COOKIE_PRECIO_FORZADO,
+  COOKIE_RUTA_FORZADA,
   COOKIE_VISITANTE,
   DIAS_FORZADA,
   DIAS_VISITANTE,
+  esRutaPago,
   esVariantePrecio,
 } from "@/lib/experimento";
 import { COOKIE_PAIS_PRUEBA, ENTORNO_DE_PRUEBA } from "@/lib/pais-prueba";
@@ -59,6 +61,16 @@ export async function middleware(request: NextRequest) {
 
   if (fijarForzada) request.cookies.set(COOKIE_PRECIO_FORZADO, fijarForzada);
   if (borrarForzada) request.cookies.delete(COOKIE_PRECIO_FORZADO);
+
+  /*
+   * `?ruta=directo|puente` — la ruta de pago a mano (flag `ruta_pago`), igual
+   * que `?precio=`: SOLO FUERA DE PRODUCCIÓN. `?ruta=auto` la devuelve al panel.
+   */
+  const rutaPedida = ENTORNO_DE_PRUEBA ? request.nextUrl.searchParams.get("ruta")?.toLowerCase() : undefined;
+  const borrarRuta = rutaPedida === "auto";
+  const fijarRuta = esRutaPago(rutaPedida) ? rutaPedida : null;
+  if (fijarRuta) request.cookies.set(COOKIE_RUTA_FORZADA, fijarRuta);
+  if (borrarRuta) request.cookies.delete(COOKIE_RUTA_FORZADA);
 
   /*
    * `?pais=MX` — FINGIR UN PAÍS, SOLO FUERA DE PRODUCCIÓN (2026-11-06). Para
@@ -137,6 +149,15 @@ export async function middleware(request: NextRequest) {
       });
     }
     if (borrarForzada) r.cookies.delete(COOKIE_PRECIO_FORZADO);
+    if (fijarRuta) {
+      r.cookies.set(COOKIE_RUTA_FORZADA, fijarRuta, {
+        path: "/",
+        maxAge: DIAS_FORZADA * DIA,
+        sameSite: "lax",
+        httpOnly: false,
+      });
+    }
+    if (borrarRuta) r.cookies.delete(COOKIE_RUTA_FORZADA);
     if (fijarPais) r.cookies.set(COOKIE_PAIS_PRUEBA, fijarPais, { path: "/", sameSite: "lax", httpOnly: true });
     if (borrarPais) r.cookies.delete(COOKIE_PAIS_PRUEBA);
     return r;

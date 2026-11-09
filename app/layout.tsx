@@ -8,6 +8,7 @@ import { ProveedorEntrar } from "@/components/app/ModalEntrar";
 import { RegistrarSW } from "@/components/app/RegistrarSW";
 import { COLOR_FONDO_SISTEMA_B } from "@/lib/marca";
 import { enlacesDeCobro } from "@/lib/checkout";
+import { rutaDePago } from "@/lib/experimento-servidor";
 import { detectarPais, regionDe } from "@/lib/pais";
 import { supabaseServer } from "@/lib/supabase/server";
 import "./globals.css";
@@ -94,6 +95,9 @@ export default async function RootLayout({
     así lo registra). Cacheada por petición: es la misma consulta de arriba.
   */
   const { variante: variantePrecio } = await enlacesDeCobro();
+  /* La ruta de pago (flag `ruta_pago`): la misma que decide el botón del home
+     en esta petición (`rutaDePago` está cacheada por petición). */
+  const rutaPago = await rutaDePago();
 
   return (
     <html
@@ -127,6 +131,7 @@ export default async function RootLayout({
           moneda={precios.moneda}
           precioMensual={precios.mensual}
           precioAnual={precios.anual}
+          rutaPago={rutaPago}
         />
         <RegistrarEntrada />
       </body>

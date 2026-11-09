@@ -3,6 +3,8 @@ import { RegistrarPais } from "@/components/app/RegistrarPais";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { ProveedorCapsulas } from "@/components/home/Capsulas";
 import { MedirHome } from "@/components/home/MedirHome";
+import { AvisoInstagram } from "@/components/pago/AvisoInstagram";
+import { ProveedorPago } from "@/components/pago/ContextoPago";
 import { BarraCompraB } from "@/components/home-b/BarraCompraB";
 import { CabeceraB } from "@/components/home-b/CabeceraB";
 import { CapsulasB } from "@/components/home-b/CapsulasB";
@@ -47,20 +49,39 @@ import type { DatosHome } from "@/lib/datos-home";
  * de la primera pantalla) y "Este es solo uno" se fundió con el precio.
  */
 export function HomeB({ datos }: { datos: DatosHome }) {
-  const { pr, capsulas, cobro, totalProyectos, totalVideos, fotosB, gratis, urlsDeCapsulas, pasos } =
-    datos;
+  const {
+    pr,
+    capsulas,
+    cobro,
+    rutaPago,
+    enInstagram,
+    totalProyectos,
+    totalVideos,
+    fotosB,
+    gratis,
+    urlsDeCapsulas,
+    pasos,
+  } = datos;
 
   /* Los pasos SIN contar el de materiales: es lo que dice la tarjeta del curso
      gratuito ("materiales + 5 pasos"). */
   const pasosDelBolso = Math.max(0, pasos.length - 1);
 
+  /* "Plan desde …": el precio por mes MÁS BAJO, el del anual, en su moneda
+     (home v3). Lo de la portada, la barra fija y el cierre. */
+  const desde = pr.porMes("anual");
+
   return (
-    <>
+    /* País, variante y ruta de pago para los botones dorados (`EnlaceCompra`). */
+    <ProveedorPago valor={{ pais: cobro.pais, variantePrecio: cobro.variante, rutaPago }}>
       <Medir evento={EVENTOS.paginaVentasVista} />
       <RegistrarPais />
       {/* Lo que Google lee de las preguntas frecuentes: la misma lista que el
           acordeón, así que no pueden decir cosas distintas. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: faqJsonLd() }} />
+
+      {/* Dentro de Instagram/Facebook: "ábrelo en tu navegador". No bloquea. */}
+      <AvisoInstagram visible={enInstagram} />
 
       <CabeceraB />
 
@@ -93,11 +114,11 @@ export function HomeB({ datos }: { datos: DatosHome }) {
 
           <PreguntasB />
 
-          <CierreB slugGratis={gratis?.slug ?? null} desde={pr.desde} />
+          <CierreB slugGratis={gratis?.slug ?? null} desde={desde} />
         </main>
       </ProveedorCapsulas>
 
-      <BarraCompraB />
-    </>
+      <BarraCompraB enlaces={cobro.url} desde={desde} />
+    </ProveedorPago>
   );
 }

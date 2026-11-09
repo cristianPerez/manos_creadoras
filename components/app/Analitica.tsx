@@ -31,6 +31,7 @@ export function Analitica({
   moneda,
   precioMensual,
   precioAnual,
+  rutaPago,
 }: {
   userId: string | null;
   /** El correo de la sesión, para identificarla en Mixpanel (ver `identificar`). */
@@ -71,6 +72,12 @@ export function Analitica({
   moneda?: string;
   precioMensual?: number;
   precioAnual?: number;
+  /**
+   * Por dónde paga: "puente" (home → `/pagar` → OnePay) o "directo" (home →
+   * OnePay). Flag `ruta_pago`, 2026-11-08. Como `experimento_precio`: super
+   * propiedad, para partir cualquier embudo en dos con un Breakdown.
+   */
+  rutaPago?: string;
 }) {
   useEffect(() => {
     /*
@@ -100,6 +107,7 @@ export function Analitica({
       moneda,
       precio_mensual: precioMensual,
       precio_anual: precioAnual,
+      ruta_pago: rutaPago,
     };
     /* El contexto va DENTRO del encendido: así los eventos que ya esperaban
        en cola (la vista del home, que se dispara antes que este efecto) salen
@@ -112,9 +120,9 @@ export function Analitica({
       identificar(userId, correo);
       /* La variante también en la ficha: ver `fijarEnFicha` (los pagos los
          manda el servidor y no llevan las super propiedades). */
-      fijarEnFicha({ experimento_precio: experimentoPrecio, moneda });
+      fijarEnFicha({ experimento_precio: experimentoPrecio, moneda, ruta_pago: rutaPago });
     }
-  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPrecio, moneda, precioMensual, precioAnual]);
+  }, [userId, correo, pais, region, fuentePais, ciudad, subdivision, experimentoPrecio, moneda, precioMensual, precioAnual, rutaPago]);
 
   /*
    * La vista de página en cada navegación dentro de la app. La de la carga la

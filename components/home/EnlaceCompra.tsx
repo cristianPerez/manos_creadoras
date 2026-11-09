@@ -7,7 +7,9 @@ import { usePrecios } from "@/components/app/Precios";
 import { EVENTOS } from "@/lib/analitica/eventos";
 import { medir } from "@/lib/analitica/mixpanel";
 import { WHATSAPP_URL } from "@/lib/landing";
+import { useContextoPago } from "@/components/pago/ContextoPago";
 import type { OrigenCompra } from "@/lib/origen-compra";
+import { yaVioPagar, type PosicionPago } from "@/lib/pago-textos";
 import type { Frecuencia } from "@/lib/planes";
 
 /* La lista de orígenes vive en `lib/origen-compra.ts` (la valida también la
@@ -173,6 +175,8 @@ export function EnlaceCompra({
   plan,
   abrePago = false,
   directo = false,
+  conRuta = false,
+  posicion,
   className,
   children,
   ariaLabel,
@@ -183,35 +187,93 @@ export function EnlaceCompra({
   abrePago?: boolean;
   /** Solo el botón de `/pagar`: abre OnePay sin pasar por la intermedia. */
   directo?: boolean;
+  /**
+   * Solo los botones dorados del home (tarjeta de precio y barra fija): obedecen
+   * la flag `ruta_pago` y saltan `/pagar` si ya la vio en esta visita.
+   * El resto de botones de la app no cambian con la flag.
+   */
+  conRuta?: boolean;
+  /** Dónde está el botón, para el embudo (`posicion`). */
+  posicion?: PosicionPago;
   className?: string;
   children: ReactNode;
   ariaLabel?: string;
 }) {
-  const alPuente = abrePago && !directo;
-  const { estado, alTocar } = useAbrirPago(abrePago && directo);
-  /* Qué precio estaba enseñando ESTE botón: moneda y monto del ciclo. La
-     variante (A/B/C) y el país ya van en todos los eventos como super
-     propiedades (`<Analitica>`). */
+  const ctx = useContextoPago();
+  /* Con la flag en "directo", el botón del home abre OnePay en el mismo toque. */
+  const directoPorRuta = conRuta && ctx?.rutaPago === "directo";
+  const vaDirecto = directo || directoPorRuta;
+  const alPuente = abrePago && !vaDirecto;
+  /* Activo en los dos caminos: el puente también puede acabar abriendo OnePay
+     (si ya vio `/pagar`), y entonces necesita su "Abriendo el pago seguro…". */
+  const { estado, alTocar } = useAbrirPago(abrePago && (vaDirecto || conRuta));
+  /* Qué precio estaba enseñando ESTE botón: moneda y monto del ciclo. */
   const { moneda, precios } = usePrecios();
   const precio = precios[plan];
   const ocupado = estado !== "quieto";
+
+  /* Lo que viaja en el clic y en `checkout_abierto`. País, variante y ruta ya
+     van como super propiedades; se repiten aquí porque el embudo de pago se
+     lee por evento y así no depende de que el registro haya llegado antes. */
+  const propiedades = (saltoPuente: boolean) => ({
+    origen,
+    plan,
+    moneda,
+    precio,
+    ...(posicion ? { posicion } : {}),
+    ...(ctx
+      ? { pais: ctx.pais, variante_precio: ctx.variantePrecio, ruta_pago: ctx.rutaPago, salto_puente: saltoPuente }
+      : {}),
+  });
+
+  const abrirOnePay = (saltoPuente: boolean) => {
+    const p = propiedades(saltoPuente);
+    medir(EVENTOS.ctaInscribirmeClick, p);
+    medir(EVENTOS.checkoutAbierto, p);
+    guardarContextoCheckout({ ...p, ciclo: plan });
+  };
+
+  const contenido = ocupado ? <TextoAbriendoPago tardo={estado === "tardo"} /> : children;
+  const conEstados = (enlace: ReactNode) => (
+    <>
+      {enlace}
+      <AnuncioPago estado={estado} />
+      {estado === "tardo" && <AvisoTarda />}
+    </>
+  );
 
   /*
    * A la intermedia con `<Link>`: es navegación de la app, se precarga y su
    * esqueleto (`pagar/loading.tsx`) sale en el mismo toque. Se pasa el origen
    * para que `checkout_abierto` siga diciendo desde qué botón se empezó.
+   *
+   * ⚠️ SI YA PASÓ POR `/pagar` EN ESTA VISITA (y el botón es de los del home,
+   * `conRuta`), no se le hace pasar otra vez: va directo a OnePay con
+   * `salto_puente: true`. Se decide en el toque, no al pintar, porque la marca
+   * vive en `sessionStorage` y en el servidor no existe.
    */
   if (alPuente) {
-    return (
+    const link = (
       <Link
         href={`/pagar?ciclo=${plan}&desde=${origen}`}
-        aria-label={ariaLabel}
-        className={className}
-        onClick={() => medir(EVENTOS.ctaInscribirmeClick, { origen, plan, moneda, precio })}
+        aria-label={ocupado ? undefined : ariaLabel}
+        aria-busy={estado === "abriendo" || undefined}
+        className={`${className ?? ""} ${estado === "abriendo" ? "cursor-progress" : ""}`}
+        onClick={(e) => {
+          if (conRuta && yaVioPagar()) {
+            e.preventDefault();
+            if (!alTocar(e)) return;
+            abrirOnePay(true);
+            window.location.assign(href);
+            return;
+          }
+          medir(EVENTOS.ctaInscribirmeClick, propiedades(false));
+        }}
       >
-        {children}
+        {contenido}
       </Link>
     );
+    return conRuta ? conEstados(link) : link;
   }
 
   const enlace = (
@@ -223,24 +285,40 @@ export function EnlaceCompra({
       onClick={(e) => {
         // El segundo toque mientras carga OnePay no cuenta: ni navega ni mide.
         if (!alTocar(e)) return;
-        medir(EVENTOS.ctaInscribirmeClick, { origen, plan, moneda, precio });
-        if (abrePago) medir(EVENTOS.checkoutAbierto, { plan, moneda, precio });
+        if (abrePago) abrirOnePay(false);
+        else medir(EVENTOS.ctaInscribirmeClick, propiedades(false));
       }}
     >
-      {ocupado ? <TextoAbriendoPago tardo={estado === "tardo"} /> : children}
+      {contenido}
     </a>
   );
 
   /* Sin `abrePago` no hay estados de pago: el enlace sale solo, como siempre,
      y no se añade nada al lado que pueda descuadrar a quien lo contiene. */
   if (!abrePago) return enlace;
-  return (
-    <>
-      {enlace}
-      <AnuncioPago estado={estado} />
-      {estado === "tardo" && <AvisoTarda />}
-    </>
-  );
+  return conEstados(enlace);
+}
+
+/**
+ * Lo que se sabía al abrir OnePay, guardado en esta pestaña (`mc_checkout_ctx`).
+ *
+ * ⚠️ LOS ENLACES DE ONEPAY NO LLEVAN REFERENCIA EXTERNA (son planes fijos de
+ * `plan_checkout`), así que la variante, la ruta y las UTM no viajan al pago.
+ * El pago se une a esto por el CORREO: el webhook lo trae y
+ * `lib/pagos-huerfanos.ts` ya reconcilia por correo; `checkout_abierto` va al
+ * mismo `distinct_id` (`mc_vid`). Si un día OnePay acepta metadatos, se añaden
+ * al enlace y esto sobra.
+ */
+function guardarContextoCheckout(datos: Record<string, unknown>) {
+  try {
+    const utm: Record<string, string> = {};
+    new URLSearchParams(window.location.search).forEach((v, k) => {
+      if (k.startsWith("utm_")) utm[k] = v;
+    });
+    sessionStorage.setItem("mc_checkout_ctx", JSON.stringify({ ...datos, ...utm, ts: Date.now() }));
+  } catch {
+    /* Sin almacenamiento: el evento de Mixpanel ya salió igual. */
+  }
 }
 
 /**

@@ -29,7 +29,7 @@ export function CierreB({
 }: {
   /** El bolso de regalo, de la base. Sin él, el botón lleva a la plataforma. */
   slugGratis: string | null;
-  /** "US$8" — el precio por mes más bajo, de la base. */
+  /** "$29.992 COP" — el precio por mes más bajo (el del anual), de la base. */
   desde: string;
 }) {
   const destino = slugGratis ? `/app/bolsos/${slugGratis}` : "/app";
@@ -54,7 +54,10 @@ export function CierreB({
         <Link
           href={destino}
           data-cta="cierre_gratis"
-          className="bg-ivory text-espresso-2 mt-5.5 flex h-13 items-center justify-center rounded-full font-bold transition-transform active:scale-[0.98] lg:mt-7.5 lg:inline-flex lg:h-14 lg:px-8.5"
+          /* Morado, como el del héroe (home v3): morado = gratis, dorado =
+             pagar. Hasta el 2026-11-08 era claro y no se leía como el mismo
+             botón que el de arriba. */
+          className="boton-accion-b mt-5.5 flex h-13 items-center justify-center rounded-full font-bold transition-transform active:scale-[0.98] lg:mt-7.5 lg:inline-flex lg:h-14 lg:px-8.5"
         >
           Empezar mi bolso gratis
         </Link>

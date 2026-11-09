@@ -2,6 +2,9 @@ import "server-only";
 import { agruparEnPasos, listarBolsos, obtenerBolso, ordenCatalogo } from "@/lib/bolsos";
 import { listarCapsulas } from "@/lib/capsulas";
 import { enlacesDeCobro } from "@/lib/checkout";
+import { rutaDePago } from "@/lib/experimento-servidor";
+import { esNavegadorInterno } from "@/lib/pago-textos";
+import { detectarPais } from "@/lib/pais";
 import { preciosDeLaPagina } from "@/lib/precios";
 import { urlDeMiniatura, urlDelReproductor } from "@/lib/video";
 
@@ -51,11 +54,15 @@ export type DatosHome = Awaited<ReturnType<typeof cargarDatosHome>>;
 
 export async function cargarDatosHome() {
   const pr = await preciosDeLaPagina();
-  const [bolsos, capsulas, cobro] = await Promise.all([
+  const [bolsos, capsulas, cobro, rutaPago, { userAgent }] = await Promise.all([
     listarBolsos(),
     listarCapsulas(),
     enlacesDeCobro(),
+    rutaDePago(),
+    detectarPais(),
   ]);
+  /* El aviso "ábrelo en tu navegador": solo dentro de Instagram/Facebook. */
+  const enInstagram = esNavegadorInterno(userAgent);
 
   /* Las dos cifras del curso, calculadas UNA vez y pasadas a todas las
      secciones que las dicen (banda, Elizabeth, precio, cierre). Antes cada
@@ -125,6 +132,8 @@ export async function cargarDatosHome() {
     pr,
     capsulas,
     cobro,
+    rutaPago,
+    enInstagram,
     totalProyectos,
     totalVideos,
     fotosB,
